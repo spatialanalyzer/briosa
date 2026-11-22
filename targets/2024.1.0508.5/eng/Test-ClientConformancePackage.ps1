@@ -290,9 +290,10 @@ if ($env:Briosa__Worker__StartupTimeout -ne "__STARTUP__") {
 # the digest allow-list; listed and unlisted diagnostic codes and operation IDs;
 # values that only a linguistic comparison would accept; a warning written with
 # whitespace after "Level":; the server's timestamp-free placeholder for an
-# oversized record; warnings written out of time order; optionally a flood of
-# warnings; and truncated last lines of a killed writer, one of them after a
-# complete timestamp.
+# oversized record; warnings written out of time order; governed names written
+# with JSON escapes, and beside a differently cased name; optionally a flood of
+# warnings; truncated last lines of a killed writer, one of them after a complete
+# timestamp; and a newest record whose string cannot be decoded.
 $started = [DateTimeOffset]::UtcNow
 $records = [Collections.Generic.List[string]]::new()
 function Add-ServerRecord([int]$Offset, [string]$Level, [string]$Name, [hashtable]$Properties,
@@ -344,12 +345,26 @@ $records.Add('{"Level":"Warning","MessageTemplate":"LogRecordTooLarge","Properti
 foreach ($offset in @(374, 174, 274)) {
     Add-ServerRecord $offset "Warning" "WorkerStartPhase" @{ Phase = "start-failed"; Generation = 90 + [int][Math]::Floor($offset / 100) } -Id 1203
 }
+# Governed names written with JSON escapes: still DiagnosticCode and OperationId.
+$records.Add('{"Timestamp":"' + $started.AddMilliseconds(308).ToString("o") +
+    '","Level":"Warning","MessageTemplate":"WorkerTransition","Properties":{"Diagnostic\u0043ode":"escaped-unlisted-code",' +
+    '"Operation\u0049d":"escaped_operations.unlisted","ServerInstanceId":"0123456789abcdef0123456789abcdef",' +
+    '"EventId":{"Id":1201,"Name":"WorkerTransition"}}}')
+# A listed code beside a differently cased name that the digest does not govern.
+$records.Add('{"Timestamp":"' + $started.AddMilliseconds(309).ToString("o") +
+    '","Level":"Warning","MessageTemplate":"WorkerTransition","Properties":{"DiagnosticCode":"worker-starting",' +
+    '"diagnosticcode":"review-case-marker","ServerInstanceId":"0123456789abcdef0123456789abcdef",' +
+    '"EventId":{"Id":1201,"Name":"WorkerTransition"}}}')
 $flood = __FLOOD__
 for ($index = 1; $index -le $flood; $index++) {
     Add-ServerRecord (400 + $index) "Warning" "WorkerStartPhase" @{
         Phase = "start-failed"; Generation = 100000 + $index } -Id 1203
 }
 $records.Add('{"Timestamp":"' + $started.AddMilliseconds(2000).ToString("o") + '","Level":"Information","MessageTemplate":"Readin')
+# Valid JSON whose string cannot be decoded: it must not erase the timeline.
+$records.Add('{"Timestamp":"' + $started.AddMilliseconds(2500).ToString("o") +
+    '","Level":"Information","MessageTemplate":"WorkerTransition","Properties":{"DiagnosticCode":"\uD800",' +
+    '"EventId":{"Id":1201,"Name":"WorkerTransition"}}}')
 $records.Add('{"Timestamp":"2026-11-22T12:00:00')
 [IO.File]::WriteAllLines(
     (Join-Path $logDirectory "briosa-0123456789abcdef0123456789abcdef-20261122.jsonl"), $records)
@@ -510,8 +525,9 @@ switch ("__MODE__") {
                 # The oversized-record placeholder takes the time of the record before it.
                 $digestEvents[[Array]::IndexOf([string[]]$digestEvents, $ordinary[-1]) + 1] -like "+* s Warning LogRecordTooLarge" -and
                 $digest -contains "(58 earlier lower-severity records omitted; every warning and error is kept)" -and
-                # The two truncated lines and the marker file's line, none admitted.
-                $digest -contains "(3 malformed server log records skipped)") `
+                # The two truncated lines, the undecodable record and the marker file's
+                # line, none admitted.
+                $digest -contains "(4 malformed server log records skipped)") `
                 "The conformance runner printed an unexpected server log digest for $caseName."
             # Listed values print as the list's own entry; a value equal to a listed
             # one only linguistically, or one not on the list, is withheld.
@@ -536,6 +552,10 @@ switch ("__MODE__") {
                     $found
                 })
             Assert-Condition (@($warnings | Where-Object { $_ -like "* Warning WorkerStartPhase Phase=start-failed Generation=77" }).Count -eq 1 -and
+                # Escaped governed names are read; a differently cased name is not governed.
+                @($warnings | Where-Object { $_ -like "* Warning WorkerTransition OperationId=<withheld> DiagnosticCode=<withheld>" }).Count -eq 1 -and
+                @($warnings | Where-Object { $_ -like "* Warning WorkerTransition DiagnosticCode=worker-starting" }).Count -eq 1 -and
+                @($runnerOutput | Where-Object { $_ -clike "*review-case-marker*" -or $_ -clike "*escaped-unlisted*" -or $_ -clike "*escaped_operations*" }).Count -eq 0 -and
                 $inverted[0] -ge 0 -and $inverted[0] -lt $inverted[1] -and $inverted[1] -lt $inverted[2]) `
                 "The conformance runner did not keep or order the warnings by time for $caseName."
             # Sensitive-looking text inside printed properties, an event name, a
@@ -555,7 +575,7 @@ switch ("__MODE__") {
                 # A flood of warnings is kept in full, in order.
                 $floodWarnings = @($warnings | Where-Object { $_ -like "* Warning WorkerStartPhase Phase=start-failed Generation=1*" })
                 $floodGenerations = @($floodWarnings | ForEach-Object { [int]($_ -replace '^.*Generation=', '') })
-                Assert-Condition ($warnings.Count -eq $flood + 13 -and $floodWarnings.Count -eq $flood -and
+                Assert-Condition ($warnings.Count -eq $flood + 15 -and $floodWarnings.Count -eq $flood -and
                     $floodGenerations[0] -eq 100001 -and $floodGenerations[-1] -eq 100000 + $flood -and
                     @(for ($index = 1; $index -lt $floodGenerations.Count; $index++) {
                             if ($floodGenerations[$index] -ne $floodGenerations[$index - 1] + 1) { $index }
@@ -564,7 +584,7 @@ switch ("__MODE__") {
                     "The conformance runner did not keep every warning for $caseName."
             }
             else {
-                Assert-Condition ($warnings.Count -eq 13) `
+                Assert-Condition ($warnings.Count -eq 15) `
                     "The conformance runner did not keep every warning for $caseName."
             }
             if ($case.Mode -eq "timeout") {
@@ -578,11 +598,12 @@ switch ("__MODE__") {
                 # it held, never a value: the planted host name reaches no output.
                 $auditText = Get-Content -LiteralPath $auditPath -Raw
                 Assert-Condition ([string]::Equals($auditText,
-                        "default-ready DiagnosticCode 4$([Environment]::NewLine)default-ready OperationId 2$([Environment]::NewLine)",
+                        "default-ready DiagnosticCode 5$([Environment]::NewLine)default-ready OperationId 3$([Environment]::NewLine)",
                         [StringComparison]::Ordinal) -and
-                    @(foreach ($marker in @($sensitiveMarkers) + @("secret-build-host", "unlisted_operations", "worker-starting")) {
+                    @(foreach ($marker in @($sensitiveMarkers) + @("secret-build-host", "unlisted_operations", "worker-starting",
+                                "review-case-marker", "escaped-unlisted", "escaped_operations")) {
                             if ($auditText.Contains($marker)) { $marker } }).Count -eq 0) `
-                    "The conformance runner did not audit only counts for $($caseName): $auditText"
+                    "The conformance runner did not audit only counts for $caseName."
             }
             $dumpLines = @($runnerOutput | Where-Object { $_ -like "*heap dump*" })
             if ($case.Diagnostics -eq "none") {
@@ -645,7 +666,7 @@ switch ("__MODE__") {
         Set-EnvironmentValue "BRIOSA_CONFORMANCE_DIGEST_AUDIT" $null
     }
 
-    # A missing digest vocabulary, or one with a list missing, withholds every
+    # A missing digest vocabulary, or one with a list missing or empty, withholds every
     # DiagnosticCode and OperationId but keeps the rest of the digest and the runner
     # marks (#371).
     $vocabularyFixturePath = Join-Path $temporaryRoot "failing-fixture-vocabulary.ps1"
@@ -661,16 +682,21 @@ switch ("__MODE__") {
         Set-EnvironmentValue $name $null
     }
     try {
-        foreach ($variant in @("missing", "partial")) {
+        foreach ($variant in @("missing", "partial", "empty")) {
             if ($variant -eq "missing") {
                 Remove-Item -LiteralPath $vocabularyPath -Force
             }
             else {
                 $complete = Get-Content -LiteralPath $vocabularyBackup -Raw | ConvertFrom-Json
-                [IO.File]::WriteAllText($vocabularyPath, ([ordered]@{
-                            schema_version = 1
-                            diagnostic_codes = @($complete.diagnostic_codes)
-                        } | ConvertTo-Json -Depth 3), [Text.UTF8Encoding]::new($false))
+                $variantDocument = [ordered]@{
+                    schema_version = 1
+                    diagnostic_codes = @($complete.diagnostic_codes)
+                }
+                if ($variant -eq "empty") {
+                    $variantDocument["operation_ids"] = @()
+                }
+                [IO.File]::WriteAllText($vocabularyPath, ($variantDocument | ConvertTo-Json -Depth 3),
+                    [Text.UTF8Encoding]::new($false))
             }
             $vocabularyOutput = [Collections.Generic.List[string]]::new()
             $vocabularyFailure = $null
@@ -822,7 +848,7 @@ catch {
             "The conformance runner did not report the temporary files it could not remove ($lockCase)."
         # The audit file holds only vocabulary misses; an unreadable log is a notice.
         Assert-Condition ($lockOutput -contains "(1 server log files of default-ready could not be read for the digest audit)" -and
-            (-not (Test-Path -LiteralPath $lockAudit) -or (Get-Item -LiteralPath $lockAudit).Length -eq 0)) `
+            -not (Test-Path -LiteralPath $lockAudit)) `
             "The conformance runner put an unreadable log into the digest audit ($lockCase)."
         if ($lockCase -eq "pass") {
             Assert-Condition ($lockExitCode -eq 0 -and

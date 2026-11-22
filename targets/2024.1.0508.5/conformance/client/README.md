@@ -81,17 +81,27 @@ list's own entry, never the record's:
   in the runner. The lists for `DiagnosticCode` and `OperationId` ship beside
   it in `runner/digest-vocabulary.json`. A value missing from them prints as
   `<withheld>`. If the file is missing, or fails validation (its schema
-  version, both lists, and each entry's shape), both lists are left empty with
-  a notice: every value of those two properties prints as `<withheld>`, and the
-  rest of the digest and the runner marks still print.
+  version, both lists present and non-empty, and each entry's shape), both
+  lists are left empty with a notice: every value of those two properties
+  prints as `<withheld>`, and the rest of the digest and the runner marks still
+  print.
+
+The closed lists govern what the runner prints to stdout and stderr and writes
+to the digest and the audit file. They do not govern the server log files the
+runner copies to the diagnostics directory for a rejected scenario: those hold
+whatever the server logged, as before, and this repository's retained-client
+workflow uploads that directory when a job fails. The fixture's own stderr is
+also printed in full, as before.
 
 `digest-vocabulary.json` is maintained by hand. It lists only values that the
 server, the worker or the fake worker can log in those two properties: the
-diagnostic code literals in their sources, including the
-`worker-stop-<phase>-<outcome>` codes the supervisor composes, and the
-operation IDs the scenarios call. Literals that only look like codes, such as
-scenario names or protocol type tags, stay out. When a change adds a code, add
-it in both targets.
+diagnostic code literals in their sources, the
+`worker-stop-<phase>-<outcome>` codes that
+`WorkerProcessSupervisor.StopDiagnosticCode` composes, and the operation IDs
+the scenarios call. Literals that only look like codes, such as scenario names
+or protocol type tags, stay out. When a change adds a code, add it in both
+targets. If a producer writes sensitive data into `DiagnosticCode` or
+`OperationId`, correct the producer; do not list the value.
 
 Set `BRIOSA_CONFORMANCE_DIGEST_AUDIT` to a file path to have the runner append,
 for each scenario whose server log holds a `DiagnosticCode` or `OperationId`
@@ -102,21 +112,28 @@ a notice, not in the file. This repository's retained-client gate sets it for
 every scenario it runs with the retained clients and fails when the file is not
 empty, so a code the server starts producing shows up as a failure there rather
 than being withheld silently. To find the value, compare the vocabulary with
-the diagnostic code literals in the sources, or with the operation IDs the
-named scenario calls, and add it to `digest-vocabulary.json`.
+the diagnostic code literals in the sources and the codes
+`WorkerProcessSupervisor.StopDiagnosticCode` composes, or with the operation IDs
+the named scenario calls, and add it to `digest-vocabulary.json`. If the audit
+file cannot be written, the runner prints a notice and the gate sees no misses.
 
 The digest keeps the latest 200 lower-severity records by timestamp across all
 of a scenario's log files, says how many earlier ones it omitted, and keeps
 every warning and error. It reads each log file as a stream and skips any line
 longer than 64 KiB as it streams past; server records are at most 16 KiB. Each
-record is parsed, and its top-level `Level` read, before it enters either
-path, so a truncated or malformed record, such as the last write of a killed
-server, never displaces a valid one; malformed records are counted in their
-own notice. Warnings and errors are spooled to the runner's temporary directory
-in bounded chunks, each sorted by timestamp and then reading order, and the
-chunks are merged back. Memory stays bounded however many there are, and
-records that reached the log out of time order, as concurrent producers can
-write them, still print in time order. The server's timestamp-free
+record is converted in full, with its top-level `Level`, before it enters
+either path, so a truncated, malformed or undecodable record, such as the last
+write of a killed server, never displaces a valid one and never reaches the
+rendering; such records are counted in their own notice. Only the exact
+top-level `Level` property decides a record's path: the last one wins if it is
+repeated, an escaped property name is recognized, and a nested `Level` does not
+count. Property names are compared ordinally, so a differently cased name is not
+a governed property. Warnings and errors are spooled to the runner's temporary
+directory in chunks of up to 4,096 records, or until a chunk reaches 8 Mi
+characters, checked after each record is added. Each chunk is sorted by
+timestamp and then reading order, and the merge holds one open reader and one
+current record per chunk, so records that reached the log out of time order, as
+concurrent producers can write them, still print in time order. The server's timestamp-free
 `LogRecordTooLarge` placeholder for an oversized record is shown as a warning
 at the time of the record before it. A file it cannot read is counted and
 skipped. The runner's fixture start and end marks always appear in the same

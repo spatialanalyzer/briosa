@@ -166,7 +166,9 @@ jobs:
             throw ('The conformance scenarios produced diagnostic codes or operation IDs that the digest vocabulary does not list (scenario, property, count above). ' +
               'CI does not show the values. To find them on your own machine, compare targets/<target>/conformance/client/v1/digest-vocabulary.json ' +
               'with the kebab-case diagnostic code literals in targets/<target>/src and targets/<target>/tests/Briosa.SmokeWorker, ' +
-              'and with the operation IDs the named scenario calls. Review each missing value and add it to the vocabulary in both targets.')
+              'with the codes WorkerProcessSupervisor.StopDiagnosticCode composes, and with the operation IDs the named scenario calls. ' +
+              'Review each missing value and add it to the vocabulary in both targets. If a producer writes sensitive data into DiagnosticCode ' +
+              'or OperationId, correct the producer instead.')
           }
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:

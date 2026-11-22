@@ -131,8 +131,9 @@ $digestLevels = New-OrdinalSet @("Verbose", "Debug", "Information", "Warning", "
 $digestWithheld = "<withheld>"
 # DiagnosticCode and OperationId are open in the server, so their lists ship in the
 # package (digest-vocabulary.json). Both lists are validated before either is used. A
-# missing, malformed or partial file leaves both empty, so every value of the two
-# properties prints as <withheld>; the rest of the digest is unaffected.
+# missing, malformed or partial file, or one with an empty list, leaves both empty, so
+# every value of the two properties prints as <withheld>; the rest of the digest is
+# unaffected.
 $digestVocabularyShapes = [ordered]@{
     diagnostic_codes = '\A[a-z][a-z0-9]*(?:-[a-z][a-z0-9]*){1,11}\z'
     operation_ids = '\A[a-z]+(?:_[a-z]+)*_operations\.[a-z][a-z0-9]*(?:_[a-z0-9]+)*\z'
@@ -166,6 +167,9 @@ try {
                     -not $set.Add($value)) {
                     throw "The digest vocabulary holds an invalid entry."
                 }
+            }
+            if ($set.Count -eq 0) {
+                throw "The digest vocabulary holds an empty list."
             }
             $loaded[$list] = $set
         }
@@ -742,7 +746,7 @@ if ($PSCmdlet.ParameterSetName -eq "TimeoutDiagnostics") {
 function Get-JsonFields {
     param([Parameter(Mandatory)][Text.Json.JsonElement]$Element)
 
-    $fields = @{}
+    $fields = [hashtable]::new([StringComparer]::Ordinal)
     if ($Element.ValueKind -eq [Text.Json.JsonValueKind]::Object) {
         foreach ($property in $Element.EnumerateObject()) {
             $fields[$property.Name] = $property.Value
@@ -1141,9 +1145,7 @@ function Read-ServerLog {
                         continue
                     }
                     if ($Mode -eq "Audit") {
-                        if ($line.Contains('"DiagnosticCode"') -or $line.Contains('"OperationId"')) {
-                            Add-AuditValues -Log $log -Line $line
-                        }
+                        Add-AuditValues -Log $log -Line $line
                         continue
                     }
                     $sequence = $log.Sequence++
@@ -1154,28 +1156,23 @@ function Read-ServerLog {
                         $important = $true
                     }
                     else {
-                        # Parsed before it may enter either path: a truncated or malformed
-                        # record never displaces a valid one.
-                        $head = $null
+                        # Converted in full before it may enter either path: a truncated,
+                        # malformed or undecodable record never displaces a valid one, and
+                        # never reaches the rendering.
+                        $record = $null
                         try {
-                            $document = [Text.Json.JsonDocument]::Parse($line)
-                            try {
-                                $head = Get-RecordHead $document.RootElement
-                            }
-                            finally {
-                                $document.Dispose()
-                            }
+                            $record = ConvertFrom-ServerLogLine $line
                         }
                         catch {
-                            $head = $null
+                            $record = $null
                         }
-                        if ($null -eq $head) {
+                        if ($null -eq $record) {
                             $log.MalformedRecords++
                             continue
                         }
-                        $ticks = $head.Ticks
+                        $ticks = $record.Ticks
                         $previousTicks = $ticks
-                        $important = $null -ne (Get-CanonicalValue -Set $digestImportantLevels -Value $head.Level)
+                        $important = $null -ne (Get-CanonicalValue -Set $digestImportantLevels -Value $record.Level)
                     }
                     if ($important) {
                         # A lone carriage return would split a spooled line when it is read back.
