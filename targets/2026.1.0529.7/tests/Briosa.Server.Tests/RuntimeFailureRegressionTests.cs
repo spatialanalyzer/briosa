@@ -4,6 +4,7 @@ using Briosa.Server.Services;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
 using Grpc.Core;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Briosa.Server.Tests;
@@ -324,6 +325,118 @@ public sealed class RuntimeFailureRegressionTests
         Assert.Equal(2, supervisor.ExecutionSnapshot.TerminalRequests);
         Assert.Equal(0, supervisor.ExecutionSnapshot.QueuedRequests);
         Assert.Equal(WorkerExecutionStatus.Unavailable, (await supervisor.ExecuteAsync(Plain())).Status);
+    }
+
+    // #405: once a consumer failure closes the queue, dispatch rejects. Health, discovery
+    // and status agree from that moment, also while retirement waits for the gate.
+    [Fact]
+    public async Task ConsumerFailureReportsNotReadyFromTheMomentAdmissionCloses()
+    {
+        var worker = new CoordinatedWorker { HoldExecution = true, UnexpectedFailure = true };
+        var replacement = new CoordinatedWorker { ReadyDisconnected = true };
+        await using var workerLifetime = worker.ConfigureAwait(true);
+        await using var replacementLifetime = replacement.ConfigureAwait(true);
+        var held = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        // Virtual time, and the seam holds retirement after the queue closes and before
+        // it waits for the gate: no deadline or scheduling delay decides the outcome.
+        var supervisor = new WorkerProcessSupervisor(new SequenceFactory(worker, replacement),
+            new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1),
+                TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1)),
+            TestDurationClasses.SyntheticQuickPolicy(TimeSpan.FromSeconds(5), 2), new HeartbeatTestClock())
+        {
+            ConsumerFailureRetirementHold = () =>
+            {
+                held.TrySetResult();
+                return release.Task;
+            }
+        };
+        await using var supervisorLifetime = supervisor.ConfigureAwait(true);
+        var health = new WorkerReadinessHealthCheck(supervisor);
+        var discovery = new ServerDiscoveryService(supervisor, new BuildIdentityProvider(),
+            OperationPolicyTests.CreatePolicy());
+        var status = new SpatialAnalyzerSdkLifecycleStateProjection(supervisor);
+        Assert.True((await supervisor.StartAsync()).Succeeded);
+        var ready = supervisor.Current;
+        Assert.True(ready.ReadyForExecution);
+        Assert.True(discovery.CreateServerInfo().ReadyForMp);
+
+        var active = supervisor.ExecuteAsync(Plain());
+        await worker.ExecutionEntered.Task.WaitAsync(HangGuard);
+        var queued = supervisor.ExecuteAsync(Plain());
+        worker.ReleaseExecution.TrySetResult();
+        await held.Task.WaitAsync(HangGuard);
+        WorkerLifecycleSnapshot closed;
+        try
+        {
+            // Retirement has not run: the generation and its worker are still live.
+            closed = supervisor.Current;
+            Assert.Equal(ready.Generation, closed.Generation);
+            Assert.Equal(WorkerLifecycleState.Ready, closed.State);
+            Assert.False(worker.HasExited);
+            Assert.False(active.IsCompleted);
+            Assert.False(queued.IsCompleted);
+
+            Assert.True(closed.StateRevision > ready.StateRevision);
+            Assert.False(closed.AdmissionOpen);
+            Assert.False(closed.ReadyForExecution);
+            Assert.Equal("worker-execution-consumer-failed", closed.DiagnosticCode);
+            Assert.Equal(HealthStatus.Unhealthy,
+                (await health.CheckHealthAsync(new HealthCheckContext())).Status);
+            Assert.False(discovery.CreateServerInfo().ReadyForMp);
+            var reported = status.Current;
+            Assert.False(reported.ReadyForMp);
+            Assert.Equal(global::Briosa.SpatialAnalyzerSdkState.Running, reported.SdkState);
+            Assert.Equal((ulong)closed.StateRevision, reported.StateRevision);
+            var rejected = await supervisor.ExecuteAsync(Plain()).WaitAsync(HangGuard);
+            Assert.Equal(WorkerExecutionStatus.Unavailable, rejected.Status);
+            Assert.Equal(WorkerExecutionDisposition.NotStarted, rejected.ExecutionDisposition);
+            Assert.Equal("worker-admission-closed", rejected.DiagnosticCode);
+            Assert.Equal(1, worker.ExecuteCount);
+        }
+        finally
+        {
+            release.TrySetResult();
+        }
+
+        // Cleanup finishes: the generation stays faulted with admission closed, records
+        // the incident and the disposition, and waits for explicit recovery.
+        var failed = await active.WaitAsync(HangGuard);
+        var pending = await queued.WaitAsync(HangGuard);
+        Assert.Equal(WorkerExecutionStatus.WorkerFailure, failed.Status);
+        Assert.Equal(WorkerExecutionDisposition.StartedOutcomeUnknown, failed.ExecutionDisposition);
+        Assert.Equal(WorkerExecutionStatus.Unavailable, pending.Status);
+        Assert.Equal(WorkerExecutionDisposition.NotStarted, pending.ExecutionDisposition);
+        var faulted = supervisor.Current;
+        Assert.Equal(ready.Generation, faulted.Generation);
+        Assert.Equal(WorkerLifecycleState.Degraded, faulted.State);
+        Assert.False(faulted.AdmissionOpen);
+        Assert.False(faulted.ReadyForExecution);
+        Assert.Equal("worker-execution-consumer-failed", faulted.DiagnosticCode);
+        Assert.Equal(WorkerConnectionState.Faulted, faulted.Connection!.State);
+        Assert.Equal(ready.Generation, faulted.LastIncident!.Generation);
+        Assert.Equal("worker-execution-consumer-failed", faulted.LastIncident.DiagnosticCode);
+        Assert.Equal("regression.plain", faulted.LastIncident.OperationId);
+        Assert.Equal(WorkerExecutionDisposition.StartedOutcomeUnknown, faulted.LastIncident.ExecutionDisposition);
+        Assert.True(worker.HasExited);
+        Assert.Equal(HealthStatus.Unhealthy,
+            (await health.CheckHealthAsync(new HealthCheckContext())).Status);
+        Assert.False(discovery.CreateServerInfo().ReadyForMp);
+        Assert.Equal(global::Briosa.SpatialAnalyzerSdkState.Faulted, status.Current.SdkState);
+        Assert.Equal(global::Briosa.SpatialAnalyzerSdkRecoveryState.RecoveryAvailable,
+            status.Current.RecoveryState);
+        Assert.Equal(WorkerExecutionStatus.Unavailable, (await supervisor.ExecuteAsync(Plain())).Status);
+
+        // No snapshot of the failed generation reports open admission after the queue closed.
+        Assert.All(supervisor.History.Where(snapshot => snapshot.Generation == ready.Generation &&
+            snapshot.StateRevision >= closed.StateRevision), snapshot => Assert.False(snapshot.AdmissionOpen));
+
+        // Explicit recovery replaces the generation and never replays the interrupted call.
+        Assert.True((await supervisor.RecoverSdkAsync(ready.Generation)).Succeeded);
+        Assert.Equal(ready.Generation + 1, supervisor.Current.Generation);
+        Assert.Equal(WorkerLifecycleState.Ready, supervisor.Current.State);
+        Assert.Equal(1, worker.ExecuteCount);
+        Assert.Equal(0, replacement.ExecuteCount);
     }
 
     [Fact]
