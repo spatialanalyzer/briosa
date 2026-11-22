@@ -106,8 +106,9 @@ jobs:
           # The packaged runner copies a failing scenario's full client output
           # and server logs here.
           BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY: ${{ github.workspace }}/conformance-diagnostics
-          # The runner appends each diagnostic code or operation ID that a
-          # scenario's server log holds but its digest vocabulary does not list.
+          # For each scenario whose server log holds diagnostic codes or operation
+          # IDs that the digest vocabulary does not list, the runner appends the
+          # scenario, the property and a count, never the value.
           BRIOSA_CONFORMANCE_DIGEST_AUDIT: ${{ github.workspace }}/conformance-digest-audit.txt
         run: |
           if ($env:CLIENT_PUBLISHED -eq 'true') {
@@ -157,12 +158,15 @@ jobs:
         if: ${{ !cancelled() }}
         shell: pwsh
         run: |
-          # A value the digest does not list would print as <withheld>; list it
-          # in conformance/client/v1/digest-vocabulary.json instead.
+          # A value the digest does not list prints as <withheld>. The audit holds
+          # only counts, so this log never shows the value itself.
           $audit = Join-Path $env:GITHUB_WORKSPACE 'conformance-digest-audit.txt'
           if ((Test-Path -LiteralPath $audit) -and (Get-Item -LiteralPath $audit).Length -gt 0) {
             Get-Content -LiteralPath $audit | ForEach-Object { Write-Host $_ }
-            throw 'The conformance scenarios produced diagnostic codes or operation IDs that the digest vocabulary does not list.'
+            throw ('The conformance scenarios produced diagnostic codes or operation IDs that the digest vocabulary does not list (scenario, property, count above). ' +
+              'CI does not show the values. To find them on your own machine, compare targets/<target>/conformance/client/v1/digest-vocabulary.json ' +
+              'with the kebab-case diagnostic code literals in targets/<target>/src and targets/<target>/tests/Briosa.SmokeWorker, ' +
+              'and with the operation IDs the named scenario calls. Review each missing value and add it to the vocabulary in both targets.')
           }
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:

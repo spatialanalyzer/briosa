@@ -79,31 +79,50 @@ list's own entry, never the record's:
 - Each property is checked on its own. Numbers must be integers, and every
   other property must be on its list. The lists for enum-like properties are
   in the runner. The lists for `DiagnosticCode` and `OperationId` ship beside
-  it in `runner/digest-vocabulary.json`; a value missing from them, or a
-  missing or unreadable file, prints as `<withheld>`.
+  it in `runner/digest-vocabulary.json`. A value missing from them prints as
+  `<withheld>`. If the file is missing, or fails validation (its schema
+  version, both lists, and each entry's shape), both lists are left empty with
+  a notice: every value of those two properties prints as `<withheld>`, and the
+  rest of the digest and the runner marks still print.
 
-Set `BRIOSA_CONFORMANCE_DIGEST_AUDIT` to a file path to have the runner append
-each `DiagnosticCode` or `OperationId` that a scenario's server log holds but
-the vocabulary does not list, one `<scenario> <property> <value>` line each. A
-value outside the vocabulary's shapes is reported as `<unprintable>`. This
-repository's retained-client gate sets it for every scenario it runs with the
-retained clients and fails when the file is not empty, so a code the server
-starts producing shows up as a failure there rather than being withheld
-silently. Add the value to `digest-vocabulary.json` to fix it.
+`digest-vocabulary.json` is maintained by hand. It lists only values that the
+server, the worker or the fake worker can log in those two properties: the
+diagnostic code literals in their sources, including the
+`worker-stop-<phase>-<outcome>` codes the supervisor composes, and the
+operation IDs the scenarios call. Literals that only look like codes, such as
+scenario names or protocol type tags, stay out. When a change adds a code, add
+it in both targets.
+
+Set `BRIOSA_CONFORMANCE_DIGEST_AUDIT` to a file path to have the runner append,
+for each scenario whose server log holds a `DiagnosticCode` or `OperationId`
+that the vocabulary does not list, one `<scenario> <property> <count>` line.
+The file never holds a value: an unlisted value may be anything, and the file
+can reach public CI logs. A server log file that cannot be read is reported as
+a notice, not in the file. This repository's retained-client gate sets it for
+every scenario it runs with the retained clients and fails when the file is not
+empty, so a code the server starts producing shows up as a failure there rather
+than being withheld silently. To find the value, compare the vocabulary with
+the diagnostic code literals in the sources, or with the operation IDs the
+named scenario calls, and add it to `digest-vocabulary.json`.
 
 The digest keeps the latest 200 lower-severity records by timestamp across all
 of a scenario's log files, says how many earlier ones it omitted, and keeps
 every warning and error. It reads each log file as a stream and skips any line
-longer than 64 KiB as it streams past; server records are at most 16 KiB.
-Warnings and errors are spooled to the runner's temporary directory while the
-logs are read, then merged back in time order, so memory stays bounded however
-many there are. The server's timestamp-free `LogRecordTooLarge` placeholder for
-an oversized record is shown as a warning at the time of the record before it.
-A file it cannot read is counted and skipped. The runner's fixture start and
-end marks always appear in the same timeline as `Runner` lines. The server
-writes its file log unbuffered, so the log still holds its events after a
-forced kill. The digest is also saved as `server-log-digest.txt` with the other
-diagnostics.
+longer than 64 KiB as it streams past; server records are at most 16 KiB. Each
+record is parsed, and its top-level `Level` read, before it enters either
+path, so a truncated or malformed record, such as the last write of a killed
+server, never displaces a valid one; malformed records are counted in their
+own notice. Warnings and errors are spooled to the runner's temporary directory
+in bounded chunks, each sorted by timestamp and then reading order, and the
+chunks are merged back. Memory stays bounded however many there are, and
+records that reached the log out of time order, as concurrent producers can
+write them, still print in time order. The server's timestamp-free
+`LogRecordTooLarge` placeholder for an oversized record is shown as a warning
+at the time of the record before it. A file it cannot read is counted and
+skipped. The runner's fixture start and end marks always appear in the same
+timeline as `Runner` lines. The server writes its file log unbuffered, so the
+log still holds its events after a forced kill. The digest is also saved as
+`server-log-digest.txt` with the other diagnostics.
 
 The server's lifecycle records give the digest its phase timeline: when the
 endpoint started listening, each worker start sub-phase, and each lifecycle

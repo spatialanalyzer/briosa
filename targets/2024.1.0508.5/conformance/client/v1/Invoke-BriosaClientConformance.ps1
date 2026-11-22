@@ -130,23 +130,56 @@ $digestEventNames = @{
 $digestLevels = New-OrdinalSet @("Verbose", "Debug", "Information", "Warning", "Error", "Fatal")
 $digestWithheld = "<withheld>"
 # DiagnosticCode and OperationId are open in the server, so their lists ship in the
-# package (digest-vocabulary.json). A missing or unreadable list withholds them all.
+# package (digest-vocabulary.json). Both lists are validated before either is used. A
+# missing, malformed or partial file leaves both empty, so every value of the two
+# properties prints as <withheld>; the rest of the digest is unaffected.
+$digestVocabularyShapes = [ordered]@{
+    diagnostic_codes = '\A[a-z][a-z0-9]*(?:-[a-z][a-z0-9]*){1,11}\z'
+    operation_ids = '\A[a-z]+(?:_[a-z]+)*_operations\.[a-z][a-z0-9]*(?:_[a-z0-9]+)*\z'
+}
 $digestVocabulary = @{
     diagnostic_codes = New-OrdinalSet
     operation_ids = New-OrdinalSet
 }
 try {
-    $vocabularyDocument = [IO.File]::ReadAllText($vocabularyPath) | ConvertFrom-Json
-    foreach ($list in @("diagnostic_codes", "operation_ids")) {
-        foreach ($value in @($vocabularyDocument.$list)) {
-            if ($value -is [string]) {
-                [void]$digestVocabulary[$list].Add($value)
-            }
+    $vocabularyJson = [Text.Json.JsonDocument]::Parse([IO.File]::ReadAllText($vocabularyPath))
+    try {
+        $root = $vocabularyJson.RootElement
+        # Typed, so that PowerShell can pick the TryGetProperty overload.
+        $version = [Text.Json.JsonElement]::new()
+        if ($root.ValueKind -ne [Text.Json.JsonValueKind]::Object -or
+            -not $root.TryGetProperty("schema_version", [ref]$version) -or
+            -not [string]::Equals($version.GetRawText(), "1", $ordinal)) {
+            throw "The digest vocabulary has an unknown schema."
         }
+        $loaded = @{}
+        foreach ($list in $digestVocabularyShapes.Keys) {
+            $entries = [Text.Json.JsonElement]::new()
+            if (-not $root.TryGetProperty($list, [ref]$entries) -or
+                $entries.ValueKind -ne [Text.Json.JsonValueKind]::Array) {
+                throw "The digest vocabulary lacks a list."
+            }
+            $set = New-OrdinalSet
+            foreach ($entry in $entries.EnumerateArray()) {
+                $value = $(if ($entry.ValueKind -eq [Text.Json.JsonValueKind]::String) { $entry.GetString() })
+                if ($null -eq $value -or $value.Length -gt 128 -or $value -cnotmatch $digestVocabularyShapes[$list] -or
+                    -not $set.Add($value)) {
+                    throw "The digest vocabulary holds an invalid entry."
+                }
+            }
+            $loaded[$list] = $set
+        }
+        # Installed together, only once both lists are valid.
+        foreach ($list in $digestVocabularyShapes.Keys) {
+            $digestVocabulary[$list].UnionWith($loaded[$list])
+        }
+    }
+    finally {
+        $vocabularyJson.Dispose()
     }
 }
 catch {
-    Write-Host "(the digest vocabulary could not be read; diagnostic codes and operation IDs print as $digestWithheld)"
+    Write-Host "(the digest vocabulary is missing or invalid; diagnostic codes and operation IDs print as $digestWithheld)"
 }
 $digestFields = [ordered]@{
     Rpc = @{ Allowed = (New-OrdinalSet @(
@@ -173,20 +206,20 @@ $digestFields = [ordered]@{
     MpResultCode = @{ Integer = $true }
     DiagnosticCode = @{ Allowed = $digestVocabulary["diagnostic_codes"] }
 }
-# The shapes the digest audit may name in its report; anything else is reported
-# only as unprintable.
-$digestAuditShapes = @{
-    DiagnosticCode = @{ MaxLength = 96; Pattern = '\A[a-z][a-z0-9]*(?:-[a-z][a-z0-9]*){1,11}\z' }
-    OperationId = @{ MaxLength = 128; Pattern = '\A[a-z]+(?:_[a-z]+)*_operations\.[a-z][a-z0-9]*(?:_[a-z0-9]+)*\z' }
-}
 # The digest keeps the latest 200 lower-severity records by timestamp, across all of
-# a scenario's log files, and every warning and error. Warnings and errors are
-# spooled to disk while the logs are read, so memory stays bounded however many there
-# are. Server records are at most 16 KiB, so a longer line is not a server record and
-# is skipped as it streams past.
+# a scenario's log files, and every warning and error. A record is parsed, and its
+# top-level Level read, before it enters either path. Warnings and errors are spooled
+# to disk in bounded chunks, each sorted by timestamp and reading order, and the chunks
+# are merged back, so memory stays bounded however many there are and records that
+# reached the log out of time order still print in time order. Server records are at
+# most 16 KiB, so a longer line is not a server record and is skipped as it streams
+# past.
 $digestTailLimit = 200
 $digestMaximumLineLength = 65536
 $digestReadBlockCharacters = 262144
+$digestSpoolChunkRecords = 4096
+$digestSpoolChunkCharacters = 8388608
+$digestImportantLevels = New-OrdinalSet @("Warning", "Error", "Fatal")
 
 function Get-PackageProcesses {
     $expectedPaths = @($serverPath, $workerPath, $applicationPath) |
@@ -741,7 +774,7 @@ function Get-JsonInteger {
 
 function Get-CanonicalValue {
     param(
-        [Parameter(Mandatory)][Collections.Generic.HashSet[string]]$Set,
+        [Parameter(Mandatory)][AllowEmptyCollection()][Collections.Generic.HashSet[string]]$Set,
         [AllowNull()][string]$Value
     )
 
@@ -776,25 +809,30 @@ function ConvertTo-DigestValue {
     return $(if ($null -ne $canonical) { $canonical } else { $digestWithheld })
 }
 
-function Get-LineTimestampTicks {
-    param([Parameter(Mandatory)][string]$Line)
+function Get-RecordHead {
+    param([Parameter(Mandatory)][Text.Json.JsonElement]$Root)
 
-    # Server records start with their UTC timestamp, so the time is read without
-    # parsing the whole record. Returns $null for a record without one.
-    $prefix = '{"Timestamp":"'
-    if (-not $Line.StartsWith($prefix, $ordinal)) {
+    # A parsed record's UTC timestamp and its top-level Level text (null when absent),
+    # or $null for a record that is not an object with a valid timestamp.
+    if ($Root.ValueKind -ne [Text.Json.JsonValueKind]::Object) {
         return $null
     }
-    $end = $Line.IndexOf('"', $prefix.Length, $ordinal)
-    if ($end -lt 0 -or $end - $prefix.Length -gt 40) {
+    # Typed, so that PowerShell can pick the TryGetProperty overload.
+    $element = [Text.Json.JsonElement]::new()
+    if (-not $Root.TryGetProperty("Timestamp", [ref]$element) -or
+        $element.ValueKind -ne [Text.Json.JsonValueKind]::String) {
         return $null
     }
     $time = [DateTimeOffset]::MinValue
-    if ([DateTimeOffset]::TryParse($Line.Substring($prefix.Length, $end - $prefix.Length), $invariantCulture,
+    if (-not [DateTimeOffset]::TryParse($element.GetString(), $invariantCulture,
             [Globalization.DateTimeStyles]::AssumeUniversal, [ref]$time)) {
-        return $time.UtcTicks
+        return $null
     }
-    return $null
+    $level = $null
+    if ($Root.TryGetProperty("Level", [ref]$element) -and $element.ValueKind -eq [Text.Json.JsonValueKind]::String) {
+        $level = $element.GetString()
+    }
+    return [pscustomobject]@{ Ticks = $time.UtcTicks; Level = $level }
 }
 
 function Test-LogRecordTooLarge {
@@ -828,14 +866,13 @@ function ConvertFrom-ServerLogLine {
         return $null
     }
     try {
-        $fields = Get-JsonFields $document.RootElement
-        $timestamp = Get-JsonString $fields["Timestamp"]
-        $time = [DateTimeOffset]::MinValue
-        if ($null -eq $timestamp -or -not [DateTimeOffset]::TryParse(
-                $timestamp, $invariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal, [ref]$time)) {
+        # The same timestamp and Level that admitted the record to the digest.
+        $head = Get-RecordHead $document.RootElement
+        if ($null -eq $head) {
             return $null
         }
-        $level = Get-CanonicalValue -Set $digestLevels -Value (Get-JsonString $fields["Level"])
+        $fields = Get-JsonFields $document.RootElement
+        $level = Get-CanonicalValue -Set $digestLevels -Value $head.Level
         if ($null -eq $level) {
             $level = "UnknownLevel"
         }
@@ -872,7 +909,7 @@ function ConvertFrom-ServerLogLine {
         }
         $instance = Get-JsonString $properties["ServerInstanceId"]
         return [pscustomobject]@{
-            Ticks = $time.UtcTicks
+            Ticks = $head.Ticks
             Level = $level
             Name = $name
             Instance = $(if ($null -ne $instance -and $instance -cmatch '\A[0-9a-f]{32}\z') { $instance })
@@ -996,12 +1033,10 @@ function Add-AuditValues {
                 continue
             }
             $value = Get-JsonString $properties[$field]
-            if ($null -ne (Get-CanonicalValue -Set $digestFields[$field]["Allowed"] -Value $value)) {
-                continue
+            if ($null -eq (Get-CanonicalValue -Set $digestFields[$field]["Allowed"] -Value $value)) {
+                # Only the count: an unlisted value is never written anywhere.
+                $Log.Unlisted[$field]++
             }
-            $shape = $digestAuditShapes[$field]
-            $printable = $null -ne $value -and $value.Length -le $shape.MaxLength -and $value -cmatch $shape.Pattern
-            [void]$Log.Unlisted.Add("$field $(if ($printable) { $value } else { '<unprintable>' })")
         }
     }
     catch {
@@ -1011,11 +1046,39 @@ function Add-AuditValues {
     }
 }
 
+function Save-SpoolChunk {
+    param(
+        [Parameter(Mandatory)][object]$Log,
+        [Parameter(Mandatory)][AllowEmptyCollection()][object]$Chunk,
+        [Parameter(Mandatory)][string]$SpoolRoot
+    )
+
+    # Writes the buffered warnings and errors as one spool file, sorted by timestamp
+    # and reading order, and empties the buffer.
+    if ($Chunk.Count -eq 0) {
+        return
+    }
+    $Chunk.Sort()
+    $spoolPath = Join-Path $SpoolRoot "$($Log.Spools.Count).spool"
+    $writer = [IO.StreamWriter]::new($spoolPath, $false, [Text.UTF8Encoding]::new($false))
+    try {
+        foreach ($entry in $Chunk) {
+            $writer.WriteLine("$($entry.Item1)`t$($entry.Item2)`t$($entry.Item3)")
+        }
+    }
+    finally {
+        $writer.Dispose()
+    }
+    $Log.Spools.Add($spoolPath)
+    $Chunk.Clear()
+    $Log.ChunkCharacters = 0
+}
+
 # One streamed pass over a scenario's server log files. In digest mode it keeps the
-# latest lower-severity lines in one bounded, timestamp-ordered queue across all files
-# and spools every warning and error to a per-file spool. In phase mode it keeps only
-# the first endpoint and lifecycle completion records. In audit mode it collects the
-# DiagnosticCode and OperationId values the vocabulary does not list. A file that
+# latest lower-severity records in one bounded, timestamp-ordered queue across all
+# files and spools every warning and error in sorted chunks. In phase mode it keeps
+# only the first endpoint and lifecycle completion records. In audit mode it counts
+# the DiagnosticCode and OperationId values the vocabulary does not list. A file that
 # cannot be read is counted and skipped; it never loses the rest.
 function Read-ServerLog {
     param(
@@ -1028,16 +1091,19 @@ function Read-ServerLog {
     $log = [pscustomobject]@{
         Files = 0
         UnreadableFiles = 0
-        UnreadableLines = 0
+        MalformedRecords = 0
+        LongLines = 0
         Instances = [Collections.Generic.List[string]]::new()
         # Ordered by timestamp, then by reading order, which keeps a file's own order.
         Tail = [Collections.Generic.PriorityQueue[string, ValueTuple[long, long]]]::new()
         OrdinarySeen = 0
         Sequence = [long]0
+        Chunk = [Collections.Generic.List[ValueTuple[long, long, string]]]::new()
+        ChunkCharacters = 0
         Spools = [Collections.Generic.List[string]]::new()
         Listening = $null
         Completed = @{}
-        Unlisted = [Collections.Generic.SortedSet[string]]::new([StringComparer]::Ordinal)
+        Unlisted = [ordered]@{ DiagnosticCode = 0; OperationId = 0 }
     }
     $files = @()
     try {
@@ -1055,18 +1121,12 @@ function Read-ServerLog {
         }
         $stream = $null
         $reader = $null
-        $spool = $null
+        $state = @{ Skipping = $false; Done = $false; LongLines = 0 }
         try {
             # A server that was killed, or one still shutting down, may hold the file open.
             $stream = [IO.FileStream]::new($file.FullName, [IO.FileMode]::Open, [IO.FileAccess]::Read,
                 [IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete)
             $reader = [IO.StreamReader]::new($stream, [Text.UTF8Encoding]::new($false))
-            if ($Mode -eq "Digest") {
-                $spoolPath = Join-Path $SpoolRoot "$fileIndex.spool"
-                $spool = [IO.StreamWriter]::new($spoolPath, $false, [Text.UTF8Encoding]::new($false))
-                $log.Spools.Add($spoolPath)
-            }
-            $state = @{ Skipping = $false; Done = $false; LongLines = 0 }
             $pending = [Text.StringBuilder]::new()
             $previousTicks = $ReferenceTicks
             while (-not $state.Done) {
@@ -1086,31 +1146,46 @@ function Read-ServerLog {
                         }
                         continue
                     }
-                    $ticks = Get-LineTimestampTicks $line
-                    if ($null -eq $ticks -and -not (Test-LogRecordTooLarge $line)) {
-                        # Not in the server's own field order; read the whole record.
-                        $parsed = ConvertFrom-ServerLogLine $line
-                        if ($null -ne $parsed) {
-                            $ticks = $parsed.Ticks
-                        }
-                    }
                     $sequence = $log.Sequence++
-                    # A lone carriage return would split a spooled line when it is read back.
-                    $spoolLine = $line.Replace([char]13, [char]32)
-                    if ($null -eq $ticks) {
-                        if (Test-LogRecordTooLarge $line) {
-                            # Placed at the time of the record before it in its file.
-                            $spool.WriteLine("$previousTicks`t$sequence`t$spoolLine")
-                        }
-                        else {
-                            $log.UnreadableLines++
-                        }
-                        continue
+                    $important = $false
+                    if (Test-LogRecordTooLarge $line) {
+                        # Placed at the time of the record before it in its file.
+                        $ticks = $previousTicks
+                        $important = $true
                     }
-                    $previousTicks = $ticks
-                    if ($line.Contains('"Level":"Warning"') -or $line.Contains('"Level":"Error"') -or
-                        $line.Contains('"Level":"Fatal"')) {
-                        $spool.WriteLine("$ticks`t$sequence`t$spoolLine")
+                    else {
+                        # Parsed before it may enter either path: a truncated or malformed
+                        # record never displaces a valid one.
+                        $head = $null
+                        try {
+                            $document = [Text.Json.JsonDocument]::Parse($line)
+                            try {
+                                $head = Get-RecordHead $document.RootElement
+                            }
+                            finally {
+                                $document.Dispose()
+                            }
+                        }
+                        catch {
+                            $head = $null
+                        }
+                        if ($null -eq $head) {
+                            $log.MalformedRecords++
+                            continue
+                        }
+                        $ticks = $head.Ticks
+                        $previousTicks = $ticks
+                        $important = $null -ne (Get-CanonicalValue -Set $digestImportantLevels -Value $head.Level)
+                    }
+                    if ($important) {
+                        # A lone carriage return would split a spooled line when it is read back.
+                        $spoolLine = $line.Replace([char]13, [char]32)
+                        $log.Chunk.Add([ValueTuple]::Create([long]$ticks, [long]$sequence, $spoolLine))
+                        $log.ChunkCharacters += $spoolLine.Length
+                        if ($log.Chunk.Count -ge $digestSpoolChunkRecords -or
+                            $log.ChunkCharacters -ge $digestSpoolChunkCharacters) {
+                            Save-SpoolChunk -Log $log -Chunk $log.Chunk -SpoolRoot $SpoolRoot
+                        }
                         continue
                     }
                     $log.OrdinarySeen++
@@ -1124,17 +1199,19 @@ function Read-ServerLog {
                     }
                 }
             }
-            $log.UnreadableLines += $state.LongLines
         }
         catch {
             # For example, a file another process holds exclusively.
             $log.UnreadableFiles++
         }
         finally {
-            if ($null -ne $spool) { $spool.Dispose() }
+            $log.LongLines += $state.LongLines
             if ($null -ne $reader) { $reader.Dispose() }
             if ($null -ne $stream) { $stream.Dispose() }
         }
+    }
+    if ($Mode -eq "Digest") {
+        Save-SpoolChunk -Log $log -Chunk $log.Chunk -SpoolRoot $SpoolRoot
     }
     return $log
 }
@@ -1151,12 +1228,16 @@ function Write-DigestAudit {
     }
     try {
         $log = Read-ServerLog -ScenarioRoot $ScenarioRoot -Mode Audit
+        # The file holds only vocabulary misses: the scenario, the property and how
+        # many times it held an unlisted value, never the value itself.
         $lines = [Collections.Generic.List[string]]::new()
-        foreach ($entry in $log.Unlisted) {
-            $lines.Add("$ScenarioId $entry")
+        foreach ($entry in $log.Unlisted.GetEnumerator()) {
+            if ($entry.Value -gt 0) {
+                $lines.Add("$ScenarioId $($entry.Key) $($entry.Value)")
+            }
         }
         if ($log.UnreadableFiles -gt 0) {
-            $lines.Add("$ScenarioId <$($log.UnreadableFiles) unreadable server log files>")
+            Write-Host "($($log.UnreadableFiles) server log files of $ScenarioId could not be read for the digest audit)"
         }
         if ($lines.Count -gt 0) {
             [IO.File]::AppendAllLines($digestAuditPath, [string[]]$lines.ToArray(), [Text.UTF8Encoding]::new($false))
@@ -1322,9 +1403,12 @@ function Write-ServerLogDigest {
                     $server, $record.Name, ($values -join " ")).TrimEnd())
         }
         if ($null -ne $log) {
-            $unreadable += $log.UnreadableLines
-            if ($unreadable -gt 0) {
-                Write-DigestLine $Writer "($unreadable unreadable server log lines skipped)"
+            $malformed = $unreadable + $log.MalformedRecords
+            if ($malformed -gt 0) {
+                Write-DigestLine $Writer "($malformed malformed server log records skipped)"
+            }
+            if ($log.LongLines -gt 0) {
+                Write-DigestLine $Writer "($($log.LongLines) server log lines over 64 KiB skipped)"
             }
             if ($log.UnreadableFiles -gt 0) {
                 Write-DigestLine $Writer "($($log.UnreadableFiles) server log files could not be read)"
