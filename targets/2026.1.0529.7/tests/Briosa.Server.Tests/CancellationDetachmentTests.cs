@@ -963,10 +963,97 @@ public sealed class CancellationDetachmentTests
         Assert.Equal("StartSpatialAnalyzerSdk", rejected.Value("Rpc"));
         Assert.Equal(status, rejected.Value("GrpcStatus"));
         Assert.Equal(detail.DiagnosticCode, rejected.Value("DiagnosticCode"));
+        Assert.IsType<long>(rejected.Value("ElapsedMilliseconds"));
+        // The arrival is recorded first, and a typed rejection is not also a fault.
+        Assert.Equal([1303, 1302], audit.Entries.Select(entry => entry.EventId.Id));
 
         // A withdrawn Start launches nothing; a detached one still reaches readiness.
         if (withdrawn) Assert.Equal(0, factory.Starts);
         else _ = await WaitFor(supervisor, state => state.ReadyForExecution);
+    }
+
+    // #371: a lifecycle RPC records its arrival and its completion with the elapsed
+    // time. With the rejection record above, a log shows whether a call reached the
+    // server and how it left it.
+    [Fact]
+    public async Task LifecycleServiceRecordsArrivalAndCompletionWithElapsedTime()
+    {
+        var worker = new ScriptedWorker();
+        var (supervisor, _, _) = Create(worker);
+        await using var supervisorScope = supervisor.ConfigureAwait(false);
+        var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(supervisor,
+            new SpatialAnalyzerSdkLifecycleStateProjection(supervisor), new RunningApplication(5));
+        await using var coordinatorScope = coordinator.ConfigureAwait(false);
+        var audit = new CapturingLogger<LifecycleAuditLogger>();
+        var service = new SpatialAnalyzerSdkLifecycleService(coordinator, new LifecycleAuditLogger(audit));
+
+        _ = await service.StartSpatialAnalyzerSdk(new global::Briosa.StartSpatialAnalyzerSdkRequest(),
+            new InMemoryServerCallContext("/briosa.SpatialAnalyzerSdkLifecycle/StartSpatialAnalyzerSdk",
+                CallDeadline(passed: false), CancellationToken.None)).WaitAsync(HangGuard);
+
+        var entries = audit.Entries.ToArray();
+        Assert.Equal([1303, 1304], entries.Select(entry => entry.EventId.Id));
+        Assert.All(entries, entry =>
+        {
+            Assert.Equal("StartSpatialAnalyzerSdk", entry.Value("Rpc"));
+            Assert.Equal(LogLevel.Information, entry.Level);
+        });
+        Assert.Equal(StatusCode.OK, entries[1].Value("GrpcStatus"));
+        Assert.True(Assert.IsType<long>(entries[1].Value("ElapsedMilliseconds")) >= 0);
+    }
+
+    // #371: the listening record measures from process creation, so it also covers
+    // runtime and host start-up, which a test process has already completed.
+    [Fact]
+    public void EndpointListeningRecordsTheTimeSinceProcessStart()
+    {
+        var audit = new CapturingLogger<LifecycleAuditLogger>();
+
+        new LifecycleAuditLogger(audit).EndpointListening();
+
+        var listening = Assert.Single(audit.Entries);
+        Assert.Equal(1001, listening.EventId.Id);
+        Assert.Equal(LogLevel.Information, listening.Level);
+        Assert.True(Assert.IsType<long>(listening.Value("ElapsedMilliseconds")) > 0);
+    }
+
+    // #371: the worker start logs each sub-phase with the time since the start began,
+    // so a startup timeout shows whether the bound went to process creation, the
+    // control pipe, or the wait for Ready. An expired bound is a warning.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task WorkerStartLogsEachSubPhaseWithItsElapsedTime(bool exceedBound)
+    {
+        var ready = new Hold();
+        var worker = new ScriptedWorker { ReadyHold = ready };
+        var log = new CapturingLogger<WorkerProcessSupervisor>();
+        var (supervisor, clock, _) = Create(worker, supervisorLogger: log);
+        await using var scope = supervisor.ConfigureAwait(false);
+
+        var starting = supervisor.StartAsync();
+        await ready.Entered.WaitAsync(HangGuard);
+        if (exceedBound)
+        {
+            await clock.FireNextAsync(StartupTimeout);
+        }
+        else
+        {
+            clock.Advance(TimeSpan.FromMilliseconds(1500));
+            ready.Release();
+        }
+        Assert.Equal(!exceedBound, (await starting.WaitAsync(HangGuard)).Succeeded);
+
+        var phases = log.Entries.Where(entry => entry.EventId.Id == 1203).ToArray();
+        Assert.Equal(
+            ["process-created", "control-pipe-connected", exceedBound ? "startup-bound-expired" : "ready-received"],
+            phases.Select(phase => phase.Value("Phase")));
+        Assert.All(phases, phase => Assert.Equal(1, phase.Value("Generation")));
+        Assert.Equal(0L, phases[0].Value("ElapsedMilliseconds"));
+        Assert.Equal(0L, phases[1].Value("ElapsedMilliseconds"));
+        Assert.Equal(exceedBound ? (long)StartupTimeout.TotalMilliseconds : 1500L,
+            phases[2].Value("ElapsedMilliseconds"));
+        Assert.Equal(exceedBound ? LogLevel.Warning : LogLevel.Information, phases[2].Level);
     }
 
     // D-2: only a caller interruption becomes the caller's deadline. A failure of its
@@ -1649,10 +1736,11 @@ public sealed class CancellationDetachmentTests
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
             Func<TState, Exception?, string> formatter) =>
             Entries.Enqueue(new LogEntry(eventId,
-                state as IReadOnlyList<KeyValuePair<string, object?>> ?? []));
+                state as IReadOnlyList<KeyValuePair<string, object?>> ?? [], logLevel));
     }
 
-    private sealed record LogEntry(EventId EventId, IReadOnlyList<KeyValuePair<string, object?>> State)
+    private sealed record LogEntry(EventId EventId, IReadOnlyList<KeyValuePair<string, object?>> State,
+        LogLevel Level)
     {
         public object? Value(string name) => State.FirstOrDefault(pair => pair.Key == name).Value;
     }

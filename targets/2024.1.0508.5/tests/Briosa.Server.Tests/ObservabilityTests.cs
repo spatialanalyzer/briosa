@@ -185,6 +185,47 @@ public sealed class ObservabilityTests
         Assert.DoesNotContain("Exception", text, StringComparison.Ordinal);
     }
 
+    // #371: the lifecycle timing events cross the metadata boundary with their stable
+    // names, phase, and elapsed time, so a failed scenario's log has a phase timeline.
+    [Fact]
+    public void LifecycleTimingEventsKeepTheirNamesPhasesAndElapsedTime()
+    {
+        var sink = new CaptureSink();
+        using var provider = new BriosaLogProvider(Options(), new BriosaLogHealth(), sink);
+        var events = new (string Category, int Id, string Name)[]
+        {
+            ("Briosa.Server.Services.LifecycleAuditLogger", 1001, "EndpointListening"),
+            ("Briosa.Server.Workers.WorkerProcessSupervisor", 1203, "WorkerStartPhase"),
+            ("Briosa.Server.Services.LifecycleAuditLogger", 1303, "LifecycleRpcStarted"),
+            ("Briosa.Server.Services.LifecycleAuditLogger", 1304, "LifecycleRpcCompleted"),
+            ("Briosa.Server.Services.LifecycleAuditLogger", 1305, "LifecycleRpcFaulted"),
+            ("Briosa.Server.Services.SpatialAnalyzerLifecycleCoordinator", 1402, "LaunchPreconditionSlow")
+        };
+        var state = new Dictionary<string, object?>
+        {
+            ["Rpc"] = "StartSpatialAnalyzerSdk",
+            ["Phase"] = "control-pipe-connected",
+            ["ElapsedMilliseconds"] = 1234L,
+            ["Path"] = Sensitive,
+            ["{OriginalFormat}"] = Sensitive
+        };
+        foreach (var (category, id, _) in events)
+        {
+            provider.CreateLogger(category).Log(LogLevel.Information, new EventId(id, Sensitive),
+                state, null, (_, _) => Sensitive);
+        }
+        provider.Dispose();
+
+        Assert.Equal(events.Select(entry => entry.Name), sink.Events.Select(EventName));
+        Assert.All(sink.Events, entry =>
+        {
+            Assert.Equal("StartSpatialAnalyzerSdk", Scalar(entry, "Rpc"));
+            Assert.Equal("control-pipe-connected", Scalar(entry, "Phase"));
+            Assert.Equal(1234L, Scalar(entry, "ElapsedMilliseconds"));
+            Assert.DoesNotContain(Sensitive, Serialize(entry), StringComparison.Ordinal);
+        });
+    }
+
     [Fact]
     public void SaturatedSinkDropsAndShutdownRemainsBounded()
     {

@@ -52,9 +52,15 @@ internal sealed class SpatialAnalyzerLifecycleService(
         Func<Task<global::Briosa.SpatialAnalyzerLifecycleState>> action,
         Func<global::Briosa.SpatialAnalyzerLifecycleState, TResponse> responseFactory)
     {
+        var started = _timeProvider.GetTimestamp();
+        var recorded = false;
+        auditLogger?.Started(rpc);
         try
         {
-            return responseFactory(await action().ConfigureAwait(false));
+            var response = responseFactory(await action().ConfigureAwait(false));
+            recorded = true;
+            auditLogger?.Completed(rpc, _timeProvider, started);
+            return response;
         }
         catch (SpatialAnalyzerLifecycleException caught)
         {
@@ -63,7 +69,9 @@ internal sealed class SpatialAnalyzerLifecycleService(
             var exception = CallerDeadline.HasPassed(context.Deadline, _timeProvider)
                 ? caught.AsCallerDeadlineExceeded()
                 : caught;
-            auditLogger?.Rejected(rpc, exception.StatusCode, exception.Detail.DiagnosticCode);
+            recorded = true;
+            auditLogger?.Rejected(rpc, exception.StatusCode, exception.Detail.DiagnosticCode,
+                _timeProvider, started);
             exception.Detail.Rpc = rpc;
             var metadata = new Metadata
             {
@@ -72,6 +80,10 @@ internal sealed class SpatialAnalyzerLifecycleService(
             throw new RpcException(
                 new Status(exception.StatusCode, exception.Detail.DiagnosticCode),
                 metadata);
+        }
+        finally
+        {
+            if (!recorded) auditLogger?.Faulted(rpc, _timeProvider, started);
         }
     }
 }

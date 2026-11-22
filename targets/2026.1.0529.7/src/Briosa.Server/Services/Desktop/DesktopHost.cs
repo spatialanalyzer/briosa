@@ -102,6 +102,7 @@ internal sealed class DesktopHost(
         }
         if (accepted)
         {
+            var started = TimeProvider.System.GetTimestamp();
             try
             {
                 switch (request.Action)
@@ -128,7 +129,8 @@ internal sealed class DesktopHost(
             {
                 accepted = false;
                 diagnostic = exception.Detail.DiagnosticCode;
-                auditLogger?.Rejected("Desktop" + request.Action, exception.StatusCode, diagnostic);
+                auditLogger?.Rejected("Desktop" + request.Action, exception.StatusCode, diagnostic,
+                    TimeProvider.System, started);
             }
         }
         var endpoint = PublicEndpointConfiguration.Resolve(configuration);
