@@ -75,13 +75,18 @@ ServerInstanceId, SpatialAnalyzerTarget, and applicable event metadata.
 | Event ID | Name | Default severity |
 | --- | --- | --- |
 | 1000 | ControlPlaneReady | Information |
+| 1001 | EndpointListening (ElapsedMilliseconds since process start) | Information |
 | 1201 | WorkerTransition | Information; Warning for blocked attached identity; Error for degraded worker |
 | 1202 | InteractionModeApplied (SaInteractionMode, MpInteractionMode, MpDialogInteractionMode, MpResultCode) | Information; Warning when the mode was not applied |
+| 1203 | WorkerStartPhase (Generation, Phase, ElapsedMilliseconds) | Information; Warning when the startup bound expired or the start failed |
 | 1300 | ExecutionDispatched (includes DurationClass and ExecutionBudgetMilliseconds) | Information |
 | 1301 | ExecutionResolved | Information; Warning for unsuccessful outcomes; Error for watchdog/worker failure |
-| 1302 | LifecycleRejected | Warning |
+| 1302 | LifecycleRejected (Rpc, GrpcStatus, DiagnosticCode, ElapsedMilliseconds) | Warning |
+| 1303 / 1304 | LifecycleRpcStarted (Rpc) / LifecycleRpcCompleted (Rpc, GrpcStatus, ElapsedMilliseconds) | Information |
+| 1305 | LifecycleRpcFaulted (Rpc, ElapsedMilliseconds) | Warning |
 | 1400 | ApplicationTransition | Information; Warning for faulted application |
 | 1401 | LogSinkDegraded | Warning |
+| 1402 | LaunchPreconditionSlow (Phase, ElapsedMilliseconds) | Warning |
 | 2000 | PolicyLoaded | Information |
 | 2001 / 2002 | RequestStarted / PolicyAllowed | Debug |
 | 2003 | PolicyRejected | Warning |
@@ -100,6 +105,40 @@ not change the original response or authorize replay. Only a retrieved MP result
 code 2 means MP success, and code 4 a partial success (MP outcome
 `partial_success`), except for the operations whose code 4 is reported as an MP
 failure (#351). Output retrieval remains separate.
+
+The lifecycle records form a start-up timeline, so a slow or stalled start can
+be placed from the log alone:
+
+- EndpointListening records when the public endpoint started listening, in
+  milliseconds since the server process was created. The time from there to
+  the first lifecycle RPC is the client's own connect delay.
+- WorkerStartPhase records each worker start sub-phase with the milliseconds
+  since the start began: `process-created`, `control-pipe-connected`, and
+  `ready-received` (a valid Ready message), or `startup-bound-expired` or
+  `start-failed` at Warning.
+  A `worker-startup-timeout` therefore shows whether the bound went to process
+  creation, runtime start-up and the control pipe, or the wait for Ready.
+- Every SDK and application lifecycle RPC that changes state (Start, Connect,
+  Reconnect, Stop, Recover, Launch, and Close) records its arrival
+  (LifecycleRpcStarted) and exactly one exit: LifecycleRpcCompleted,
+  LifecycleRejected, or, for an exception without a typed lifecycle detail,
+  LifecycleRpcFaulted. The state queries are not recorded, so polling does not
+  fill the log.
+- LaunchPreconditionSlow warns when a launch precondition step takes more than
+  2 seconds. The steps run on the request thread before the launch is
+  accepted: `process-scan` (the eligible-process scan) and
+  `installation-check` (the job file, installation identity, and executable
+  checks). A launch whose arrival is recorded but whose ApplicationTransition
+  to `spatial-analyzer-starting` never follows stalled in these steps.
+
+These timing records are best effort. A clock or logger failure loses the record
+and nothing else: it cannot skip a worker's cleanup, replace an RPC's response,
+or hide the exception that ended a call. As in the worker supervisor, an
+`OutOfMemoryException` is not contained. `ElapsedMilliseconds` is `-1` when the
+time could not be measured. EndpointListening, WorkerStartPhase,
+LifecycleRpcStarted, LifecycleRpcCompleted, LifecycleRpcFaulted and
+LaunchPreconditionSlow carry only fixed names, enum values and numbers;
+LifecycleRejected also carries the lifecycle error's diagnostic code.
 
 The metadata boundary discards raw messages, exceptions and ambient scopes from
 framework logs, preserving their category, ID, severity and a FrameworkEvent

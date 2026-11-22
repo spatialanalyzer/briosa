@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using Briosa.Server.Operations;
 using Briosa.Server.Workers;
-using Briosa.Worker.Control;
 using IdentityMatch = Briosa.Server.Workers.RuntimeIdentityMatchState;
 
 namespace Briosa.Server.Services;
@@ -50,6 +49,9 @@ internal sealed class BriosaTelemetry : IDisposable
     }
 
     public void Attach(WorkerProcessSupervisor supervisor) => _supervisor = supervisor;
+
+    // Every instance names its meter InstrumentationName; tests select this one's instruments.
+    internal Meter Meter => _meter;
     public static string OperationId(string operationId) => Operations.ContainsKey(operationId) ? operationId : "unsupported";
     public static global::Briosa.ReplaySafety ReplaySafety(string operationId) =>
         Operations.TryGetValue(operationId, out var safety) ? safety : global::Briosa.ReplaySafety.Unknown;
@@ -88,16 +90,8 @@ internal sealed class BriosaTelemetry : IDisposable
         if (outcome.Execution is { } execution)
             _sdkDuration.Record(execution.DurationMilliseconds / 1000.0, new KeyValuePair<string, object?>("briosa.operation", OperationId(operation)));
     }
-    private int Ready()
-    {
-        var state = _supervisor?.Current;
-        return state is
-        {
-            State: WorkerLifecycleState.Ready, RuntimeIdentity.AllowsExecution: true,
-            Connection.State: WorkerConnectionState.Connected,
-            Connection.ExecutionReadinessState: WorkerExecutionReadinessState.ExecutionReady
-        } ? 1 : 0;
-    }
+    // The same readiness that health, discovery and status report, admission included.
+    private int Ready() => _supervisor?.Current.ReadyForExecution == true ? 1 : 0;
     private IEnumerable<Measurement<int>> IdentityMatches()
     {
         var identity = _supervisor?.Current.RuntimeIdentity;

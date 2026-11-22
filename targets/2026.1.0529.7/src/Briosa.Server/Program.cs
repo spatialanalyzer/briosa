@@ -55,6 +55,9 @@ builder.Services.AddSingleton<ServerDiscoveryService>();
 builder.Services.AddHostedService<DesktopHost>();
 
 var app = builder.Build();
+// After every hosted service has started, including the listening public endpoint.
+app.Lifetime.ApplicationStarted.Register(
+    app.Services.GetRequiredService<LifecycleAuditLogger>().EndpointListening);
 
 app.MapGet("/", () => Results.Text(
     $"Briosa server {ServerBuildIdentity.Version}"));
