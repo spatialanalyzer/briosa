@@ -734,25 +734,24 @@ internal sealed partial class WorkerProcessSupervisor :
     // hold for its whole bound. Dispatch rejects from the moment the queue closes, so the
     // queue closes and the not-ready snapshot is published in one history-lock step:
     // health, discovery and status never report admission open for the closed queue.
+    // It logs nothing: no reporting failure may stop the retirement that follows, and the
+    // retirement's fault transition logs this diagnostic.
     private void CloseAdmission(WorkerExecutionQueue queue, string diagnosticCode)
     {
-        WorkerLifecycleSnapshot? closed = null;
         lock (_historyLock)
         {
             queue.CloseAdmission();
             if (_current is { AdmissionOpen: true } current && current.Generation == queue.Generation)
             {
-                closed = current with
+                Record(current with
                 {
                     DiagnosticCode = diagnosticCode,
                     TransitionedAt = _timeProvider.GetUtcNow(),
                     StateRevision = Interlocked.Increment(ref _stateRevision),
                     AdmissionOpen = false
-                };
-                Record(closed);
+                });
             }
         }
-        if (closed is not null) LogTransition(closed);
     }
 
     private void MarkAdmitted(ExecutionWorkItem item)

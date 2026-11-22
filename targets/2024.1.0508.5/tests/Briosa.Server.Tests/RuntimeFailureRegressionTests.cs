@@ -1,3 +1,4 @@
+using System.Diagnostics.Metrics;
 using Briosa.Server.Operations;
 using Briosa.Server.Operations.Variables;
 using Briosa.Server.Services;
@@ -5,6 +6,7 @@ using Briosa.Server.Workers;
 using Briosa.Worker.Control;
 using Grpc.Core;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Briosa.Server.Tests;
@@ -327,8 +329,9 @@ public sealed class RuntimeFailureRegressionTests
         Assert.Equal(WorkerExecutionStatus.Unavailable, (await supervisor.ExecuteAsync(Plain())).Status);
     }
 
-    // #405: once a consumer failure closes the queue, dispatch rejects. Health, discovery
-    // and status agree from that moment, also while retirement waits for the gate.
+    // #405: once a consumer failure closes the queue, dispatch rejects. Health, discovery,
+    // status and the readiness gauge agree from that moment, also while retirement waits
+    // for the gate.
     [Fact]
     public async Task ConsumerFailureReportsNotReadyFromTheMomentAdmissionCloses()
     {
@@ -338,12 +341,31 @@ public sealed class RuntimeFailureRegressionTests
         await using var replacementLifetime = replacement.ConfigureAwait(true);
         var held = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var telemetry = new BriosaTelemetry(new BriosaLogHealth());
+        // Other tests' telemetry shares the meter name, so only this instance's gauge counts.
+        using var listener = new MeterListener();
+        int? readyGauge = null;
+        listener.InstrumentPublished = (instrument, observer) =>
+        {
+            if (ReferenceEquals(instrument.Meter, telemetry.Meter) && instrument.Name == "briosa.ready")
+                observer.EnableMeasurementEvents(instrument);
+        };
+        listener.SetMeasurementEventCallback<int>((_, value, _, _) => readyGauge = value);
+        listener.Start();
+        int? MeasureReadyGauge()
+        {
+            readyGauge = null;
+            listener.RecordObservableInstruments();
+            return readyGauge;
+        }
+
         // Virtual time, and the seam holds retirement after the queue closes and before
         // it waits for the gate: no deadline or scheduling delay decides the outcome.
         var supervisor = new WorkerProcessSupervisor(new SequenceFactory(worker, replacement),
             new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1),
                 TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1)),
-            TestDurationClasses.SyntheticQuickPolicy(TimeSpan.FromSeconds(5), 2), new HeartbeatTestClock())
+            TestDurationClasses.SyntheticQuickPolicy(TimeSpan.FromSeconds(5), 2), new HeartbeatTestClock(),
+            telemetry: telemetry)
         {
             ConsumerFailureRetirementHold = () =>
             {
@@ -360,15 +382,21 @@ public sealed class RuntimeFailureRegressionTests
         var ready = supervisor.Current;
         Assert.True(ready.ReadyForExecution);
         Assert.True(discovery.CreateServerInfo().ReadyForMp);
+        Assert.Equal(1, MeasureReadyGauge());
 
-        var active = supervisor.ExecuteAsync(Plain());
-        await worker.ExecutionEntered.Task.WaitAsync(HangGuard);
-        var queued = supervisor.ExecuteAsync(Plain());
-        worker.ReleaseExecution.TrySetResult();
-        await held.Task.WaitAsync(HangGuard);
+        Task<WorkerExecutionOutcome> active;
+        Task<WorkerExecutionOutcome> queued;
         WorkerLifecycleSnapshot closed;
+        // Both holds are released on every path, so a failed wait cannot leave the
+        // consumer parked in the exchange or the seam while the supervisor is disposed.
         try
         {
+            active = supervisor.ExecuteAsync(Plain());
+            await worker.ExecutionEntered.Task.WaitAsync(HangGuard);
+            queued = supervisor.ExecuteAsync(Plain());
+            worker.ReleaseExecution.TrySetResult();
+            await held.Task.WaitAsync(HangGuard);
+
             // Retirement has not run: the generation and its worker are still live.
             closed = supervisor.Current;
             Assert.Equal(ready.Generation, closed.Generation);
@@ -388,6 +416,7 @@ public sealed class RuntimeFailureRegressionTests
             Assert.False(reported.ReadyForMp);
             Assert.Equal(global::Briosa.SpatialAnalyzerSdkState.Running, reported.SdkState);
             Assert.Equal((ulong)closed.StateRevision, reported.StateRevision);
+            Assert.Equal(0, MeasureReadyGauge());
             var rejected = await supervisor.ExecuteAsync(Plain()).WaitAsync(HangGuard);
             Assert.Equal(WorkerExecutionStatus.Unavailable, rejected.Status);
             Assert.Equal(WorkerExecutionDisposition.NotStarted, rejected.ExecutionDisposition);
@@ -396,6 +425,7 @@ public sealed class RuntimeFailureRegressionTests
         }
         finally
         {
+            worker.ReleaseExecution.TrySetResult();
             release.TrySetResult();
         }
 
@@ -425,6 +455,7 @@ public sealed class RuntimeFailureRegressionTests
         Assert.Equal(global::Briosa.SpatialAnalyzerSdkState.Faulted, status.Current.SdkState);
         Assert.Equal(global::Briosa.SpatialAnalyzerSdkRecoveryState.RecoveryAvailable,
             status.Current.RecoveryState);
+        Assert.Equal(0, MeasureReadyGauge());
         Assert.Equal(WorkerExecutionStatus.Unavailable, (await supervisor.ExecuteAsync(Plain())).Status);
 
         // No snapshot of the failed generation reports open admission after the queue closed.
@@ -437,6 +468,47 @@ public sealed class RuntimeFailureRegressionTests
         Assert.Equal(WorkerLifecycleState.Ready, supervisor.Current.State);
         Assert.Equal(1, worker.ExecuteCount);
         Assert.Equal(0, replacement.ExecuteCount);
+    }
+
+    // #405 review: reporting the closed admission must not stop retirement. A logger that
+    // fails on that transition still leaves the active call resolved and the worker retired.
+    [Fact]
+    public async Task AReportingFailureAsAdmissionClosesCannotPreventRetirement()
+    {
+        var worker = new CoordinatedWorker { HoldExecution = true, UnexpectedFailure = true };
+        await using var workerLifetime = worker.ConfigureAwait(true);
+        var supervisor = new WorkerProcessSupervisor(new Factory(worker),
+            new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1),
+                TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1)),
+            TestDurationClasses.SyntheticQuickPolicy(TimeSpan.FromSeconds(5), 2), new HeartbeatTestClock(),
+            new AdmissionClosureThrowingLogger());
+        await using var supervisorLifetime = supervisor.ConfigureAwait(true);
+        Assert.True((await supervisor.StartAsync()).Succeeded);
+        Task<WorkerExecutionOutcome> active;
+        Task<WorkerExecutionOutcome> queued;
+        try
+        {
+            active = supervisor.ExecuteAsync(Plain());
+            await worker.ExecutionEntered.Task.WaitAsync(HangGuard);
+            queued = supervisor.ExecuteAsync(Plain());
+        }
+        finally
+        {
+            worker.ReleaseExecution.TrySetResult();
+        }
+
+        var failed = await active.WaitAsync(HangGuard);
+        var pending = await queued.WaitAsync(HangGuard);
+        Assert.Equal(WorkerExecutionStatus.WorkerFailure, failed.Status);
+        Assert.Equal(WorkerExecutionDisposition.StartedOutcomeUnknown, failed.ExecutionDisposition);
+        Assert.Equal(WorkerExecutionStatus.Unavailable, pending.Status);
+        Assert.Equal(WorkerExecutionDisposition.NotStarted, pending.ExecutionDisposition);
+        Assert.Equal(WorkerLifecycleState.Degraded, supervisor.Current.State);
+        Assert.Equal("worker-execution-consumer-failed", supervisor.Current.DiagnosticCode);
+        Assert.Equal(global::Briosa.SpatialAnalyzerSdkRecoveryState.RecoveryAvailable,
+            new SpatialAnalyzerSdkLifecycleStateProjection(supervisor).Current.RecoveryState);
+        Assert.True(worker.HasExited);
+        Assert.Equal(1, worker.ExecuteCount);
     }
 
     [Fact]
@@ -743,6 +815,26 @@ public sealed class RuntimeFailureRegressionTests
         new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5),
             TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1)),
         TestDurationClasses.SyntheticQuickPolicy(TimeSpan.FromSeconds(5), 2), new HeartbeatTestClock());
+
+    // Fails only the transition that reports closed admission before retirement: a Ready
+    // snapshot carrying the consumer-failure diagnostic.
+    private sealed class AdmissionClosureThrowingLogger : ILogger<WorkerProcessSupervisor>
+    {
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            if (state is IReadOnlyList<KeyValuePair<string, object?>> fields &&
+                fields.Any(field => field is { Key: "WorkerState", Value: WorkerLifecycleState.Ready }) &&
+                fields.Any(field => field is { Key: "DiagnosticCode", Value: "worker-execution-consumer-failed" }))
+            {
+                throw new InvalidOperationException("Scripted reporting failure.");
+            }
+        }
+    }
 
     private sealed class Factory(IWorkerProcess worker) : IWorkerProcessFactory
     {
