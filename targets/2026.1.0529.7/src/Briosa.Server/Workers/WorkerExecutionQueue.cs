@@ -73,10 +73,16 @@ internal sealed class WorkerExecutionQueue
 
     public void ReleaseBytes(int bytes) => Interlocked.Add(ref _reservedBytes, -bytes);
 
+    // Closes admission at once, without cancelling: reservations and writes fail from
+    // here. The supervisor calls it under its history lock to report closure with it.
+    public void CloseAdmission()
+    {
+        if (Interlocked.Exchange(ref _closed, 1) == 0) _channel.Writer.TryComplete();
+    }
+
     public async Task CloseAsync()
     {
-        if (Interlocked.Exchange(ref _closed, 1) != 0) return;
-        _channel.Writer.TryComplete();
+        CloseAdmission();
         await _cancellation.CancelAsync().ConfigureAwait(false);
     }
 }
