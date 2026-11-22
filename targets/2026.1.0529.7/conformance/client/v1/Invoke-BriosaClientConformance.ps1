@@ -36,6 +36,18 @@ $temporaryBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $temporaryRoot = Join-Path $temporaryBase "briosa-conformance-$([Guid]::NewGuid().ToString('N'))"
 $invariantCulture = [Globalization.CultureInfo]::InvariantCulture
 
+# Optional diagnostics never change a scenario's result. An unusable diagnostics
+# directory turns them off with a notice; it never fails a scenario.
+$diagnosticsRoot = $null
+if (-not [string]::IsNullOrWhiteSpace($DiagnosticsDirectory)) {
+    try {
+        $diagnosticsRoot = [IO.Path]::GetFullPath($DiagnosticsDirectory)
+    }
+    catch {
+        Write-Host "Conformance diagnostics are disabled: the diagnostics directory is not a usable path."
+    }
+}
+
 # The fake SDK host tests client behaviour, not start latency, so its worker start
 # gets more room than the server's 10 s default. The first fake-worker start after
 # a fresh package extraction can miss 10 s on a slow runner. A caller that sets
@@ -46,18 +58,67 @@ $workerStartupTimeout = $(if ([string]::IsNullOrWhiteSpace($env:Briosa__Worker__
         $env:Briosa__Worker__StartupTimeout
     })
 
-# Opt-in: on a fixture timeout, write heap dumps of the server and of a .NET
-# fixture to the diagnostics directory before anything is killed.
-$dumpOnTimeout = "$env:BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT".Trim() -in @("1", "true")
+# Opt-in, only with exactly BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT=1 and a usable
+# diagnostics directory: on a fixture timeout, heap dumps of this scenario's own .NET
+# processes go to the diagnostics directory before anything is killed. The whole
+# collection shares one deadline.
+$dumpOnTimeout = $env:BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT -ceq "1"
+$dumpDeadlineMilliseconds = 120000
 
-# The failure digest prints only these server log properties. The server already
-# admits only reviewed metadata; this list keeps the digest to the phase timeline.
-$digestProperties = @(
-    "Rpc", "GrpcStatus", "Phase", "ElapsedMilliseconds",
-    "WorkerState", "ApplicationState", "Ownership", "Generation", "ConnectionState",
-    "OperationId", "ExecutionDisposition", "MpResultCode", "DiagnosticCode")
-$digestEventLimit = 200
+# The server log digest reaches public CI logs, so it prints nothing it has not
+# validated. Known event IDs map to fixed labels, and no message template is ever
+# printed. Levels and enum-like properties must belong to closed vocabularies,
+# numbers must be integers, and the two open identifiers must match strict
+# patterns. A value that does not validate prints as <withheld>.
+$digestEventNames = @{
+    1000 = "ControlPlaneReady"; 1001 = "EndpointListening"
+    1201 = "WorkerTransition"; 1202 = "InteractionModeApplied"; 1203 = "WorkerStartPhase"
+    1300 = "ExecutionDispatched"; 1301 = "ExecutionResolved"; 1302 = "LifecycleRejected"
+    1303 = "LifecycleRpcStarted"; 1304 = "LifecycleRpcCompleted"; 1305 = "LifecycleRpcFaulted"
+    1400 = "ApplicationTransition"; 1401 = "LogSinkDegraded"; 1402 = "LaunchPreconditionSlow"
+    1500 = "ReadinessNotReady"
+    2000 = "PolicyLoaded"; 2001 = "RequestStarted"; 2002 = "PolicyAllowed"; 2003 = "PolicyRejected"
+    2004 = "RpcCompleted"; 2005 = "RpcFailed"
+}
+$digestLevels = @("Verbose", "Debug", "Information", "Warning", "Error", "Fatal")
 $digestImportantLevels = @("Warning", "Error", "Fatal")
+$digestWithheld = "<withheld>"
+$digestFields = [ordered]@{
+    Rpc = @{ Allowed = @(
+            "StartSpatialAnalyzerSdk", "ConnectToSpatialAnalyzer", "ReconnectToSpatialAnalyzer",
+            "StopSpatialAnalyzerSdk", "RecoverSpatialAnalyzerSdk", "LaunchSpatialAnalyzer",
+            "CloseOwnedSpatialAnalyzer", "DesktopStartSdk", "DesktopConnect", "DesktopReconnect",
+            "DesktopStopSdk", "DesktopRecoverSdk") }
+    GrpcStatus = @{ Allowed = @(
+            "OK", "Cancelled", "Unknown", "InvalidArgument", "DeadlineExceeded", "NotFound",
+            "AlreadyExists", "PermissionDenied", "ResourceExhausted", "FailedPrecondition", "Aborted",
+            "OutOfRange", "Unimplemented", "Internal", "Unavailable", "DataLoss", "Unauthenticated") }
+    Phase = @{ Allowed = @(
+            "process-created", "control-pipe-connected", "ready-received", "startup-bound-expired",
+            "start-failed", "process-scan", "installation-check") }
+    ElapsedMilliseconds = @{ Integer = $true }
+    WorkerState = @{ Allowed = @("Stopped", "Starting", "Ready", "Degraded", "Stopping") }
+    ApplicationState = @{ Allowed = @(
+            "Unspecified", "NotRunning", "Starting", "Running", "Closing", "Exited", "Ambiguous", "Faulted") }
+    Ownership = @{ Allowed = @("Unspecified", "None", "External", "ServerLaunched") }
+    Generation = @{ Integer = $true }
+    ConnectionState = @{ Allowed = @("Disconnected", "Connecting", "Connected", "Faulted", "Stopping") }
+    # Every operation ID is <service>_operations.<operation> in lower snake case.
+    OperationId = @{ MaxLength = 128; Pattern = '^[a-z]+(?:_[a-z]+)*_operations\.[a-z][a-z0-9]*(?:_[a-z0-9]+)*$' }
+    ExecutionDisposition = @{ Allowed = @("not_started", "started_outcome_unknown", "completed", "unspecified") }
+    MpResultCode = @{ Integer = $true }
+    # Diagnostic codes are lower-case kebab identifiers. Not every code comes from a
+    # closed list, so this pattern is the boundary: two to twelve segments, each
+    # starting with a letter. No path, host name, address or token form passes it.
+    DiagnosticCode = @{ MaxLength = 96; Pattern = '^[a-z][a-z0-9]*(?:-[a-z][a-z0-9]*){1,11}$' }
+}
+# The digest keeps the latest 200 lower-severity records, and every warning and
+# error up to 1,000: the first 100 and the latest 900. Server records are at most
+# 16 KiB, so a longer line is not a server record.
+$digestTailLimit = 200
+$digestImportantHead = 100
+$digestImportantTail = 900
+$digestMaximumLineLength = 65536
 
 function Get-PackageProcesses {
     $expectedPaths = @($serverPath, $workerPath, $applicationPath) |
@@ -119,9 +180,9 @@ function Get-SafeText {
     param([AllowEmptyString()][string]$Text)
 
     $safe = $Text.Replace($temporaryRoot, "<temporary-root>")
-    if (-not [string]::IsNullOrWhiteSpace($DiagnosticsDirectory)) {
+    if ($null -ne $diagnosticsRoot) {
         # A runtime that writes a requested dump reports its path on stdout.
-        $safe = $safe.Replace([IO.Path]::GetFullPath($DiagnosticsDirectory), "<diagnostics-directory>")
+        $safe = $safe.Replace($diagnosticsRoot, "<diagnostics-directory>")
     }
     return $safe
 }
@@ -196,28 +257,75 @@ function Write-RunnerTiming {
     return $line
 }
 
+function Get-ProcessTable {
+    # One snapshot of every process's parent and creation time, for ownership checks.
+    $table = @{}
+    foreach ($entry in @(Get-CimInstance -ClassName Win32_Process -Property ProcessId, ParentProcessId, CreationDate -ErrorAction Stop)) {
+        $table[[int]$entry.ProcessId] = $entry
+    }
+    return $table
+}
+
+function Test-FixtureDescendant {
+    param(
+        [Parameter(Mandatory)][int]$ProcessId,
+        [Parameter(Mandatory)][Diagnostics.Process]$Fixture,
+        [AllowNull()][hashtable]$ProcessTable
+    )
+
+    # A process belongs to this scenario when its parent chain reaches the fixture the
+    # runner started. Each parent must be older than its child, and the fixture is
+    # still running, so a reused process ID cannot pass. Two callers sharing one
+    # package extraction therefore never see each other's processes as their own.
+    if ($null -eq $ProcessTable) { return $false }
+    try {
+        if ($Fixture.HasExited) { return $false }
+        $fixtureStarted = $Fixture.StartTime
+        $current = $ProcessTable[$ProcessId]
+        for ($depth = 0; $null -ne $current -and $depth -lt 4; $depth++) {
+            $parentId = [int]$current.ParentProcessId
+            if ($parentId -eq $Fixture.Id) {
+                return $fixtureStarted -le $current.CreationDate
+            }
+            $parent = $ProcessTable[$parentId]
+            if ($null -eq $parent -or $parent.CreationDate -gt $current.CreationDate) {
+                return $false
+            }
+            $current = $parent
+        }
+    }
+    catch {
+    }
+    return $false
+}
+
 # Called on a fixture timeout before anything is killed: the client owns the server,
 # so killing the fixture tree also ends the server and its worker.
 function Write-TimeoutProcesses {
     param(
         [Parameter(Mandatory)][string]$ScenarioId,
         [Parameter(Mandatory)][Diagnostics.Process]$Fixture,
-        [Parameter(Mandatory)][hashtable]$Timing
+        [Parameter(Mandatory)][hashtable]$Timing,
+        [AllowNull()][hashtable]$ProcessTable
     )
 
     $reference = Get-TimingReference $Timing
     Write-Host "--- processes alive at the fixture timeout in $ScenarioId (start times from $($reference.Name)) ---"
-    $entries = @([pscustomobject]@{ Role = "fixture"; Process = $Fixture }) +
+    $entries = @([pscustomobject]@{ Role = "fixture"; Process = $Fixture; Package = $false }) +
         @(Get-PackageProcesses | ForEach-Object {
-            [pscustomobject]@{ Role = (Get-PackageProcessRole $_); Process = $_ }
+            [pscustomobject]@{ Role = (Get-PackageProcessRole $_); Process = $_; Package = $true }
         })
     foreach ($entry in $entries) {
         try {
             $entry.Process.Refresh()
             $started = [DateTimeOffset]$entry.Process.StartTime
-            Write-Host (Format-Invariant "{0} pid {1}: started {2}, CPU {3:0.00} s" @(
+            $ownership = $(if ($entry.Package -and -not (Test-FixtureDescendant -ProcessId $entry.Process.Id `
+                            -Fixture $Fixture -ProcessTable $ProcessTable)) {
+                    ", not a verified descendant of the fixture"
+                })
+            Write-Host (Format-Invariant "{0} pid {1}: started {2}, CPU {3:0.00} s{4}" @(
                 $entry.Role, $entry.Process.Id, (Format-Offset $started $reference.Time),
-                $entry.Process.TotalProcessorTime.TotalSeconds))
+                $entry.Process.TotalProcessorTime.TotalSeconds, $ownership))
         }
         catch {
             Write-Host "$($entry.Role) pid $($entry.Process.Id): exited or unreadable"
@@ -226,10 +334,27 @@ function Write-TimeoutProcesses {
     Write-Host "--- end processes for $ScenarioId ---"
 }
 
+function Wait-PendingIo {
+    param(
+        [Parameter(Mandatory)][Threading.Tasks.Task]$Task,
+        [Parameter(Mandatory)][Diagnostics.Stopwatch]$Clock
+    )
+
+    $remaining = [int][Math]::Max(0, $dumpDeadlineMilliseconds - $Clock.ElapsedMilliseconds)
+    try {
+        return $Task.Wait($remaining)
+    }
+    catch {
+        # Cancelled at the deadline, or the pipe failed.
+        return $false
+    }
+}
+
 function Request-RuntimeHeapDump {
     param(
         [Parameter(Mandatory)][int]$ProcessId,
-        [Parameter(Mandatory)][string]$DumpPath
+        [Parameter(Mandatory)][string]$DumpPath,
+        [Parameter(Mandatory)][Diagnostics.Stopwatch]$Clock
     )
 
     # Current .NET runtimes no longer let createdump attach to a pid directly. The
@@ -240,12 +365,18 @@ function Request-RuntimeHeapDump {
     # command (0x01), and a reserved uint16. The payload is the dump path (uint32
     # UTF-16 length with the terminator, then UTF-16LE), the dump type (2, with
     # heap), and a diagnostics flag (0). The reply's header has command set 0xFF and
-    # command 0x00 on success, and is followed by an HRESULT.
+    # command 0x00 on success, and is followed by an HRESULT. Every step shares the
+    # collection's deadline, and the pipe is closed when it passes.
+    $remaining = [int][Math]::Max(0, $dumpDeadlineMilliseconds - $Clock.ElapsedMilliseconds)
+    if ($remaining -le 0) {
+        return "the dump deadline passing"
+    }
+    $cancellation = [Threading.CancellationTokenSource]::new([TimeSpan]::FromMilliseconds($remaining))
     $pipe = [IO.Pipes.NamedPipeClientStream]::new(".", "dotnet-diagnostic-$ProcessId",
         [IO.Pipes.PipeDirection]::InOut, [IO.Pipes.PipeOptions]::Asynchronous)
     try {
         try {
-            $pipe.Connect(3000)
+            $pipe.Connect([Math]::Min(3000, $remaining))
         }
         catch [TimeoutException] {
             return "no-channel"
@@ -265,14 +396,15 @@ function Request-RuntimeHeapDump {
         $message[16] = 0x01
         $message[17] = 0x01
         [Array]::Copy($body, 0, $message, 20, $body.Length)
-        $pipe.Write($message, 0, $message.Length)
-        $pipe.Flush()
+        if (-not (Wait-PendingIo -Task $pipe.WriteAsync($message, 0, $message.Length, $cancellation.Token) -Clock $Clock)) {
+            return "the dump deadline passing"
+        }
         $reply = [byte[]]::new(24)
         $read = 0
         while ($read -lt $reply.Length) {
-            $pending = $pipe.ReadAsync($reply, $read, $reply.Length - $read)
-            if (-not $pending.Wait(120000)) {
-                return "timed-out"
+            $pending = $pipe.ReadAsync($reply, $read, $reply.Length - $read, $cancellation.Token)
+            if (-not (Wait-PendingIo -Task $pending -Clock $Clock)) {
+                return "the dump deadline passing"
             }
             if ($pending.Result -eq 0) {
                 break
@@ -280,7 +412,7 @@ function Request-RuntimeHeapDump {
             $read += $pending.Result
         }
         if ($read -lt $reply.Length) {
-            return "no-reply"
+            return "no reply"
         }
         $result = [BitConverter]::ToUInt32($reply, 20)
         if ($reply[16] -eq 0xFF -and $reply[17] -eq 0x00 -and $result -eq 0) {
@@ -289,40 +421,52 @@ function Request-RuntimeHeapDump {
         return Format-Invariant "HRESULT 0x{0:X8}" @($result)
     }
     finally {
+        $cancellation.Cancel()
         $pipe.Dispose()
+        $cancellation.Dispose()
     }
 }
 
 function Save-TimeoutDumps {
     param(
         [Parameter(Mandatory)][string]$ScenarioId,
-        [Parameter(Mandatory)][Diagnostics.Process]$Fixture
+        [Parameter(Mandatory)][Diagnostics.Process]$Fixture,
+        [AllowNull()][hashtable]$ProcessTable
     )
 
     if (-not $dumpOnTimeout) {
         return
     }
-    if ([string]::IsNullOrWhiteSpace($DiagnosticsDirectory)) {
-        Write-Host "Skipped timeout heap dumps for $($ScenarioId): no diagnostics directory is configured."
+    if ($null -eq $diagnosticsRoot) {
+        Write-Host "Skipped timeout heap dumps for $($ScenarioId): no usable diagnostics directory is configured."
         return
     }
-    $dumpRoot = Join-Path (Join-Path ([IO.Path]::GetFullPath($DiagnosticsDirectory)) $ScenarioId) "dumps"
+    $clock = [Diagnostics.Stopwatch]::StartNew()
+    $dumpRoot = Join-Path (Join-Path $diagnosticsRoot $ScenarioId) "dumps"
     [IO.Directory]::CreateDirectory($dumpRoot) | Out-Null
-    # The server first: its state at the timeout matters most. A process is paused
-    # while its dump is written, typically for a few seconds.
-    $targets = @(Get-PackageProcesses | Where-Object { (Get-PackageProcessRole $_) -eq "server" } | ForEach-Object {
-            [pscustomobject]@{ Role = "server"; Process = $_ }
-        }) +
-        @([pscustomobject]@{ Role = "fixture"; Process = $Fixture })
+    # Only this scenario's own processes: the fixture the runner started, and a
+    # server only when it is a verified descendant of that fixture. The server goes
+    # first, since its state at the timeout matters most. A process is paused while
+    # its dump is written, typically for a few seconds.
+    $targets = [Collections.Generic.List[object]]::new()
+    foreach ($server in @(Get-PackageProcesses | Where-Object { (Get-PackageProcessRole $_) -eq "server" })) {
+        if (Test-FixtureDescendant -ProcessId $server.Id -Fixture $Fixture -ProcessTable $ProcessTable) {
+            $targets.Add([pscustomobject]@{ Role = "server"; Process = $server })
+        }
+        else {
+            Write-Host "No heap dump of the server (pid $($server.Id)): it is not a verified descendant of this scenario's fixture."
+        }
+    }
+    $targets.Add([pscustomobject]@{ Role = "fixture"; Process = $Fixture })
     foreach ($target in $targets) {
         $processId = $target.Process.Id
         $name = "$($target.Role)-$processId.dmp"
         $dumpPath = Join-Path $dumpRoot $name
         try {
-            $outcome = Request-RuntimeHeapDump -ProcessId $processId -DumpPath $dumpPath
+            $outcome = Request-RuntimeHeapDump -ProcessId $processId -DumpPath $dumpPath -Clock $clock
         }
         catch {
-            $outcome = "request-failed"
+            $outcome = "a failed request"
         }
         if ($outcome -eq "written" -and (Test-Path -LiteralPath $dumpPath -PathType Leaf)) {
             Write-Host (Format-Invariant "Wrote a heap dump of the {0} (pid {1}) to dumps/{2} ({3:0.0} MiB)." @(
@@ -337,38 +481,6 @@ function Save-TimeoutDumps {
     }
 }
 
-function Read-SharedText {
-    param([Parameter(Mandatory)][string]$Path)
-
-    # A server that was killed, or one still shutting down, may hold the file open.
-    $stream = [IO.FileStream]::new($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read,
-        [IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete)
-    try {
-        $reader = [IO.StreamReader]::new($stream, [Text.UTF8Encoding]::new($false))
-        try {
-            return $reader.ReadToEnd()
-        }
-        finally {
-            $reader.Dispose()
-        }
-    }
-    finally {
-        $stream.Dispose()
-    }
-}
-
-function Get-JsonScalar {
-    param([Parameter(Mandatory)][Text.Json.JsonElement]$Element)
-
-    switch ($Element.ValueKind) {
-        ([Text.Json.JsonValueKind]::String) { return $Element.GetString() }
-        ([Text.Json.JsonValueKind]::Number) { return $Element.GetRawText() }
-        ([Text.Json.JsonValueKind]::True) { return "true" }
-        ([Text.Json.JsonValueKind]::False) { return "false" }
-    }
-    return $null
-}
-
 function Get-JsonFields {
     param([Parameter(Mandatory)][Text.Json.JsonElement]$Element)
 
@@ -381,19 +493,54 @@ function Get-JsonFields {
     return $fields
 }
 
-function Get-DigestText {
-    param([AllowNull()][string]$Value)
+function Get-JsonString {
+    param([AllowNull()][object]$Element)
 
-    # Server records hold reviewed metadata only. The digest still prints nothing
-    # but identifier characters, so no path or free text can reach a CI log.
-    if ([string]::IsNullOrEmpty($Value)) {
+    if ($null -ne $Element -and $Element.ValueKind -eq [Text.Json.JsonValueKind]::String) {
+        return $Element.GetString()
+    }
+    return $null
+}
+
+function Get-JsonInteger {
+    param([AllowNull()][object]$Element)
+
+    if ($null -ne $Element -and $Element.ValueKind -eq [Text.Json.JsonValueKind]::Number) {
+        $text = $Element.GetRawText()
+        if ($text -cmatch '^-?[0-9]{1,15}$') {
+            return $text
+        }
+    }
+    return $null
+}
+
+function ConvertTo-DigestValue {
+    param(
+        [Parameter(Mandatory)][string]$Field,
+        [Parameter(Mandatory)][Text.Json.JsonElement]$Element
+    )
+
+    # The printable value, the withheld placeholder for a value that does not
+    # validate, or $null when the record has no value for the field.
+    if ($Element.ValueKind -eq [Text.Json.JsonValueKind]::Null) {
         return $null
     }
-    $text = $Value -replace '[^A-Za-z0-9_.,/-]', '?'
-    if ($text.Length -gt 96) {
-        $text = $text.Substring(0, 96)
+    $rule = $digestFields[$Field]
+    if ($rule.ContainsKey("Integer")) {
+        $number = Get-JsonInteger $Element
+        return $(if ($null -ne $number) { $number } else { $digestWithheld })
     }
-    return $text
+    $text = Get-JsonString $Element
+    if ($null -eq $text) {
+        return $digestWithheld
+    }
+    if ($rule.ContainsKey("Allowed")) {
+        return $(if ($rule["Allowed"] -ccontains $text) { $text } else { $digestWithheld })
+    }
+    if ($text.Length -le $rule["MaxLength"] -and $text -cmatch $rule["Pattern"]) {
+        return $text
+    }
+    return $digestWithheld
 }
 
 function ConvertFrom-ServerLogLine {
@@ -407,44 +554,56 @@ function ConvertFrom-ServerLogLine {
     }
     try {
         $fields = Get-JsonFields $document.RootElement
-        if (-not $fields.ContainsKey("Timestamp")) {
-            return $null
-        }
+        $timestamp = Get-JsonString $fields["Timestamp"]
         $time = [DateTimeOffset]::MinValue
-        if (-not [DateTimeOffset]::TryParse(
-                (Get-JsonScalar $fields["Timestamp"]), $invariantCulture,
-                [Globalization.DateTimeStyles]::AssumeUniversal, [ref]$time)) {
+        if ($null -eq $timestamp -or -not [DateTimeOffset]::TryParse(
+                $timestamp, $invariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal, [ref]$time)) {
             return $null
         }
-        $level = $(if ($fields.ContainsKey("Level")) { Get-DigestText (Get-JsonScalar $fields["Level"]) })
+        $level = Get-JsonString $fields["Level"]
+        if ($digestLevels -cnotcontains $level) {
+            $level = "UnknownLevel"
+        }
         $properties = $(if ($fields.ContainsKey("Properties")) { Get-JsonFields $fields["Properties"] } else { @{} })
-        $name = $null
+        # A fixed label for a known event, never the record's own text. A framework
+        # event keeps only its numeric ID.
+        $name = "UnknownEvent"
+        $eventNumber = $null
         if ($properties.ContainsKey("EventId")) {
             $eventId = Get-JsonFields $properties["EventId"]
-            if ($eventId.ContainsKey("Name")) {
-                $name = Get-DigestText (Get-JsonScalar $eventId["Name"])
+            $eventNumber = Get-JsonInteger $eventId["Id"]
+            $label = Get-JsonString $eventId["Name"]
+            if ($null -ne $eventNumber -and $eventNumber -cmatch '^[0-9]{1,9}$' -and
+                $digestEventNames.ContainsKey([int]$eventNumber) -and $label -ceq $digestEventNames[[int]$eventNumber]) {
+                $name = $label
+                $eventNumber = $null
+            }
+            elseif ($label -ceq "FrameworkEvent") {
+                $name = "FrameworkEvent"
             }
         }
-        if ($null -eq $name -and $fields.ContainsKey("MessageTemplate")) {
-            $name = Get-DigestText (Get-JsonScalar $fields["MessageTemplate"])
+        elseif ((Get-JsonString $fields["MessageTemplate"]) -ceq "LogRecordTooLarge") {
+            $name = "LogRecordTooLarge"
         }
         $values = [ordered]@{}
-        foreach ($property in $digestProperties) {
-            if ($properties.ContainsKey($property)) {
-                $value = Get-DigestText (Get-JsonScalar $properties[$property])
+        if ($null -ne $eventNumber) {
+            $values["EventId"] = $eventNumber
+        }
+        foreach ($field in $digestFields.Keys) {
+            if ($properties.ContainsKey($field)) {
+                $value = ConvertTo-DigestValue -Field $field -Element $properties[$field]
                 if ($null -ne $value) {
-                    $values[$property] = $value
+                    $values[$field] = $value
                 }
             }
         }
+        $instance = Get-JsonString $properties["ServerInstanceId"]
         return [pscustomobject]@{
             Time = $time
-            Level = $(if ($null -ne $level) { $level } else { "Information" })
-            Name = $(if ($null -ne $name) { $name } else { "UnnamedEvent" })
-            Instance = $(if ($properties.ContainsKey("ServerInstanceId")) {
-                    Get-DigestText (Get-JsonScalar $properties["ServerInstanceId"])
-                })
-            Values = $values
+            Level = $level
+            Name = $name
+            Instance = $(if ($instance -cmatch '^[0-9a-f]{32}$') { $instance })
+            Fields = $values
         }
     }
     finally {
@@ -452,35 +611,140 @@ function ConvertFrom-ServerLogLine {
     }
 }
 
-function Read-ServerLogEvents {
-    param([Parameter(Mandatory)][string]$ScenarioRoot)
+function Add-PhaseRecord {
+    param(
+        [Parameter(Mandatory)][object]$Log,
+        [Parameter(Mandatory)][string]$Line
+    )
 
-    $events = [Collections.Generic.List[object]]::new()
-    $unreadable = 0
-    $logRoot = Join-Path $ScenarioRoot "server-logs"
-    $files = @()
-    if (Test-Path -LiteralPath $logRoot -PathType Container) {
-        $files = @(Get-ChildItem -LiteralPath $logRoot -Filter "*.jsonl" -File | Sort-Object Name)
+    $record = ConvertFrom-ServerLogLine $Line
+    if ($null -eq $record) {
+        return
     }
-    foreach ($file in $files) {
-        foreach ($line in ((Read-SharedText $file.FullName) -split "\r?\n")) {
-            if ([string]::IsNullOrWhiteSpace($line)) {
-                continue
-            }
-            $record = ConvertFrom-ServerLogLine $line
-            if ($null -eq $record) {
-                # For example, the last line of a file whose writer was killed.
-                $unreadable++
-                continue
-            }
-            $events.Add($record)
+    if ($record.Name -ceq "EndpointListening" -and $null -eq $Log.Listening) {
+        $Log.Listening = $record
+    }
+    elseif ($record.Name -ceq "LifecycleRpcCompleted" -and $record.Fields.Contains("Rpc") -and
+        $record.Fields["Rpc"] -cne $digestWithheld -and -not $Log.Completed.ContainsKey($record.Fields["Rpc"])) {
+        $Log.Completed[$record.Fields["Rpc"]] = $record
+    }
+}
+
+# Streams the scenario's server log files. Memory stays bounded: the latest
+# lower-severity lines are kept as text and parsed at the end, and warnings and
+# errors are kept up to the head and tail limits. A file that cannot be read is
+# counted and skipped; it never loses the rest of the timeline.
+function Read-ServerLog {
+    param(
+        [Parameter(Mandatory)][string]$ScenarioRoot,
+        [switch]$PhasesOnly
+    )
+
+    $log = [pscustomobject]@{
+        Files = 0
+        UnreadableFiles = 0
+        UnreadableLines = 0
+        Ordinary = @()
+        OrdinaryOmitted = 0
+        Important = @()
+        ImportantOmitted = 0
+        Listening = $null
+        Completed = @{}
+    }
+    $files = @()
+    try {
+        $logRoot = Join-Path $ScenarioRoot "server-logs"
+        if (Test-Path -LiteralPath $logRoot -PathType Container) {
+            $files = @(Get-ChildItem -LiteralPath $logRoot -Filter "*.jsonl" -File | Sort-Object Name)
         }
     }
-    return [pscustomobject]@{
-        Files = $files.Count
-        Events = @($events | Sort-Object -Property Time -Stable)
-        Unreadable = $unreadable
+    catch {
+        $log.UnreadableFiles++
     }
+    $log.Files = $files.Count
+    $importantHead = [Collections.Generic.List[object]]::new()
+    $importantTail = [Collections.Generic.Queue[object]]::new()
+    $tailLines = [Collections.Generic.List[string]]::new()
+    $ordinarySeen = 0
+    foreach ($file in $files) {
+        $ring = [Collections.Generic.Queue[string]]::new()
+        $stream = $null
+        $reader = $null
+        try {
+            # A server that was killed, or one still shutting down, may hold the file open.
+            $stream = [IO.FileStream]::new($file.FullName, [IO.FileMode]::Open, [IO.FileAccess]::Read,
+                [IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete)
+            $reader = [IO.StreamReader]::new($stream, [Text.UTF8Encoding]::new($false))
+            while ($null -ne ($line = $reader.ReadLine())) {
+                if ([string]::IsNullOrWhiteSpace($line)) {
+                    continue
+                }
+                if ($line.Length -gt $digestMaximumLineLength) {
+                    $log.UnreadableLines++
+                    continue
+                }
+                if ($line.Contains('"EndpointListening"') -or $line.Contains('"LifecycleRpcCompleted"')) {
+                    Add-PhaseRecord -Log $log -Line $line
+                }
+                if ($PhasesOnly) {
+                    continue
+                }
+                if ($line.Contains('"Level":"Warning"') -or $line.Contains('"Level":"Error"') -or
+                    $line.Contains('"Level":"Fatal"')) {
+                    $record = ConvertFrom-ServerLogLine $line
+                    if ($null -eq $record) {
+                        $log.UnreadableLines++
+                        continue
+                    }
+                    if ($digestImportantLevels -ccontains $record.Level) {
+                        if ($importantHead.Count -lt $digestImportantHead) {
+                            $importantHead.Add($record)
+                        }
+                        else {
+                            $importantTail.Enqueue($record)
+                            if ($importantTail.Count -gt $digestImportantTail) {
+                                [void]$importantTail.Dequeue()
+                                $log.ImportantOmitted++
+                            }
+                        }
+                        continue
+                    }
+                }
+                $ordinarySeen++
+                $ring.Enqueue($line)
+                if ($ring.Count -gt $digestTailLimit) {
+                    [void]$ring.Dequeue()
+                }
+            }
+        }
+        catch {
+            # For example, a file another process holds exclusively.
+            $log.UnreadableFiles++
+        }
+        finally {
+            if ($null -ne $reader) { $reader.Dispose() }
+            if ($null -ne $stream) { $stream.Dispose() }
+        }
+        $tailLines.AddRange($ring)
+    }
+    if ($PhasesOnly) {
+        return $log
+    }
+    $parsed = [Collections.Generic.List[object]]::new()
+    foreach ($line in $tailLines) {
+        $record = ConvertFrom-ServerLogLine $line
+        if ($null -eq $record) {
+            # For example, the truncated last line of a writer that was killed.
+            $log.UnreadableLines++
+        }
+        else {
+            $parsed.Add($record)
+        }
+    }
+    $log.Ordinary = @($parsed | Sort-Object -Property Time -Stable | Select-Object -Last $digestTailLimit)
+    $log.OrdinaryOmitted = $ordinarySeen - $tailLines.Count + $parsed.Count - $log.Ordinary.Count
+    $log.Important = @($importantHead) + @($importantTail)
+    return $log
 }
 
 # One line per server event, relative to the fixture start: the phase timeline of
@@ -495,63 +759,58 @@ function Write-ServerLogDigest {
     $lines = [Collections.Generic.List[string]]::new()
     $reference = Get-TimingReference $Timing
     $lines.Add("--- server log digest for $ScenarioId (times from $($reference.Name)) ---")
+    $log = $null
     try {
-        $log = Read-ServerLogEvents -ScenarioRoot $ScenarioRoot
-        $events = @($log.Events)
+        $log = Read-ServerLog -ScenarioRoot $ScenarioRoot
+    }
+    catch {
+        $lines.Add("(the server log could not be read)")
+    }
+    $events = [Collections.Generic.List[object]]::new()
+    if ($null -ne $log) {
         if ($log.Files -eq 0) {
             $lines.Add("(no server log file was found)")
         }
-        # Keep the latest events, but never drop a warning or an error.
-        $kept = $events
-        if ($events.Count -gt $digestEventLimit) {
-            $important = @($events | Where-Object { $_.Level -in $digestImportantLevels }).Count
-            $budget = [Math]::Max(0, $digestEventLimit - $important)
-            $keep = [bool[]]::new($events.Count)
-            for ($index = $events.Count - 1; $index -ge 0; $index--) {
-                if ($events[$index].Level -in $digestImportantLevels) {
-                    $keep[$index] = $true
-                }
-                elseif ($budget -gt 0) {
-                    $keep[$index] = $true
-                    $budget--
-                }
-            }
-            $kept = @(for ($index = 0; $index -lt $events.Count; $index++) {
-                    if ($keep[$index]) { $events[$index] }
-                })
-            $lines.Add("($($events.Count - $kept.Count) earlier lower-severity events omitted; warnings and errors are always kept)")
+        if ($log.OrdinaryOmitted -gt 0) {
+            $lines.Add("($($log.OrdinaryOmitted) earlier lower-severity records omitted; warnings and errors are always kept)")
         }
-        $instances = @($events | ForEach-Object { $_.Instance } | Where-Object { $null -ne $_ } | Select-Object -Unique)
-        # The runner's own fixture marks, in the same timeline. Events after the
-        # fixture end come from processes that ran on until the runner killed them.
-        $marks = @(
-            @("FixtureStarted", "FixtureStart"),
-            @("FixtureEnded", $(if ($Timing.TimedOut) { "FixtureTimedOut" } else { "FixtureEnd" }))) |
-            Where-Object { $null -ne $Timing[$_[0]] } |
-            ForEach-Object {
-                [pscustomobject]@{
-                    Time = [DateTimeOffset]$Timing[$_[0]]
-                    Level = "Runner"
-                    Name = $_[1]
-                    Instance = $null
-                    Values = [ordered]@{}
-                }
-            }
-        foreach ($event in @(@($kept) + @($marks) | Sort-Object -Property Time -Stable)) {
-            $server = ""
-            if ($instances.Count -gt 1 -and $null -ne $event.Instance) {
-                $server = " [server $([Array]::IndexOf($instances, $event.Instance) + 1)]"
-            }
-            $values = @($event.Values.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" })
-            $lines.Add(("{0} {1}{2} {3} {4}" -f (Format-Offset $event.Time $reference.Time), $event.Level,
-                $server, $event.Name, ($values -join " ")).TrimEnd())
+        if ($log.ImportantOmitted -gt 0) {
+            $lines.Add("($($log.ImportantOmitted) warnings and errors omitted after the first $digestImportantHead; the latest $digestImportantTail are shown)")
         }
-        if ($log.Unreadable -gt 0) {
-            $lines.Add("($($log.Unreadable) unreadable server log lines skipped)")
+        foreach ($entry in @($log.Ordinary) + @($log.Important)) {
+            $events.Add($entry)
         }
     }
-    catch {
-        $lines.Add("(the server log digest could not be produced)")
+    # The runner's own fixture marks, always in the same timeline. Events after the
+    # fixture end come from processes that ran on until the runner killed them.
+    foreach ($mark in @(
+            @("FixtureStarted", "FixtureStart"),
+            @("FixtureEnded", $(if ($Timing.TimedOut) { "FixtureTimedOut" } else { "FixtureEnd" })))) {
+        if ($null -ne $Timing[$mark[0]]) {
+            $events.Add([pscustomobject]@{
+                Time = [DateTimeOffset]$Timing[$mark[0]]
+                Level = "Runner"
+                Name = $mark[1]
+                Instance = $null
+                Fields = [ordered]@{}
+            })
+        }
+    }
+    $instances = @($events | ForEach-Object { $_.Instance } | Where-Object { $null -ne $_ } | Select-Object -Unique)
+    foreach ($entry in @($events | Sort-Object -Property Time -Stable)) {
+        $server = ""
+        if ($instances.Count -gt 1 -and $null -ne $entry.Instance) {
+            $server = " [server $([Array]::IndexOf($instances, $entry.Instance) + 1)]"
+        }
+        $values = @($entry.Fields.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" })
+        $lines.Add(("{0} {1}{2} {3} {4}" -f (Format-Offset $entry.Time $reference.Time), $entry.Level,
+            $server, $entry.Name, ($values -join " ")).TrimEnd())
+    }
+    if ($null -ne $log -and $log.UnreadableLines -gt 0) {
+        $lines.Add("($($log.UnreadableLines) unreadable server log lines skipped)")
+    }
+    if ($null -ne $log -and $log.UnreadableFiles -gt 0) {
+        $lines.Add("($($log.UnreadableFiles) server log files could not be read)")
     }
     $lines.Add("--- end server log digest for $ScenarioId ---")
     foreach ($line in $lines) {
@@ -574,21 +833,18 @@ function Get-ScenarioPhaseSummary {
             $parts.Add((Format-Invariant "fixture {0:0.0} s" @(
                 ([DateTimeOffset]$Timing.FixtureEnded - [DateTimeOffset]$Timing.FixtureStarted).TotalSeconds)))
         }
-        $events = @((Read-ServerLogEvents -ScenarioRoot $ScenarioRoot).Events)
-        $listening = @($events | Where-Object { $_.Name -eq "EndpointListening" }) | Select-Object -First 1
-        if ($null -ne $listening -and $null -ne $Timing.FixtureStarted) {
-            $parts.Add("server listening $(Format-Offset $listening.Time ([DateTimeOffset]$Timing.FixtureStarted))")
+        $log = Read-ServerLog -ScenarioRoot $ScenarioRoot -PhasesOnly
+        if ($null -ne $log.Listening -and $null -ne $Timing.FixtureStarted) {
+            $parts.Add("server listening $(Format-Offset $log.Listening.Time ([DateTimeOffset]$Timing.FixtureStarted))")
         }
         foreach ($phase in @(
                 @("StartSpatialAnalyzerSdk", "worker start"),
                 @("LaunchSpatialAnalyzer", "launch"),
                 @("ConnectToSpatialAnalyzer", "connect"))) {
-            $completed = @($events | Where-Object {
-                    $_.Name -eq "LifecycleRpcCompleted" -and $_.Values["Rpc"] -eq $phase[0] -and
-                    $_.Values.Contains("ElapsedMilliseconds")
-                }) | Select-Object -First 1
-            if ($null -ne $completed) {
-                $parts.Add("$($phase[1]) $($completed.Values["ElapsedMilliseconds"]) ms")
+            $completed = $log.Completed[$phase[0]]
+            if ($null -ne $completed -and $completed.Fields.Contains("ElapsedMilliseconds") -and
+                $completed.Fields["ElapsedMilliseconds"] -cne $digestWithheld) {
+                $parts.Add("$($phase[1]) $($completed.Fields["ElapsedMilliseconds"]) ms")
             }
         }
         return ($parts -join "; ")
@@ -639,11 +895,11 @@ function Save-ScenarioDiagnostics {
         [Parameter(Mandatory)][string]$Failure
     )
 
-    if ([string]::IsNullOrWhiteSpace($DiagnosticsDirectory)) {
+    if ($null -eq $diagnosticsRoot) {
         return
     }
 
-    $destination = Join-Path ([IO.Path]::GetFullPath($DiagnosticsDirectory)) $ScenarioId
+    $destination = Join-Path $diagnosticsRoot $ScenarioId
     [IO.Directory]::CreateDirectory($destination) | Out-Null
     foreach ($item in @(Get-ChildItem -LiteralPath $ScenarioRoot -Force)) {
         # The fake application directory holds only copied package binaries.
@@ -669,9 +925,9 @@ function Publish-ScenarioFailure {
     # The single path for every rejected scenario, whether the fixture failed,
     # timed out, or returned an unacceptable report, or cleanup found a problem.
     # The server writes its file log unbuffered, so the log still holds its
-    # events after a forced kill.
+    # events after a forced kill. Everything after the stderr is diagnostics only:
+    # none of it may replace or hide the scenario's own failure.
     Write-FixtureError -ScenarioId $ScenarioId -ScenarioRoot $ScenarioRoot
-    # Diagnostics only: nothing here may replace the scenario's own failure.
     try {
         $timingLine = Write-RunnerTiming -ScenarioId $ScenarioId -Timing $Timing
         $digest = @(Write-ServerLogDigest -ScenarioId $ScenarioId -ScenarioRoot $ScenarioRoot -Timing $Timing)
@@ -683,7 +939,12 @@ function Publish-ScenarioFailure {
     catch {
         Write-Host "(the runner timing and server log digest could not be produced)"
     }
-    Save-ScenarioDiagnostics -ScenarioId $ScenarioId -ScenarioRoot $ScenarioRoot -Failure $Failure
+    try {
+        Save-ScenarioDiagnostics -ScenarioId $ScenarioId -ScenarioRoot $ScenarioRoot -Failure $Failure
+    }
+    catch {
+        Write-Host "(the scenario diagnostics could not be saved to the diagnostics directory)"
+    }
 }
 
 function Invoke-Fixture {
@@ -717,21 +978,32 @@ function Invoke-Fixture {
         if (-not $exited) {
             $Timing.TimedOut = $true
             # Record what is still running before the kill, which also ends the
-            # client-owned server and its worker.
+            # client-owned server and its worker. The kill and the cleanup run
+            # whether or not these diagnostics succeed.
             try {
-                Write-TimeoutProcesses -ScenarioId ([string]$ScenarioDefinition.id) -Fixture $process -Timing $Timing
-                Save-TimeoutDumps -ScenarioId ([string]$ScenarioDefinition.id) -Fixture $process
+                $processTable = $null
+                try {
+                    $processTable = Get-ProcessTable
+                }
+                catch {
+                }
+                Write-TimeoutProcesses -ScenarioId ([string]$ScenarioDefinition.id) -Fixture $process `
+                    -Timing $Timing -ProcessTable $processTable
+                Save-TimeoutDumps -ScenarioId ([string]$ScenarioDefinition.id) -Fixture $process `
+                    -ProcessTable $processTable
             }
             catch {
                 Write-Host "(the processes alive at the fixture timeout could not be recorded)"
             }
-            try {
-                $process.Kill($true)
+            finally {
+                try {
+                    $process.Kill($true)
+                }
+                catch {
+                    # The fixture exited after the wait elapsed.
+                }
+                Stop-PackageProcesses
             }
-            catch [InvalidOperationException] {
-                # The fixture exited after the wait elapsed.
-            }
-            Stop-PackageProcesses
             if ([Threading.Tasks.Task]::WaitAll(@($outputTask, $errorTask), 5000)) {
                 Save-FixtureOutput `
                     -ScenarioRoot $ScenarioRoot `

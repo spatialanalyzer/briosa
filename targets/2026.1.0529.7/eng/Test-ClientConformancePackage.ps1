@@ -199,16 +199,22 @@ $definition = Get-Content -LiteralPath $Contract -Raw | ConvertFrom-Json
         $fixturePath,
         $fixtureSource,
         [Text.UTF8Encoding]::new($false))
+    # An unusable optional diagnostics directory turns diagnostics off; it never
+    # turns a passing run into a failure (#371).
     $runnerArguments = @{
         FixtureCommand = (Get-Process -Id $PID).Path
         FixtureArguments = @("-NoProfile", "-File", $fixturePath)
         FixtureTimeoutSeconds = 30
+        DiagnosticsDirectory = "unusable`0diagnostics-directory"
     }
     $passedOutput = [Collections.Generic.List[string]]::new()
     & $runnerPath @runnerArguments *>&1 | ForEach-Object {
         $passedOutput.Add([string]$_)
         Write-Host $_
     }
+    Assert-Condition ($passedOutput -contains
+        "Conformance diagnostics are disabled: the diagnostics directory is not a usable path.") `
+        "The conformance runner did not report an unusable diagnostics directory."
     # Each passed scenario reports its phase durations; this fixture starts no
     # server, so only the fixture's own time is known (#371).
     $passedLines = @($passedOutput | Where-Object { $_ -like "Passed client conformance scenario: *" })
@@ -238,30 +244,49 @@ if ($env:Briosa__Worker__StartupTimeout -ne "__STARTUP__") {
 }
 [IO.Directory]::CreateDirectory($logDirectory) | Out-Null
 [IO.File]::WriteAllText((Join-Path $logDirectory "server-log-marker.jsonl"), "server-log-marker")
-# A server log in the real record shape: three early warnings, more lower-severity
-# events than the digest keeps, one property outside the digest allow-list, and the
-# truncated last line of a killed writer.
+# A server log in the real record shape: three early warnings; warnings that carry
+# sensitive-looking text in printed properties, in an event name, a template and
+# a level; more lower-severity records than the digest keeps; a property outside
+# the digest allow-list; optionally a flood of warnings; and the truncated last
+# line of a killed writer.
 $started = [DateTimeOffset]::UtcNow
 $records = [Collections.Generic.List[string]]::new()
-function Add-ServerRecord([int]$Offset, [string]$Level, [string]$Name, [hashtable]$Properties) {
+function Add-ServerRecord([int]$Offset, [string]$Level, [string]$Name, [hashtable]$Properties,
+    [int]$Id = 1, [string]$Template = $Name) {
     $Properties["ServerInstanceId"] = "0123456789abcdef0123456789abcdef"
-    $Properties["EventId"] = @{ Id = 1; Name = $Name }
+    if ($Id -ge 0) { $Properties["EventId"] = @{ Id = $Id; Name = $Name } }
     $records.Add((@{
         Timestamp = $started.AddMilliseconds($Offset).ToString("o")
         Level = $Level
-        MessageTemplate = $Name
+        MessageTemplate = $Template
         Properties = $Properties
     } | ConvertTo-Json -Compress -Depth 5))
 }
 foreach ($index in 1..3) {
     Add-ServerRecord $index "Warning" "WorkerStartPhase" @{
-        Phase = "startup-bound-expired"; ElapsedMilliseconds = 10000; Generation = $index }
+        Phase = "startup-bound-expired"; ElapsedMilliseconds = 10000; Generation = $index } -Id 1203
 }
+Add-ServerRecord 4 "Warning" "WorkerTransition" @{
+    WorkerState = "C:/Users/someone/secret"; DiagnosticCode = "../relative/secret/path"
+    ConnectionState = "build-host.corp.example"; Generation = 4 } -Id 1201
+Add-ServerRecord 5 "Warning" "LifecycleRejected" @{
+    Rpc = "someone@example.com"; GrpcStatus = "DOMAIN/someone"; ElapsedMilliseconds = "12345"
+    DiagnosticCode = "ghp_0123456789abcdefABCDEF" } -Id 1302
+Add-ServerRecord 6 "Warning" "secret-name-text" @{ Generation = 6 } -Id 1201 -Template "Template with secret-template-text"
+Add-ServerRecord 7 "Warning" "unused" @{ Generation = 7 } -Id -1 -Template "secret-template-only"
+Add-ServerRecord 8 "Warning" "ExecutionDispatched" @{
+    OperationId = "host.example.com"; Generation = 8.5; MpResultCode = 2 } -Id 1300
 foreach ($index in 1..250) {
-    Add-ServerRecord (10 + $index) "Information" "ReadinessNotReady" @{}
+    Add-ServerRecord (10 + $index) "Information" "ReadinessNotReady" @{} -Id 1500
 }
 Add-ServerRecord 300 "Information" "LifecycleRpcStarted" @{
-    Rpc = "LaunchSpatialAnalyzer"; Path = "secret-geometry-path" }
+    Rpc = "LaunchSpatialAnalyzer"; Path = "secret-geometry-path" } -Id 1303
+Add-ServerRecord 301 "secret-level-text" "LifecycleRpcStarted" @{ Rpc = "StopSpatialAnalyzerSdk" } -Id 1303
+$flood = __FLOOD__
+for ($index = 1; $index -le $flood; $index++) {
+    Add-ServerRecord (400 + $index) "Warning" "WorkerStartPhase" @{
+        Phase = "start-failed"; Generation = 100000 + $index } -Id 1203
+}
 $records.Add('{"Timestamp":"2026-11-22T12:00:00')
 [IO.File]::WriteAllLines(
     (Join-Path $logDirectory "briosa-0123456789abcdef0123456789abcdef-20261122.jsonl"), $records)
@@ -292,41 +317,70 @@ switch ("__MODE__") {
 }
 '@
 
+    # Dump expectations depend on the fixture runtime, which is this PowerShell.
+    $fixtureRuntime = @((Get-Process -Id $PID).Modules | Where-Object ModuleName -eq "coreclr.dll")
+    $fixtureShipsCreateDump = $fixtureRuntime.Count -eq 1 -and
+        (Test-Path -LiteralPath (Join-Path (Split-Path -Parent $fixtureRuntime[0].FileName) "createdump.exe"))
+    $sensitiveMarkers = @("someone", "secret", "corp.example", "example.com", "ghp_", "DOMAIN", "relative")
     $rejectionCases = @(
         # A caller's own worker startup bound reaches the server unchanged.
-        [pscustomobject]@{ Mode = "exit-nonzero"; Diagnostics = $true; StartupTimeout = "00:00:12"
-            Failure = "*failed scenario 'default-ready' with exit code 1*" },
-        [pscustomobject]@{ Mode = "unsuccessful-report"; Diagnostics = $true
+        [pscustomobject]@{ Name = "exit-nonzero-saved"; Mode = "exit-nonzero"; Diagnostics = "directory"
+            StartupTimeout = "00:00:12"; Failure = "*failed scenario 'default-ready' with exit code 1*" },
+        [pscustomobject]@{ Name = "unsuccessful-report-saved"; Mode = "unsuccessful-report"; Diagnostics = "directory"
             Failure = "*report did not satisfy scenario 'default-ready'*" },
-        [pscustomobject]@{ Mode = "empty-report"; Diagnostics = $true
+        # A flood of warnings exercises the warning and error bound.
+        [pscustomobject]@{ Name = "empty-report-saved"; Mode = "empty-report"; Diagnostics = "directory"; Flood = 1100
             Failure = "*returned no report for scenario 'default-ready'*" },
-        [pscustomobject]@{ Mode = "invalid-report"; Diagnostics = $true
+        [pscustomobject]@{ Name = "invalid-report-saved"; Mode = "invalid-report"; Diagnostics = "directory"
             Failure = "*returned an invalid JSON report for scenario 'default-ready'*" },
-        [pscustomobject]@{ Mode = "timeout"; Diagnostics = $true; Dump = $true
-            Failure = "*timed out after 5 s in scenario 'default-ready'*" },
+        # A dump only from a fixture whose diagnostics channel is known to be enabled.
+        [pscustomobject]@{ Name = "timeout-dump-enabled"; Mode = "timeout"; Diagnostics = "directory"; Dump = "1"
+            Channel = "enabled"; Failure = "*timed out after 5 s in scenario 'default-ready'*" },
+        # A disabled diagnostics channel is reported and skipped.
+        [pscustomobject]@{ Name = "timeout-dump-channel-disabled"; Mode = "timeout"; Diagnostics = "directory"; Dump = "1"
+            Channel = "ipc-disabled"; Failure = "*timed out after 5 s in scenario 'default-ready'*" },
+        # Only the documented opt-in value enables dumps.
+        [pscustomobject]@{ Name = "timeout-dump-undocumented-value"; Mode = "timeout"; Diagnostics = "directory"; Dump = "true"
+            Channel = "enabled"; Failure = "*timed out after 5 s in scenario 'default-ready'*" },
         # Without a diagnostics directory the runner deletes its temporary
         # files, so the printed stderr is the only remaining evidence.
-        [pscustomobject]@{ Mode = "unsuccessful-report"; Diagnostics = $false
-            Failure = "*report did not satisfy scenario 'default-ready'*" })
-    $previousDiagnosticsDirectory = $env:BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY
-    $previousStartupTimeout = $env:Briosa__Worker__StartupTimeout
-    $previousDumpOnTimeout = $env:BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT
+        [pscustomobject]@{ Name = "unsuccessful-report-printed"; Mode = "unsuccessful-report"; Diagnostics = "none"
+            Failure = "*report did not satisfy scenario 'default-ready'*" },
+        # A destination that cannot be created never hides the scenario's own failure.
+        [pscustomobject]@{ Name = "exit-nonzero-unwritable"; Mode = "exit-nonzero"; Diagnostics = "file"
+            Failure = "*failed scenario 'default-ready' with exit code 1*" })
+    $previousEnvironment = @{}
+    foreach ($name in @("BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY", "Briosa__Worker__StartupTimeout",
+            "BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT", "DOTNET_EnableDiagnostics", "DOTNET_EnableDiagnostics_IPC")) {
+        $previousEnvironment[$name] = [Environment]::GetEnvironmentVariable($name)
+    }
     try {
         foreach ($case in $rejectionCases) {
-            $caseName = "$($case.Mode)-$(if ($case.Diagnostics) { 'saved' } else { 'printed' })"
-            $callerStartupTimeout = $(if ($case.PSObject.Properties.Name -contains "StartupTimeout") { $case.StartupTimeout })
-            $dump = $case.PSObject.Properties.Name -contains "Dump" -and $case.Dump
+            $caseName = $case.Name
+            $property = { param($name) $(if ($case.PSObject.Properties.Name -contains $name) { $case.$name }) }
+            $callerStartupTimeout = & $property "StartupTimeout"
+            $dump = & $property "Dump"
+            $flood = & $property "Flood"
+            $channel = & $property "Channel"
             $failingFixturePath = Join-Path $temporaryRoot "failing-fixture-$caseName.ps1"
             # The runner gives the fake worker start 30 s unless the caller set a bound.
             [IO.File]::WriteAllText(
                 $failingFixturePath,
                 $failingFixtureSource.Replace("__MODE__", $case.Mode).Replace(
-                    "__STARTUP__", $(if ($null -ne $callerStartupTimeout) { $callerStartupTimeout } else { "00:00:30" })),
+                    "__STARTUP__", $(if ($null -ne $callerStartupTimeout) { $callerStartupTimeout } else { "00:00:30" })).Replace(
+                    "__FLOOD__", $(if ($null -ne $flood) { [string]$flood } else { "0" })),
                 [Text.UTF8Encoding]::new($false))
             $diagnosticsRoot = Join-Path $temporaryRoot "conformance-diagnostics-$caseName"
-            $env:BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY = $(if ($case.Diagnostics) { $diagnosticsRoot } else { $null })
+            if ($case.Diagnostics -eq "file") {
+                [IO.File]::WriteAllText($diagnosticsRoot, "not a directory")
+            }
+            $env:BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY = $(if ($case.Diagnostics -ne "none") { $diagnosticsRoot } else { $null })
             $env:Briosa__Worker__StartupTimeout = $callerStartupTimeout
-            $env:BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT = $(if ($dump) { "1" } else { $null })
+            $env:BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT = $dump
+            # The fixture inherits these; set them explicitly so the ambient
+            # environment cannot decide the dump expectation.
+            $env:DOTNET_EnableDiagnostics = $null
+            $env:DOTNET_EnableDiagnostics_IPC = $(if ($channel -eq "ipc-disabled") { "0" } else { $null })
             $failure = $null
             $runnerOutput = [Collections.Generic.List[string]]::new()
             try {
@@ -351,8 +405,8 @@ switch ("__MODE__") {
                 "The conformance runner did not print the complete fixture stderr for $caseName."
 
             # The runner's timing marks and the server log digest follow the stderr
-            # (#371). The digest keeps the latest 200 events and every warning, and
-            # prints only allow-listed properties.
+            # (#371). The digest keeps the latest 200 lower-severity records and
+            # every warning and error, and prints only validated values.
             $timingLine = @($runnerOutput | Where-Object { $_ -like "Runner timing for default-ready (UTC): *" })
             Assert-Condition ($timingLine.Count -eq 1 -and
                 $timingLine[0] -like "*scenario start *, fixture start * (+*), fixture end * (+*)*" -and
@@ -377,24 +431,61 @@ switch ("__MODE__") {
                         if ($offsets[$index] -lt $offsets[$index - 1]) { $index }
                     }).Count -eq 0) `
                 "The conformance runner did not place its fixture marks in the server log digest's timeline for $caseName."
-            Assert-Condition ($digestEvents.Count -eq 200 -and
-                @($digestEvents | Where-Object {
+            $warnings = @($digestEvents | Where-Object { $_ -match '^\S+ s Warning ' })
+            $ordinary = @($digestEvents | Where-Object { $_ -notmatch '^\S+ s Warning ' })
+            Assert-Condition ($ordinary.Count -eq 199 -and
+                @($warnings | Where-Object {
                     $_ -like "* Warning WorkerStartPhase Phase=startup-bound-expired ElapsedMilliseconds=10000 Generation=*" }).Count -eq 3 -and
-                $digestEvents[-1] -like "+* s Information LifecycleRpcStarted Rpc=LaunchSpatialAnalyzer" -and
-                $digest -contains "(54 earlier lower-severity events omitted; warnings and errors are always kept)" -and
+                @($ordinary | Where-Object { $_ -like "+* s Information LifecycleRpcStarted Rpc=LaunchSpatialAnalyzer" }).Count -eq 1 -and
+                $ordinary[-1] -like "+* s UnknownLevel LifecycleRpcStarted Rpc=StopSpatialAnalyzerSdk" -and
+                $digest -contains "(53 earlier lower-severity records omitted; warnings and errors are always kept)" -and
                 $digest -contains "(2 unreadable server log lines skipped)") `
                 "The conformance runner printed an unexpected server log digest for $caseName."
-            Assert-Condition (@($runnerOutput | Where-Object { $_ -like "*secret-geometry-path*" }).Count -eq 0) `
-                "The conformance runner printed a server log property outside the digest allow-list for $caseName."
+            # Sensitive-looking text inside printed properties, an event name, a
+            # template or a level is withheld, never printed.
+            Assert-Condition (
+                @($warnings | Where-Object { $_ -like "* Warning WorkerTransition WorkerState=<withheld> Generation=4 ConnectionState=<withheld> DiagnosticCode=<withheld>" }).Count -eq 1 -and
+                @($warnings | Where-Object { $_ -like "* Warning LifecycleRejected Rpc=<withheld> GrpcStatus=<withheld> ElapsedMilliseconds=<withheld> DiagnosticCode=<withheld>" }).Count -eq 1 -and
+                @($warnings | Where-Object { $_ -like "* Warning UnknownEvent EventId=1201 Generation=6" }).Count -eq 1 -and
+                @($warnings | Where-Object { $_ -like "* Warning UnknownEvent Generation=7" }).Count -eq 1 -and
+                @($warnings | Where-Object { $_ -like "* Warning ExecutionDispatched Generation=<withheld> OperationId=<withheld> MpResultCode=2" }).Count -eq 1) `
+                "The conformance runner did not withhold unvalidated server log values for $caseName."
+            foreach ($marker in $sensitiveMarkers) {
+                Assert-Condition (@($runnerOutput | Where-Object { $_ -clike "*$marker*" }).Count -eq 0) `
+                    "The conformance runner printed sensitive-looking server log text ($marker) for $caseName."
+            }
+            if ($null -ne $flood) {
+                # The first 100 and the latest 900 warnings and errors are kept.
+                $floodWarnings = @($warnings | Where-Object { $_ -like "* Warning WorkerStartPhase Phase=start-failed Generation=1*" })
+                Assert-Condition ($warnings.Count -eq 1000 -and $floodWarnings.Count -eq 992 -and
+                    $digest -contains "(108 warnings and errors omitted after the first 100; the latest 900 are shown)" -and
+                    @($floodWarnings | Where-Object { $_ -like "*Generation=100092" }).Count -eq 1 -and
+                    @($floodWarnings | Where-Object { $_ -like "*Generation=100093" }).Count -eq 0 -and
+                    @($floodWarnings | Where-Object { $_ -like "*Generation=100200" }).Count -eq 0 -and
+                    @($floodWarnings | Where-Object { $_ -like "*Generation=100201" }).Count -eq 1 -and
+                    @($floodWarnings | Where-Object { $_ -like "*Generation=101100" }).Count -eq 1) `
+                    "The conformance runner did not bound the warnings and errors as expected for $caseName."
+            }
+            else {
+                Assert-Condition ($warnings.Count -eq 8) `
+                    "The conformance runner did not keep every warning for $caseName."
+            }
             if ($case.Mode -eq "timeout") {
                 Assert-Condition ($runnerOutput -contains
                     "--- processes alive at the fixture timeout in default-ready (start times from fixture start) ---" -and
                     @($runnerOutput | Where-Object { $_ -match '^fixture pid [0-9]+: started [+-][0-9]+\.[0-9]{3} s, CPU [0-9]+\.[0-9]{2} s$' }).Count -eq 1) `
                     "The conformance runner did not record the processes alive at the fixture timeout."
             }
-            if (-not $case.Diagnostics) {
+            $dumpLines = @($runnerOutput | Where-Object { $_ -like "*heap dump*" })
+            if ($case.Diagnostics -eq "none") {
                 Assert-Condition (-not (Test-Path -LiteralPath $diagnosticsRoot)) `
                     "The conformance runner wrote diagnostics without a configured directory."
+                continue
+            }
+            if ($case.Diagnostics -eq "file") {
+                Assert-Condition ($runnerOutput -contains "(the scenario diagnostics could not be saved to the diagnostics directory)" -and
+                    (Get-Content -LiteralPath $diagnosticsRoot -Raw) -eq "not a directory") `
+                    "The conformance runner did not report an unwritable diagnostics directory for $caseName."
                 continue
             }
             $scenarioDiagnostics = Join-Path $diagnosticsRoot "default-ready"
@@ -413,33 +504,36 @@ switch ("__MODE__") {
             $savedDigest = @(Get-Content -LiteralPath (Join-Path $scenarioDiagnostics "server-log-digest.txt"))
             Assert-Condition ($savedDigest.Count -eq $digestEnd - $digestStart + 2 -and
                 $savedDigest[0] -eq $timingLine[0] -and
-                $savedDigest[1] -eq $runnerOutput[$digestStart]) `
+                $savedDigest[1] -eq $runnerOutput[$digestStart] -and
+                @(foreach ($marker in $sensitiveMarkers) { $savedDigest | Where-Object { $_ -clike "*$marker*" } }).Count -eq 0) `
                 "The conformance runner did not keep the server log digest for $caseName."
-            if ($dump) {
-                # The opt-in heap dump of a .NET fixture, taken before the kill. This
-                # fixture is PowerShell, which hosts the .NET runtime.
-                $fixtureRuntime = @((Get-Process -Id $PID).Modules | Where-Object ModuleName -eq "coreclr.dll")
-                # The runtime writes the dump with the createdump beside it, and only
-                # while its diagnostics channel is enabled.
-                $dumpAvailable = $fixtureRuntime.Count -eq 1 -and $env:DOTNET_EnableDiagnostics -ne "0" -and
-                    (Test-Path -LiteralPath (Join-Path (Split-Path -Parent $fixtureRuntime[0].FileName) "createdump.exe"))
-                $dumpLines = @($runnerOutput | Where-Object { $_ -like "*heap dump of the fixture*" })
-                $dumpFiles = @(Get-ChildItem -LiteralPath (Join-Path $scenarioDiagnostics "dumps") -Filter "fixture-*.dmp" -File -ErrorAction SilentlyContinue)
-                Assert-Condition ($dumpLines.Count -eq 1 -and $(if ($dumpAvailable) {
-                            $dumpLines[0] -like "Wrote a heap dump of the fixture (pid *) to dumps/fixture-*.dmp (* MiB)." -and
-                            $dumpFiles.Count -eq 1 -and $dumpFiles[0].Length -gt 0
-                        } else {
-                            $dumpLines[0] -like "No heap dump of the fixture (pid *)*" -and $dumpFiles.Count -eq 0
-                        })) `
-                    "The conformance runner did not handle the opt-in fixture heap dump as expected: $($dumpLines -join ' | ')"
-                $dumpFiles | Remove-Item -Force
+            $dumpFiles = @(Get-ChildItem -LiteralPath (Join-Path $scenarioDiagnostics "dumps") -Filter "fixture-*.dmp" -File -ErrorAction SilentlyContinue)
+            if ($dump -ne "1") {
+                Assert-Condition ($dumpLines.Count -eq 0 -and $dumpFiles.Count -eq 0) `
+                    "The conformance runner wrote heap dumps without the documented opt-in for $caseName."
+                continue
             }
+            # The opt-in heap dump of the fixture, taken before the kill. This
+            # fixture is PowerShell, which hosts the .NET runtime.
+            $fixtureDumpLines = @($dumpLines | Where-Object { $_ -like "*heap dump of the fixture*" })
+            $dumpExpected = $channel -eq "enabled" -and $fixtureShipsCreateDump
+            Assert-Condition ($fixtureDumpLines.Count -eq 1 -and $(if ($dumpExpected) {
+                        $fixtureDumpLines[0] -like "Wrote a heap dump of the fixture (pid *) to dumps/fixture-*.dmp (* MiB)." -and
+                        $dumpFiles.Count -eq 1 -and $dumpFiles[0].Length -gt 0
+                    } elseif ($channel -eq "ipc-disabled") {
+                        $fixtureDumpLines[0] -like "No heap dump of the fixture (pid *): it offers no .NET diagnostics channel." -and
+                        $dumpFiles.Count -eq 0
+                    } else {
+                        $fixtureDumpLines[0] -like "No heap dump of the fixture (pid *)*" -and $dumpFiles.Count -eq 0
+                    })) `
+                "The conformance runner did not handle the opt-in fixture heap dump as expected for $($caseName): $($fixtureDumpLines -join ' | ')"
+            $dumpFiles | Remove-Item -Force
         }
     }
     finally {
-        $env:BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY = $previousDiagnosticsDirectory
-        $env:Briosa__Worker__StartupTimeout = $previousStartupTimeout
-        $env:BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT = $previousDumpOnTimeout
+        foreach ($entry in $previousEnvironment.GetEnumerator()) {
+            [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value)
+        }
     }
 
     $applicationRoot = Join-Path $temporaryRoot "launchable-fake-application"

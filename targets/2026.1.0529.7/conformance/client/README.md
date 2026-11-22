@@ -43,25 +43,44 @@ missing, invalid, or unsuccessful report, the runner prints the fixture's
 complete stderr. If `-DiagnosticsDirectory` or the
 `BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY` environment variable names a
 directory, the runner also copies the fixture's stdout and stderr, the server's
-log files, and the failure message to `<directory>/<scenario>`. The runner
-points each scenario's server log files at that scenario's temporary directory.
-A fixture that passes explicit logging options to its client overrides that
-location.
+log files, and the failure message to `<directory>/<scenario>`, and prints that
+absolute destination. The runner points each scenario's server log files at
+that scenario's temporary directory. A fixture that passes explicit logging
+options to its client overrides that location. Diagnostics never change a
+scenario's result: an unusable diagnostics directory turns them off with a
+notice, and a destination that cannot be written is reported without hiding
+the scenario's own failure.
 
 After the stderr, a rejected scenario's output also shows:
 
 - the runner's timing marks: scenario start, fixture start, and fixture end,
   in UTC;
 - a digest of the scenario's server log, one line per event: the time from the
-  fixture start, the level, the event name, and only these properties: `Rpc`,
+  fixture start, the level, the event name, and these properties only: `Rpc`,
   `GrpcStatus`, `Phase`, `ElapsedMilliseconds`, `WorkerState`,
   `ApplicationState`, `Ownership`, `Generation`, `ConnectionState`,
   `OperationId`, `ExecutionDisposition`, `MpResultCode`, and `DiagnosticCode`.
-  The digest keeps the last 200 events and never drops a warning or an error.
-  The runner's fixture start and end marks appear in the same timeline as
-  `Runner` lines. The server writes its file log unbuffered, so the log still
-  holds its events after a forced kill. The digest is also saved as
-  `server-log-digest.txt` with the other diagnostics.
+
+The digest reaches public CI logs, so it prints nothing it has not validated:
+
+- A known event ID maps to a fixed label. A record's message template or
+  event name is never printed; a framework event prints as `FrameworkEvent`
+  with its numeric ID, and anything else as `UnknownEvent`.
+- The level must be a Serilog level name, or it prints as `UnknownLevel`.
+- Each property is checked on its own. Numbers must be integers; enum-like
+  properties must belong to their closed vocabularies; an operation ID must
+  have the `<service>_operations.<operation>` form; a diagnostic code must be a
+  lower-case kebab identifier of two to twelve segments that each start with a
+  letter. A value that does not validate prints as `<withheld>`.
+
+The digest keeps the latest 200 lower-severity records, and every warning and
+error up to 1,000: the first 100 and the latest 900. It says how many it
+omitted. It reads the log as a stream, so a large log uses bounded memory, and
+a file it cannot read is counted and skipped. The runner's fixture start and
+end marks always appear in the same timeline as `Runner` lines. The server
+writes its file log unbuffered, so the log still holds its events after a
+forced kill. The digest is also saved as `server-log-digest.txt` with the other
+diagnostics.
 
 The server's lifecycle records give the digest its phase timeline: when the
 endpoint started listening, each worker start sub-phase, and each lifecycle
@@ -75,22 +94,37 @@ clients' 120-second startup budget. A slow start or a hang then ends in the
 client's own typed startup timeout, which names the pending call. If the
 fixture still times out, the runner first prints the package processes that are
 still alive (fixture, server, worker, and fake application), with their start
-times and CPU times, and only then kills them. Set
-`BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT=1` together with a diagnostics directory to
-also write heap dumps of the server and of a .NET fixture to
-`<directory>/<scenario>/dumps` before the kill. Nothing needs installing: the
-runner sends each process's .NET runtime the same dump request that
-`dotnet-dump collect` sends over the runtime's diagnostics channel, and the
-runtime writes the dump with the `createdump.exe` beside it. The package's
-server ships one. Current runtimes no longer accept a process ID when
-`createdump.exe` is run directly. A process without a .NET diagnostics
-channel, such as a Node.js or Python fixture, is reported and skipped.
-`dotnet-dump analyze` (`clrstack -all`, `dumpasync`) shows the blocked frames.
-The server is dumped first. A process is paused while its dump is written,
-typically for a few seconds, and the processes keep running until the runner
-kills them, so digest events after the `FixtureTimedOut` mark can show that
-pause. A heap dump is typically 25 to 300 MB, so upload the folder only when a
-job fails.
+times and CPU times, and marks any that is not a verified descendant of the
+fixture. Only then does it kill them, whether or not those diagnostics
+succeeded.
+
+Set `BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT=1`, exactly, together with a
+diagnostics directory to also write heap dumps to `<directory>/<scenario>/dumps`
+before the kill:
+
+- Only this scenario's own processes are dumped: the fixture the runner
+  started, and a server only when its parent chain reaches that fixture. A
+  server it cannot verify, for example one started by another caller sharing
+  the package extraction, is reported and skipped.
+- Nothing needs installing. The runner sends each process's .NET runtime the
+  same dump request that `dotnet-dump collect` sends over the runtime's
+  diagnostics channel, and the runtime writes the dump with the
+  `createdump.exe` beside it. The package's server ships one. Current runtimes
+  no longer accept a process ID when `createdump.exe` is run directly.
+- A process without an enabled .NET diagnostics channel is reported and
+  skipped: a Node.js or Python fixture, or one started with
+  `DOTNET_EnableDiagnostics=0` or `DOTNET_EnableDiagnostics_IPC=0`.
+- The whole collection has one 120-second deadline. The server is dumped
+  first. A process is paused while its dump is written, typically for a few
+  seconds, and the processes keep running until the runner kills them, so
+  digest events after the `FixtureTimedOut` mark can show that pause.
+- `dotnet-dump analyze` (`clrstack -all`, `dumpasync`) shows the blocked frames.
+
+A heap dump holds the process's memory, typically 25 to 300 MB. Enabling dumps
+also opts them into whatever the calling workflow already does with the
+diagnostics directory: this repository's retained-client workflow, for
+example, uploads the whole directory as an artifact when a job fails. Enable
+dumps only where that upload is acceptable.
 
 The runner gives every scenario's server `Briosa__Worker__StartupTimeout=00:00:30`.
 The fake SDK host tests client behavior, not start latency, and the first fake
