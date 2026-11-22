@@ -72,7 +72,6 @@ internal sealed partial class WorkerProcessSupervisor :
         _telemetry = telemetry;
         _interactionMode = interactionMode;
         _modalDialogProbe = modalDialogProbe;
-        telemetry?.Attach(this);
         _current = new WorkerLifecycleSnapshot(
             WorkerLifecycleState.Stopped,
             Generation: 0,
@@ -83,6 +82,8 @@ internal sealed partial class WorkerProcessSupervisor :
             Connection: null,
             _timeProvider.GetUtcNow(), StateRevision: _stateRevision);
         _history.Add(_current);
+        // Gauges sample Current, so telemetry attaches only after the initial snapshot.
+        telemetry?.Attach(this);
     }
 
     public WorkerLifecycleSnapshot Current
@@ -746,7 +747,7 @@ internal sealed partial class WorkerProcessSupervisor :
                 Record(current with
                 {
                     DiagnosticCode = diagnosticCode,
-                    TransitionedAt = _timeProvider.GetUtcNow(),
+                    TransitionedAt = ReportingTime(current.TransitionedAt),
                     StateRevision = Interlocked.Increment(ref _stateRevision),
                     AdmissionOpen = false
                 });
@@ -961,15 +962,23 @@ internal sealed partial class WorkerProcessSupervisor :
         }
         finally
         {
-            if (exchangeStarted is { } started)
+            // A failing measurement must still release the gate: the consumer failure
+            // it causes waits for this permit before it retires the worker.
+            try
             {
-                item.ExchangeMilliseconds = _timeProvider.GetElapsedTime(started).TotalMilliseconds;
-                _telemetry?.Exchange(command.OperationId, item.ExchangeMilliseconds);
+                if (exchangeStarted is { } started)
+                {
+                    item.ExchangeMilliseconds = _timeProvider.GetElapsedTime(started).TotalMilliseconds;
+                    _telemetry?.Exchange(command.OperationId, item.ExchangeMilliseconds);
+                }
+                exchange?.Dispose();
             }
-            exchange?.Dispose();
-            if (acquired)
+            finally
             {
-                _gate.Release();
+                if (acquired)
+                {
+                    _gate.Release();
+                }
             }
         }
     }
@@ -1512,7 +1521,7 @@ internal sealed partial class WorkerProcessSupervisor :
                 State = WorkerConnectionState.Faulted,
                 ExecutionReadinessState = WorkerExecutionReadinessState.Unverified,
                 DiagnosticCode = diagnosticCode,
-                TransitionedAt = _timeProvider.GetUtcNow()
+                TransitionedAt = ReportingTime(faultedConnection.TransitionedAt)
             };
         }
 
@@ -1653,7 +1662,7 @@ internal sealed partial class WorkerProcessSupervisor :
             termination,
             diagnosticCode,
             connection,
-            _timeProvider.GetUtcNow(),
+            ReportingTime(Current.TransitionedAt),
             _identityPolicy.Evaluate(connection?.RuntimeIdentity),
             StateRevision: 0,
             incident ?? Current.LastIncident,
@@ -1682,7 +1691,30 @@ internal sealed partial class WorkerProcessSupervisor :
             };
             Record(snapshot);
         }
-        LogTransition(snapshot);
+        // Reporting never decides a lifecycle outcome. The snapshot is already published,
+        // and a failing logger cannot skip the cleanup or consumer completion after it.
+        try
+        {
+            LogTransition(snapshot);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // The transition stands; only its log entry is lost.
+        }
+    }
+
+    // A snapshot's reporting time only. A failing clock falls back to the previous time
+    // rather than stopping admission closure, retirement or cleanup.
+    private DateTimeOffset ReportingTime(DateTimeOffset fallback)
+    {
+        try
+        {
+            return _timeProvider.GetUtcNow();
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            return fallback;
+        }
     }
 
     // Called with _historyLock held.

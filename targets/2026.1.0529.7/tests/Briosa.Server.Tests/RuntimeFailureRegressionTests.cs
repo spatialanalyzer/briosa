@@ -374,6 +374,9 @@ public sealed class RuntimeFailureRegressionTests
             }
         };
         await using var supervisorLifetime = supervisor.ConfigureAwait(true);
+        // Telemetry is attached only once the initial snapshot exists, so sampling before
+        // the first transition reads not-ready instead of failing.
+        Assert.Equal(0, MeasureReadyGauge());
         var health = new WorkerReadinessHealthCheck(supervisor);
         var discovery = new ServerDiscoveryService(supervisor, new BuildIdentityProvider(),
             OperationPolicyTests.CreatePolicy());
@@ -470,45 +473,141 @@ public sealed class RuntimeFailureRegressionTests
         Assert.Equal(0, replacement.ExecuteCount);
     }
 
-    // #405 review: reporting the closed admission must not stop retirement. A logger that
-    // fails on that transition still leaves the active call resolved and the worker retired.
+    // #405 review: a logger that fails on the consumer failure's transition cannot stop
+    // the cleanup or the consumer's completion that follow it. The worker is terminated
+    // and explicit recovery succeeds.
     [Fact]
-    public async Task AReportingFailureAsAdmissionClosesCannotPreventRetirement()
+    public async Task AFailingTransitionLogCannotPreventRetirementOrRecovery()
     {
-        var worker = new CoordinatedWorker { HoldExecution = true, UnexpectedFailure = true };
+        var logger = new ConsumerFailureTransitionThrowingLogger();
+        await AssertConsumerFailureRetiresAndRecoversAsync(new HeartbeatTestClock(), logger, arm: () => { });
+        Assert.True(logger.Failures > 0, "The logger never failed, so the test proved nothing.");
+    }
+
+    // #405 review: a clock that fails once, at the closure timestamp (read 1) or at either
+    // retirement timestamp (reads 2 and 3), cannot strand the active call or skip cleanup.
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    public async Task AFailingClockReadCannotStrandAConsumerFailure(int failingRead)
+    {
+        var clock = new FailingUtcClock(new HeartbeatTestClock());
+        await AssertConsumerFailureRetiresAndRecoversAsync(clock, logger: null,
+            arm: () => clock.FailUtcRead(failingRead));
+        Assert.True(clock.Failed, "The clock never failed, so the test proved nothing.");
+    }
+
+    // #405 review: a failing exchange measurement unwinds an exchange whose MP work has
+    // completed. The consumer still releases the gate, so retirement runs, and the caller
+    // keeps the completed outcome.
+    [Fact]
+    public async Task AFailingExchangeMeasurementCannotKeepTheGateFromRetirement()
+    {
+        var worker = new CoordinatedWorker();
+        var replacement = new CoordinatedWorker { ReadyDisconnected = true };
         await using var workerLifetime = worker.ConfigureAwait(true);
-        var supervisor = new WorkerProcessSupervisor(new Factory(worker),
+        await using var replacementLifetime = replacement.ConfigureAwait(true);
+        using var telemetry = new BriosaTelemetry(new BriosaLogHealth());
+        using var listener = new MeterListener();
+        var measurements = 0;
+        listener.InstrumentPublished = (instrument, observer) =>
+        {
+            if (ReferenceEquals(instrument.Meter, telemetry.Meter) &&
+                instrument.Name == "briosa.worker.exchange.duration")
+                observer.EnableMeasurementEvents(instrument);
+        };
+        listener.SetMeasurementEventCallback<double>((_, _, _, _) =>
+        {
+            if (Interlocked.Increment(ref measurements) == 1)
+                throw new InvalidOperationException("Scripted measurement failure.");
+        });
+        listener.Start();
+        var supervisor = new WorkerProcessSupervisor(new SequenceFactory(worker, replacement),
             new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1),
                 TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1)),
             TestDurationClasses.SyntheticQuickPolicy(TimeSpan.FromSeconds(5), 2), new HeartbeatTestClock(),
-            new AdmissionClosureThrowingLogger());
+            telemetry: telemetry);
         await using var supervisorLifetime = supervisor.ConfigureAwait(true);
         Assert.True((await supervisor.StartAsync()).Succeeded);
+        var generation = supervisor.Current.Generation;
+
+        var outcome = await supervisor.ExecuteAsync(Plain()).WaitAsync(HangGuard);
+
+        Assert.Equal(1, Volatile.Read(ref measurements));
+        Assert.Equal(WorkerExecutionStatus.Completed, outcome.Status);
+        Assert.Equal(WorkerExecutionDisposition.Completed, outcome.ExecutionDisposition);
+        var faulted = supervisor.Current;
+        Assert.Equal(WorkerLifecycleState.Degraded, faulted.State);
+        Assert.Equal("worker-execution-consumer-failed", faulted.DiagnosticCode);
+        Assert.Equal(WorkerExecutionDisposition.Completed, faulted.LastIncident!.ExecutionDisposition);
+        Assert.Equal(1, worker.TerminationCount);
+        Assert.True((await supervisor.RecoverSdkAsync(generation)).Succeeded);
+        Assert.Equal(generation + 1, supervisor.Current.Generation);
+        Assert.Equal(1, worker.ExecuteCount);
+        Assert.Equal(0, replacement.ExecuteCount);
+    }
+
+    // Fails the consumer with one active and one queued call, arming a fault just before
+    // the failure, then asserts the documented recovery state: both calls resolved,
+    // admission closed before retirement and never reopened, the worker terminated, and
+    // explicit recovery without replay.
+    private static async Task AssertConsumerFailureRetiresAndRecoversAsync(
+        TimeProvider clock, ILogger<WorkerProcessSupervisor>? logger, Action arm)
+    {
+        var worker = new CoordinatedWorker { HoldExecution = true, UnexpectedFailure = true };
+        var replacement = new CoordinatedWorker { ReadyDisconnected = true };
+        await using var workerLifetime = worker.ConfigureAwait(true);
+        await using var replacementLifetime = replacement.ConfigureAwait(true);
+        var supervisor = new WorkerProcessSupervisor(new SequenceFactory(worker, replacement),
+            new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1),
+                TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1)),
+            TestDurationClasses.SyntheticQuickPolicy(TimeSpan.FromSeconds(5), 2), clock, logger);
+        await using var supervisorLifetime = supervisor.ConfigureAwait(true);
+        Assert.True((await supervisor.StartAsync().ConfigureAwait(true)).Succeeded);
+        var generation = supervisor.Current.Generation;
         Task<WorkerExecutionOutcome> active;
         Task<WorkerExecutionOutcome> queued;
         try
         {
             active = supervisor.ExecuteAsync(Plain());
-            await worker.ExecutionEntered.Task.WaitAsync(HangGuard);
+            await worker.ExecutionEntered.Task.WaitAsync(HangGuard).ConfigureAwait(true);
             queued = supervisor.ExecuteAsync(Plain());
+            arm();
         }
         finally
         {
             worker.ReleaseExecution.TrySetResult();
         }
 
-        var failed = await active.WaitAsync(HangGuard);
-        var pending = await queued.WaitAsync(HangGuard);
+        var failed = await active.WaitAsync(HangGuard).ConfigureAwait(true);
+        var pending = await queued.WaitAsync(HangGuard).ConfigureAwait(true);
         Assert.Equal(WorkerExecutionStatus.WorkerFailure, failed.Status);
         Assert.Equal(WorkerExecutionDisposition.StartedOutcomeUnknown, failed.ExecutionDisposition);
         Assert.Equal(WorkerExecutionStatus.Unavailable, pending.Status);
         Assert.Equal(WorkerExecutionDisposition.NotStarted, pending.ExecutionDisposition);
-        Assert.Equal(WorkerLifecycleState.Degraded, supervisor.Current.State);
-        Assert.Equal("worker-execution-consumer-failed", supervisor.Current.DiagnosticCode);
+        var faulted = supervisor.Current;
+        Assert.Equal(generation, faulted.Generation);
+        Assert.Equal(WorkerLifecycleState.Degraded, faulted.State);
+        Assert.False(faulted.AdmissionOpen);
+        Assert.Equal("worker-execution-consumer-failed", faulted.DiagnosticCode);
         Assert.Equal(global::Briosa.SpatialAnalyzerSdkRecoveryState.RecoveryAvailable,
             new SpatialAnalyzerSdkLifecycleStateProjection(supervisor).Current.RecoveryState);
+        Assert.Equal(1, worker.TerminationCount);
         Assert.True(worker.HasExited);
+        var history = supervisor.History.Where(snapshot => snapshot.Generation == generation).ToList();
+        var closedAt = history.FindIndex(snapshot => snapshot is
+        {
+            State: WorkerLifecycleState.Ready, AdmissionOpen: false,
+            DiagnosticCode: "worker-execution-consumer-failed"
+        });
+        Assert.True(closedAt >= 0, "Admission did not close before retirement.");
+        Assert.All(history.Skip(closedAt), snapshot => Assert.False(snapshot.AdmissionOpen));
+
+        Assert.True((await supervisor.RecoverSdkAsync(generation).ConfigureAwait(true)).Succeeded);
+        Assert.Equal(generation + 1, supervisor.Current.Generation);
         Assert.Equal(1, worker.ExecuteCount);
+        Assert.Equal(0, replacement.ExecuteCount);
     }
 
     [Fact]
@@ -816,10 +915,14 @@ public sealed class RuntimeFailureRegressionTests
             TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1)),
         TestDurationClasses.SyntheticQuickPolicy(TimeSpan.FromSeconds(5), 2), new HeartbeatTestClock());
 
-    // Fails only the transition that reports closed admission before retirement: a Ready
-    // snapshot carrying the consumer-failure diagnostic.
-    private sealed class AdmissionClosureThrowingLogger : ILogger<WorkerProcessSupervisor>
+    // Fails every worker-transition log that carries the consumer-failure diagnostic. On
+    // this head that is the retirement's fault transition; the closure is not logged.
+    private sealed class ConsumerFailureTransitionThrowingLogger : ILogger<WorkerProcessSupervisor>
     {
+        private int _failures;
+
+        public int Failures => Volatile.Read(ref _failures);
+
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
 
         public bool IsEnabled(LogLevel logLevel) => true;
@@ -828,11 +931,44 @@ public sealed class RuntimeFailureRegressionTests
             Func<TState, Exception?, string> formatter)
         {
             if (state is IReadOnlyList<KeyValuePair<string, object?>> fields &&
-                fields.Any(field => field is { Key: "WorkerState", Value: WorkerLifecycleState.Ready }) &&
+                fields.Any(field => field.Key == "WorkerState") &&
                 fields.Any(field => field is { Key: "DiagnosticCode", Value: "worker-execution-consumer-failed" }))
             {
+                Interlocked.Increment(ref _failures);
                 throw new InvalidOperationException("Scripted reporting failure.");
             }
+        }
+    }
+
+    // Virtual time from the inner clock. Once armed, the given UTC read from then on
+    // throws, exactly once.
+    private sealed class FailingUtcClock(TimeProvider inner) : TimeProvider
+    {
+        private int _readsUntilFailure;
+        private int _failed;
+
+        public bool Failed => Volatile.Read(ref _failed) != 0;
+
+        public void FailUtcRead(int read) => Volatile.Write(ref _readsUntilFailure, read);
+
+        public override long TimestampFrequency => inner.TimestampFrequency;
+
+        public override TimeZoneInfo LocalTimeZone => inner.LocalTimeZone;
+
+        public override long GetTimestamp() => inner.GetTimestamp();
+
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period) =>
+            inner.CreateTimer(callback, state, dueTime, period);
+
+        public override DateTimeOffset GetUtcNow()
+        {
+            if (Volatile.Read(ref _readsUntilFailure) > 0 &&
+                Interlocked.Decrement(ref _readsUntilFailure) == 0)
+            {
+                Volatile.Write(ref _failed, 1);
+                throw new InvalidOperationException("Scripted clock failure.");
+            }
+            return inner.GetUtcNow();
         }
     }
 
