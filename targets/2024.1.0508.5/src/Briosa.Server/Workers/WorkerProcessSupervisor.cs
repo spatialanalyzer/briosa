@@ -72,7 +72,6 @@ internal sealed partial class WorkerProcessSupervisor :
         _telemetry = telemetry;
         _interactionMode = interactionMode;
         _modalDialogProbe = modalDialogProbe;
-        telemetry?.Attach(this);
         _current = new WorkerLifecycleSnapshot(
             WorkerLifecycleState.Stopped,
             Generation: 0,
@@ -83,6 +82,8 @@ internal sealed partial class WorkerProcessSupervisor :
             Connection: null,
             _timeProvider.GetUtcNow(), StateRevision: _stateRevision);
         _history.Add(_current);
+        // Gauges sample Current, so telemetry attaches only after the initial snapshot.
+        telemetry?.Attach(this);
     }
 
     public WorkerLifecycleSnapshot Current
@@ -116,6 +117,10 @@ internal sealed partial class WorkerProcessSupervisor :
     internal ISpatialAnalyzerModalDialogProbe? ModalDialogProbe => _modalDialogProbe;
 
     internal const string ModalDialogDiagnosticCode = "sa-modal-dialog-open";
+
+    // Test seam only: runs after a consumer failure has closed admission and before
+    // retirement waits for the supervisor gate. Production never sets it.
+    internal Func<Task>? ConsumerFailureRetirementHold { get; init; }
 
     public WorkerExecutionSnapshot ExecutionSnapshot => new(
         _executionPolicy.QueueCapacity,
@@ -182,6 +187,8 @@ internal sealed partial class WorkerProcessSupervisor :
 
     // Called under _gate: neither another lifecycle action nor a monitor/execution
     // transition can replace the snapshot between deciding the result and capturing it.
+    // Only a failed consumer's CloseAdmission publishes outside the gate, and it changes
+    // nothing but closing admission (with its diagnostic) for that queue's generation.
     private WorkerLifecycleResult CaptureLifecycleResult(bool succeeded) =>
         succeeded ? new WorkerLifecycleSucceeded(Current) : new WorkerLifecycleFailed(Current);
 
@@ -701,7 +708,9 @@ internal sealed partial class WorkerProcessSupervisor :
     private async Task FailConsumerAsync(WorkerExecutionQueue queue, ExecutionWorkItem item)
     {
         const string diagnostic = "worker-execution-consumer-failed";
+        CloseAdmission(queue, diagnostic);
         await queue.CloseAsync().ConfigureAwait(false);
+        if (ConsumerFailureRetirementHold is { } hold) await hold().ConfigureAwait(false);
         await _gate.WaitAsync(CancellationToken.None).ConfigureAwait(false);
         try
         {
@@ -719,6 +728,30 @@ internal sealed partial class WorkerProcessSupervisor :
                 Complete(item, item.ResolvedOutcome ?? new WorkerExecutionOutcome(
                     WorkerExecutionStatus.WorkerFailure, item.DispatchDisposition,
                     null, null, diagnostic, item.Generation, item.CorrelationId));
+        }
+    }
+
+    // Runs on the failed consumer, outside the gate, which another lifecycle action may
+    // hold for its whole bound. Dispatch rejects from the moment the queue closes, so the
+    // queue closes and the not-ready snapshot is published in one history-lock step:
+    // health, discovery and status never report admission open for the closed queue.
+    // It logs nothing: no reporting failure may stop the retirement that follows, and the
+    // retirement's fault transition logs this diagnostic.
+    private void CloseAdmission(WorkerExecutionQueue queue, string diagnosticCode)
+    {
+        lock (_historyLock)
+        {
+            queue.CloseAdmission();
+            if (_current is { AdmissionOpen: true } current && current.Generation == queue.Generation)
+            {
+                Record(current with
+                {
+                    DiagnosticCode = diagnosticCode,
+                    TransitionedAt = ReportingTime(current.TransitionedAt),
+                    StateRevision = Interlocked.Increment(ref _stateRevision),
+                    AdmissionOpen = false
+                });
+            }
         }
     }
 
@@ -929,15 +962,23 @@ internal sealed partial class WorkerProcessSupervisor :
         }
         finally
         {
-            if (exchangeStarted is { } started)
+            // A failing measurement must still release the gate: the consumer failure
+            // it causes waits for this permit before it retires the worker.
+            try
             {
-                item.ExchangeMilliseconds = _timeProvider.GetElapsedTime(started).TotalMilliseconds;
-                _telemetry?.Exchange(command.OperationId, item.ExchangeMilliseconds);
+                if (exchangeStarted is { } started)
+                {
+                    item.ExchangeMilliseconds = _timeProvider.GetElapsedTime(started).TotalMilliseconds;
+                    _telemetry?.Exchange(command.OperationId, item.ExchangeMilliseconds);
+                }
+                exchange?.Dispose();
             }
-            exchange?.Dispose();
-            if (acquired)
+            finally
             {
-                _gate.Release();
+                if (acquired)
+                {
+                    _gate.Release();
+                }
             }
         }
     }
@@ -1492,7 +1533,7 @@ internal sealed partial class WorkerProcessSupervisor :
                 State = WorkerConnectionState.Faulted,
                 ExecutionReadinessState = WorkerExecutionReadinessState.Unverified,
                 DiagnosticCode = diagnosticCode,
-                TransitionedAt = _timeProvider.GetUtcNow()
+                TransitionedAt = ReportingTime(faultedConnection.TransitionedAt)
             };
         }
 
@@ -1624,6 +1665,7 @@ internal sealed partial class WorkerProcessSupervisor :
         bool associateApplication = false,
         int? applicationGeneration = null)
     {
+        var queue = _executionQueue;
         var snapshot = new WorkerLifecycleSnapshot(
             state,
             _generation,
@@ -1632,33 +1674,74 @@ internal sealed partial class WorkerProcessSupervisor :
             termination,
             diagnosticCode,
             connection,
-            _timeProvider.GetUtcNow(),
+            ReportingTime(Current.TransitionedAt),
             _identityPolicy.Evaluate(connection?.RuntimeIdentity),
-            Interlocked.Increment(ref _stateRevision),
+            StateRevision: 0,
             incident ?? Current.LastIncident,
             AdmissionOpen: state == WorkerLifecycleState.Ready &&
-                _executionQueue is { IsClosed: false } queue && queue.Generation == _generation,
+                queue is { IsClosed: false } && queue.Generation == _generation,
             ApplicationGeneration: connection?.State == WorkerConnectionState.Connected
                 ? associateApplication
                     ? applicationGeneration
                     : Current.Generation == _generation ? Current.ApplicationGeneration : null
                 : null,
             CleanupStatus: cleanupStatus, LifecycleFailure: lifecycleFailure);
-        PublishSnapshot(snapshot);
+        PublishSnapshot(snapshot, queue);
     }
 
-    private void PublishSnapshot(WorkerLifecycleSnapshot snapshot)
+    // A failed consumer closes its queue outside the gate (CloseAdmission). The revision
+    // and admission are therefore fixed under the history lock, in publication order, so
+    // no snapshot published after that queue closes reports its admission open (#405).
+    private void PublishSnapshot(WorkerLifecycleSnapshot snapshot, WorkerExecutionQueue? queue)
     {
         lock (_historyLock)
         {
-            _current = snapshot;
-            _history.Add(snapshot);
-            var excess = _history.Count - _policy.LifecycleHistoryCapacity;
-            if (excess > 0)
+            snapshot = snapshot with
             {
-                _history.RemoveRange(0, excess);
-            }
+                StateRevision = Interlocked.Increment(ref _stateRevision),
+                AdmissionOpen = snapshot.AdmissionOpen && queue is { IsClosed: false }
+            };
+            Record(snapshot);
         }
+        // Reporting never decides a lifecycle outcome. The snapshot is already published,
+        // and a failing logger cannot skip the cleanup or consumer completion after it.
+        try
+        {
+            LogTransition(snapshot);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // The transition stands; only its log entry is lost.
+        }
+    }
+
+    // A snapshot's reporting time only. A failing clock falls back to the previous time
+    // rather than stopping admission closure, retirement or cleanup.
+    private DateTimeOffset ReportingTime(DateTimeOffset fallback)
+    {
+        try
+        {
+            return _timeProvider.GetUtcNow();
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            return fallback;
+        }
+    }
+
+    // Called with _historyLock held.
+    private void Record(WorkerLifecycleSnapshot snapshot)
+    {
+        _current = snapshot;
+        _history.Add(snapshot);
+        var excess = _history.Count - _policy.LifecycleHistoryCapacity;
+        if (excess > 0)
+        {
+            _history.RemoveRange(0, excess);
+        }
+    }
+
+    private void LogTransition(WorkerLifecycleSnapshot snapshot) =>
         LogWorkerTransition(
             snapshot.State == WorkerLifecycleState.Degraded ? LogLevel.Error :
                 snapshot.Connection?.State == WorkerConnectionState.Connected &&
@@ -1675,7 +1758,7 @@ internal sealed partial class WorkerProcessSupervisor :
             snapshot.RuntimeIdentity?.ActivatedSdk.MatchState,
             snapshot.RuntimeIdentity?.ConnectedSpatialAnalyzer.Source,
             snapshot.RuntimeIdentity?.ConnectedSpatialAnalyzer.MatchState);
-    }
+
     [LoggerMessage(
         EventId = 1201,
         Message = "Worker transitioned to {WorkerState} at generation {Generation} with recovery count {RecoveryCount}, termination {Termination}, diagnostic {DiagnosticCode}, connection state {ConnectionState}, execution readiness {ExecutionReadinessState}, ConnectEx status {StatusCode}, activated SDK identity {ActivatedSdkIdentitySource}/{ActivatedSdkIdentityMatchState}, and connected SA identity {ConnectedSaIdentitySource}/{ConnectedSaIdentityMatchState}.")]
