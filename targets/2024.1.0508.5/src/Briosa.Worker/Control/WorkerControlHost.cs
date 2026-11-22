@@ -41,7 +41,9 @@ internal static class WorkerControlHost
             using var pipe = new NamedPipeClientStream(".", pipeName,
                 PipeDirection.InOut, PipeOptions.Asynchronous);
             await pipe.ConnectAsync(15_000).ConfigureAwait(false);
-            using var channel = new WorkerControlChannel(pipe, leaveOpen: true);
+            // The worker receives only host-to-worker frames.
+            using var channel = new WorkerControlChannel(pipe, leaveOpen: true,
+                maximumReceiveBytes: WorkerControlProtocol.MaximumRequestBytes);
             await channel.SendAsync(WorkerControlMessage.Ready(Environment.ProcessId,
                 ToControlSnapshot(connection))).ConfigureAwait(false);
             while (true)

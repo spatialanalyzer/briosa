@@ -51,7 +51,7 @@ public sealed class WorkerControlSerializationTests
         using var channel = new WorkerControlChannel(stream, leaveOpen: true);
         var request = WorkerControlMessage.Execute(Guid.NewGuid(), new WorkerMpCommand(
             "serialization", "Serialization",
-            [new WorkerMpInputArgument("Text", WorkerMpValueKind.Text, new WorkerTextValue(new string('x', WorkerControlProtocol.MaximumMessageBytes)))], []));
+            [new WorkerMpInputArgument("Text", WorkerMpValueKind.Text, new WorkerTextValue(new string('x', WorkerControlProtocol.MaximumRequestBytes)))], []));
         Assert.Throws<WorkerMessageRejectedException>(() => channel.Send(request));
         Assert.Equal(0, stream.Length);
     }

@@ -3,10 +3,21 @@ using System.Text.Json;
 
 namespace Briosa.Worker.Control;
 
-public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) : IDisposable
+// Each frame is bounded by its own direction's budget: WorkerControlProtocol
+// .MaximumRequestBytes from the host to the worker, and MaximumResponseBytes from
+// the worker to the host. An endpoint names the budget of the frames it receives,
+// so a frame header is rejected before its payload is allocated; a receiver that
+// names none uses the larger of the two.
+public sealed class WorkerControlChannel(
+    Stream stream,
+    bool leaveOpen = false,
+    int maximumReceiveBytes = WorkerControlProtocol.MaximumFrameBytes) : IDisposable
 {
     private readonly Stream _stream = stream ?? throw new ArgumentNullException(nameof(stream));
     private readonly bool _leaveOpen = leaveOpen;
+    private readonly int _maximumReceiveBytes = maximumReceiveBytes is > 0 and <= WorkerControlProtocol.MaximumFrameBytes
+        ? maximumReceiveBytes
+        : throw new ArgumentOutOfRangeException(nameof(maximumReceiveBytes));
     private int _disposeState;
 
     public void Send(WorkerControlMessage message)
@@ -69,7 +80,7 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
         {
             Validate(message);
             var payload = JsonSerializer.SerializeToUtf8Bytes(message, WorkerControlJsonContext.Default.WorkerControlMessage);
-            if (payload.Length > WorkerControlProtocol.MaximumMessageBytes)
+            if (payload.Length > WorkerControlProtocol.MaximumBytesFor(message.Kind))
             {
                 throw new InvalidDataException("The worker control message exceeds the size limit.");
             }
@@ -127,6 +138,11 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             var message = JsonSerializer.Deserialize(payload, WorkerControlJsonContext.Default.WorkerControlMessage)
                 ?? throw new InvalidDataException("The worker control message was empty.");
             Validate(message);
+            if (payload.Length > WorkerControlProtocol.MaximumBytesFor(message.Kind))
+            {
+                throw new InvalidDataException("The worker control message exceeds the size limit.");
+            }
+
             return message;
         }
         catch (Exception exception) when (exception is JsonException or ArgumentException)
@@ -137,10 +153,10 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
         }
     }
 
-    private static int ReadLength(ReadOnlySpan<byte> header)
+    private int ReadLength(ReadOnlySpan<byte> header)
     {
         var length = BinaryPrimitives.ReadInt32LittleEndian(header);
-        if (length is <= 0 or > WorkerControlProtocol.MaximumMessageBytes)
+        if (length <= 0 || length > _maximumReceiveBytes)
         {
             throw new InvalidDataException("The worker control message length is invalid.");
         }

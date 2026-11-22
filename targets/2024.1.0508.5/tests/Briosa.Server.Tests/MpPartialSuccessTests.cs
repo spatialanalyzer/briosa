@@ -175,7 +175,7 @@ public sealed class MpPartialSuccessTests
             WorkerExecutionResponseStatus.Completed,
             new WorkerMpResultAvailable(4, 5,
                 [new WorkerRetrievedOutput("Directory", WorkerMpValueKind.Text,
-                    new WorkerTextValue(new string('x', WorkerControlProtocol.MaximumMessageBytes + 1)))], null),
+                    new WorkerTextValue(new string('x', WorkerControlProtocol.MaximumResponseBytes + 1)))], null),
             Connection(),
             DiagnosticCode: null);
         var delivered = Deliver(WorkerExecutionDelivery.Undeliverable(correlationId, response));

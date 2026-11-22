@@ -402,7 +402,7 @@ public sealed class ProductionWorkerControlTests
             LastCommand = command;
             WorkerMpOutputValue value = command.OperationId switch
             {
-                "oversized" => new WorkerRetrievedOutput("Value", WorkerMpValueKind.Text, new WorkerTextValue(new string('x', 100_000))),
+                "oversized" => new WorkerRetrievedOutput("Value", WorkerMpValueKind.Text, new WorkerTextValue(new string('x', WorkerControlProtocol.MaximumResponseBytes + 1))),
                 "non-finite" => new WorkerRetrievedOutput("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(double.NaN)),
                 _ => new WorkerRetrievedOutput("Value", WorkerMpValueKind.Text, new WorkerTextValue("normal"))
             };
