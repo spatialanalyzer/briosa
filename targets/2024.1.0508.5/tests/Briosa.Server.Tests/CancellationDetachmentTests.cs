@@ -1017,6 +1017,98 @@ public sealed class CancellationDetachmentTests
         Assert.True(Assert.IsType<long>(listening.Value("ElapsedMilliseconds")) > 0);
     }
 
+    // #371: the audit records are best effort. A logger that throws, even from
+    // IsEnabled, loses the record and nothing else.
+    [Fact]
+    public void LifecycleAuditRecordsNeverThrow()
+    {
+        var failing = new ThrowingLogger<LifecycleAuditLogger>(_ => true, throwOnIsEnabled: true);
+        var audit = new LifecycleAuditLogger(failing);
+
+        audit.EndpointListening();
+        var started = audit.Started("StartSpatialAnalyzerSdk", TimeProvider.System);
+        audit.Completed("StartSpatialAnalyzerSdk", TimeProvider.System, started);
+        audit.Rejected("StartSpatialAnalyzerSdk", StatusCode.Aborted, "sdk-lifecycle-transition-in-progress",
+            TimeProvider.System, started);
+        audit.Faulted("StartSpatialAnalyzerSdk", TimeProvider.System, null);
+
+        Assert.NotNull(started);
+        Assert.True(failing.Failures >= 5);
+    }
+
+    // #371: a failing audit logger cannot change a lifecycle RPC's outcome. Success
+    // stays success, and a typed rejection keeps its status and detail.
+    [Fact]
+    public async Task FailingLifecycleAuditNeverChangesTheRpcOutcome()
+    {
+        var worker = new ScriptedWorker();
+        var (supervisor, _, _) = Create(worker);
+        await using var supervisorScope = supervisor.ConfigureAwait(false);
+        var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(supervisor,
+            new SpatialAnalyzerSdkLifecycleStateProjection(supervisor), new RunningApplication(5));
+        await using var coordinatorScope = coordinator.ConfigureAwait(false);
+        var failing = new ThrowingLogger<LifecycleAuditLogger>(_ => true, throwOnIsEnabled: true);
+        var failingService = new SpatialAnalyzerSdkLifecycleService(coordinator, new LifecycleAuditLogger(failing));
+        var plainService = new SpatialAnalyzerSdkLifecycleService(coordinator);
+        ServerCallContext Context() => new InMemoryServerCallContext(
+            "/briosa.SpatialAnalyzerSdkLifecycle/StartSpatialAnalyzerSdk",
+            CallDeadline(passed: false), CancellationToken.None);
+
+        var started = await failingService.StartSpatialAnalyzerSdk(
+            new global::Briosa.StartSpatialAnalyzerSdkRequest(), Context()).WaitAsync(HangGuard);
+        Assert.NotEqual(global::Briosa.SpatialAnalyzerSdkState.Stopped, started.State.SdkState);
+
+        // A second Start is rejected the same way with and without the failing logger.
+        var failingError = await Assert.ThrowsAsync<RpcException>(() => failingService.StartSpatialAnalyzerSdk(
+            new global::Briosa.StartSpatialAnalyzerSdkRequest(), Context()).WaitAsync(HangGuard));
+        var plainError = await Assert.ThrowsAsync<RpcException>(() => plainService.StartSpatialAnalyzerSdk(
+            new global::Briosa.StartSpatialAnalyzerSdkRequest(), Context()).WaitAsync(HangGuard));
+        Assert.Equal(plainError.StatusCode, failingError.StatusCode);
+        var failingDetail = global::Briosa.SpatialAnalyzerSdkLifecycleError.Parser.ParseFrom(
+            Assert.Single(failingError.Trailers).ValueBytes);
+        var plainDetail = global::Briosa.SpatialAnalyzerSdkLifecycleError.Parser.ParseFrom(
+            Assert.Single(plainError.Trailers).ValueBytes);
+        Assert.Equal(plainDetail.DiagnosticCode, failingDetail.DiagnosticCode);
+        Assert.Equal(plainDetail.Kind, failingDetail.Kind);
+        Assert.Equal("StartSpatialAnalyzerSdk", failingDetail.Rpc);
+        Assert.True(failing.Failures > 0);
+    }
+
+    // #371: a failing start-phase record cannot skip the cleanup and the transition of a
+    // timed-out start, nor turn a successful start into a failure.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task FailingStartPhaseRecordsNeverSkipRetirement(bool exceedBound)
+    {
+        var ready = new Hold();
+        var worker = new ScriptedWorker { ReadyHold = ready };
+        var failing = new ThrowingLogger<WorkerProcessSupervisor>(eventId => eventId.Id == 1203);
+        var (supervisor, clock, _) = Create(worker, supervisorLogger: failing);
+        await using var scope = supervisor.ConfigureAwait(false);
+
+        var starting = supervisor.StartAsync();
+        await ready.Entered.WaitAsync(HangGuard);
+        if (exceedBound) await clock.FireNextAsync(StartupTimeout);
+        else ready.Release();
+        var result = await starting.WaitAsync(HangGuard);
+
+        Assert.True(failing.Failures > 0);
+        if (exceedBound)
+        {
+            Assert.False(result.Succeeded);
+            var timedOut = await WaitFor(supervisor, state => state.State == WorkerLifecycleState.Degraded);
+            Assert.Equal("worker-startup-timeout", timedOut.DiagnosticCode);
+            Assert.Equal(1, worker.TerminationCount);
+        }
+        else
+        {
+            Assert.True(result.Succeeded);
+            _ = await WaitFor(supervisor, state => state.ReadyForExecution);
+            Assert.Equal(0, worker.TerminationCount);
+        }
+    }
+
     // #371: the worker start logs each sub-phase with the time since the start began,
     // so a startup timeout shows whether the bound went to process creation, the
     // control pipe, or the wait for Ready. An expired bound is a warning.

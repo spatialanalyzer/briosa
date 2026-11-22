@@ -114,7 +114,8 @@ be placed from the log alone:
   the first lifecycle RPC is the client's own connect delay.
 - WorkerStartPhase records each worker start sub-phase with the milliseconds
   since the start began: `process-created`, `control-pipe-connected`, and
-  `ready-received`, or `startup-bound-expired` or `start-failed` at Warning.
+  `ready-received` (a valid Ready message), or `startup-bound-expired` or
+  `start-failed` at Warning.
   A `worker-startup-timeout` therefore shows whether the bound went to process
   creation, runtime start-up and the control pipe, or the wait for Ready.
 - Every SDK and application lifecycle RPC that changes state (Start, Connect,
@@ -129,6 +130,14 @@ be placed from the log alone:
   `installation-check` (the job file, installation identity, and executable
   checks). A launch whose arrival is recorded but whose ApplicationTransition
   to `spatial-analyzer-starting` never follows stalled in these steps.
+
+These timing records are best effort. A clock or logger failure loses the record
+and nothing else: it cannot skip a worker's cleanup, replace an RPC's response,
+or hide the exception that ended a call. `ElapsedMilliseconds` is `-1` when the
+time could not be measured. EndpointListening, WorkerStartPhase,
+LifecycleRpcStarted, LifecycleRpcCompleted, LifecycleRpcFaulted and
+LaunchPreconditionSlow carry only fixed names, enum values and numbers;
+LifecycleRejected also carries the lifecycle error's diagnostic code.
 
 The metadata boundary discards raw messages, exceptions and ambient scopes from
 framework logs, preserving their category, ID, severity and a FrameworkEvent

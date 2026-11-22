@@ -1019,9 +1019,10 @@ internal sealed partial class WorkerProcessSupervisor :
         // Launch, COM activation, and Ready run under the startup bound only; a caller
         // that stops waiting cannot terminate the child it has asked for. Each phase is
         // logged with the time since the start began, so a startup timeout shows which
-        // phase used the bound.
+        // phase used the bound. The phase records are best effort and never throw, so
+        // they cannot skip the cleanup and the transition below.
         WorkerControlMessage ready;
-        var startStarted = _timeProvider.GetTimestamp();
+        var startStarted = BestEffortDiagnostics.Timestamp(_timeProvider);
         using (var timeout = new CancellationTokenSource(_policy.StartupTimeout, _timeProvider))
         {
             try
@@ -1033,7 +1034,6 @@ internal sealed partial class WorkerProcessSupervisor :
                 await worker.WaitForControlConnectionAsync(timeout.Token).ConfigureAwait(false);
                 LogStartPhase(LogLevel.Information, "control-pipe-connected", startStarted);
                 ready = await worker.ReceiveAsync(timeout.Token).ConfigureAwait(false);
-                LogStartPhase(LogLevel.Information, "ready-received", startStarted);
                 if (ready.Kind != WorkerControlMessageKind.Ready ||
                     ready.ProcessId is not > 0 ||
                     ready.Connection is null ||
@@ -1046,6 +1046,9 @@ internal sealed partial class WorkerProcessSupervisor :
                     throw new InvalidDataException(
                         "The worker did not provide a valid ready message.");
                 }
+
+                // Only a valid Ready message counts; an invalid one ends in start-failed.
+                LogStartPhase(LogLevel.Information, "ready-received", startStarted);
             }
             catch (OperationCanceledException)
             {
@@ -1703,10 +1706,11 @@ internal sealed partial class WorkerProcessSupervisor :
         int? mpResultCode,
         string diagnosticCode);
 
-    private void LogStartPhase(LogLevel level, string phase, long startTimestamp)
+    private void LogStartPhase(LogLevel level, string phase, long? startTimestamp)
     {
-        var elapsed = (long)_timeProvider.GetElapsedTime(startTimestamp).TotalMilliseconds;
-        LogWorkerStartPhase(level, _generation, phase, elapsed);
+        var elapsed = BestEffortDiagnostics.ElapsedMilliseconds(_timeProvider, startTimestamp);
+        var generation = _generation;
+        BestEffortDiagnostics.Record(() => LogWorkerStartPhase(level, generation, phase, elapsed));
     }
 
     [LoggerMessage(

@@ -1,56 +1,53 @@
-using System.ComponentModel;
 using System.Diagnostics;
 using Grpc.Core;
 
 namespace Briosa.Server.Services;
 
 // Records lifecycle RPC arrival and every exit with its elapsed time, so a log tells
-// a call that never reached the server from one that is still running in it.
+// a call that never reached the server from one that is still running in it. Every
+// public method is best effort and never throws: a failing clock or logger cannot
+// change the outcome of the RPC it describes.
 internal sealed partial class LifecycleAuditLogger(ILogger<LifecycleAuditLogger> logger)
 {
     private readonly ILogger<LifecycleAuditLogger> _logger = logger;
 
     // Measured from process creation, so it also covers runtime and host start-up.
     // A client's own connect delay is the time from here to its first lifecycle RPC.
-    public void EndpointListening()
+    // UTC instants, so a daylight-saving change cannot skew it.
+    public void EndpointListening() => BestEffortDiagnostics.Record(() =>
     {
-        if (!_logger.IsEnabled(LogLevel.Information)) return;
-        try
-        {
-            using var self = Process.GetCurrentProcess();
-            var elapsed = Math.Max(0L, (long)(DateTime.Now - self.StartTime).TotalMilliseconds);
-            LogEndpointListening(elapsed);
-        }
-        catch (Exception exception) when (exception is InvalidOperationException or Win32Exception or NotSupportedException)
-        {
-            // Diagnostics only: an unreadable start time never affects the host.
-        }
+        using var self = Process.GetCurrentProcess();
+        var elapsed = Math.Max(0L, (long)(DateTime.UtcNow - self.StartTime.ToUniversalTime()).TotalMilliseconds);
+        LogEndpointListening(elapsed);
+    });
+
+    // Returns the start timestamp for the exit record, or null if it could not be read.
+    public long? Started(string rpc, TimeProvider timeProvider)
+    {
+        var started = BestEffortDiagnostics.Timestamp(timeProvider);
+        BestEffortDiagnostics.Record(() => LogStarted(rpc));
+        return started;
     }
 
-    public void Started(string rpc) => LogStarted(rpc);
-
-    public void Completed(string rpc, TimeProvider timeProvider, long startTimestamp)
+    public void Completed(string rpc, TimeProvider timeProvider, long? startTimestamp)
     {
-        var elapsed = ElapsedMilliseconds(timeProvider, startTimestamp);
-        LogCompleted(rpc, StatusCode.OK, elapsed);
+        var elapsed = BestEffortDiagnostics.ElapsedMilliseconds(timeProvider, startTimestamp);
+        BestEffortDiagnostics.Record(() => LogCompleted(rpc, StatusCode.OK, elapsed));
     }
 
     public void Rejected(string rpc, StatusCode grpcStatus, string diagnosticCode,
-        TimeProvider timeProvider, long startTimestamp)
+        TimeProvider timeProvider, long? startTimestamp)
     {
-        var elapsed = ElapsedMilliseconds(timeProvider, startTimestamp);
-        LogRejected(rpc, grpcStatus, diagnosticCode, elapsed);
+        var elapsed = BestEffortDiagnostics.ElapsedMilliseconds(timeProvider, startTimestamp);
+        BestEffortDiagnostics.Record(() => LogRejected(rpc, grpcStatus, diagnosticCode, elapsed));
     }
 
     // Neither a response nor a typed lifecycle error. The exception is not logged.
-    public void Faulted(string rpc, TimeProvider timeProvider, long startTimestamp)
+    public void Faulted(string rpc, TimeProvider timeProvider, long? startTimestamp)
     {
-        var elapsed = ElapsedMilliseconds(timeProvider, startTimestamp);
-        LogFaulted(rpc, elapsed);
+        var elapsed = BestEffortDiagnostics.ElapsedMilliseconds(timeProvider, startTimestamp);
+        BestEffortDiagnostics.Record(() => LogFaulted(rpc, elapsed));
     }
-
-    private static long ElapsedMilliseconds(TimeProvider timeProvider, long startTimestamp) =>
-        (long)timeProvider.GetElapsedTime(startTimestamp).TotalMilliseconds;
 
     [LoggerMessage(EventId = 1001, Level = LogLevel.Information,
         Message = "Briosa public endpoint is listening {ElapsedMilliseconds} ms after process start.")]

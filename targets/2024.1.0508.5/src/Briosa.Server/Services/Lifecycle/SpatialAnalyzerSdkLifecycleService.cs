@@ -90,9 +90,10 @@ internal sealed class SpatialAnalyzerSdkLifecycleService(
         Func<Task<global::Briosa.SpatialAnalyzerSdkLifecycleState>> action,
         Func<global::Briosa.SpatialAnalyzerSdkLifecycleState, TResponse> responseFactory)
     {
-        var started = _timeProvider.GetTimestamp();
+        // The audit records are best effort and never throw, so they cannot prevent
+        // dispatch, replace the response, or mask the exception that ends the call.
+        var started = auditLogger?.Started(rpc, _timeProvider);
         var recorded = false;
-        auditLogger?.Started(rpc);
         try
         {
             var response = responseFactory(await action().ConfigureAwait(false));

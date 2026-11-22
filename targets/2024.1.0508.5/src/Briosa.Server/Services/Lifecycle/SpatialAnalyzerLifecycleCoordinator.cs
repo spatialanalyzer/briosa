@@ -91,8 +91,9 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
         {
             // The preconditions run synchronously on the request thread, before
             // acceptance. A slow step is reported, so a launch that stalls before
-            // acceptance can be told apart from one that never arrived.
-            var processScanStarted = _timeProvider.GetTimestamp();
+            // acceptance can be told apart from one that never arrived. The timing is
+            // best effort and never throws, so it cannot mask a precondition failure.
+            var processScanStarted = BestEffortDiagnostics.Timestamp(_timeProvider);
             try
             {
                 RefreshObservedState();
@@ -120,7 +121,7 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
 
             // The job file, installation identity, and executable checks.
             ProcessStartInfo startInfo;
-            var installationCheckStarted = _timeProvider.GetTimestamp();
+            var installationCheckStarted = BestEffortDiagnostics.Timestamp(_timeProvider);
             try
             {
                 startInfo = CreateStartInfo(request);
@@ -640,11 +641,11 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
         global::Briosa.SpatialAnalyzerApplicationState applicationState,
         global::Briosa.SpatialAnalyzerOwnership ownership, int? generation, string diagnosticCode);
 
-    private void WarnIfSlowPrecondition(string phase, long startTimestamp)
+    private void WarnIfSlowPrecondition(string phase, long? startTimestamp)
     {
-        var elapsed = _timeProvider.GetElapsedTime(startTimestamp);
-        if (elapsed > SlowLaunchPreconditionThreshold)
-            LogSlowLaunchPrecondition(phase, (long)elapsed.TotalMilliseconds);
+        var elapsed = BestEffortDiagnostics.ElapsedMilliseconds(_timeProvider, startTimestamp);
+        if (elapsed > (long)SlowLaunchPreconditionThreshold.TotalMilliseconds)
+            BestEffortDiagnostics.Record(() => LogSlowLaunchPrecondition(phase, elapsed));
     }
 
     [LoggerMessage(EventId = 1402, Level = LogLevel.Warning,

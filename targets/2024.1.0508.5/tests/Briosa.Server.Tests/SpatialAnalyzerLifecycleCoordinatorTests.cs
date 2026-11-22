@@ -625,6 +625,40 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
         Assert.Equal((long)scanMilliseconds, warning.Value("ElapsedMilliseconds"));
     }
 
+    // #371: the timing records are best effort. A failing slow-precondition record and
+    // a failing audit logger leave a successful launch successful, and an exception
+    // without a typed lifecycle detail still propagates as itself.
+    [Fact]
+    public async Task FailingTimingRecordsNeverChangeTheLaunchOutcome()
+    {
+        using var executable = TemporaryFile.Create();
+        var clock = new HeartbeatTestClock();
+        var platform = new FakeProcessPlatform
+        {
+            Observing = () => clock.Advance(TimeSpan.FromMilliseconds(2500))
+        };
+        var coordinatorLog = new ThrowingLogger<SpatialAnalyzerLifecycleCoordinator>(eventId => eventId.Id == 1402);
+        var coordinator = CreateCoordinator(
+            executable.Path, platform, timeProvider: clock, logger: coordinatorLog);
+        var failingAudit = new ThrowingLogger<LifecycleAuditLogger>(_ => true, throwOnIsEnabled: true);
+        var service = new SpatialAnalyzerLifecycleService(coordinator, new LifecycleAuditLogger(failingAudit), clock);
+        Grpc.Core.ServerCallContext Context() => new InMemoryServerCallContext(
+            "/briosa.SpatialAnalyzerLifecycle/LaunchSpatialAnalyzer",
+            CallDeadline(passed: false),
+            CancellationToken.None);
+
+        var response = await service.LaunchSpatialAnalyzer(
+            new global::Briosa.LaunchSpatialAnalyzerRequest(), Context()).WaitAsync(HangGuard);
+
+        Assert.Equal(global::Briosa.SpatialAnalyzerApplicationState.Running, response.State.ApplicationState);
+        Assert.True(coordinatorLog.Failures > 0);
+        Assert.True(failingAudit.Failures > 0);
+
+        await coordinator.DisposeAsync();
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => service.LaunchSpatialAnalyzer(
+            new global::Briosa.LaunchSpatialAnalyzerRequest(), Context()).WaitAsync(HangGuard));
+    }
+
     // D-2: only a caller interruption becomes the caller's deadline. A failure of its
     // own keeps its kind and status, even when the call's deadline has passed by the
     // time the service reports it.

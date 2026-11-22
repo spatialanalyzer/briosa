@@ -102,7 +102,7 @@ internal sealed class DesktopHost(
         }
         if (accepted)
         {
-            var started = TimeProvider.System.GetTimestamp();
+            var started = BestEffortDiagnostics.Timestamp(TimeProvider.System);
             try
             {
                 switch (request.Action)
