@@ -51,10 +51,13 @@ message GetServerInfoResponse {
 }
 
 // Lifecycle wait allowances in milliseconds, each computed by the server from
-// the bounds it enforces and rounded up to a whole millisecond. Each allowance
-// covers only the server's own work for one request, from the event named on
-// its field. None includes transport or network time, and none promises that a
-// response reaches the caller or that any process exits within it.
+// the bounds it enforces and rounded up to a whole millisecond. Fields 1 to 6
+// cover individual lifecycle operations; fields 7 and 8 size a startup of
+// several requests and are not server deadlines; field 9 describes the host's
+// graceful shutdown cancellation window. Each covers only the server's own
+// work, from the event named on its field. None includes transport or network
+// time, and none promises that a response reaches the caller or that any
+// process exits within it.
 //
 // Server 0.10.1 and later set every finite allowance (fields 1 to 8) to a
 // positive value. Server 0.10.0 does not send this message. A reader treats an
@@ -105,8 +108,8 @@ message LifecycleBounds {
   // host stop begins, before the host cancels the remaining shutdown work. A
   // stop can finish sooner or be cancelled sooner. An MP command still in
   // flight counts against it. Expiry does not prove that the worker was
-  // released or that any process exited. Absent when the server cannot arm a
-  // time limit for its configured value.
+  // released or that any process exited. Absent when the configured value is
+  // finite and its ceiling exceeds 4,294,967,294 milliseconds.
   optional GracefulShutdownBound host_graceful_shutdown = 9;
 }
 

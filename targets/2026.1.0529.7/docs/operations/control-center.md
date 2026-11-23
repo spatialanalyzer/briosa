@@ -120,7 +120,9 @@ reserved for the controller's private launch handshake.
 Use each Control Center with the server from its own package. Control Center
 0.10.0 cannot read status from Server 0.10.1 or later, whose server information
 carries fields it does not know, so it shows **Status unavailable**. Control
-Center 0.10.1 and later ignore fields they do not know.
+Center 0.10.1 and later ignore fields they do not know. When a field they know
+carries a value they do not recognize, they show **Status not recognized** and
+offer no action.
 
 Keep the complete package together. Use the existing Briosa installer to acquire,
 verify, repair, update, or remove it. Installation is inert. Each update remains

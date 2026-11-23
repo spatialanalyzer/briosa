@@ -33,17 +33,17 @@ public sealed record DesktopState
     public bool OutcomeUnknown => Sdk?.LastIncident is { HasExecutionDisposition: true,
         ExecutionDisposition: ExecutionDisposition.StartedOutcomeUnknown };
 
-    // A field that a later server adds is ignored, never a parse failure (#400). Control
-    // Center 0.10.0 parsed strictly, so it reads only the server in its own package.
-    private static readonly JsonParser ReplyParser =
-        new(JsonParser.Settings.Default.WithIgnoreUnknownFields(true));
-
+    // A field that a later server adds is ignored, never a parse failure, but a value this
+    // Control Center does not recognize makes the whole reply not recognized (#400).
+    // Control Center 0.10.0 parsed strictly, so it reads only the server in its own package.
     public static DesktopState FromReply(DesktopReply reply)
     {
         ArgumentNullException.ThrowIfNull(reply);
-        var info = ReplyParser.Parse<GetServerInfoResponse>(reply.ServerInfoJson);
-        var sdk = ReplyParser.Parse<SpatialAnalyzerSdkLifecycleState>(reply.SdkStateJson);
-        var application = ReplyParser.Parse<SpatialAnalyzerLifecycleState>(reply.ApplicationStateJson);
+        var info = DesktopReplyReader.Read<GetServerInfoResponse>(reply.ServerInfoJson, out var infoRecognized);
+        var sdk = DesktopReplyReader.Read<SpatialAnalyzerSdkLifecycleState>(reply.SdkStateJson, out var sdkRecognized);
+        var application = DesktopReplyReader.Read<SpatialAnalyzerLifecycleState>(
+            reply.ApplicationStateJson, out var applicationRecognized);
+        if (!infoRecognized || !sdkRecognized || !applicationRecognized) return NotRecognized(reply);
         bool available = reply.HostState == "Running";
         bool ready = available && info.ReadyForMp && sdk.ReadyForMp;
         var (heading, guidance, attention) = Describe(reply.HostState, info, sdk, application, ready);
@@ -54,6 +54,15 @@ public sealed record DesktopState
             ObservedAt = DateTimeOffset.Now, Info = info, Sdk = sdk, Application = application
         };
     }
+
+    // Nothing is offered or claimed from a reply this Control Center cannot read in full.
+    private static DesktopState NotRecognized(DesktopReply reply) => new()
+    {
+        Available = false, CanManage = false, Ready = false, NeedsAttention = true,
+        Heading = "Status not recognized", Host = reply.HostState, Endpoint = reply.Endpoint,
+        ObservedAt = DateTimeOffset.Now, Guidance =
+            "The server reported a state that this Control Center does not recognize, so no action is offered. Use the Control Center from the server's own package."
+    };
 
     public DesktopState Unavailable(string heading = "Status unavailable") => this with
     {

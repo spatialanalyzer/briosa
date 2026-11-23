@@ -45,7 +45,9 @@ shutdown bound from that reply's server information plus 5 seconds, or 45
 seconds when the bound is absent, invalid, or beyond the local timer range. An
 explicitly unbounded host is observed until the controller exits. The
 controller reads the serialized state with a parser that ignores unknown fields,
-so a later server's additions do not break it.
+so a later server's additions do not break it. A value it does not recognize in
+a field it knows makes the whole reply not recognized, and the controller then
+offers no action.
 If shutdown cannot be confirmed, restart stops and reports the uncertainty.
 
 Ownership receipts live under the current user's protected ControlCenter

@@ -78,11 +78,11 @@ Debug source hosting enables the standard .NET user-secrets provider for these s
 
 ### Lifecycle bounds
 
-`lifecycle_bounds` reports how long the server allows each lifecycle request, in milliseconds. The server computes each value from the same bounds it enforces (see [worker time bounds](windows-package.md#worker-time-bounds)), adds the parts first, and then rounds up to a whole millisecond once. It reads only server configuration, so it is the same before the SDK starts, while SpatialAnalyzer is disconnected, and while it is connected.
+`lifecycle_bounds` reports the server's lifecycle allowances, in milliseconds. The server computes each value from the same bounds it enforces (see [worker time bounds](windows-package.md#worker-time-bounds)), adds the parts first, and then rounds up to a whole millisecond once. It reads only server configuration, so it is the same before the SDK starts, while SpatialAnalyzer is disconnected, and while it is connected.
 
 Server 0.10.1 and later publish it. Server 0.10.0 does not, and a client then keeps its own fixed waits. The 0.5.0 clients ignore the field and work with Server 0.10.1 unchanged.
 
-Each allowance covers only the server's own work for one request, from the event in the table. None includes network or transport time, and none promises that a response reaches the caller or that any process exits within it. In the formulas, `S` is `Briosa:Worker:StartupTimeout`, `P` is `Briosa:Worker:ReadinessProbeTimeout`, `A` is `Briosa:SpatialAnalyzer:ApplicationStartupTimeout`, and `B` is `Briosa:SpatialAnalyzer:ApplicationShutdownTimeout`. The heartbeat timeout and the worker shutdown timeout are fixed at 5 seconds each.
+The first six allowances, `start_sdk_milliseconds` to `close_owned_spatial_analyzer_milliseconds`, cover individual lifecycle operations; the two startup allowances size a startup of several requests and are not server deadlines; `host_graceful_shutdown` describes the host's graceful shutdown cancellation window. Each covers only the server's own work, from the event in the table. None includes network or transport time, and none promises that a response reaches the caller or that any process exits within it. In the formulas, `S` is `Briosa:Worker:StartupTimeout`, `P` is `Briosa:Worker:ReadinessProbeTimeout`, `A` is `Briosa:SpatialAnalyzer:ApplicationStartupTimeout`, and `B` is `Briosa:SpatialAnalyzer:ApplicationShutdownTimeout`. The heartbeat timeout and the worker shutdown timeout are fixed at 5 seconds each.
 
 | Field | Covers | Computed as | Default |
 | --- | --- | --- | --- |
@@ -101,7 +101,7 @@ Each allowance covers only the server's own work for one request, from the event
 - `finite_milliseconds`: a positive limit. A stop can finish sooner, or be cancelled sooner. An MP command still in flight counts against it, and expiry does not prove that the worker was released or that any process exited (see [server shutdown](windows-package.md#worker-time-bounds)). A longer shutdown timeout configured for the host itself, such as the ASP.NET Core `shutdownTimeoutSeconds` setting, is published as configured.
 - `unbounded`: the host is configured with no graceful shutdown time limit.
 
-The server leaves `host_graceful_shutdown` absent when it cannot arm a time limit for its configured host value, which happens above 4,294,967,294 milliseconds (about 49.7 days). It still starts with that value.
+A finite host value is omitted if its ceiling exceeds 4,294,967,294 ms (about 49.7 days); `host_graceful_shutdown` is then absent. The server still starts with that value.
 
 A client treats an absent or zero allowance, an absent `host_graceful_shutdown`, or a limit it does not recognize as unavailable, never as unbounded, and keeps its own default for that purpose only. A missing host bound does not make a usable startup allowance unavailable.
 

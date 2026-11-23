@@ -374,9 +374,10 @@ budget.
    submit another phase. If the new deadline has already passed, expire
    immediately. Otherwise re-arm the timer for `deadline - now`. For example, a
    snapshot observed at 121 seconds must not extend the budget for a
-   300-second allowance just because the timer callback has not yet run. Check
-   the local timer range before scheduling, notably for Node timers. Caller
-   cancellation stays independent, and no budget restarts at the post-Connect
+   300-second allowance just because the timer callback has not yet run.
+   Before replacing the bootstrap timer, check that `deadline - now` can be
+   scheduled. If it cannot, keep the existing bootstrap deadline; do not
+   schedule a clamped delay. Caller cancellation stays independent, and no budget restarts at the post-Connect
    refresh.
 6. Keep no default deadline on individual lifecycle RPCs.
 
@@ -534,7 +535,8 @@ the runtime behavioral major/minimum revision and exact target, then compares
 server build coordinates against the selected installation's manifest. Compatible
 servers need not equal the generation artifact's release or source revision.
 Only the documented exact 0.6.1 legacy entry permits absent contract metadata.
-Published exact-pinned clients retain their original checks.
+Published exact-pinned clients retain their original checks. Clients 0.5.1 use
+minimum revision 0 for both installation selection and live discovery.
 
 The client captures the admitted capability set for each generation. Runtime
 policy may expose a supported subset, so startup does not infer that every RPC
@@ -580,8 +582,9 @@ Server 0.10.0 reports neither. Clients 0.5.1 and later:
 - expose each lifecycle allowance as an optional duration. An absent or zero
   allowance is unavailable;
 - expose the host graceful shutdown bound as unavailable, finite, or unbounded,
-  read from its `limit` case. An absent bound, an unset case, or a case the
-  client does not recognize is unavailable, never unbounded;
+  read from its `limit` case. An absent bound, an unset case,
+  `finite_milliseconds = 0`, or a case the client does not recognize is
+  unavailable, never unbounded;
 - expose the configured interaction mode with a distinct unknown member for
   `UNSPECIFIED` and for any value the client does not recognize. They describe
   it as the server's configuration, never as SpatialAnalyzer's live mode; and
