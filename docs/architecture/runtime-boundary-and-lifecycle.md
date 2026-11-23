@@ -288,6 +288,13 @@ bound is 30 + 60 + 15 = 105 seconds. A longer host shutdown timeout configured
 for the host itself is kept. The bound limits only how long a stop may wait: a
 server with nothing in flight stops as quickly as before.
 
+From Server 0.10.1, `GetServerInfo` publishes this bound and the per-request
+allowances it is built from as `lifecycle_bounds`, in milliseconds, computed
+from the same policy and options the server enforces. The host bound is
+published as finite only when the host can arm it, as unbounded only for an
+infinite host timeout, and is otherwise absent; each target's
+`docs/operations/health-and-discovery.md` describes the fields.
+
 An MP command still in flight is not part of the bound. The worker stop waits
 for it under its execution budget, which can be hours for an interactive
 command. A command that outlasts the bound ends the host's graceful stop early:
