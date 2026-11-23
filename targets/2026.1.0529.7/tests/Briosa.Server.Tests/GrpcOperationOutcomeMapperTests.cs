@@ -618,14 +618,15 @@ public sealed class GrpcOperationOutcomeMapperTests
             retrieval => Assert.Equal(OutputRetrievalState.Failed, retrieval.State));
     }
 
-    // Fail closed: when not even a value-free output list fits the frame bound,
-    // the fault arrives with its per-output evidence withheld and every requested
-    // output is reported as failed. The kind stays SdkCallFaulted.
+    // Fail closed: when not even a value-free output list fits the response
+    // budget, the fault arrives with its per-output evidence withheld and every
+    // requested output is reported as failed. The kind stays SdkCallFaulted.
+    // The names follow the budget, so 80 of them never fit it.
     [Fact]
     public void SdkCallFaultWhosePerOutputEvidenceCannotFitIsStillSdkCallFaulted()
     {
         var names = Enumerable.Range(0, 80)
-            .Select(index => $"{index:D2}{new string('n', 1_000)}")
+            .Select(index => $"{index:D2}{new string('n', WorkerControlProtocol.MaximumResponseBytes / 64)}")
             .ToArray();
         OperationOutputContract[] contract =
         [
@@ -847,7 +848,7 @@ public sealed class GrpcOperationOutcomeMapperTests
         new WorkerRetrievedOutput("Planar Offset", WorkerMpValueKind.FloatingPoint,
             new WorkerDoubleValue(undeliverable == "non-finite" ? double.NaN : 1.25)),
         new WorkerRetrievedOutput("Result", WorkerMpValueKind.Text, new WorkerTextValue(
-            undeliverable == "oversized" ? new string('x', WorkerControlProtocol.MaximumMessageBytes + 1) : "ok")),
+            undeliverable == "oversized" ? new string('x', WorkerControlProtocol.MaximumResponseBytes + 1) : "ok")),
         count
     ];
 

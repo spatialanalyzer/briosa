@@ -27,13 +27,25 @@ callers waiting outside that bound for a queue slot. A full queue returns
 and `NotStarted`. `MayReplay` permits the caller to submit a new request later;
 it never enables automatic retries in first-party clients.
 
-The public gRPC receive limit and the private worker payload limit are each
-64 KiB. The public limit applies before operation mapping. JSON envelope overhead
-can still make a smaller protobuf request exceed the worker limit; encoding
-rejection returns typed `InvalidArgument`/`Validation` with `NotStarted` and does
-not retire a healthy worker. These limits bound encoded request sizes, not an
-exact amount of managed memory. A transport-level size rejection can occur before
-the service runs and therefore need not include an `OperationError` trailer.
+Three separate limits bound message sizes: the public gRPC receive limit
+(64 KiB), the private request budget from host to worker (64 KiB), and the
+private response budget from worker to host, which covers every execution
+result (1 MiB from Server 0.10.1). Changing one moves neither of the others. The
+largest public response a 1 MiB private frame can produce stays under the 4 MiB
+default receive limit of the first-party clients. The worker encodes into a
+buffer bounded by the budget and stops at most one write past it, so encoding
+a result holds at most 25 chunks of 64 KiB (1.56 MiB) plus 16 KiB of escaping
+scratch, however large the result. A
+host and worker built for different budgets disagree on the private protocol
+version and fail at startup, before any command runs; see
+[worker response budget](../development/worker-response-budget.md). The public
+limit applies before operation mapping.
+JSON envelope overhead can still make a smaller protobuf request exceed the
+request budget; encoding rejection returns typed `InvalidArgument`/`Validation`
+with `NotStarted` and does not retire a healthy worker. These limits bound encoded
+message sizes, not an exact amount of managed memory. A transport-level size
+rejection can occur before the service runs and therefore need not include an
+`OperationError` trailer.
 
 An SDK argument setter returning false stops the sequence before `ExecuteStep`.
 `ExecuteStep` returning true means only that the call was accepted. Briosa then
@@ -113,16 +125,17 @@ own value-free code: `sdk-output-getter-faulted` for the getter that threw,
 `worker-output-encoding-rejected` for a value the worker could not deliver.
 
 An output-getter fault keeps its kind even when another output's value cannot
-cross the 64 KiB private worker channel, for example because it is non-finite or
-oversized. The worker drops only the values that cannot be encoded, starting
-with any that cannot be encoded on their own and then the largest, and keeps the
-phase, diagnostic code and every output's status. If even the value-free output
-list does not fit, the worker withholds per-output evidence: the error is still
-`SdkCallFaulted`, and every requested output is `Failed` with
-`worker-output-encoding-rejected`. That frame has a fixed size, so the fault
-always arrives. Faults before or during execution carry no output values, so they
-cannot exceed the bound. Without an SDK call fault, an undeliverable value still
-reports `DataLoss`/`OutputRetrievalFailure` with `worker-output-encoding-rejected`.
+cross the private worker channel, for example because it is non-finite or larger
+than the response budget. The worker drops only the values that cannot be
+encoded, starting with any that cannot be encoded on their own and then the
+largest, and keeps the phase, diagnostic code and every output's status. If even
+the value-free output list does not fit, the worker withholds per-output
+evidence: the error is still `SdkCallFaulted`, and every requested output is
+`Failed` with `worker-output-encoding-rejected`. That frame has a fixed size, so
+the fault always arrives. Faults before or during execution carry no output
+values, so they cannot exceed the bound. Without an SDK call fault, an
+undeliverable value still reports `DataLoss`/`OutputRetrievalFailure` with
+`worker-output-encoding-rejected`.
 
 `SdkCallFaulted` replaces the interim 0.9.2 mappings, which reported these faults
 as `Internal`, `MpResultRetrievalFailure`, or `OutputRetrievalFailure`.

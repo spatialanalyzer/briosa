@@ -367,7 +367,8 @@ internal static class SmokeWorkerProgram
         var outputs = !mpSucceeded
             ? []
             : message.Command!.OutputArguments.Select(output =>
-                CreateOutput(output, outputFailure))
+                CreateOutput(output, outputFailure,
+                    largeResult: options.Scenario == SmokeWorkerScenario.LargeResult))
                 .ToArray();
         channel.Send(WorkerControlMessage.ExecutionResult(
             message.CorrelationId,
@@ -387,7 +388,8 @@ internal static class SmokeWorkerProgram
 
     private static WorkerMpOutputValue CreateOutput(
         WorkerMpOutputArgument output,
-        bool outputFailure)
+        bool outputFailure,
+        bool largeResult = false)
     {
         if (outputFailure)
         {
@@ -401,9 +403,26 @@ internal static class SmokeWorkerProgram
                     "Collection",
                     "Object",
                     WorkerObjectTypeValue.PointGroup)),
+            WorkerMpValueKind.Text when largeResult => new WorkerRetrievedOutput(output.Name, output.Kind,
+                new WorkerTextValue(LargeResultText.Value)),
             _ => new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerTextValue("scripted-output"))
         };
     }
+
+    // large-result: every Text output is LargeResultLength characters of a fixed
+    // ASCII pattern, so its frame is just under the 1 MiB response budget. The
+    // optional conformance scenario publishes the length and SHA-256 of this text,
+    // and the packaged client scenario checks them.
+    internal const int LargeResultLength = 1_046_528;
+    private const string LargeResultPattern = "abcdefghijklmnopqrstuvwxyz0123456789";
+    private static readonly Lazy<string> LargeResultText = new(() => string.Create(
+        LargeResultLength, 0, static (characters, _) =>
+        {
+            for (var index = 0; index < characters.Length; index++)
+            {
+                characters[index] = LargeResultPattern[index % LargeResultPattern.Length];
+            }
+        }));
 
     private static WorkerConnectionSnapshot ConnectionSnapshot(
         SmokeWorkerScenario scenario,
@@ -477,7 +496,8 @@ internal static class SmokeWorkerProgram
         MpPartialSuccess,
         DelayFirstExecute,
         DelayFirstConnect,
-        HangFirstExecute
+        HangFirstExecute,
+        LargeResult
     }
 
     private sealed record SmokeWorkerOptions(
@@ -509,6 +529,7 @@ internal static class SmokeWorkerProgram
                 "delay-first-execute" => SmokeWorkerScenario.DelayFirstExecute,
                 "delay-first-connect" => SmokeWorkerScenario.DelayFirstConnect,
                 "hang-first-execute" => SmokeWorkerScenario.HangFirstExecute,
+                "large-result" => SmokeWorkerScenario.LargeResult,
                 _ => throw new ArgumentOutOfRangeException(
                     nameof(arguments),
                     scenarioName,

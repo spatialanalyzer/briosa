@@ -172,5 +172,22 @@
       "watchdog_timeout": null,
       "exercise": "cleanup"
     }
+  ],
+  "optional_scenarios": [
+    {
+      "id": "large-result",
+      "startup_mode": "default",
+      "worker_scenario": "large-result",
+      "start_external_application": false,
+      "activated_sdk_version": "2026.1.0529.7",
+      "connected_sa_version": "2026.1.0529.7",
+      "deny_get_working_directory": false,
+      "watchdog_timeout": null,
+      "exercise": "operation-success",
+      "expected_working_directory": {
+        "utf8_length": 1046528,
+        "sha256": "afd78763164da61f1b2a4d59caf345ea045b20005c5a27712d69b4f75de62644"
+      }
+    }
   ]
 }

@@ -73,6 +73,15 @@ internal static class TestWorkerProcess
                         scenario: options.Scenario)
             };
             var connectCount = 0;
+            if (options.ProtocolVersionOffset is { } offset and not 0)
+            {
+                // A worker built for another private protocol version: the host
+                // must reject its Ready before it sends any command.
+                SendOnProtocolVersion(pipe, WorkerControlMessage.Ready(Environment.ProcessId, connection),
+                    WorkerControlProtocol.CurrentVersion + offset);
+                Thread.Sleep(Timeout.Infinite);
+            }
+
             channel.Send(
                 WorkerControlMessage.Ready(
                     Environment.ProcessId,
@@ -139,6 +148,25 @@ internal static class TestWorkerProcess
                         break;
                     case WorkerControlMessageKind.Execute:
                         executionCount++;
+                        if (options.SdkFaultOutput is { } faultedOutput && executionCount == 1)
+                        {
+                            // An output-getter fault on the first execution, sent as the
+                            // production worker host sends it: a frame over the response
+                            // budget is replaced by the bounded fallback.
+                            var fault = SdkFaultResponse(message.Command!, faultedOutput,
+                                options.OutputTextLengths ?? [], options.Scenario);
+                            try
+                            {
+                                channel.Send(WorkerControlMessage.ExecutionResult(message.CorrelationId, fault));
+                            }
+                            catch (WorkerMessageRejectedException)
+                            {
+                                channel.Send(WorkerExecutionDelivery.Undeliverable(message.CorrelationId, fault));
+                            }
+
+                            break;
+                        }
+
                         if (options.Scenario == TestWorkerScenario.HangOnExecute)
                         {
                             Thread.Sleep(Timeout.Infinite);
@@ -162,7 +190,8 @@ internal static class TestWorkerProcess
                                 message.Command!,
                                 mpSucceeded: options.Scenario != TestWorkerScenario.MpFailure,
                                 delayed,
-                                options.Scenario));
+                                options.Scenario,
+                                options.OutputTextLength));
                         if (options.Scenario == TestWorkerScenario.UnexpectedKindOnExecute)
                         {
                             completed = WorkerControlMessage.Pong(message.CorrelationId, connection);
@@ -242,7 +271,8 @@ internal static class TestWorkerProcess
         WorkerMpCommand command,
         bool mpSucceeded,
         bool delayed,
-        TestWorkerScenario scenario) =>
+        TestWorkerScenario scenario,
+        int? outputTextLength) =>
         new(
             WorkerExecutionResponseStatus.Completed,
             WorkerMpExecutionResult.FromEvidence(
@@ -252,7 +282,7 @@ internal static class TestWorkerProcess
                 mpSucceeded ? 2 : 3,
                 durationMilliseconds: delayed ? 300 : 5,
                 mpSucceeded
-                    ? [.. command.OutputArguments.Select(CreateOutputValue)]
+                    ? [.. command.OutputArguments.Select(output => CreateOutputValue(output, outputTextLength))]
                     : [],
                 mpSucceeded ? null : "scripted-mp-failure"),
             ConnectionSnapshot(
@@ -262,11 +292,40 @@ internal static class TestWorkerProcess
 
     // Never fabricate a value the production adapter cannot retrieve; doing so would hide
     // declared outputs that fail after MP success in the real worker.
-    private static WorkerMpOutputValue CreateOutputValue(WorkerMpOutputArgument output) =>
+    // The named output's getter faults; Text outputs before and after it take the
+    // given lengths in order, and every other output its usual value.
+    private static WorkerExecutionResponse SdkFaultResponse(
+        WorkerMpCommand command,
+        string faultedOutput,
+        IReadOnlyList<int> textLengths,
+        TestWorkerScenario scenario)
+    {
+        var nextLength = 0;
+        var outputs = command.OutputArguments.Select(output =>
+            output.Name == faultedOutput
+                ? new WorkerUnavailableOutput(output.Name, output.Kind,
+                    WorkerSdkFaultDiagnosticCodes.OutputGetter, WorkerUnavailableOutputReason.SdkCallFaulted)
+                : output.Kind == WorkerMpValueKind.Text && nextLength < textLengths.Count
+                    ? new WorkerRetrievedOutput(output.Name, output.Kind,
+                        new WorkerTextValue(new string('x', textLengths[nextLength++])))
+                    : CreateOutputValue(output, outputTextLength: null)).ToArray();
+        return new WorkerExecutionResponse(
+            WorkerExecutionResponseStatus.Completed,
+            new WorkerSdkCallFaulted(WorkerSdkCallPhase.OutputGetter, 5, outputs,
+                WorkerSdkFaultDiagnosticCodes.OutputGetter, resultCode: 2),
+            ConnectionSnapshot(WorkerExecutionReadinessState.ExecutionReady, scenario: scenario),
+            DiagnosticCode: null);
+    }
+
+    // --output-text-length makes every Text output that many characters, so a test
+    // can send a result of a chosen size through the real private channel.
+    private static WorkerMpOutputValue CreateOutputValue(WorkerMpOutputArgument output, int? outputTextLength) =>
         output.Kind switch
         {
             _ when !WorkerRetrievableOutputKinds.Contains(output.Kind) =>
                 new WorkerUnavailableOutput(output.Name, output.Kind),
+            WorkerMpValueKind.Text when outputTextLength is { } length =>
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerTextValue(new string('x', length))),
             WorkerMpValueKind.Logical =>
                 new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerBooleanValue(true)),
             WorkerMpValueKind.WholeNumber =>
@@ -404,6 +463,32 @@ internal static class TestWorkerProcess
                     Version: null,
                     WorkerRuntimeIdentityEvidenceSource.Unavailable)), Failure: failure);
 
+    // Encodes the message on the current version, then rewrites its version field,
+    // which the channel itself refuses to send.
+    private static void SendOnProtocolVersion(Stream pipe, WorkerControlMessage message, int version)
+    {
+        using var frame = new MemoryStream();
+        using (var encoder = new WorkerControlChannel(frame, leaveOpen: true))
+        {
+            encoder.Send(message);
+        }
+
+        var payload = System.Text.Encoding.UTF8.GetString(frame.GetBuffer(), sizeof(int), (int)frame.Length - sizeof(int));
+        var current = $"\"protocolVersion\":{WorkerControlProtocol.CurrentVersion}";
+        if (!payload.Contains(current, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("The encoded message has no protocol version field.");
+        }
+
+        var rewritten = System.Text.Encoding.UTF8.GetBytes(payload.Replace(current,
+            $"\"protocolVersion\":{version.ToString(System.Globalization.CultureInfo.InvariantCulture)}", StringComparison.Ordinal));
+        var header = new byte[sizeof(int)];
+        System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(header, rewritten.Length);
+        pipe.Write(header);
+        pipe.Write(rewritten);
+        pipe.Flush();
+    }
+
     private static void SendTruncatedFrameAndClose(Stream pipe, WorkerControlMessage message)
     {
         using var frame = new MemoryStream();
@@ -468,7 +553,11 @@ internal sealed record TestWorkerOptions(
     string PipeName,
     TestWorkerScenario Scenario,
     string? LifecycleRecordPath,
-    string? PipeRecordPath)
+    string? PipeRecordPath,
+    int? OutputTextLength = null,
+    int? ProtocolVersionOffset = null,
+    string? SdkFaultOutput = null,
+    IReadOnlyList<int>? OutputTextLengths = null)
 {
     public static TestWorkerOptions Parse(string[] arguments)
     {
@@ -486,7 +575,20 @@ internal sealed record TestWorkerOptions(
         var pipeRecordPath = TryGetArgument(arguments, "--pipe-record", out var pipeRecord)
             ? pipeRecord
             : null;
-        return new TestWorkerOptions(pipeName, scenario, recordPath, pipeRecordPath);
+        int? outputTextLength = TryGetArgument(arguments, "--output-text-length", out var length)
+            ? int.Parse(length, System.Globalization.CultureInfo.InvariantCulture)
+            : null;
+        int? protocolVersionOffset = TryGetArgument(arguments, "--protocol-version-offset", out var offset)
+            ? int.Parse(offset, System.Globalization.CultureInfo.InvariantCulture)
+            : null;
+        string? sdkFaultOutput = TryGetArgument(arguments, "--sdk-fault-output", out var faulted)
+            ? faulted
+            : null;
+        IReadOnlyList<int>? outputTextLengths = TryGetArgument(arguments, "--output-text-lengths", out var lengths)
+            ? [.. lengths.Split(',').Select(item => int.Parse(item, System.Globalization.CultureInfo.InvariantCulture))]
+            : null;
+        return new TestWorkerOptions(pipeName, scenario, recordPath, pipeRecordPath, outputTextLength,
+            protocolVersionOffset, sdkFaultOutput, outputTextLengths);
     }
 
     private static TestWorkerScenario ParseScenario(string value) =>
