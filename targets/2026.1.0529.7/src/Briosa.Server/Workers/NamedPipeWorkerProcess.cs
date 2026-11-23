@@ -18,7 +18,9 @@ internal sealed class NamedPipeWorkerProcess : IWorkerProcess
     public NamedPipeWorkerProcess(ProcessStartInfo startInfo, NamedPipeServerStream pipe)
     {
         _pipe = pipe;
-        _channel = new WorkerControlChannel(pipe);
+        // The host receives only worker-to-host frames.
+        _channel = new WorkerControlChannel(pipe,
+            maximumReceiveBytes: WorkerControlProtocol.MaximumResponseBytes);
         _process = Process.Start(startInfo)
             ?? throw new InvalidOperationException("The worker process could not be started.");
     }

@@ -43,7 +43,8 @@
               "mp-partial-success",
               "delay-first-execute",
               "delay-first-connect",
-              "hang-first-execute"
+              "hang-first-execute",
+              "large-result"
             ]
           },
           "start_external_application": { "type": "boolean" },
@@ -73,9 +74,22 @@
               "worker-loss",
               "cleanup"
             ]
+          },
+          "expected_working_directory": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["utf8_length", "sha256"],
+            "properties": {
+              "utf8_length": { "type": "integer", "minimum": 1 },
+              "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+            }
           }
         }
       }
+    },
+    "optional_scenarios": {
+      "type": "array",
+      "items": { "$ref": "#/properties/scenarios/items" }
     }
   }
 }
