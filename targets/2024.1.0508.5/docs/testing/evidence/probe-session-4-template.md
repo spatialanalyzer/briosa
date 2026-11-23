@@ -6,10 +6,12 @@ harness records and the session notes, and delete this paragraph. Follow the
 [session 4 runbook](../licensed-probe-session.md#licensed-session-4-402).
 
 Never write a returned value, a fixture name or value from the manifest, a file
-path, a process id, a user or machine name, or license data. Write labels
-(`sdk-1`), counts, byte sizes, times, enum names, MP codes and diagnostic codes.
-Write "not run" with its reason for anything that did not run; a missing fixture
-is never a pass. Nothing here is transferred from the SA 2026.1.0529.7 record.
+path, a process id, a user or machine name, license data, or any text copied from
+a dialog. Write labels (`sdk-1`), counts, byte sizes, times, enum names, MP codes,
+listed diagnostic codes (`withheld` where the record says so) and the closed
+checkpoint words. Write "not run" with its reason for anything that did not run; a
+missing fixture is never a pass. Nothing here is transferred from the SA 2026.1.0529.7
+record.
 
 ## Session
 
@@ -17,12 +19,12 @@ is never a pass. Nothing here is transferred from the SA 2026.1.0529.7 record.
 | --- | --- |
 | Date (UTC) and runs | |
 | Authorization | the maintainer's go-ahead for A1 to A9, each as given |
-| Agreed rules | the date the proposed rules and decisions D1 to D17 were agreed on #402, and any that differ from the runbook |
+| Agreed rules | the date the proposed rules and decisions D1 to D19 were agreed on #402, and any that differ from the runbook |
 | Merge SHA and harness revision | |
 | Package and SHA-256 | `briosa-0.10.1-probe-s4-sa-2024.1.0508.5-win-x64.zip`, |
-| #411 in the build | yes or no; the worker response budget the records state (bytes) |
+| Worker response budget | the bytes the records state (1 MiB since #411) |
 | Activated SDK and connected SA identity | runtime-verified version; operator attestation reference |
-| `InteractionMode` registry value | before and after the session |
+| `InteractionMode` registry value | before and after the session, and whether D19 applied |
 | Operator | |
 
 ## Runs
@@ -47,9 +49,9 @@ the execution watchdog and the startup bound each server ran with.
 Fixtures: the large point group's and the cloud's presence (counts below), or
 "not run: fixture missing".
 
-| Step | Elements | Worker frame bytes (R2) | Protobuf message bytes (R1) | Over the worker budget (R1 / R2) |
+| Step | Elements | Received frame bytes (R2) | Protobuf message bytes (R1) | Encoding (R1 / R2) |
 | --- | --- | --- | --- | --- |
-| `p34-list-100` | | | | |
+| `p34-list-100` | | | | delivered / rejected, size unknown |
 | `p34-list-500` | | | | |
 | `p34-list-2000` | | | | |
 | `p34-list-10000` | | | | |
@@ -59,45 +61,55 @@ Fixtures: the large point group's and the cloud's presence (counts below), or
 | `p34-list-job-group` | | | | |
 | `c34-count-job-cloud` | points (count only) | - | - | - |
 
-- Bytes per point name in the frame and in the message (from the rungs that fit):
+- Bytes per point name in the frame and in the message (from the rungs that were
+  delivered):
 - Bytes per object name (from the two object lists):
 - The cloud's count as a name list, at the measured bytes per name (an estimate,
   labelled as such):
-- The largest rung that fit each budget, and the first that did not:
+- The largest rung delivered, and the first whose encoding was rejected. A rejected
+  result's size is unknown; write its count, never a size:
 - `c34-count-N` hypotheses: did every group hold N points?
-- Construct times of the larger rungs (`elapsed_ms`), and any dialog (F3):
+- Construct times of the larger rungs (`elapsed_ms`), and any dialog (F3: the step
+  id only):
 
 ## 2. Cold starts
 
-| Condition | Endpoint listening (ms) | Start RPC (ms) | process-created | control-pipe-connected | ready-received | Connect RPC (ms) | Startup bound |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| fresh-install (C1 attempt 1) | | | | | | | |
-| warm (C1 attempt 2) | | | | | | | |
-| after-reboot (C2 attempt 1) | | | | | | | |
-| warm (C2 attempt 2) | | | | | | | |
+| Condition | Configuration | Label | Correlation | Endpoint listening (ms) | Start RPC (ms) | process-created | control-pipe-connected | ready-received | Connect RPC (ms) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| fresh-install (C1 attempt 1) | changed configuration (60 s) / stock | | | | | | | | |
+| warm (C1 attempt 2) | | repeat | | | | | | | |
+| after-reboot (C2 attempt 1) | | | | | | | | | |
+| warm (C2 attempt 2) | | repeat | | | | | | | |
 
 - How each condition was established: uptime, minutes since logon, SA idle time,
   and that the package folder was new (C1) or had run before the restart (C2):
+- An attempt labelled `first-attempt-unproven`, or not `unambiguous`, is not a cold
+  measurement; say so:
 - The published `start_sdk_milliseconds` and `startup_without_launch_milliseconds`
   (from the `ownership-release` record):
-- Against the 10 s default: the margin, or the phase that would have exceeded it:
+- Against the stock 10 s default: the margin, or the phase that would have exceeded
+  it. A raised bound is a changed configuration, not a stock start:
 
 ## 3. SDK ownership
 
-For each scenario: the SDK process's label and parent role; whether it outlived
-the worker, the server and SA, and for how long (`exited_ms`, then the `observe`
-record); the lifecycle states the server reported; and the residual.
+For each scenario: the bindings (`bound.server`, `bound.worker`,
+`bound.sdk_generation`); the SDK process's label, parent role and attribution; the
+worker's descendant census; whether the SDK process outlived the worker, the server
+and SA, given only as last-seen and first-absent bounds (never an exit time); the
+snapshot counts; and the residual.
 
-| Scenario | SDK process and parent | Worker / server outcome | SDK process after the event | After SA closed (`observe`) | Residual and who stopped it |
-| --- | --- | --- | --- | --- | --- |
-| identity and normal release (C1, C2) | | | | | |
-| worker crash (O1) | | `await-faulted`: | | | |
-| parent death (O2) | | worker exited after (ms): | | | |
-| watchdog kill (O3) | | stall result: | dialog open: / dismissed: | | |
-| competing client (O4) | second client's SDK process: | second `ConnectEx`: ; first client MP before / during / after: | | | |
+| Scenario | Bindings | SDK process: parent, attribution | Worker descendants | Event outcome | SDK process after the event (last seen / first absent) | After SA closed (`observe`) | Residual and what the operator did |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| identity and normal release (C1, C2) | | | | | | | |
+| worker crash (O1) | | | | `await-faulted`: | | | |
+| parent death (O2) | | | | worker last seen / first absent: | | | |
+| watchdog kill (O3) | | | before the stall: | stall result: | dialog open: / dismissed: | | |
+| competing client (O4) | | second client's SDK process: | | gates: baseline / package / identity / attach; first client MP before / during / after: | | | |
 
-- Operator checkpoint answers (O3):
-- What the operator stopped, with the label, the time and the maintainer's agreement (D7):
+- Snapshots: complete, incomplete and failed counts per run, and the final status:
+- Operator checkpoint answers (O3), as their closed words:
+- Every residual: unresolved, or stopped by the operator (label, time, the operator's
+  decision at the time):
 
 ## 4. Corrected bindings (probes 35 to 37)
 
@@ -114,7 +126,8 @@ record); the lifecycle states the server reported; and the residual.
 | Start Robot/Machine Interface `Machine ID` | none | none | not run: refused by admission policy (exclusive workflow) |
 | Stop Robot/Machine Interface `Machine ID` | none | none | not run: refused by admission policy (exclusive workflow) |
 
-Whether each callout showed the two harness lines (operator, at the checkpoints):
+Whether each callout showed the two harness lines (`lines-shown` or
+`lines-not-shown` at the checkpoints):
 
 ## 5. Tutorials
 
@@ -123,13 +136,14 @@ Not on this target: the `briosa-examples` tutorials target SA 2026 only.
 ## Postflight
 
 Per run: the `Test-LicensedRunnerState.ps1 -Phase Postflight` line, the `observe`
-residual, and what the operator stopped. At the end: no Briosa or SDK process, or
-the list of what was stopped.
+record's final snapshot status and residual, and what the operator stopped. A run
+whose last census was incomplete has not passed postflight. At the end: no Briosa or
+SDK process, or the list of unresolved residuals and of what was stopped.
 
 ## Not run
 
 Every planned item that did not run, with its reason (fixture missing, declined,
-stopped, abandoned, refused by admission).
+stopped, abandoned, refused by admission, precondition refused, license prompt).
 
 ## Follow-up
 
