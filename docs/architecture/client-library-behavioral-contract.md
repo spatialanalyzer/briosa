@@ -536,7 +536,9 @@ server build coordinates against the selected installation's manifest. Compatibl
 servers need not equal the generation artifact's release or source revision.
 Only the documented exact 0.6.1 legacy entry permits absent contract metadata.
 Published exact-pinned clients retain their original checks. Clients 0.5.1 use
-minimum revision 0 for both installation selection and live discovery.
+minimum revision 0 for both installation selection and live discovery, so they
+still accept Server 0.10.0, which declares revision 0; Server 0.10.1 declares
+revision 1.
 
 The client captures the admitted capability set for each generation. Runtime
 policy may expose a supported subset, so startup does not infer that every RPC
@@ -590,6 +592,36 @@ Server 0.10.0 reports neither. Clients 0.5.1 and later:
   it as the server's configuration, never as SpatialAnalyzer's live mode; and
 - fall back per purpose, not per reply. An unknown mode or a missing host bound
   does not make a usable startup allowance unavailable.
+
+Server 0.10.1 adds typed denial detail and request option descriptions
+([#397](https://github.com/spatialanalyzer/briosa/issues/397); see the
+[discovery guide](../../targets/2026.1.0529.7/docs/operations/health-and-discovery.md#request-options-in-discovery)
+and the [policy guide](../../targets/2026.1.0529.7/docs/operations/command-policy-and-auditing.md#typed-denial-detail)).
+Server 0.10.0 sends none of it, and the 0.5.0 clients ignore it. The 0.5.1
+clients surface it and still work with Server 0.10.0:
+
+- A policy-denied failure exposes an optional typed denial detail from
+  `OperationError.policy_denial`: the rule, the denied flag for a flag denial,
+  the admission profile for a profile denial, and the request field the server
+  attributed the denial to. One helper maps `denied_flag` to the public risk
+  flag value, with a distinct unknown member for a name the client does not
+  know, and every new site uses it.
+- A denied capability exposes the same detail from
+  `OperationCapability.policy_denial`, and the diagnostic listing returns it
+  with each denied operation.
+- When the enclosing message decodes, absent, inconsistent, or unrecognized
+  denial detail does not change the typed failure or capability admission. If
+  the enclosing message cannot be decoded, existing malformed-message handling
+  applies.
+- Each capability exposes its request options so that "not described"
+  (`request_options` absent, Server 0.10.0) stays distinct from "none apply"
+  (present and empty). Each option exposes its field name, effect, condition,
+  enabling enum value names, omission, and the single-option admission and
+  denial detail. That admission answers one question: what the policy decides
+  for a request that turns on that option alone. Clients still do not
+  pre-validate requests from it.
+- An unknown rule, effect, condition, or omission value is unknown metadata,
+  never permission, and never fails discovery.
 
 Package semantic version, Briosa server semantic version, exact SpatialAnalyzer
 target, protocol artifact identity, and runtime architecture remain separate

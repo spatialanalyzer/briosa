@@ -154,6 +154,17 @@ try {
             $_.PSObject.Properties.Remove("minimum_contract_major")
             $_
         })
+    # Optional scenarios run only when a fixture asks for them; the same gate
+    # applies to them.
+    if ($scenarioContract.PSObject.Properties.Name -contains "optional_scenarios") {
+        $scenarioContract.optional_scenarios = @($scenarioContract.optional_scenarios | Where-Object {
+                $_.PSObject.Properties.Name -notcontains "minimum_contract_major" -or
+                [int]$_.minimum_contract_major -le $contractMajor
+            } | ForEach-Object {
+                $_.PSObject.Properties.Remove("minimum_contract_major")
+                $_
+            })
+    }
     Write-Utf8File (Join-Path $packagedContractRoot "scenarios.json") `
         (($scenarioContract | ConvertTo-Json -Depth 10) + "`n")
     Copy-Item -LiteralPath (Join-Path $contractRoot "scenarios.schema.json") `

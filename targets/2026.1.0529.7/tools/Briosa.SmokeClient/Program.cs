@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Briosa;
@@ -351,8 +353,56 @@ internal static class SmokeClientProgram
                 serverInfo,
                 options.Timeout,
                 cancellationToken).ConfigureAwait(false),
+            SmokeScenario.LargeResult => await ExecuteLargeResult(
+                fileClient,
+                serverInfo,
+                options,
+                cancellationToken).ConfigureAwait(false),
             _ => throw new SmokeFailureException("unsupported-smoke-scenario")
         };
+
+    // The large-result worker returns a working directory just under the 1 MiB
+    // response budget. The generated client with its default 4 MiB receive limit
+    // must get all of it: the UTF-8 length and SHA-256 must equal the values the
+    // conformance contract publishes.
+    private static async Task<ScenarioOutcome> ExecuteLargeResult(
+        TargetProtocol.FileOperations.FileOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        SmokeOptions options,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        var result = await client.GetWorkingDirectoryAsync(
+                new TargetProtocol.GetWorkingDirectoryRequest(),
+                deadline: DateTime.UtcNow.Add(options.Timeout),
+                cancellationToken: cancellationToken)
+            .ResponseAsync.ConfigureAwait(false);
+        if (!result.HasDirectory ||
+            result.Execution is null ||
+            result.Execution.State != MpExecutionState.Succeeded)
+        {
+            throw new SmokeFailureException("unexpected-operation-success-shape");
+        }
+
+        var bytes = Encoding.UTF8.GetBytes(result.Directory);
+        if (bytes.LongLength != options.ExpectedUtf8Length)
+        {
+            throw new SmokeFailureException("large-result-length-mismatch");
+        }
+
+        if (!string.Equals(Convert.ToHexStringLower(SHA256.HashData(bytes)), options.ExpectedSha256,
+                StringComparison.Ordinal))
+        {
+            throw new SmokeFailureException("large-result-content-mismatch");
+        }
+
+        return new ScenarioOutcome(
+            OperationSucceeded: true,
+            StatusCode.OK,
+            TypedErrorObserved: false,
+            FailureKind: null,
+            RecoverySucceeded: false);
+    }
 
     private static async Task<ScenarioOutcome> ExecuteReady(
         TargetProtocol.FileOperations.FileOperationsClient fileClient,
@@ -1226,7 +1276,8 @@ internal static class SmokeClientProgram
         LifecycleCancellation,
         WatchdogRecovery,
         UnsupportedService,
-        PolicyDenied
+        PolicyDenied,
+        LargeResult
     }
 
     private sealed record SmokeOptions(
@@ -1234,7 +1285,9 @@ internal static class SmokeClientProgram
         SmokeScenario Scenario,
         string ScenarioName,
         bool ExpectOperation,
-        TimeSpan Timeout)
+        TimeSpan Timeout,
+        long? ExpectedUtf8Length = null,
+        string? ExpectedSha256 = null)
     {
         public static SmokeOptions Parse(string[] arguments)
         {
@@ -1261,6 +1314,7 @@ internal static class SmokeClientProgram
                 "watchdog-recovery" => SmokeScenario.WatchdogRecovery,
                 "unsupported-service" => SmokeScenario.UnsupportedService,
                 "policy-denied" => SmokeScenario.PolicyDenied,
+                "large-result" => SmokeScenario.LargeResult,
                 _ => throw new SmokeFailureException("unsupported-smoke-scenario")
             };
             var timeoutSecondsText = GetArgument(arguments, "--timeout-seconds");
@@ -1274,12 +1328,24 @@ internal static class SmokeClientProgram
                 throw new SmokeFailureException("smoke-timeout-out-of-range");
             }
 
+            var expectedLengthText = GetArgument(arguments, "--expected-utf8-length");
+            var expectedSha256 = GetArgument(arguments, "--expected-sha256");
+            if (scenario == SmokeScenario.LargeResult &&
+                (expectedLengthText is null || expectedSha256 is null))
+            {
+                throw new SmokeFailureException("large-result-expectation-missing");
+            }
+
             return new SmokeOptions(
                 address,
                 scenario,
                 scenarioName,
                 scenario != SmokeScenario.PolicyDenied,
-                TimeSpan.FromSeconds(timeoutSeconds));
+                TimeSpan.FromSeconds(timeoutSeconds),
+                expectedLengthText is null
+                    ? null
+                    : long.Parse(expectedLengthText, System.Globalization.CultureInfo.InvariantCulture),
+                expectedSha256);
         }
 
         private static string? GetArgument(string[] arguments, string name)

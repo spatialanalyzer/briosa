@@ -1,4 +1,5 @@
 using global::Briosa;
+using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -215,7 +216,10 @@ public sealed class GrpcOperationOutcomeMapperTests
             Execution: null,
             connection,
             Diagnostic(workerExecutionStatus, spatialAnalyzerUnavailable),
-            Generation: 7);
+            Generation: 7,
+            PolicyDenial: workerExecutionStatus == WorkerExecutionStatus.PolicyDenied
+                ? OperationPolicyDenial.Override()
+                : null);
 
         var exception = Assert.Throws<RpcException>(() =>
             GrpcOperationOutcomeMapper.RequireSuccess(
@@ -236,6 +240,12 @@ public sealed class GrpcOperationOutcomeMapperTests
         Assert.True(error.HasWorkerGeneration);
         Assert.Equal(7, error.WorkerGeneration);
         Assert.Null(error.MpExecution);
+        // Only a policy denial carries the step that decided.
+        Assert.Equal(
+            workerExecutionStatus == WorkerExecutionStatus.PolicyDenied
+                ? new PolicyDenialDetails { Rule = PolicyDenialRule.Override }
+                : null,
+            error.PolicyDenial);
     }
 
     [Fact]
@@ -608,14 +618,15 @@ public sealed class GrpcOperationOutcomeMapperTests
             retrieval => Assert.Equal(OutputRetrievalState.Failed, retrieval.State));
     }
 
-    // Fail closed: when not even a value-free output list fits the frame bound,
-    // the fault arrives with its per-output evidence withheld and every requested
-    // output is reported as failed. The kind stays SdkCallFaulted.
+    // Fail closed: when not even a value-free output list fits the response
+    // budget, the fault arrives with its per-output evidence withheld and every
+    // requested output is reported as failed. The kind stays SdkCallFaulted.
+    // The names follow the budget, so 80 of them never fit it.
     [Fact]
     public void SdkCallFaultWhosePerOutputEvidenceCannotFitIsStillSdkCallFaulted()
     {
         var names = Enumerable.Range(0, 80)
-            .Select(index => $"{index:D2}{new string('n', 1_000)}")
+            .Select(index => $"{index:D2}{new string('n', WorkerControlProtocol.MaximumResponseBytes / 64)}")
             .ToArray();
         OperationOutputContract[] contract =
         [
@@ -837,7 +848,7 @@ public sealed class GrpcOperationOutcomeMapperTests
         new WorkerRetrievedOutput("Planar Offset", WorkerMpValueKind.FloatingPoint,
             new WorkerDoubleValue(undeliverable == "non-finite" ? double.NaN : 1.25)),
         new WorkerRetrievedOutput("Result", WorkerMpValueKind.Text, new WorkerTextValue(
-            undeliverable == "oversized" ? new string('x', WorkerControlProtocol.MaximumMessageBytes + 1) : "ok")),
+            undeliverable == "oversized" ? new string('x', WorkerControlProtocol.MaximumResponseBytes + 1) : "ok")),
         count
     ];
 

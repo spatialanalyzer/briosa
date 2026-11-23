@@ -119,7 +119,7 @@ public sealed class WorkerPartialSuccessEvidenceTests
     public void BoundedDeliveryKeepsTheCode()
     {
         var oversized = new WorkerRetrievedOutput("Value", WorkerMpValueKind.Text,
-            new WorkerTextValue(new string('x', WorkerControlProtocol.MaximumMessageBytes + 1)));
+            new WorkerTextValue(new string('x', WorkerControlProtocol.MaximumResponseBytes + 1)));
         var replacement = WorkerExecutionDelivery.Undeliverable(Guid.NewGuid(),
             Response(new WorkerMpResultAvailable(4, 1, [oversized], null)));
         var fault = WorkerExecutionDelivery.Undeliverable(Guid.NewGuid(), Response(new WorkerSdkCallFaulted(

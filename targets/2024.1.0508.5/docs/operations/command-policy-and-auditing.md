@@ -125,10 +125,14 @@ guarded.
 
 Discovery reports the operation's reviewed row (its `risk_flags` and
 `duration_class`), so an advertised operation can still deny a request that
-enables an option. Discovery does not yet describe the options themselves. A
-denied request names the option field in its audit rule, for example
-`option.show_results_dialog/flag.interactive_ui`; the option's value is never
-recorded. An admitted request carries its effective
+enables an option. Server 0.10.1 and later also describe each reviewed option in
+`request_options`, with the decision for a request that turns on that option
+alone; see [request options in discovery](health-and-discovery.md#request-options-in-discovery).
+Server 0.10.0 does not describe the options. When the evaluator attributes a
+denial to a request option, the audit rule names its field (for example,
+`option.show_results_dialog/flag.interactive_ui`); Server 0.10.1 and later also
+set `policy_denial.request_option_field`. A static denial names no request
+field. The option's value is never recorded. An admitted request carries its effective
 duration class to the worker supervisor, which arms that class's execution
 budget; see [worker time bounds](windows-package.md#worker-time-bounds).
 
@@ -158,6 +162,32 @@ Specific settings beat general ones, and across an operation's flags any single
 SDK execution and returns a typed, value-free `PermissionDenied` outcome with a
 `NotStarted` disposition.
 
+### Typed denial detail
+
+On Server 0.10.1 and later, the typed error of a policy denial
+(`briosa-operation-error-bin`) also carries `policy_denial`, which names the
+step that decided:
+
+| Step | `rule` | Also set |
+| --- | --- | --- |
+| 2 | `UNREVIEWED` | Nothing. A request that cannot be read names no field. |
+| 3 | `EXCLUSIVE` | `request_option_field` when a request option leaves work running. |
+| 4 | `OVERRIDE` | Nothing. A `deny` override is a static decision, even when a request option is on. |
+| 6 | `FLAG` | `denied_flag`: the first effective flag set to `deny`, in `risk_flags` order. `request_option_field` when only a request option added the flag. |
+| 7 | `PROFILE` | `admission_profile`, and `request_option_field` when only a request option made the profile deny the request. No flag: the profile or its effect filter can exclude a request for more than one reason. |
+
+The execution budget can deny one more request: an operation without a reviewed
+duration class never executes (`operation-duration-unreviewed`), and its `rule`
+is `UNREVIEWED` with nothing else set. When a request turns on several options
+with the deciding effect, `request_option_field` names the first in the reviewed
+table's order, which need not be the only cause. The detail holds profile, flag,
+and field names only, never a request value.
+
+Everything else about the outcome is unchanged from Server 0.10.0: the gRPC
+status and text, the failure kind, the disposition, the recovery and replay
+guidance, and the diagnostic code. Server 0.10.0 sends no `policy_denial`, and
+clients built for Server 0.10.0 ignore it.
+
 Configuration cannot create an operation that is absent from handwritten source.
 `DiscoveryService/ListCapabilities` reports exactly the admitted operations,
 together with the resolved `admission_profile`, the `policy_fingerprint`, and
@@ -167,7 +197,9 @@ is the correct way for a client to learn what the current process admits. With
 `admission` names the step above that decided: `DENIED_UNREVIEWED` (step 2),
 `DENIED_EXCLUSIVE` (step 3), `DENIED_OVERRIDE` (step 4), `DENIED_FLAG` (step 6),
 or `DENIED_PROFILE` (step 7). These are static decisions for the reviewed row;
-see the [discovery guide](health-and-discovery.md#capabilities).
+see the [discovery guide](health-and-discovery.md#capabilities). On Server 0.10.1
+and later, each denied entry also carries the same `policy_denial` detail, so a
+`DENIED_FLAG` entry names its flag.
 
 ## Audit events
 

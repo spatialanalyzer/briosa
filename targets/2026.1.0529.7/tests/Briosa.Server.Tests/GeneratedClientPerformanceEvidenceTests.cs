@@ -56,7 +56,7 @@ public sealed class GeneratedClientPerformanceEvidenceTests
             listener => listener.Protocols = HttpProtocols.Http2));
         builder.Services.AddGrpc(options =>
         {
-            options.MaxReceiveMessageSize = WorkerControlProtocol.MaximumMessageBytes;
+            options.MaxReceiveMessageSize = PublicGrpcHosting.MaximumReceiveMessageBytes;
             options.EnableDetailedErrors = true; // Synthetic test data only; expose fixture failures.
         });
         builder.Services.AddSingleton<WorkerProcessSupervisor>(services => new(
