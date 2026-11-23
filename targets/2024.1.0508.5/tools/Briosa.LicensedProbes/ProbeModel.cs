@@ -201,6 +201,13 @@ internal sealed record ProbeStep(
 
     public ProbeRequirement? Requirement { get; init; }
 
+    // The manual fixture-manifest key this step needs (licensed session 4, #402). When the
+    // supplied manifest omits it, the step is recorded as fixture-missing and never sent.
+    public string? RequiredFixture { get; init; }
+
+    // The step is one of probe 34's result-size measurements: its record states the response size.
+    public bool MeasuresResponseSize { get; init; }
+
     // Steps that must run earlier in the same session for this step's result to
     // mean what the plan says (for example a control or a before-count). An
     // operator exclusion that would remove one of them is refused.
@@ -242,6 +249,10 @@ internal sealed record ProbeOutcome(
 
     // The public result's typed MP execution state (for example PartialSuccess, #351). Null in the worker phase.
     public string? ExecutionState { get; init; }
+
+    // The received response's size (#402): the private frame in the worker phase, the protobuf
+    // message in the public phase. Null when nothing was received to measure.
+    public ResponseSize? Size { get; init; }
 
     /// <summary>
     /// One outcome field by its <c>outcome.</c> name, or else one observation, for

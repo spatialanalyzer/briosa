@@ -71,7 +71,98 @@ internal static class ProbeOperations
         Ops.CloudAndMeshOperations.GetCloudPointCountOperation.CreateCommand,
         static (invoker, request, options) => CloudAndMesh(invoker).GetCloudPointCountAsync(request, options),
         static result => result.Execution,
-        static (_, result) => Observations.Of(("points_count", Observations.Count(result.PointsCount))));
+        static (_, result) => Observations.Of(("points_count", Observations.Count(result.PointsCount))),
+        static (_, outputs) => Observations.Of(("points_count", Observations.Count(outputs[0].RequireValue<WorkerIntegerValue>().Value))));
+
+    // Probe 34 (#402): result sizes. A B-spline through four harness points, points evenly
+    // spaced on it, the group's point count, and its point name list. Only the count and the
+    // number of returned names are recorded, never a name.
+    public static ProbeOperation ConstructBSplineFromPoints { get; } = Op<Api.ConstructBSplineFromPointsRequest, Api.ConstructBSplineFromPointsResult>(
+        Ops.ConstructionOperations.ConstructBSplineFromPointsOperation.Descriptor,
+        Ops.ConstructionOperations.ConstructBSplineFromPointsOperation.CreateCommand,
+        static (invoker, request, options) => Construction(invoker).ConstructBSplineFromPointsAsync(request, options),
+        static result => result.Execution);
+
+    public static ProbeOperation ConstructPointsNSpacedOnCurves { get; } = Op<Api.ConstructPointsNSpacedOnCurvesRequest, Api.ConstructPointsNSpacedOnCurvesResult>(
+        Ops.ConstructionOperations.ConstructPointsNSpacedOnCurvesOperation.Descriptor,
+        Ops.ConstructionOperations.ConstructPointsNSpacedOnCurvesOperation.CreateCommand,
+        static (invoker, request, options) => Construction(invoker).ConstructPointsNSpacedOnCurvesAsync(request, options),
+        static result => result.Execution);
+
+    public static ProbeOperation GetNumberOfPointsInGroup { get; } = Op<Api.GetNumberOfPointsInGroupRequest, Api.GetNumberOfPointsInGroupResult>(
+        Ops.AnalysisOperations.GetNumberOfPointsInGroupOperation.Descriptor,
+        Ops.AnalysisOperations.GetNumberOfPointsInGroupOperation.CreateCommand,
+        static (invoker, request, options) => Analysis(invoker).GetNumberOfPointsInGroupAsync(request, options),
+        static result => result.Execution,
+        static (_, result) => Observations.Of(("points_count", Observations.Count(result.TotalCount))),
+        static (_, outputs) => Observations.Of(("points_count", Observations.Count(outputs[0].RequireValue<WorkerIntegerValue>().Value))));
+
+    public static ProbeOperation MakePointNameRefListFromGroup { get; } = Op<Api.MakePointNameRefListFromGroupRequest, Api.MakePointNameRefListFromGroupResult>(
+        Ops.ConstructionOperations.MakePointNameRefListFromGroupOperation.Descriptor,
+        Ops.ConstructionOperations.MakePointNameRefListFromGroupOperation.CreateCommand,
+        static (invoker, request, options) => Construction(invoker).MakePointNameRefListFromGroupAsync(request, options),
+        static result => result.Execution,
+        static (_, result) => Observations.Of(("element_count", Observations.Count(result.ResultantPointNameList.Count))),
+        static (_, outputs) => Observations.Of(("element_count", Observations.Count(
+            outputs[0].RequireValue<WorkerPointNameListValue>().Values.Count))));
+
+    // Probe 35 (#402, #220): the five callouts whose notes or text now use SetEditTextArg,
+    // and the callout count of the destination view before and after them.
+    public static ProbeOperation GetNumberOfCalloutsInCalloutView { get; } = Op<Api.GetNumberOfCalloutsInCalloutViewRequest, Api.GetNumberOfCalloutsInCalloutViewResult>(
+        Ops.ConstructionOperations.GetNumberOfCalloutsInCalloutViewOperation.Descriptor,
+        Ops.ConstructionOperations.GetNumberOfCalloutsInCalloutViewOperation.CreateCommand,
+        static (invoker, request, options) => Construction(invoker).GetNumberOfCalloutsInCalloutViewAsync(request, options),
+        static result => result.Execution,
+        static (_, result) => Observations.Of(("callouts_count", Observations.Count(result.CalloutsCount))));
+
+    public static ProbeOperation CreateTextCallout { get; } = Op<Api.CreateTextCalloutRequest, Api.CreateTextCalloutResult>(
+        Ops.ConstructionOperations.CreateTextCalloutOperation.Descriptor,
+        Ops.ConstructionOperations.CreateTextCalloutOperation.CreateCommand,
+        static (invoker, request, options) => Construction(invoker).CreateTextCalloutAsync(request, options),
+        static result => result.Execution);
+
+    public static ProbeOperation CreatePointCallout { get; } = Op<Api.CreatePointCalloutRequest, Api.CreatePointCalloutResult>(
+        Ops.ConstructionOperations.CreatePointCalloutOperation.Descriptor,
+        Ops.ConstructionOperations.CreatePointCalloutOperation.CreateCommand,
+        static (invoker, request, options) => Construction(invoker).CreatePointCalloutAsync(request, options),
+        static result => result.Execution);
+
+    public static ProbeOperation CreatePointComparisonCallout { get; } = Op<Api.CreatePointComparisonCalloutRequest, Api.CreatePointComparisonCalloutResult>(
+        Ops.ConstructionOperations.CreatePointComparisonCalloutOperation.Descriptor,
+        Ops.ConstructionOperations.CreatePointComparisonCalloutOperation.CreateCommand,
+        static (invoker, request, options) => Construction(invoker).CreatePointComparisonCalloutAsync(request, options),
+        static result => result.Execution);
+
+    public static ProbeOperation CreateRelationshipCallout { get; } = Op<Api.CreateRelationshipCalloutRequest, Api.CreateRelationshipCalloutResult>(
+        Ops.ConstructionOperations.CreateRelationshipCalloutOperation.Descriptor,
+        Ops.ConstructionOperations.CreateRelationshipCalloutOperation.CreateCommand,
+        static (invoker, request, options) => Construction(invoker).CreateRelationshipCalloutAsync(request, options),
+        static result => result.Execution);
+
+    public static ProbeOperation CreateVectorCallout { get; } = Op<Api.CreateVectorCalloutRequest, Api.CreateVectorCalloutResult>(
+        Ops.ConstructionOperations.CreateVectorCalloutOperation.Descriptor,
+        Ops.ConstructionOperations.CreateVectorCalloutOperation.CreateCommand,
+        static (invoker, request, options) => Construction(invoker).CreateVectorCalloutAsync(request, options),
+        static result => result.Execution);
+
+    // Probe 36 (#402, #220): the TCP uncertainty notes getter, now GetEditTextArg. Only how
+    // many lines the notes hold is recorded (output retrieval is in the outcome), never the
+    // text or any uncertainty value.
+    public static ProbeOperation CalculateTcpFixtureUncertainties { get; } = Op<Api.CalculateTcpFixtureUncertaintiesRequest, Api.CalculateTcpFixtureUncertaintiesResult>(
+        Ops.InstrumentOperations.CalculateTcpFixtureUncertaintiesOperation.Descriptor,
+        Ops.InstrumentOperations.CalculateTcpFixtureUncertaintiesOperation.CreateCommand,
+        static (invoker, request, options) => Instrument(invoker).CalculateTcpFixtureUncertaintiesAsync(request, options),
+        static result => result.Execution,
+        static (_, result) => Observations.Of(("result_notes_lines", Observations.Count(result.Uncertainties?.ResultNotes.Count ?? 0))));
+
+    // Probe 37 (#402, #220): the corrected robot Machine ID route that the public API admits.
+    // The parameter value is never recorded. Start and Stop Robot/Machine Interface use the
+    // same corrected setter but are exclusive workflows, which no server setting admits.
+    public static ProbeOperation GetRobotMachineParameter { get; } = Op<Api.GetRobotMachineParameterRequest, Api.GetRobotMachineParameterResult>(
+        Ops.RobotOperations.GetRobotMachineParameterOperation.Descriptor,
+        Ops.RobotOperations.GetRobotMachineParameterOperation.CreateCommand,
+        static (invoker, request, options) => Robot(invoker).GetRobotMachineParameterAsync(request, options),
+        static result => result.Execution);
 
     // Probe operations: omit versus blank (#1-6) and case sensitivity (#17).
     public static ProbeOperation LocateInstrumentsUsmn { get; } = Op<Api.LocateInstrumentsUsmnRequest, Api.LocateInstrumentsUsmnResult>(
@@ -312,6 +403,8 @@ internal static class ProbeOperations
     private static Api.ProcessFlowOperations.ProcessFlowOperationsClient ProcessFlow(CallInvoker invoker) => new(invoker);
 
     private static Api.RelationshipOperations.RelationshipOperationsClient Relationship(CallInvoker invoker) => new(invoker);
+
+    private static Api.RobotOperations.RobotOperationsClient Robot(CallInvoker invoker) => new(invoker);
 
     private static Api.ReportingOperations.ReportingOperationsClient Reporting(CallInvoker invoker) => new(invoker);
 

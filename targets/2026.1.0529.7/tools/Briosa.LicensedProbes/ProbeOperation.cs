@@ -69,7 +69,11 @@ internal sealed class ProbeOperation<TRequest, TResult> : ProbeOperation
         {
             using var call = _call(invoker, typed, options);
             var result = await call.ResponseAsync.ConfigureAwait(false);
-            return PublicOutcomes.FromSuccess(_execution(result), ObservePublic(typed, result));
+            // The received message's own serialized size (#402); measuring it reads nothing else.
+            return PublicOutcomes.FromSuccess(_execution(result), ObservePublic(typed, result)) with
+            {
+                Size = ResponseSize.FromPublicMessage(result.CalculateSize())
+            };
         }
         catch (RpcException exception)
         {
@@ -168,7 +172,12 @@ internal static class PublicOutcomes
             kind, transport, error.MpExecution, error.DiagnosticCode, error.Kind.ToString(),
             error.ExecutionDisposition.ToString(), ProbeOutcome.EmptyObservations) with
         {
-            RecoveryGuidance = error.RecoveryGuidance.ToString()
+            RecoveryGuidance = error.RecoveryGuidance.ToString(),
+            // A completed result that did not fit the worker response budget (#399, #402).
+            Size = kind == ProbeOutcomeKind.OutputRetrievalFailed &&
+                string.Equals(error.DiagnosticCode, ResponseSize.BudgetExceededDiagnosticCode, StringComparison.Ordinal)
+                    ? ResponseSize.PublicBudgetExceeded
+                    : null
         };
     }
 

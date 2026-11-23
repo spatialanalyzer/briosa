@@ -79,7 +79,11 @@ internal enum StepClassification
 
     // Removed from the plan by an operator --exclude-probe; never sent. Distinct
     // from NotRun, which is a planned step that a stop or refusal prevented.
-    Excluded
+    Excluded,
+
+    // Its manual fixture is missing from the manifest (#402); never sent. It is not
+    // run, and never a pass.
+    FixtureMissing
 }
 
 internal sealed record HypothesisResult(string Label, string ObservationKey, string ExpectedValue, bool Matched);
@@ -123,12 +127,22 @@ internal sealed record ProbeSessionRecord(
     /// <summary>The server interaction-mode setting the public plan needed (#313); null in the worker phase.</summary>
     public string? ServerInteractionModeSetting { get; init; }
 
-    /// <summary>Every step that was not excluded was observed as planned.</summary>
+    /// <summary>
+    /// Every step that could be sent was observed as planned. Excluded and fixture-missing
+    /// steps were never sent; the record lists them.
+    /// </summary>
     public bool Completed => StopReason is null && !DryRun &&
-        Steps.All(static step => step.Classification is StepClassification.Observed or StepClassification.Excluded);
+        Steps.All(static step => step.Classification is StepClassification.Observed or StepClassification.Excluded or
+            StepClassification.FixtureMissing);
+
+    /// <summary>The manifest keys whose absence kept steps from running, in step order.</summary>
+    public IReadOnlyList<string> MissingFixtures =>
+        [.. Steps.Where(static step => step.Classification == StepClassification.FixtureMissing)
+            .Select(static step => step.Step.RequiredFixture!).Distinct(StringComparer.Ordinal)];
 
     /// <summary>The run ended, as planned, in its stall step's stall: that step's completion is unknown.</summary>
-    public bool EndedInPlannedStall => Steps.LastOrDefault(static step => step.Classification != StepClassification.Excluded) is
+    public bool EndedInPlannedStall => Steps.LastOrDefault(static step =>
+        step.Classification is not (StepClassification.Excluded or StepClassification.FixtureMissing)) is
     {
         Classification: StepClassification.Observed, Step.ExpectedStall: not null
     };
@@ -155,7 +169,7 @@ internal static class ProbeSession
         ArgumentNullException.ThrowIfNull(clock);
         var now = clock.GetUtcNow();
         return Describe(new ProbeSessionRecord(plan.Phase, DryRun: true, plan.PlaceholderFixtures, now, now, SessionIdentity.None,
-            [.. plan.CatalogSteps.Select(step => plan.IsExcluded(step) ? Excluded(step) : NotRun(step))], StoppedAt: null, StopReason: null), plan);
+            [.. plan.CatalogSteps.Select(step => Unsent(plan, step))], StoppedAt: null, StopReason: null), plan);
     }
 
     public static async Task<ProbeSessionRecord> RunAsync(
@@ -185,7 +199,7 @@ internal static class ProbeSession
         }
         catch (ProbeRefusedException refusal)
         {
-            records.AddRange(plan.CatalogSteps.Select(step => plan.IsExcluded(step) ? Excluded(step) : NotRun(step)));
+            records.AddRange(plan.CatalogSteps.Select(step => Unsent(plan, step)));
             return Describe(new ProbeSessionRecord(plan.Phase, DryRun: false, plan.PlaceholderFixtures, started, clock.GetUtcNow(),
                 operatorIdentity, records, StoppedAt: null, refusal.DiagnosticCode), plan);
         }
@@ -198,10 +212,11 @@ internal static class ProbeSession
         var ordinal = 0;
         foreach (var step in plan.CatalogSteps)
         {
-            // An operator-excluded step is recorded in its catalog position and never sent.
-            if (plan.IsExcluded(step))
+            // An operator-excluded step, or one whose manual fixture is missing, is recorded
+            // in its catalog position and never sent.
+            if (plan.IsExcluded(step) || plan.IsFixtureMissing(step))
             {
-                records.Add(Excluded(step));
+                records.Add(Unsent(plan, step));
                 continue;
             }
 
@@ -333,6 +348,12 @@ internal static class ProbeSession
     private static ProbeStepRecord NotRun(ProbeStep step) => new(step, null, StepClassification.NotRun, [], null);
 
     private static ProbeStepRecord Excluded(ProbeStep step) => new(step, null, StepClassification.Excluded, [], null);
+
+    private static ProbeStepRecord FixtureMissing(ProbeStep step) => new(step, null, StepClassification.FixtureMissing, [], null);
+
+    // A step that is never sent by design, or else not run yet.
+    private static ProbeStepRecord Unsent(ProbePlan plan, ProbeStep step) =>
+        plan.IsExcluded(step) ? Excluded(step) : plan.IsFixtureMissing(step) ? FixtureMissing(step) : NotRun(step);
 
     private static SessionIdentity Merge(SessionIdentity runtime, SessionIdentity operatorIdentity) => runtime with
     {

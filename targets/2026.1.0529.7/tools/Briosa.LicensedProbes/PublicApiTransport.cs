@@ -12,6 +12,11 @@ namespace Briosa.LicensedProbes;
 /// </summary>
 internal sealed class PublicApiTransport : IProbeTransport
 {
+    // Above the published clients' 4 MiB limit, so that probe 34 can measure and record a
+    // response the published clients could not receive instead of losing it as an untyped
+    // transport failure (#402). Every response the server sends today is far smaller.
+    public const int MeasurementReceiveLimitBytes = 64 * 1024 * 1024;
+
     private readonly GrpcChannel _channel;
     private readonly TimeSpan _stepTimeout;
     private readonly TimeSpan _operatorTimeout;
@@ -26,7 +31,7 @@ internal sealed class PublicApiTransport : IProbeTransport
             throw new ArgumentException("The probe address must be loopback HTTP.", nameof(address));
         }
 
-        _channel = GrpcChannel.ForAddress(address);
+        _channel = GrpcChannel.ForAddress(address, new GrpcChannelOptions { MaxReceiveMessageSize = MeasurementReceiveLimitBytes });
         _stepTimeout = stepTimeout;
         _operatorTimeout = operatorTimeout;
         _census = census;

@@ -23,6 +23,9 @@ internal static class LicensedProbeProgram
               --probe <n> (repeatable; run only these probes of the selected phase; opt-in probes 26 to 29 need it)
           A licensed run pauses at operator checkpoints; answer each by writing its response file
           in the checkpoints folder of the output directory.
+          Licensed session 4 (#402) also has: --ownership <scenario> (SDK-ownership probes) and
+          --startup-timing (an offline report from the server's log); run either with no other
+          options for its own usage.
         """;
 
     public static IProbeTransport CreateTransport(ProbeOptions options)

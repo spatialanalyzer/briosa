@@ -35,6 +35,7 @@ internal sealed class WorkerTransport : IProbeTransport
     private readonly IProcessCensus _census;
     private readonly Func<bool>? _modalDialogOpen;
     private NamedPipeServerStream? _pipe;
+    private CountingStream? _counter;
     private WorkerControlChannel? _channel;
     private Process? _process;
     private bool _faulted;
@@ -96,7 +97,9 @@ internal sealed class WorkerTransport : IProbeTransport
                 clientProcessId != (uint)_process.Id)
                 throw new ProbeRefusedException("worker-pipe-client-mismatch");
 
-            _channel = new WorkerControlChannel(_pipe, leaveOpen: true);
+            // The channel reads through a byte counter, so each frame's size is known (#402).
+            _counter = new CountingStream(_pipe);
+            _channel = new WorkerControlChannel(_counter, leaveOpen: true);
             var ready = await ReceiveAsync(StartupTimeout, cancellationToken).ConfigureAwait(false);
             if (ready.Kind != WorkerControlMessageKind.Ready || ready.ProcessId != _process.Id)
                 throw new ProbeRefusedException("worker-ready-invalid");
@@ -140,11 +143,16 @@ internal sealed class WorkerTransport : IProbeTransport
 
         try
         {
+            var before = _counter!.BytesRead;
             var response = await RequestAsync(WorkerControlMessage.Execute(Guid.NewGuid(), step.Command),
                 WorkerControlMessageKind.ExecutionResult, step.ClientTimeout ?? _stepTimeout, cancellationToken).ConfigureAwait(false);
+            var frameBytes = FrameBytes(before, _counter.BytesRead);
             var outcome = response.ExecutionResponse is { } execution
                 ? WorkerOutcomes.FromResponse(execution, outputs => step.Operation.ObserveWorker(step.Request, outputs),
-                    step.Command.OperationId)
+                    step.Command.OperationId) with
+                {
+                    Size = ResponseSize.FromWorkerResponse(frameBytes, execution)
+                }
                 : ProbeOutcome.Unknown("worker:invalid-response", "worker-response-invalid");
 
             // ExecuteStep false or a missing MP result leaves completion unknown even
@@ -197,6 +205,11 @@ internal sealed class WorkerTransport : IProbeTransport
 
         await TerminateAsync().ConfigureAwait(false);
         _channel?.Dispose();
+        if (_counter is not null)
+        {
+            await _counter.DisposeAsync().ConfigureAwait(false);
+        }
+
         if (_pipe is not null)
         {
             await _pipe.DisposeAsync().ConfigureAwait(false);
@@ -218,6 +231,11 @@ internal sealed class WorkerTransport : IProbeTransport
             throw new InvalidDataException("The worker response does not answer the request.");
         return response;
     }
+
+    // The payload bytes of the one frame read between the two counts: everything read minus
+    // its 4-byte length header. The channel reads exactly one frame per receive.
+    internal static int FrameBytes(long before, long after) =>
+        checked((int)(after - before)) - ResponseSize.FrameHeaderBytes;
 
     private async Task<WorkerControlMessage> ReceiveAsync(TimeSpan timeout, CancellationToken cancellationToken)
     {

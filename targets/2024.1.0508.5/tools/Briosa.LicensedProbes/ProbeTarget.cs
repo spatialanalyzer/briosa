@@ -12,4 +12,7 @@ internal static class ProbeTarget
     public const string ConfirmFlagPrefix = "--confirm-licensed-sa";
 
     public const string Issue = "spatialanalyzer/briosa#277";
+
+    // Licensed session 4: result sizes, cold starts and SDK ownership.
+    public const string Session4Issue = "spatialanalyzer/briosa#402";
 }
