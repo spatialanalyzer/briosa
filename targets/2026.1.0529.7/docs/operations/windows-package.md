@@ -87,11 +87,11 @@ Requests and results have separate size limits.
   under 4 MiB, which is the clients' default receive limit. A client you build
   from the published protocol needs a receive limit of at least 4 MiB, the
   default of grpc-dotnet, grpc-js and grpcio.
-- **Memory.** A result near the limit can briefly use about 30 MiB of server
-  memory while it is processed, and a response waiting for a slow client keeps
-  its bytes until the client reads them. Encoding one result in the worker
-  holds at most about 1.5 MiB, however large the result SpatialAnalyzer
-  returns.
+- **Memory.** Processing one result near the limit can briefly allocate up to
+  about 22 MB of server memory (measured; under 30 MiB by analysis), and a
+  response waiting for a slow client keeps its bytes until the client reads
+  them. Encoding one result in the worker holds at most about 1.5 MiB, however
+  large the result SpatialAnalyzer returns.
 
 ### Worker time bounds
 

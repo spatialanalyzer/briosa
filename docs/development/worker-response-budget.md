@@ -94,19 +94,33 @@ the test asserts that the segmented bytes equal a single string write.
 Bounding these needs paging or a different SDK marshaling path; both are out
 of scope ([#245](https://github.com/spatialanalyzer/briosa/issues/245)).
 
-**Host per result.** Receive, decode, map to protobuf and serialize:
+**Host per result.** Receive, decode, map to protobuf and serialize. The
+densest shape, single-digit double lists, was measured through the real
+`OperationExecutor` and `GetNamedDoubleListVariable` mapper:
 
-| Shape | Allocation |
-| --- | --- |
-| Single-digit double list | 21.0 to 28.75 × the frame, measured at 64 KiB, 260 KiB, 384 KiB, 512 KiB, 540,000 bytes and 1 MiB |
-| One-character string list | about 15.8 × |
-| Point-name list | about 6.3 × |
-| ASCII text | about 4 × |
-| Full-precision doubles | about 3.3 × |
+| Frame | Allocated | × frame |
+| --- | --- | --- |
+| 266,239 bytes (first call) | 7,865,448 | 29.5 |
+| 266,239 bytes (warm) | 7,659,224 | 28.8 |
+| 539,999 bytes | 15,412,408 | 28.5 |
+| 1,048,575 bytes | 22,023,920 | 21.0 |
 
-The double-list ratio depends on `List<T>`'s capacity steps, and no ceiling has
-been established. Peak live memory is estimated at about 12 × the frame, not
-measured.
+The ratio depends on where the value count falls against `List<T>`'s
+power-of-two capacity steps. By analysis it stays under 29 × the frame plus a
+small constant:
+- list growth allocates under 16 ×;
+- the frame, the `ImmutableArray` copy, the `RepeatedField` and the protobuf
+  bytes add at most 13 ×.
+
+Within the 1 MiB budget, the largest measured allocation for one result was
+22.0 MB, at the full frame. Other shapes allocate less, measured at 64 KiB and
+1 MiB:
+- one-character string lists: about 15.8 ×;
+- point-name lists: about 6.3 ×;
+- ASCII text: about 4 ×;
+- full-precision doubles: about 3.3 ×.
+
+Peak live memory is estimated at about 12 × the frame, not measured.
 
 **Not accounted.** The retained-work admission budget counts requests only. A
 response being decoded, mapped or held in Kestrel's output pipe for a slow
