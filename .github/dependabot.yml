@@ -17,6 +17,14 @@ updates:
     directory: /targets/2026.1.0529.7
     schedule:
       interval: weekly
+    ignore:
+      # Serilog.Extensions.Logging majors match the .NET major of their
+      # Microsoft.Extensions.Logging dependency. Briosa targets .NET 10, and 11.x
+      # would ship .NET 11 Microsoft.Extensions assemblies in place of the
+      # runtime's (https://github.com/spatialanalyzer/briosa/issues/408).
+      # Revisit when Briosa moves to .NET 11.
+      - dependency-name: Serilog.Extensions.Logging
+        versions: ['[11.0.0,12.0.0)']
     groups:
       nuget:
         patterns: ['*']
@@ -29,6 +37,10 @@ updates:
     directory: /targets/2024.1.0508.5
     schedule:
       interval: weekly
+    ignore:
+      # Same reason as the SA 2026.1.0529.7 entry: stay on the .NET 10 major.
+      - dependency-name: Serilog.Extensions.Logging
+        versions: ['[11.0.0,12.0.0)']
     groups:
       nuget:
         patterns: ['*']
@@ -52,6 +64,11 @@ updates:
     directory: /eng/publishing
     schedule:
       interval: weekly
+    ignore:
+      # The pinned botocore (1.44.x) requires python-dateutil<3.0.0. Remove this
+      # rule when the pinned botocore lifts that bound.
+      - dependency-name: python-dateutil
+        versions: ['>= 3.0.0']
     groups:
       publishing:
         patterns: ['*']

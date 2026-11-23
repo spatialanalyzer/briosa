@@ -26,6 +26,8 @@
     <PackageReference Include="Serilog.Sinks.Async" />
     <PackageReference Include="Serilog.Sinks.File" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <!-- Shared with the worker and launcher in the package directory; see Directory.Packages.props. -->
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" />
     <ProjectReference Include="..\Briosa.Protocol\Briosa.Protocol.csproj" />
     <ProjectReference Include="..\Briosa.Desktop\Briosa.Desktop.csproj" />
     <ProjectReference Include="..\Briosa.Worker.Control\Briosa.Worker.Control.csproj" />

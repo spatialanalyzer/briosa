@@ -11,6 +11,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Briosa.Worker.Control\Briosa.Worker.Control.csproj" />
+    <!-- Shared with the server and launcher in the package directory; see Directory.Packages.props. -->
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" />
 
     <Reference Include="Briosa.SpatialAnalyzer.Interop">
       <HintPath>$(SpatialAnalyzerInteropPath)</HintPath>
