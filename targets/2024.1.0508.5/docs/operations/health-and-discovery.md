@@ -33,8 +33,10 @@ After an explicit connect request and exact-match identity gating, the server se
 - the configured exact SpatialAnalyzer target;
 - stable protocol package, exact SA target, and interop fingerprint;
 - safe worker, SDK connection, and execution-readiness states;
-- the target-isolation mode (`single_tenant` for the current release); and
-- whether MP requests are currently ready.
+- the target-isolation mode (`single_tenant` for the current release);
+- whether MP requests are currently ready;
+- the effective [lifecycle bounds](#lifecycle-bounds), in milliseconds; and
+- the [configured interaction mode](#configured-interaction-mode).
 
 The response carries separate evidence objects for the activated SDK engine/type library and connected SpatialAnalyzer application. Each contains an optional version plus:
 
@@ -73,6 +75,43 @@ The production adapter observes the file/product version of the SDK process uniq
 Each configured claim requires both `Version` and `Reference`; a partial pair fails startup. The reference identifies separately retained evidence and must not contain a path, credential, license value, or sensitive host detail. It is validated for presence but never returned by discovery or written to default logs. Record the version actually supported by the evidence rather than copying the package target as an assumption. See the [runtime boundary](../../../../docs/architecture/runtime-boundary-and-lifecycle.md) for precedence and release-gate limits.
 
 Debug source hosting enables the standard .NET user-secrets provider for these same four keys. User-secrets keeps the local values out of tracked settings and launch profiles, but it is not an evidence vault; retain the independently established evidence elsewhere. Release builds do not carry the user-secrets project identity. The complete source command and configuration procedure is tracked in issue #120.
+
+### Lifecycle bounds
+
+`lifecycle_bounds` reports how long the server allows each lifecycle request, in milliseconds. The server computes each value from the same bounds it enforces (see [worker time bounds](windows-package.md#worker-time-bounds)), adds the parts first, and then rounds up to a whole millisecond once. It reads only server configuration, so it is the same before the SDK starts, while SpatialAnalyzer is disconnected, and while it is connected.
+
+Server 0.10.1 and later publish it. Server 0.10.0 does not, and a client then keeps its own fixed waits. The 0.5.0 clients ignore the field and work with Server 0.10.1 unchanged.
+
+Each allowance covers only the server's own work for one request, from the event in the table. None includes network or transport time, and none promises that a response reaches the caller or that any process exits within it. In the formulas, `S` is `Briosa:Worker:StartupTimeout`, `P` is `Briosa:Worker:ReadinessProbeTimeout`, `A` is `Briosa:SpatialAnalyzer:ApplicationStartupTimeout`, and `B` is `Briosa:SpatialAnalyzer:ApplicationShutdownTimeout`. The heartbeat timeout and the worker shutdown timeout are fixed at 5 seconds each.
+
+| Field | Covers | Computed as | Default |
+| --- | --- | --- | --- |
+| `start_sdk_milliseconds` | `StartSpatialAnalyzerSdk`, from acceptance to its typed outcome. Includes the readiness check when the new worker reports an already attached SDK, and forced worker cleanup after a failure. Excludes a request rejected for its state. | `S + P + 5 s` | 45,000 |
+| `launch_spatial_analyzer_milliseconds` | `LaunchSpatialAnalyzer`, from the moment the process has started until its main window is ready, the process is seen to exit, or the allowance expires. Expiry does not close the application. Excludes the checks before the process starts. | `A` | 30,000 |
+| `connect_spatial_analyzer_milliseconds` | `ConnectToSpatialAnalyzer` and `ReconnectToSpatialAnalyzer`, from acceptance to the typed outcome: `ConnectEx`, the readiness probe with the configured interaction mode, the application association, a liveness check when one falls due, and forced worker cleanup after a failure. Excludes waiting behind a launch in progress. | `2 × S + P + 10 s` | 60,000 |
+| `recover_sdk_milliseconds` | `RecoverSpatialAnalyzerSdk`, from acceptance to the replacement's typed outcome: the old worker's drain and cleanup, then the replacement's start. Excludes any later Connect; recovery never replays a command. | `S + P + 15 s` | 55,000 |
+| `stop_sdk_milliseconds` | `StopSpatialAnalyzerSdk`, from the start of the worker stop, after any MP command in flight has finished, to the typed stop or cleanup outcome, which can report that cleanup did not complete. Excludes that command's execution budget and any wait before the stop is accepted. | `15 s` | 15,000 |
+| `close_owned_spatial_analyzer_milliseconds` | `CloseOwnedSpatialAnalyzer`, from the moment the application accepts the close request until the process is seen to exit, the allowance expires, or the caller cancels. The server never forces the application to end. Excludes the checks before the close request. | `B` | 30,000 |
+| `startup_with_launch_milliseconds` | A sizing rule, not a deadline the server enforces: the ordinary Start of a disconnected SDK, then the launch, then Connect. Excludes the client's own server startup, discovery, and round trips, which a client adds as its margin. | `3 × S + P + A + 10 s` | 100,000 |
+| `startup_without_launch_milliseconds` | The same sizing rule without the launch. | `3 × S + P + 10 s` | 70,000 |
+| `host_graceful_shutdown` | The most a graceful stop of the server host may wait, from the moment the host stop begins. See below. | `A` + the longer of Connect and Recover + `15 s`, or the host's own longer setting | 105,000 |
+
+`host_graceful_shutdown` holds one of two values:
+
+- `finite_milliseconds`: a positive limit. A stop can finish sooner, or be cancelled sooner. An MP command still in flight counts against it, and expiry does not prove that the worker was released or that any process exited (see [server shutdown](windows-package.md#worker-time-bounds)). A longer shutdown timeout configured for the host itself, such as the ASP.NET Core `shutdownTimeoutSeconds` setting, is published as configured.
+- `unbounded`: the host is configured with no graceful shutdown time limit.
+
+The server leaves `host_graceful_shutdown` absent when it cannot arm a time limit for its configured host value, which happens above 4,294,967,294 milliseconds (about 49.7 days). It still starts with that value.
+
+A client treats an absent or zero allowance, an absent `host_graceful_shutdown`, or a limit it does not recognize as unavailable, never as unbounded, and keeps its own default for that purpose only. A missing host bound does not make a usable startup allowance unavailable.
+
+### Configured interaction mode
+
+`configured_spatial_analyzer_interaction_mode` reports the [`Briosa:SpatialAnalyzer:InteractionMode`](windows-package.md#spatialanalyzer-interaction-mode) setting: `UNCHANGED`, `SILENT`, `AUTOMATIC`, or `MANUAL`. It is server configuration only, published whether or not SpatialAnalyzer is connected. SpatialAnalyzer has no getter for its interaction mode, so Briosa never reads the value back, and an operator or a `SetInteractionMode` call can change SpatialAnalyzer's mode at any time. `UNCHANGED` means that the server never sets the mode. The setting is separate from the MP and MP dialog interaction modes.
+
+`SILENT`, `AUTOMATIC`, and `MANUAL` correspond by name to the `SaInteractionMode` values that `SetInteractionMode` takes. Their numbers differ, so map them by name, never by number.
+
+Server 0.10.1 and later report a known value. Server 0.10.0 leaves the field `UNSPECIFIED`. A client reports that value, or any value it does not recognize, as unknown. The 0.5.0 clients ignore the field and work with Server 0.10.1 unchanged.
 
 ## Capabilities
 

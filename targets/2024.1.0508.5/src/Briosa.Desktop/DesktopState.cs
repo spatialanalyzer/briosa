@@ -33,12 +33,17 @@ public sealed record DesktopState
     public bool OutcomeUnknown => Sdk?.LastIncident is { HasExecutionDisposition: true,
         ExecutionDisposition: ExecutionDisposition.StartedOutcomeUnknown };
 
+    // A field that a later server adds is ignored, never a parse failure (#400). Control
+    // Center 0.10.0 parsed strictly, so it reads only the server in its own package.
+    private static readonly JsonParser ReplyParser =
+        new(JsonParser.Settings.Default.WithIgnoreUnknownFields(true));
+
     public static DesktopState FromReply(DesktopReply reply)
     {
         ArgumentNullException.ThrowIfNull(reply);
-        var info = GetServerInfoResponse.Parser.ParseJson(reply.ServerInfoJson);
-        var sdk = SpatialAnalyzerSdkLifecycleState.Parser.ParseJson(reply.SdkStateJson);
-        var application = SpatialAnalyzerLifecycleState.Parser.ParseJson(reply.ApplicationStateJson);
+        var info = ReplyParser.Parse<GetServerInfoResponse>(reply.ServerInfoJson);
+        var sdk = ReplyParser.Parse<SpatialAnalyzerSdkLifecycleState>(reply.SdkStateJson);
+        var application = ReplyParser.Parse<SpatialAnalyzerLifecycleState>(reply.ApplicationStateJson);
         bool available = reply.HostState == "Running";
         bool ready = available && info.ReadyForMp && sdk.ReadyForMp;
         var (heading, guidance, attention) = Describe(reply.HostState, info, sdk, application, ready);

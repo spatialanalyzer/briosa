@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+    <PackageReference Include="Grpc.Tools" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
@@ -14,6 +15,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Briosa.Protocol\Briosa.Protocol.csproj" />
+  </ItemGroup>
+
+  <!-- A frozen older schema for compatibility tests only; it never enters the protocol. -->
+  <ItemGroup>
+    <Protobuf Include="Legacy\**\*.proto"
+              ProtoRoot="Legacy"
+              AdditionalImportDirs="..\..\proto"
+              GrpcServices="None" />
   </ItemGroup>
 
   <ItemGroup>

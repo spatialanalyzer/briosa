@@ -13,7 +13,8 @@ namespace Briosa.Server.Services;
 internal sealed class ServerDiscoveryService(
     IWorkerStatusProvider statusProvider,
     IServerBuildIdentityProvider buildIdentity,
-    OperationPolicy operationPolicy) :
+    OperationPolicy operationPolicy,
+    ServerLifecycleDiscovery? lifecycle = null) :
     Api.DiscoveryService.DiscoveryServiceBase
 {
     private readonly IServerBuildIdentityProvider _buildIdentity =
@@ -22,6 +23,8 @@ internal sealed class ServerDiscoveryService(
         statusProvider ?? throw new ArgumentNullException(nameof(statusProvider));
     private readonly OperationPolicy _operationPolicy =
         operationPolicy ?? throw new ArgumentNullException(nameof(operationPolicy));
+    // The server registers it; without it, server info leaves both fields unset (#400).
+    private readonly ServerLifecycleDiscovery? _lifecycle = lifecycle;
 
     // Policy is fixed for the process lifetime, so both views are built once.
     private readonly Api.ListCapabilitiesResponse _capabilities =
@@ -68,6 +71,13 @@ internal sealed class ServerDiscoveryService(
         PopulateLegacyConnectedIdentity(
             response,
             snapshot.RuntimeIdentity?.ConnectedSpatialAnalyzer);
+        // Configuration only: both are the same whatever the worker and SpatialAnalyzer state.
+        if (_lifecycle is not null)
+        {
+            response.LifecycleBounds = _lifecycle.CreateBounds();
+            response.ConfiguredSpatialAnalyzerInteractionMode = _lifecycle.InteractionMode;
+        }
+
         return response;
     }
 

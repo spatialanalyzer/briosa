@@ -129,9 +129,9 @@ public sealed class DesktopSession : IDisposable
             _ownedProcess = Process.GetProcessById(registration.ProcessId);
         if (_ownedProcess is null) throw new InvalidOperationException("The exact owned process could not be established.");
         await ActAsync(DesktopAction.StopServer, cancellationToken).ConfigureAwait(false);
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeout.CancelAfter(TimeSpan.FromSeconds(45));
-        await _ownedProcess.WaitForExitAsync(timeout.Token).ConfigureAwait(false);
+        // The observation starts after the accepted reply, sized from the host bound it carries.
+        await DesktopStopWait.ObserveAsync(_ownedProcess.WaitForExitAsync,
+            DesktopStopWait.For(State.Info), cancellationToken).ConfigureAwait(false);
         ForgetStoppedServer();
         State = new();
     }

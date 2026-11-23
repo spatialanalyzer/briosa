@@ -33,7 +33,9 @@ internal static class Program
         var info = new GetServerInfoResponse { ReadyForMp = true,
             Version = new() { BriosaVersion = "0.2.0-review", SpatialAnalyzerTarget = DesktopProtocol.Target, ProtocolPackage = "briosa" },
             ActivatedSdkIdentity = new() { Version = DesktopProtocol.Target, Source = RuntimeIdentityEvidenceSource.OperatorAttestation, MatchState = RuntimeIdentityMatchState.ExactMatch },
-            ConnectedSpatialAnalyzerIdentity = new() { Version = DesktopProtocol.Target, Source = RuntimeIdentityEvidenceSource.OperatorAttestation, MatchState = RuntimeIdentityMatchState.ExactMatch } };
+            ConnectedSpatialAnalyzerIdentity = new() { Version = DesktopProtocol.Target, Source = RuntimeIdentityEvidenceSource.OperatorAttestation, MatchState = RuntimeIdentityMatchState.ExactMatch },
+            LifecycleBounds = new() { StartupWithLaunchMilliseconds = 100_000, HostGracefulShutdown = new() { FiniteMilliseconds = 105_000 } },
+            ConfiguredSpatialAnalyzerInteractionMode = ConfiguredSpatialAnalyzerInteractionMode.Silent };
         var sdk = new SpatialAnalyzerSdkLifecycleState { ReadyForMp = true, SdkState = SpatialAnalyzerSdkState.Ready,
             SdkGeneration = 1, ConnectionState = SpatialAnalyzerConnectionState.Connected,
             ExecutionReadinessState = SpatialAnalyzerExecutionReadinessState.ExecutionReady,
@@ -43,6 +45,8 @@ internal static class Program
             ServerInfoJson = JsonFormatter.Default.Format(info), SdkStateJson = JsonFormatter.Default.Format(sdk),
             ApplicationStateJson = JsonFormatter.Default.Format(new SpatialAnalyzerLifecycleState { ApplicationState = SpatialAnalyzerApplicationState.Running,
                 Ownership = SpatialAnalyzerOwnership.External }) });
+        if (DesktopStopWait.For(state.Info) != TimeSpan.FromSeconds(110))
+            throw new InvalidOperationException("The stop wait did not follow the published host shutdown bound.");
         window.Render(state);
         var stop = (Button)window.FindName("StopButton");
         if (!stop.IsEnabled || new ButtonAutomationPeer(stop).GetName().Length == 0) throw new InvalidOperationException("Owned stop control is inaccessible.");

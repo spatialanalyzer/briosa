@@ -39,6 +39,13 @@ internal static class PackageSmoke
                 instance = first.Instance;
                 Require(first.State.CanManage && first.State.Available && !first.State.Ready, "Owned API startup must leave SDK stopped.");
                 Require(first.State.Sdk?.SdkState == SpatialAnalyzerSdkState.Stopped, "SDK started implicitly.");
+                // The packaged server publishes its bounds before the SDK starts, and Control Center reads them (#400).
+                Require(first.State.Info?.LifecycleBounds is { HasStartupWithLaunchMilliseconds: true,
+                    HostGracefulShutdown.LimitCase: GracefulShutdownBound.LimitOneofCase.FiniteMilliseconds } &&
+                    DesktopStopWait.For(first.State.Info) > DesktopStopWait.Fallback,
+                    "The packaged server did not publish a finite host shutdown bound.");
+                Require(first.State.Info?.ConfiguredSpatialAnalyzerInteractionMode ==
+                    ConfiguredSpatialAnalyzerInteractionMode.Unchanged, "The default interaction mode was not published.");
                 var monitor = await DesktopProtocol.SendAsync(new(instance!), timeout.Token);
                 Require(!monitor.CanManage, "Status granted ownership.");
                 var rejected = await DesktopProtocol.SendAsync(new(instance!, DesktopAction.StopServer, DesktopProtocol.NewCredential()), timeout.Token);

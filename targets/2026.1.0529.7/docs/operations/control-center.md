@@ -69,6 +69,14 @@ means retained details are stale; the controller does not keep showing Ready.
   returns. Inspect SpatialAnalyzer before deciding whether a command should run
   again. Recovery does not undo or determine an earlier command's effects.
 
+After the server accepts **Stop server**, Control Center waits for the owned
+process to exit. The wait lasts the host graceful shutdown bound that the server
+publishes (105 seconds at the defaults; see `HEALTH-AND-DISCOVERY.md`) plus 5
+seconds. When a server publishes no usable bound, such as Server 0.10.0, Control
+Center waits 45 seconds. When the host has no shutdown time limit, it waits until
+the server exits or you exit Control Center. A wait that ends first leaves the
+server as it is and reports the stop as unconfirmed.
+
 The controller requests graceful shutdown and never kills an unowned process.
 Windows logoff/shutdown may interrupt the session; do not treat that as confirmed
 MP cancellation. Restart explicitly after establishing the intended environment.
@@ -108,6 +116,11 @@ The equivalent environment variable is `Briosa__Desktop__Mode=Disabled`.
 `Auto` is the default and only launches a companion when its executable is
 present and the server runs in an interactive Windows session. `Owned` is
 reserved for the controller's private launch handshake.
+
+Use each Control Center with the server from its own package. Control Center
+0.10.0 cannot read status from Server 0.10.1 or later, whose server information
+carries fields it does not know, so it shows **Status unavailable**. Control
+Center 0.10.1 and later ignore fields they do not know.
 
 Keep the complete package together. Use the existing Briosa installer to acquire,
 verify, repair, update, or remove it. Installation is inert. Each update remains
