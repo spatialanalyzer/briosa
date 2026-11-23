@@ -75,26 +75,16 @@ internal sealed class ServerDiscoveryService(
         (includeDenied ? _capabilitiesIncludingDenied : _capabilities).Clone();
 
     /// <summary>
-    /// Maps a static <see cref="OperationPolicy.Evaluate(string)"/> decision to
-    /// the admission discovery reports, from the precedence step that decided.
+    /// Maps a policy decision to the admission discovery reports: admitted, or
+    /// the denied value of the step that decided, from its structured denial.
     /// </summary>
     internal static Api.OperationAdmission ToAdmission(OperationPolicyDecision decision)
     {
         ArgumentNullException.ThrowIfNull(decision);
-        return decision.Kind switch
+        return decision switch
         {
-            OperationPolicyDecisionKind.Allowed => Api.OperationAdmission.Admitted,
-            OperationPolicyDecisionKind.Denied => decision.PolicyRule switch
-            {
-                OperationPolicy.ClassificationRule => Api.OperationAdmission.DeniedUnreviewed,
-                OperationPolicy.IsolationRule => Api.OperationAdmission.DeniedExclusive,
-                OperationPolicy.OverrideRule => Api.OperationAdmission.DeniedOverride,
-                var rule when rule.StartsWith(OperationPolicy.FlagRulePrefix, StringComparison.Ordinal) =>
-                    Api.OperationAdmission.DeniedFlag,
-                var rule when rule.StartsWith(OperationPolicy.ProfileRulePrefix, StringComparison.Ordinal) =>
-                    Api.OperationAdmission.DeniedProfile,
-                _ => throw UndescribedDecision(decision)
-            },
+            { Kind: OperationPolicyDecisionKind.Allowed } => Api.OperationAdmission.Admitted,
+            { Kind: OperationPolicyDecisionKind.Denied, Denial: { } denial } => denial.ToAdmission(),
             _ => throw UndescribedDecision(decision)
         };
     }
@@ -113,13 +103,18 @@ internal sealed class ServerDiscoveryService(
         };
         foreach (var operation in policy.Operations)
         {
-            var admission = ToAdmission(policy.Evaluate(operation.OperationId));
+            var decision = policy.Evaluate(operation.OperationId);
+            var admission = ToAdmission(decision);
+            // include_denied filters whole operations only. The request options of
+            // an admitted operation, including denied ones, stay visible.
             if (includeDenied || admission == Api.OperationAdmission.Admitted)
             {
                 response.Operations.Add(ToCapability(
                     operation,
                     policy.FindClassification(operation.OperationId),
-                    admission));
+                    decision,
+                    admission,
+                    RequestOptionDescription.Describe(policy, operation.OperationId)));
             }
         }
 
@@ -127,11 +122,14 @@ internal sealed class ServerDiscoveryService(
     }
 
     // Discovery reports the reviewed row. A request option can still add
-    // interactive_ui or make a request an exclusive workflow at call time.
+    // interactive_ui or make a request an exclusive workflow at call time;
+    // request_options describes each reviewed option and its single-option decision.
     private static Api.OperationCapability ToCapability(
         OperationDescriptor operation,
         OperationClassificationLookup classification,
-        Api.OperationAdmission admission)
+        OperationPolicyDecision decision,
+        Api.OperationAdmission admission,
+        Api.OperationRequestOptions requestOptions)
     {
         var capability = new Api.OperationCapability
         {
@@ -142,7 +140,9 @@ internal sealed class ServerDiscoveryService(
             Effect = operation.Effect,
             ExecutionScope = operation.ExecutionScope,
             ReplaySafety = operation.ReplaySafety,
-            Admission = admission
+            Admission = admission,
+            PolicyDenial = decision.Denial?.ToDetails(),
+            RequestOptions = requestOptions
         };
         if (classification is { IsReviewed: true, Row: { } row })
         {

@@ -101,6 +101,52 @@ message MpExecutionDetails {
   repeated OutputRetrievalDetails output_retrievals = 3;
 }
 
+// The step of the active admission policy that denied a call or an operation.
+// Each value names the same step as one denied value of OperationAdmission in
+// discovery: PROFILE and DENIED_PROFILE, FLAG and DENIED_FLAG, OVERRIDE and
+// DENIED_OVERRIDE, EXCLUSIVE and DENIED_EXCLUSIVE, UNREVIEWED and
+// DENIED_UNREVIEWED. The numbers differ, so match the two enums by name.
+enum PolicyDenialRule {
+  POLICY_DENIAL_RULE_UNSPECIFIED = 0;
+  // The profile, widened by flags set to allow, does not admit every risk flag,
+  // or the read-only effect filter excludes the operation.
+  POLICY_DENIAL_RULE_PROFILE = 1;
+  // A risk flag is set to deny.
+  POLICY_DENIAL_RULE_FLAG = 2;
+  // A per-operation override is set to deny.
+  POLICY_DENIAL_RULE_OVERRIDE = 3;
+  // An exclusive workflow, which no setting admits in the current isolation
+  // mode. A request whose options leave work running after the call returns is one.
+  POLICY_DENIAL_RULE_EXCLUSIVE = 4;
+  // The operation's classification metadata is not reviewed, or the request
+  // cannot be read against the operation's reviewed request options.
+  POLICY_DENIAL_RULE_UNREVIEWED = 5;
+}
+
+// Value-free detail of a policy denial, shared by a denied call and by
+// discovery. Server 0.10.1 and later send it. Server 0.10.0 does not, and
+// clients built for Server 0.10.0, such as the 0.5.0 clients, ignore it.
+message PolicyDenialDetails {
+  PolicyDenialRule rule = 1;
+  // The risk flag set to deny that decided, as the lowercase suffix of its
+  // OperationRiskFlag value name: for example "physical_motion" for
+  // OPERATION_RISK_FLAG_PHYSICAL_MOTION. Present exactly when rule is FLAG, and
+  // never "unspecified". When several of the request's flags are set to deny,
+  // it names the first in OperationRiskFlag declaration order. A newer server
+  // can name a flag that an older client does not know.
+  optional string denied_flag = 2;
+  // The protobuf field name of the request option the server attributed the
+  // denial to, for example "show_results_dialog"; never a request value. When a
+  // request turns on several options with the deciding effect, it names the
+  // first in the server's reviewed order, which need not be the only cause.
+  // Absent when the operation's reviewed row decided, and when the request could
+  // not be read against its reviewed options.
+  optional string request_option_field = 3;
+  // The active admission profile: read-only, standard, device, or full.
+  // Present exactly when rule is PROFILE.
+  optional string admission_profile = 4;
+}
+
 // Typed, value-free detail carried in briosa-operation-error-bin metadata.
 message OperationError {
   reserved 4;
@@ -115,4 +161,8 @@ message OperationError {
   RecoveryGuidance recovery_guidance = 8;
   ReplayGuidance replay_guidance = 9;
   ReplaySafety replay_safety = 10;
+  // The policy step that denied the call. Server 0.10.1 and later set it on
+  // every POLICY_DENIED failure and on no other kind. Server 0.10.0 does not set
+  // it, and clients built for Server 0.10.0 ignore it.
+  optional PolicyDenialDetails policy_denial = 11;
 }

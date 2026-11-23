@@ -101,7 +101,7 @@ public sealed class DiscoveryServiceTests
 
         Assert.Equal("0.1.0-test", response.Version.BriosaVersion);
         Assert.Equal(3U, response.Compatibility.Major);
-        Assert.Equal(0U, response.Compatibility.Revision);
+        Assert.Equal(1U, response.Compatibility.Revision);
         Assert.Equal("briosa", response.Version.ProtocolPackage);
         Assert.Equal("2026.1.0529.7", response.Version.SpatialAnalyzerTarget);
         Assert.Equal(WorkerRuntimeState.Ready, response.WorkerState);
@@ -520,34 +520,55 @@ public sealed class DiscoveryServiceTests
     }
 
     [Theory]
-    [InlineData(nameof(OperationPolicyDecisionKind.Allowed), "profile.standard", OperationAdmission.Admitted)]
-    [InlineData(nameof(OperationPolicyDecisionKind.Allowed), "override", OperationAdmission.Admitted)]
-    [InlineData(nameof(OperationPolicyDecisionKind.Denied), "profile.read-only", OperationAdmission.DeniedProfile)]
-    [InlineData(nameof(OperationPolicyDecisionKind.Denied), "flag.code_execution", OperationAdmission.DeniedFlag)]
-    [InlineData(nameof(OperationPolicyDecisionKind.Denied), "override", OperationAdmission.DeniedOverride)]
-    [InlineData(nameof(OperationPolicyDecisionKind.Denied), "isolation", OperationAdmission.DeniedExclusive)]
-    [InlineData(nameof(OperationPolicyDecisionKind.Denied), "classification", OperationAdmission.DeniedUnreviewed)]
-    public void AdmissionFollowsThePrecedenceStepThatDecided(
-        string kind,
-        string rule,
-        OperationAdmission expected)
+    [InlineData("profile.standard")]
+    [InlineData("override")]
+    [InlineData("option.show_results_dialog/override")]
+    public void AdmittedDecisionsAreAdmitted(string rule)
     {
         var decision = new OperationPolicyDecision(
-            Enum.Parse<OperationPolicyDecisionKind>(kind), "diagnostic", Operation: null, rule);
+            OperationPolicyDecisionKind.Allowed, "diagnostic", Operation: null, rule);
 
-        Assert.Equal(expected, ServerDiscoveryService.ToAdmission(decision));
+        Assert.Equal(OperationAdmission.Admitted, ServerDiscoveryService.ToAdmission(decision));
     }
 
     [Theory]
-    [InlineData(nameof(OperationPolicyDecisionKind.Unsupported), "registry")]
-    [InlineData(nameof(OperationPolicyDecisionKind.Denied), "registry")]
-    [InlineData(nameof(OperationPolicyDecisionKind.Denied), "option.show_results_dialog/flag.interactive_ui")]
-    public void RequestOnlyDecisionsHaveNoDiscoveryAdmission(string kind, string rule)
+    [InlineData("profile", OperationAdmission.DeniedProfile)]
+    [InlineData("flag", OperationAdmission.DeniedFlag)]
+    [InlineData("override", OperationAdmission.DeniedOverride)]
+    [InlineData("isolation", OperationAdmission.DeniedExclusive)]
+    [InlineData("classification", OperationAdmission.DeniedUnreviewed)]
+    [InlineData("option-isolation", OperationAdmission.DeniedExclusive)]
+    [InlineData("option-flag", OperationAdmission.DeniedFlag)]
+    [InlineData("option-profile", OperationAdmission.DeniedProfile)]
+    public void AdmissionFollowsTheStructuredDenialThatDecided(string step, OperationAdmission expected)
+    {
+        var denial = step switch
+        {
+            "profile" => OperationPolicyDenial.Profile("read-only"),
+            "flag" => OperationPolicyDenial.Flag(OperationRisks.CodeExecution),
+            "override" => OperationPolicyDenial.Override(),
+            "isolation" => OperationPolicyDenial.Exclusive(),
+            "classification" => OperationPolicyDenial.Unreviewed(),
+            "option-isolation" => OperationPolicyDenial.Exclusive("wait_for_completion"),
+            "option-flag" => OperationPolicyDenial.Flag(OperationRisks.InteractiveUi, "show_results_dialog"),
+            "option-profile" => OperationPolicyDenial.Profile("standard", "show_results_dialog"),
+            _ => throw new ArgumentOutOfRangeException(nameof(step))
+        };
+
+        Assert.Equal(expected, ServerDiscoveryService.ToAdmission(
+            OperationPolicyDecision.Deny("diagnostic", operation: null, denial)));
+    }
+
+    [Fact]
+    public void UnsupportedDecisionsHaveNoDiscoveryAdmission()
     {
         var decision = new OperationPolicyDecision(
-            Enum.Parse<OperationPolicyDecisionKind>(kind), "diagnostic", Operation: null, rule);
+            OperationPolicyDecisionKind.Unsupported, "diagnostic", Operation: null, "registry");
 
         Assert.Throws<InvalidOperationException>(() => ServerDiscoveryService.ToAdmission(decision));
+        // A denial without its structured record cannot be constructed.
+        Assert.Throws<ArgumentException>(() => new OperationPolicyDecision(
+            OperationPolicyDecisionKind.Denied, "diagnostic", Operation: null, "registry"));
     }
 
     [Fact]

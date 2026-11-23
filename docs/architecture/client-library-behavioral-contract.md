@@ -520,6 +520,38 @@ Clients adopting compatibility major 3:
   Such a default never applies a `QUICK` budget to a `LONG_RUNNING` or
   `INTERACTIVE` operation.
 
+Server 0.10.1 adds typed denial detail and request option descriptions
+([#397](https://github.com/spatialanalyzer/briosa/issues/397); see the
+[discovery guide](../../targets/2026.1.0529.7/docs/operations/health-and-discovery.md#request-options-in-discovery)
+and the [policy guide](../../targets/2026.1.0529.7/docs/operations/command-policy-and-auditing.md#typed-denial-detail)).
+Server 0.10.0 sends none of it, and the 0.5.0 clients ignore it. The 0.5.1
+clients surface it and still work with Server 0.10.0:
+
+- A policy-denied failure exposes an optional typed denial detail from
+  `OperationError.policy_denial`: the rule, the denied flag for a flag denial,
+  the admission profile for a profile denial, and the request field the server
+  attributed the denial to. One helper maps `denied_flag` to the public risk
+  flag value, with a distinct unknown member for a name the client does not
+  know. A missing, malformed, or unrecognized detail never changes the
+  failure's kind, disposition, or guidance; the detail is simply absent or
+  unknown.
+- A denied capability exposes the same detail from
+  `OperationCapability.policy_denial`, and the diagnostic listing returns it
+  with each denied operation.
+- Each capability exposes its request options so that "not described"
+  (`request_options` absent, Server 0.10.0) stays distinct from "none apply"
+  (present and empty). Each option exposes its field name, effect, condition,
+  enabling enum value names, omission, and the single-option admission and
+  denial detail. That admission answers one question: what the policy decides
+  for a request that turns on that option alone. Clients still do not
+  pre-validate requests from it.
+- An unknown rule, effect, condition, or omission value is unknown metadata,
+  never permission, and never fails discovery.
+- Installation selection and live discovery keep requiring revision 0 or later
+  of the current major, while live coordinates must still match the selected
+  installation's manifest. Server 0.10.1 declares revision 1, so a client that
+  required its own generated revision would reject Server 0.10.0.
+
 Package semantic version, Briosa server semantic version, exact SpatialAnalyzer
 target, protocol artifact identity, and runtime architecture remain separate
 coordinates as described by the

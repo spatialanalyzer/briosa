@@ -17,6 +17,16 @@ internal sealed record OperationRequestClassification(
 
     public static OperationRequestClassification Unclassified { get; } = new(false, []);
 
+    /// <summary>
+    /// A request that enables exactly <paramref name="option"/> and no other
+    /// option: the question discovery answers for each reviewed option (#397).
+    /// </summary>
+    public static OperationRequestClassification Enabling(OperationConditionalOption option)
+    {
+        ArgumentNullException.ThrowIfNull(option);
+        return new(true, [option]);
+    }
+
     /// <summary>The first enabled option with this effect, in table order, or null.</summary>
     public OperationConditionalOption? First(OperationOptionEffect effect) =>
         EnabledOptions.FirstOrDefault(option => option.Effect == effect);

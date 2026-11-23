@@ -346,6 +346,7 @@ internal static class GrpcOperationOutcomeMapper
                 "The Briosa execution queue is full. The operation did not start."),
             WorkerExecutionStatus.RequestRejected => CreateValidationFailure(
                 operationId, diagnosticCode, outcome.Generation, replaySafety),
+            // Only the typed detail names the deciding step; the status text stays fixed.
             WorkerExecutionStatus.PolicyDenied => CreateFailure(
                 StatusCode.PermissionDenied,
                 operationId,
@@ -357,7 +358,8 @@ internal static class GrpcOperationOutcomeMapper
                 replaySafety,
                 outcome.Generation,
                 mpExecution: null,
-                "The operation is denied by the Briosa operation policy."),
+                "The operation is denied by the Briosa operation policy.",
+                outcome.PolicyDenial!.ToDetails()),
             WorkerExecutionStatus.Unsupported => CreateFailure(
                 StatusCode.Unimplemented,
                 operationId,
@@ -487,7 +489,8 @@ internal static class GrpcOperationOutcomeMapper
         ReplaySafety replaySafety,
         int generation,
         MpExecutionDetails? mpExecution,
-        string detail)
+        string detail,
+        PolicyDenialDetails? policyDenial = null)
     {
         var error = new OperationError
         {
@@ -499,7 +502,8 @@ internal static class GrpcOperationOutcomeMapper
             ReplayGuidance = replayGuidance,
             ReplaySafety = replaySafety,
             WorkerGeneration = generation,
-            MpExecution = mpExecution
+            MpExecution = mpExecution,
+            PolicyDenial = policyDenial
         };
         var trailers = new Metadata
         {

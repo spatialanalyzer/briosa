@@ -541,7 +541,8 @@ internal sealed partial class WorkerProcessSupervisor :
         {
             return new WorkerExecutionOutcome(WorkerExecutionStatus.PolicyDenied,
                 WorkerExecutionDisposition.NotStarted, null, Current.Connection,
-                "operation-duration-unreviewed", Current.Generation, effectiveCorrelationId);
+                "operation-duration-unreviewed", Current.Generation, effectiveCorrelationId,
+                OperationPolicyDenial.DurationUnreviewed);
         }
 
         var queue = _executionQueue;

@@ -227,6 +227,21 @@ internal sealed class OperationPolicy
     }
 
     /// <summary>
+    /// Decides, for discovery, each reviewed request option of a registered
+    /// operation in table order: the decision for a request that enables that one
+    /// option on the static reviewed row, with every other option inactive. It is
+    /// the same evaluator that decides an actual request.
+    /// </summary>
+    public IReadOnlyList<(OperationConditionalOption Option, OperationPolicyDecision Decision)> EvaluateRequestOptions(
+        string operationId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(operationId);
+        return _requestClassifier.OptionsFor(operationId)
+            .Select(option => (option, EvaluateCore(operationId, OperationRequestClassification.Enabling(option))))
+            .ToArray();
+    }
+
+    /// <summary>
     /// Decides one typed request before mapping or dispatch. The request's
     /// enabled conditional options change its effective risks, duration, and
     /// isolation. An operation with reviewed options fails closed when the request
@@ -273,87 +288,83 @@ internal sealed class OperationPolicy
                 global::Briosa.ReplaySafety.Unknown ||
             operation.RiskFlags.Contains("unknown", StringComparer.Ordinal))
         {
-            return new OperationPolicyDecision(
-                OperationPolicyDecisionKind.Denied,
+            return OperationPolicyDecision.Deny(
                 "operation-risk-unreviewed",
                 operation,
-                ClassificationRule);
+                OperationPolicyDenial.Unreviewed());
         }
 
         if (operation.ExecutionScope is
             global::Briosa.OperationExecutionScope.Unspecified or
             global::Briosa.OperationExecutionScope.Unknown)
         {
-            return new OperationPolicyDecision(
-                OperationPolicyDecisionKind.Denied,
+            return OperationPolicyDecision.Deny(
                 "operation-isolation-unreviewed",
                 operation,
-                ClassificationRule);
+                OperationPolicyDenial.Unreviewed());
         }
 
+        // No request field can be named: the request could not be read.
         if (classification is { IsClassified: false })
         {
-            return new OperationPolicyDecision(
-                OperationPolicyDecisionKind.Denied,
+            return OperationPolicyDecision.Deny(
                 "operation-request-unclassified",
                 operation,
-                ClassificationRule);
+                OperationPolicyDenial.Unreviewed());
         }
 
         // 3. Isolation. An exclusive workflow cannot be admitted by any setting.
         if (!IsExecutionScopeSupported(operation.ExecutionScope))
         {
-            return new OperationPolicyDecision(
-                OperationPolicyDecisionKind.Denied,
+            return OperationPolicyDecision.Deny(
                 "operation-isolation-unsupported",
                 operation,
-                IsolationRule);
+                OperationPolicyDenial.Exclusive());
         }
 
         // A request that leaves device or operator work running after the call
         // returns needs cross-RPC ownership: it is an exclusive workflow.
         if (classification?.First(OperationOptionEffect.BackgroundWork) is { } background)
         {
-            return new OperationPolicyDecision(
-                OperationPolicyDecisionKind.Denied,
+            return OperationPolicyDecision.Deny(
                 "operation-option-isolation-unsupported",
                 operation,
-                OptionRule(background));
+                OperationPolicyDenial.Exclusive(background.Field));
         }
 
         var ui = classification?.First(OperationOptionEffect.InteractiveUi);
         var risks = ui is null ? row.Risks : row.Risks | OperationRisks.InteractiveUi;
         var duration = ui is null ? row.Duration : OperationDurationClass.Interactive;
 
-        // 4 and 5. Per-operation overrides.
+        // 4 and 5. Per-operation overrides. A deny override is a static decision,
+        // so it names no request option.
         if (_overrides.TryGetValue(operationId, out var overrideAllows))
         {
             return overrideAllows
                 ? Allowed(operation, WithOption(ui, OverrideRule), duration)
-                : Denied(operation, OverrideRule);
+                : Denied(operation, OperationPolicyDenial.Override());
         }
 
-        // 6. Flag denials of the effective risks.
+        // 6. Flag denials of the effective risks. The option is named only when
+        // the reviewed row alone had no flag set to deny.
         var deniedFlags = risks & _deniedFlags;
         if (deniedFlags != OperationRisks.None)
         {
             var first = OperationRiskVocabulary.Members.First(risk => deniedFlags.HasFlag(risk));
-            var flagRule = FlagRulePrefix + OperationRiskVocabulary.GetName(first);
             return (row.Risks & _deniedFlags) == OperationRisks.None
-                ? OptionDenied(operation, ui!, flagRule)
-                : Denied(operation, flagRule);
+                ? OptionDenied(operation, OperationPolicyDenial.Flag(first, ui!.Field))
+                : Denied(operation, OperationPolicyDenial.Flag(first));
         }
 
         // 7. Profile, widened by flags set to allow, over the effective risks.
-        var profileRule = ProfileRulePrefix + Profile.Name;
         if (Profile.Admits(risks, operation.Effect, _allowedFlags))
         {
-            return Allowed(operation, WithOption(ui, profileRule), duration);
+            return Allowed(operation, WithOption(ui, ProfileRulePrefix + Profile.Name), duration);
         }
 
         return ui is not null && Profile.Admits(row.Risks, operation.Effect, _allowedFlags)
-            ? OptionDenied(operation, ui, profileRule)
-            : Denied(operation, profileRule);
+            ? OptionDenied(operation, OperationPolicyDenial.Profile(Profile.Name, ui.Field))
+            : Denied(operation, OperationPolicyDenial.Profile(Profile.Name));
     }
 
     private static string OptionRule(OperationConditionalOption option) =>
@@ -365,9 +376,8 @@ internal sealed class OperationPolicy
 
     private static OperationPolicyDecision OptionDenied(
         OperationDescriptor operation,
-        OperationConditionalOption option,
-        string rule) =>
-        new(OperationPolicyDecisionKind.Denied, "operation-option-denied", operation, WithOption(option, rule));
+        OperationPolicyDenial denial) =>
+        OperationPolicyDecision.Deny("operation-option-denied", operation, denial);
 
     private static OperationPolicyDecision Allowed(
         OperationDescriptor operation,
@@ -375,8 +385,8 @@ internal sealed class OperationPolicy
         OperationDurationClass duration) =>
         new(OperationPolicyDecisionKind.Allowed, "operation-policy-allowed", operation, rule, duration);
 
-    private static OperationPolicyDecision Denied(OperationDescriptor operation, string rule) =>
-        new(OperationPolicyDecisionKind.Denied, "operation-policy-denied", operation, rule);
+    private static OperationPolicyDecision Denied(OperationDescriptor operation, OperationPolicyDenial denial) =>
+        OperationPolicyDecision.Deny("operation-policy-denied", operation, denial);
 
     private static OperationDescriptor WithEffectiveScope(
         OperationDescriptor operation,
