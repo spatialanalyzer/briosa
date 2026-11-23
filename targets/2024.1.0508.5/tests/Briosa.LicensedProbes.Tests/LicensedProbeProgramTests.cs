@@ -121,6 +121,45 @@ public sealed class LicensedProbeProgramTests : IDisposable
     }
 
     [Fact]
+    public async Task ALicensePromptRaisedWhileTheTransportIsDisposedTakesPrecedenceInTheRecord()
+    {
+        // The session stops with an unknown outcome; while its transport is being disposed the
+        // operator signals a license prompt. The record names the license prompt and keeps the
+        // reason it took precedence over.
+        var console = new FakeOperator();
+        var folder = Path.Combine(_root, "license");
+        using var output = new StringWriter();
+        var exit = await LicensedProbeProgram.RunAsync(
+            ["--phase", "public-api", ProbeTarget.ConfirmFlag, "--fixtures", Manifest(), "--output-directory", folder, ProbeOptions.RestoreModeOption, "manual"],
+            output, new StringWriter(),
+            options => new FakeTransport(options.Phase, static step => step.Id == "p02-value"
+                ? ProbeOutcome.Unknown("grpc:DeadlineExceeded", "untyped-rpc-failure")
+                : TestSupport.Succeeding(step)) { OnDispose = () => console.LicenseAbortRaised = true },
+            (_, _) => console, new FixedClock(), CancellationToken.None);
+
+        Assert.Equal(1, exit);
+        using var record = JsonDocument.Parse(await File.ReadAllTextAsync(Directory.EnumerateFiles(folder, "*.json").Single()));
+        Assert.Equal(ProbeSession.LicensePromptStop, record.RootElement.GetProperty("stop_reason").GetString());
+        Assert.Equal(ProbeSession.UnknownOutcomeStop, record.RootElement.GetProperty("superseded_stop_reason").GetString());
+        Assert.Contains("stop_reason=" + ProbeSession.LicensePromptStop, output.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task AnOutputDirectoryThatIsAFileIsRefusedWithoutItsPath()
+    {
+        var file = Path.Combine(_root, "a-file");
+        await File.WriteAllTextAsync(file, "x");
+
+        var (exit, _, error) = await Run(Forbidden, "--phase", "public-api", ProbeTarget.ConfirmFlag, "--fixtures", Manifest(),
+            "--output-directory", file, ProbeOptions.RestoreModeOption, "manual");
+        var (dryExit, _, dryError) = await Run(Forbidden, "--phase", "worker", "--dry-run", "--output-directory", Path.Combine(file, "plan"));
+
+        Assert.Equal((2, 2), (exit, dryExit));
+        Assert.DoesNotContain(_root, error + dryError, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(RecordFiles.WriteFailure, dryError, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task AStoppedSessionExitsNonZero()
     {
         var (exit, console, _) = await Run(options => new FakeTransport(options.Phase, step => step.Id == "p02-value"

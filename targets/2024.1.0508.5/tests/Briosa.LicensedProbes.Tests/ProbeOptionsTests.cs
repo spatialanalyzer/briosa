@@ -72,6 +72,17 @@ public sealed class ProbeOptionsTests
     }
 
     [Theory]
+    [InlineData("424203")]
+    [InlineData("0424203")]
+    public void ARejectedProbeNumberIsNeverEchoed(string number)
+    {
+        ArgumentNullException.ThrowIfNull(number);
+        var exception = Assert.Throws<ProbeUsageException>(() => ProbeOptions.Parse(["--phase", "public-api", "--dry-run", "--probe", number]));
+
+        Assert.DoesNotContain(number.TrimStart('0'), exception.Message, StringComparison.Ordinal);
+    }
+
+    [Theory]
     [InlineData("SENTINEL-PC")]
     [InlineData("alice_smith")]
     [InlineData("probe-s3-2026-sa-titlebar")]

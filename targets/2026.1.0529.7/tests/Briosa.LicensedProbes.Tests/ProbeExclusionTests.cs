@@ -62,7 +62,7 @@ public sealed class ProbeExclusionTests
         var exception = Assert.Throws<ProbeUsageException>(() =>
             ProbeOptions.Parse(["--phase", "public-api", "--dry-run", "--exclude-probe", probe]));
 
-        Assert.Contains("not a probe in the approved list", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("a probe that is not in the approved list", exception.Message, StringComparison.Ordinal);
     }
 
     [Theory]
@@ -356,14 +356,14 @@ public sealed class ProbeExclusionTests
     [InlineData("worker", "2", "--exclude-probe 17")]
     [InlineData("public-api", "17", "no steps in the public-api phase")]
     [InlineData("worker", "12", "no steps in the worker phase")]
-    [InlineData("public-api", "38", "not a probe in the approved list")]
+    [InlineData("public-api", "38", "a probe that is not in the approved list")]
     [InlineData("public-api", "26", "names an opt-in probe")]
     [InlineData("worker", "28", "names an opt-in probe")]
-    [InlineData("public-api", "7", "names a retired probe")]
-    [InlineData("public-api", "11", "names a retired probe")]
-    [InlineData("worker", "14", "names a retired probe")]
-    [InlineData("public-api", "15", "names a retired probe")]
-    [InlineData("public-api", "22", "names a retired probe")]
+    [InlineData("public-api", "7", "named a retired probe")]
+    [InlineData("public-api", "11", "named a retired probe")]
+    [InlineData("worker", "14", "named a retired probe")]
+    [InlineData("public-api", "15", "named a retired probe")]
+    [InlineData("public-api", "22", "named a retired probe")]
     public async Task ARefusedExclusionExitsWithAUsageErrorBeforeAnyTransport(string phase, string probe, string message)
     {
         var (exit, output, error) = await Run("--phase", phase, "--dry-run", "--exclude-probe", probe);

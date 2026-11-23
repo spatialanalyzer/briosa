@@ -21,6 +21,7 @@ internal sealed class PublicApiTransport : IProbeTransport
     private readonly TimeSpan _stepTimeout;
     private readonly TimeSpan _operatorTimeout;
     private readonly IProcessCensus _census;
+    private LicenseAbortSignal _licenseAbort = LicenseAbortSignal.Never;
     private bool _abandoned;
 
     public PublicApiTransport(Uri address, TimeSpan stepTimeout, TimeSpan operatorTimeout, IProcessCensus census)
@@ -40,9 +41,11 @@ internal sealed class PublicApiTransport : IProbeTransport
 
     public ProbePhase Phase => ProbePhase.PublicApi;
 
-    public async Task<SessionIdentity> StartAsync(ProbePlan plan, CancellationToken cancellationToken)
+    public async Task<SessionIdentity> StartAsync(ProbePlan plan, LicenseAbortSignal licenseAbort, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(plan);
+        ArgumentNullException.ThrowIfNull(licenseAbort);
+        _licenseAbort = licenseAbort;
 
         // Exactly one SA and one Briosa worker: the server's worker is the only SDK client.
         if (_census.Count(ProcessCensus.SpatialAnalyzer) != 1)
@@ -56,8 +59,11 @@ internal sealed class PublicApiTransport : IProbeTransport
         Api.ListCapabilitiesResponse capabilities;
         try
         {
+            // Each read-only discovery call is sent only while no license prompt is signalled.
+            RefuseIfAbandoning();
             info = await discovery.GetServerInfoAsync(new Api.GetServerInfoRequest(), deadline: deadline,
                 cancellationToken: cancellationToken).ResponseAsync.ConfigureAwait(false);
+            RefuseIfAbandoning();
             capabilities = await discovery.ListCapabilitiesAsync(new Api.ListCapabilitiesRequest(), deadline: deadline,
                 cancellationToken: cancellationToken).ResponseAsync.ConfigureAwait(false);
         }
@@ -88,7 +94,7 @@ internal sealed class PublicApiTransport : IProbeTransport
     public async Task<ProbeOutcome> ExecuteAsync(ProbeStep step, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(step);
-        if (_abandoned)
+        if (Abandoning())
         {
             return ProbeOutcome.Refused(ProbeSession.LicensePromptStop);
         }
@@ -107,6 +113,22 @@ internal sealed class PublicApiTransport : IProbeTransport
 
     // The public path sends nothing on disposal; after a license prompt it sends nothing at all.
     public void Abandon() => _abandoned = true;
+
+    private bool Abandoning()
+    {
+        if (!_abandoned && _licenseAbort.Raised)
+        {
+            _abandoned = true;
+        }
+
+        return _abandoned;
+    }
+
+    private void RefuseIfAbandoning()
+    {
+        if (Abandoning())
+            throw new ProbeRefusedException(ProbeSession.LicensePromptStop);
+    }
 
     public ValueTask DisposeAsync()
     {

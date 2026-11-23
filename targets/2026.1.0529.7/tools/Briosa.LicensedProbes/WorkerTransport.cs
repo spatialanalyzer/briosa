@@ -18,7 +18,9 @@ namespace Briosa.LicensedProbes;
 /// before any probe. The harness sends each command once, never retries, and
 /// terminates the worker after an unknown outcome instead of replaying. Like the
 /// server supervisor, it checks for a SpatialAnalyzer modal dialog when a step's
-/// deadline elapses (#313), with the server's own detector.
+/// deadline elapses (#313), with the server's own detector. Once the operator's
+/// license-abort signal is raised (#402) it launches, sends and terminates nothing more,
+/// not even a graceful stop; disposal then only releases the harness's own handles.
 /// </summary>
 internal sealed class WorkerTransport : IProbeTransport
 {
@@ -34,7 +36,7 @@ internal sealed class WorkerTransport : IProbeTransport
     private readonly TimeSpan _stepTimeout;
     private readonly IProcessCensus _census;
     private readonly Func<bool>? _modalDialogOpen;
-    private readonly Func<bool>? _licenseAbortRaised;
+    private LicenseAbortSignal _licenseAbort = LicenseAbortSignal.Never;
     private NamedPipeServerStream? _pipe;
     private CountingStream? _counter;
     private WorkerControlChannel? _channel;
@@ -42,8 +44,7 @@ internal sealed class WorkerTransport : IProbeTransport
     private bool _faulted;
     private bool _abandoned;
 
-    public WorkerTransport(string workerPath, TimeSpan stepTimeout, IProcessCensus census, Func<bool>? modalDialogOpen = null,
-        Func<bool>? licenseAbortRaised = null)
+    public WorkerTransport(string workerPath, TimeSpan stepTimeout, IProcessCensus census, Func<bool>? modalDialogOpen = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(workerPath);
         ArgumentNullException.ThrowIfNull(census);
@@ -51,7 +52,6 @@ internal sealed class WorkerTransport : IProbeTransport
         _stepTimeout = stepTimeout;
         _census = census;
         _modalDialogOpen = modalDialogOpen;
-        _licenseAbortRaised = licenseAbortRaised;
     }
 
     /// <summary>A step timeout checks for an open SpatialAnalyzer dialog.</summary>
@@ -59,9 +59,11 @@ internal sealed class WorkerTransport : IProbeTransport
 
     public ProbePhase Phase => ProbePhase.Worker;
 
-    public async Task<SessionIdentity> StartAsync(ProbePlan plan, CancellationToken cancellationToken)
+    public async Task<SessionIdentity> StartAsync(ProbePlan plan, LicenseAbortSignal licenseAbort, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(plan);
+        ArgumentNullException.ThrowIfNull(licenseAbort);
+        _licenseAbort = licenseAbort;
 
         // One clean SA and no other Briosa or SDK client: this worker becomes the only one.
         if (_census.Count(ProcessCensus.SpatialAnalyzer) != 1)
@@ -87,6 +89,10 @@ internal sealed class WorkerTransport : IProbeTransport
         startInfo.ArgumentList.Add(pipeName);
         startInfo.ArgumentList.Add("--parent-process-id");
         startInfo.ArgumentList.Add(Environment.ProcessId.ToString(CultureInfo.InvariantCulture));
+
+        // The last check before the worker is launched.
+        if (Abandoning())
+            throw new ProbeRefusedException(ProbeSession.LicensePromptStop);
         _process = Process.Start(startInfo) ?? throw new ProbeRefusedException("worker-start-failed");
 
         try
@@ -130,6 +136,12 @@ internal sealed class WorkerTransport : IProbeTransport
                 ActivatedSdkEvidence = "runtime-verified"
             };
         }
+        catch (LicenseAbortedException)
+        {
+            // Raised during startup: Connect or VerifyExecution was never sent, and the launched
+            // worker is left as it is.
+            throw new ProbeRefusedException(ProbeSession.LicensePromptStop);
+        }
         catch (Exception exception) when (exception is OperationCanceledException or IOException or InvalidDataException or TimeoutException)
         {
             _faulted = true;
@@ -140,7 +152,7 @@ internal sealed class WorkerTransport : IProbeTransport
     public async Task<ProbeOutcome> ExecuteAsync(ProbeStep step, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(step);
-        if (_abandoned)
+        if (Abandoning())
         {
             return ProbeOutcome.Refused(ProbeSession.LicensePromptStop);
         }
@@ -174,6 +186,11 @@ internal sealed class WorkerTransport : IProbeTransport
 
             return outcome;
         }
+        catch (LicenseAbortedException)
+        {
+            // Raised just before the send: the step was never sent.
+            return ProbeOutcome.Refused(ProbeSession.LicensePromptStop);
+        }
         catch (WorkerMessageRejectedException)
         {
             // Encoding failed before any frame byte was written: definitely not started.
@@ -197,16 +214,29 @@ internal sealed class WorkerTransport : IProbeTransport
     public void Abandon() => _abandoned = true;
 
     // Whether disposal would send the worker a graceful stop: never after a license prompt.
-    internal bool WouldSendStopOnDispose => !_abandoned && _process is not null && !_process.HasExited && !_faulted && _channel is not null;
+    internal bool WouldSendStopOnDispose => !Abandoning() && _process is not null && !_process.HasExited && !_faulted && _channel is not null;
+
+    // Latches the operator's license-abort signal into this transport: once true, nothing more
+    // is launched, sent or terminated.
+    private bool Abandoning()
+    {
+        if (!_abandoned && _licenseAbort.Raised)
+        {
+            _abandoned = true;
+        }
+
+        return _abandoned;
+    }
 
     [SuppressMessage("Design", "CA1031:Do not catch general exception types",
         Justification = "Best-effort graceful stop; termination below is the bounded fallback.")]
     public async ValueTask DisposeAsync()
     {
-        if (_abandoned)
+        if (Abandoning())
         {
             // After a license prompt nothing is sent and nothing is terminated: the harness only
-            // releases its own handles, and the worker is left for postflight (F11).
+            // releases its own handles. The worker's own parent monitor ends it once the harness
+            // has exited, so postflight observes what is actually left.
             await ReleaseAsync().ConfigureAwait(false);
             return;
         }
@@ -251,6 +281,9 @@ internal sealed class WorkerTransport : IProbeTransport
         TimeSpan timeout,
         CancellationToken cancellationToken)
     {
+        // The last check before every frame the harness sends.
+        if (Abandoning())
+            throw new LicenseAbortedException();
         using var bounded = Linked(timeout, cancellationToken);
         await _channel!.SendAsync(request, bounded.Token).ConfigureAwait(false);
         var response = await _channel.ReceiveAsync(bounded.Token).ConfigureAwait(false);
@@ -273,15 +306,6 @@ internal sealed class WorkerTransport : IProbeTransport
     private async Task FaultAsync()
     {
         _faulted = true;
-
-        // A license prompt signalled while the step ran: the worker is left as it is, and
-        // nothing more is sent to it or done to it.
-        if (_licenseAbortRaised?.Invoke() == true)
-        {
-            _abandoned = true;
-            return;
-        }
-
         await TerminateAsync().ConfigureAwait(false);
     }
 
@@ -289,7 +313,9 @@ internal sealed class WorkerTransport : IProbeTransport
     // terminated rather than reused. SDK and SA state then need operator review.
     private async Task TerminateAsync()
     {
-        if (_process is null)
+        // The last check before the fallback termination: after a license prompt the worker is
+        // left as it is.
+        if (_process is null || Abandoning())
         {
             return;
         }
@@ -340,6 +366,10 @@ internal sealed class WorkerTransport : IProbeTransport
         source.CancelAfter(timeout);
         return source;
     }
+
+    [SuppressMessage("Design", "CA1032:Implement standard exception constructors",
+        Justification = "Unwinds a send that the license-abort signal refused; never leaves the transport.")]
+    private sealed class LicenseAbortedException() : Exception("A license prompt was signalled.");
 
     private static class NativeMethods
     {

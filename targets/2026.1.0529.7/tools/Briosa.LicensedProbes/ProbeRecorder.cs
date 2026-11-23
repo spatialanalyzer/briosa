@@ -71,6 +71,7 @@ internal static class ProbeRecorder
             json.WriteBoolean("completed", record.Completed);
             WriteNullable(json, "stopped_at", record.StoppedAt);
             WriteNullable(json, "stop_reason", record.StopReason);
+            WriteNullable(json, "superseded_stop_reason", record.SupersededStopReason);
             json.WriteBoolean("ended_in_planned_stall", record.EndedInPlannedStall);
             WriteExclusions(json, record);
             WriteSelection(json, record);
@@ -433,6 +434,12 @@ internal static class ProbeRecorder
         if (record.StopReason is not null)
         {
             text.Append(CultureInfo.InvariantCulture, $"\nThe session stopped{(record.StoppedAt is null ? " before any step" : $" at `{record.StoppedAt}`")} (`{record.StopReason}`). ");
+            if (record.SupersededStopReason is { } superseded)
+            {
+                text.Append(CultureInfo.InvariantCulture,
+                    $"A license prompt was signalled while `{superseded}` was being handled, and takes precedence: from the moment the harness saw it, it sent, started and terminated nothing more. ");
+            }
+
             text.Append(string.Equals(record.StopReason, ProbeSession.UnknownOutcomeStop, StringComparison.Ordinal)
                 ? "Completion of that step is unknown. It was not replayed and later steps were not run; follow the runbook's recovery before any further SDK use.\n"
                 : "Later steps were not run and nothing was replayed.\n");

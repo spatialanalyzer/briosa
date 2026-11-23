@@ -25,10 +25,13 @@ internal enum StartupCondition
 /// exact SpatialAnalyzer target are read, every JSON value's kind is checked, and only event
 /// numbers, closed-vocabulary phases, RPC names and statuses, listed diagnostic codes, integers
 /// and timestamps are kept. A line that is not such a record, including one whose known field
-/// has the wrong JSON kind, is counted, never thrown on. An attempt is labelled with the
-/// measured condition only when the log proves it was the server's first start. The log names
-/// no request, so lifecycle requests are followed as outstanding until their exit: an attempt
-/// that overlapped any other request has neither its RPC timing nor its phases reported.
+/// has the wrong JSON kind, is counted, never thrown on. The log is read in the order the
+/// server wrote it, and every pairing is by position in that order, never by timestamp. The log
+/// names no request, so lifecycle requests are followed as outstanding until their exit; an
+/// unreadable line that could be a lifecycle record stays in the order as a boundary. An attempt
+/// that overlapped another request, or that a boundary makes uncertain, has neither its RPC
+/// timing nor its phases reported. An attempt is labelled with the measured condition only when
+/// the log proves it was the server's first start.
 /// </summary>
 internal static class StartupTiming
 {
@@ -77,12 +80,31 @@ internal static class StartupTiming
     internal enum LineKind
     {
         Event,
+
+        // Unusable, and provably not a record the analysis reads (another event number).
         Unreadable,
+
+        // Unusable, and possibly a record the analysis reads: it stays in the order as a boundary.
+        Boundary,
+
         OtherTarget
     }
 
+    // The event numbers the analysis reads.
+    private static readonly HashSet<int> TimingEvents = [1001, 1203, 1302, 1303, 1304, 1305];
+
     /// <summary>One log record the analysis uses.</summary>
     internal sealed record LogEvent(DateTimeOffset Timestamp, int EventId, string Instance, IReadOnlyDictionary<string, string> Fields);
+
+    /// <summary>One line in the order the server wrote it.</summary>
+    internal sealed record LogLine(LineKind Kind, LogEvent? Event)
+    {
+        // For a boundary: its event number when that much could be read; null when even that could not.
+        public int? BoundaryEventId { get; init; }
+
+        public static LogLine Unusable(int? eventId) =>
+            eventId is { } id && !TimingEvents.Contains(id) ? new(LineKind.Unreadable, null) : new(LineKind.Boundary, null) { BoundaryEventId = eventId };
+    }
 
     internal sealed record PhaseTiming(string Phase, long ElapsedMilliseconds);
 
@@ -108,29 +130,37 @@ internal static class StartupTiming
     }
 
     /// <summary>Parses one JSON log line, never throwing.</summary>
-    internal static (LineKind Kind, LogEvent? Event) ParseLine(string line)
+    internal static LogLine ParseLine(string line)
     {
         ArgumentNullException.ThrowIfNull(line);
+        int? number = null;
         try
         {
             using var document = JsonDocument.Parse(line);
             var root = document.RootElement;
+            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("Properties", out var readable) &&
+                readable.ValueKind == JsonValueKind.Object && readable.TryGetProperty("EventId", out var readableId) &&
+                readableId.ValueKind == JsonValueKind.Object && readableId.TryGetProperty("Id", out var readableNumber) &&
+                readableNumber.ValueKind == JsonValueKind.Number && readableNumber.TryGetInt32(out var parsedNumber))
+            {
+                number = parsedNumber;
+            }
+
             if (root.ValueKind != JsonValueKind.Object ||
                 !root.TryGetProperty("Timestamp", out var timestamp) || timestamp.ValueKind != JsonValueKind.String ||
                 !DateTimeOffset.TryParse(timestamp.GetString(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var at) ||
                 !root.TryGetProperty("Properties", out var properties) || properties.ValueKind != JsonValueKind.Object ||
-                !properties.TryGetProperty("EventId", out var eventId) || eventId.ValueKind != JsonValueKind.Object ||
-                !eventId.TryGetProperty("Id", out var id) || id.ValueKind != JsonValueKind.Number || !id.TryGetInt32(out var number) ||
+                number is null ||
                 !properties.TryGetProperty("ServerInstanceId", out var instance) || instance.ValueKind != JsonValueKind.String ||
                 instance.GetString() is not { Length: 32 } instanceId || !instanceId.All(char.IsAsciiHexDigitLower) ||
                 !properties.TryGetProperty("SpatialAnalyzerTarget", out var target) || target.ValueKind != JsonValueKind.String)
             {
-                return (LineKind.Unreadable, null);
+                return LogLine.Unusable(number);
             }
 
             if (!string.Equals(target.GetString(), ProbeTarget.SpatialAnalyzerTarget, StringComparison.Ordinal))
             {
-                return (LineKind.OtherTarget, null);
+                return new LogLine(LineKind.OtherTarget, null);
             }
 
             // A known field of the wrong kind makes the whole line unusable: it is counted, and
@@ -145,7 +175,7 @@ internal static class StartupTiming
 
                 if (value.ValueKind != JsonValueKind.String)
                 {
-                    return (LineKind.Unreadable, null);
+                    return LogLine.Unusable(number);
                 }
 
                 if (Accept(name, value.GetString()!) is { } accepted)
@@ -163,17 +193,17 @@ internal static class StartupTiming
 
                 if (value.ValueKind != JsonValueKind.Number || !value.TryGetInt64(out var integer))
                 {
-                    return (LineKind.Unreadable, null);
+                    return LogLine.Unusable(number);
                 }
 
                 fields[name] = integer.ToString(CultureInfo.InvariantCulture);
             }
 
-            return (LineKind.Event, new LogEvent(at.ToUniversalTime(), number, instanceId, fields));
+            return new LogLine(LineKind.Event, new LogEvent(at.ToUniversalTime(), number.Value, instanceId, fields));
         }
         catch (Exception exception) when (exception is JsonException or InvalidOperationException or FormatException or ArgumentException)
         {
-            return (LineKind.Unreadable, null);
+            return LogLine.Unusable(number);
         }
     }
 
@@ -186,32 +216,55 @@ internal static class StartupTiming
         _ => null
     };
 
-    /// <summary>One lifecycle request as the log shows it: its arrival, the exit paired with it, and whether it overlapped another.</summary>
-    private sealed class Request(LogEvent arrival, string? rpc)
+    /// <summary>
+    /// One lifecycle request as the log shows it: the position of its arrival, the exit paired
+    /// with it, and whether it overlapped another request or a boundary.
+    /// </summary>
+    private sealed class Request(int arrival, string? rpc)
     {
-        public LogEvent Arrival { get; } = arrival;
+        public int Arrival { get; } = arrival;
 
-        // Null when the arrival named no listed RPC: such a request never exits, so it overlaps
-        // everything after it.
+        // Null when the arrival named no listed RPC, or was itself unreadable: such a request
+        // never exits, so it overlaps everything after it.
         public string? Rpc { get; } = rpc;
 
-        public LogEvent? Exit { get; set; }
+        public int? Exit { get; set; }
 
         public bool Overlapped { get; set; }
     }
 
-    // Walks the log in order, keeping every request outstanding from its arrival to the first
+    // Walks the stream in order, keeping every request outstanding from its arrival to the first
     // later exit of the same RPC. A request that arrives while another is outstanding overlaps
-    // it, and both are marked: the log cannot say which exit and which phases are whose.
-    private static List<Request> Requests(IReadOnlyList<LogEvent> ordered)
+    // it, and both are marked: the log cannot say which exit and which phases are whose. A
+    // boundary marks every outstanding request, because it may be an exit or a phase of any of
+    // them; a boundary that may be an arrival also opens a request that never exits.
+    private static List<Request> Requests(List<LogLine> stream)
     {
         var requests = new List<Request>();
         var outstanding = new List<Request>();
-        foreach (var item in ordered)
+        for (var position = 0; position < stream.Count; position++)
         {
+            var line = stream[position];
+            if (line.Kind == LineKind.Boundary)
+            {
+                if (line.BoundaryEventId == 1001)
+                {
+                    continue;
+                }
+
+                outstanding.ForEach(static other => other.Overlapped = true);
+                if (line.BoundaryEventId is null or 1303)
+                {
+                    outstanding.Add(new Request(position, null) { Overlapped = true });
+                }
+
+                continue;
+            }
+
+            var item = line.Event!;
             if (item.EventId == 1303)
             {
-                var request = new Request(item, Field(item, "Rpc"));
+                var request = new Request(position, Field(item, "Rpc"));
                 if (outstanding.Count > 0)
                 {
                     request.Overlapped = true;
@@ -224,7 +277,7 @@ internal static class StartupTiming
             else if (item.EventId is 1302 or 1304 or 1305 && Field(item, "Rpc") is { } rpc &&
                 outstanding.Find(request => request.Rpc == rpc) is { } open)
             {
-                open.Exit = item;
+                open.Exit = position;
                 outstanding.Remove(open);
             }
         }
@@ -233,33 +286,36 @@ internal static class StartupTiming
     }
 
     /// <summary>
-    /// Builds the report from one server instance's events. Each StartSpatialAnalyzerSdk is an
-    /// attempt, in order. Its RPC timing and phases are reported only when no other lifecycle
-    /// request was outstanding at any time while it ran, and its phases only when they name one
-    /// worker generation; its Connect is the next ConnectToSpatialAnalyzer, likewise only when
-    /// nothing overlapped it.
+    /// Builds the report from one server instance's lines, in the order the server wrote them.
+    /// Each StartSpatialAnalyzerSdk is an attempt, in order. Its RPC timing and phases are
+    /// reported only when no other lifecycle request and no boundary was outstanding at any
+    /// position while it ran; its phases are the phase records strictly between its arrival and
+    /// its exit, and only when they name one worker generation; its Connect is the next
+    /// ConnectToSpatialAnalyzer, likewise only when nothing overlapped it.
     /// </summary>
-    internal static Report Analyze(StartupCondition condition, TimeSpan configuredStartupTimeout, IReadOnlyList<LogEvent> events,
+    internal static Report Analyze(StartupCondition condition, TimeSpan configuredStartupTimeout, IReadOnlyList<LogLine> lines,
         int unreadableLines, string? harnessRevision)
     {
-        ArgumentNullException.ThrowIfNull(events);
-        var ordered = events.OrderBy(static item => item.Timestamp).ToList();
-        var listeningEvent = ordered.FirstOrDefault(static item => item.EventId == 1001);
+        ArgumentNullException.ThrowIfNull(lines);
+        var stream = lines.Where(static line => line.Kind is LineKind.Event or LineKind.Boundary).ToList();
+        var listeningAt = stream.FindIndex(static line => line.Event?.EventId == 1001);
+        var listeningEvent = listeningAt >= 0 ? stream[listeningAt].Event : null;
         long? listening = listeningEvent is not null && Long(listeningEvent, "ElapsedMilliseconds") is { } ms ? ms : null;
 
-        var requests = Requests(ordered);
+        var requests = Requests(stream);
         var starts = requests.Where(static request => request.Rpc == StartRpc).ToList();
         var attempts = new List<StartAttempt>();
         for (var index = 0; index < starts.Count; index++)
         {
             var request = starts[index];
             var arrival = request.Arrival;
-            var next = index + 1 < starts.Count ? starts[index + 1].Arrival.Timestamp : DateTimeOffset.MaxValue;
-            var exit = request.Overlapped ? null : request.Exit;
-            var phases = exit is null
+            var next = index + 1 < starts.Count ? starts[index + 1].Arrival : stream.Count;
+            int? exit = request.Overlapped ? null : request.Exit;
+            var phases = exit is not { } exitAt
                 ? []
-                : ordered
-                    .Where(item => item.EventId == 1203 && item.Timestamp >= arrival.Timestamp && item.Timestamp <= exit.Timestamp && Field(item, "Phase") is not null)
+                : stream.Skip(arrival + 1).Take(exitAt - arrival - 1)
+                    .Select(static line => line.Event!)
+                    .Where(static item => item.EventId == 1203 && Field(item, "Phase") is not null)
                     .Select(static item => (Phase: Field(item, "Phase")!, Elapsed: Long(item, "ElapsedMilliseconds"), Generation: Long(item, "Generation")))
                     .Where(static item => item.Elapsed is >= 0)
                     .ToList();
@@ -271,25 +327,24 @@ internal static class StartupTiming
             int? generation = correlation == Unambiguous && generations.Count == 1 ? (int?)generations[0] : null;
 
             // The measured condition needs proof that this is the server's very first start: the
-            // server's own listening record before it, nothing lifecycle-related earlier, and the
-            // first worker generation.
-            var first = index == 0 && correlation == Unambiguous && listeningEvent is not null &&
-                listeningEvent.Timestamp <= arrival.Timestamp && generation == 1 &&
-                !ordered.Any(item => item.Timestamp < arrival.Timestamp && item.EventId is 1203 or 1303 or 1304 or 1302 or 1305);
+            // server's own listening record before it, nothing lifecycle-related and no boundary
+            // earlier, and the first worker generation.
+            var first = index == 0 && correlation == Unambiguous && listeningAt >= 0 && listeningAt < arrival && generation == 1 &&
+                !stream.Take(arrival).Any(static line => line.Kind == LineKind.Boundary || line.Event!.EventId is 1203 or 1303 or 1304 or 1302 or 1305);
             var label = index == 0
                 ? first ? ConditionName(condition) : "first-attempt-unproven"
                 : correlation == Unambiguous ? "repeat" : "ambiguous";
 
             RpcTiming? connect = null;
-            if (exit is not null &&
-                requests.Find(item => item.Rpc == ConnectRpc && item.Arrival.Timestamp >= exit.Timestamp && item.Arrival.Timestamp < next) is
+            if (exit is { } startExit &&
+                requests.Find(item => item.Rpc == ConnectRpc && item.Arrival > startExit && item.Arrival < next) is
                     { Overlapped: false, Exit: { } connectExit })
             {
-                connect = Timing(connectExit);
+                connect = Timing(stream[connectExit].Event!);
             }
 
             var start = request.Overlapped ? new RpcTiming(WithheldExit, null, null, null) :
-                exit is null ? new RpcTiming(NoExitRecorded, null, null, null) : Timing(exit);
+                exit is not { } at ? new RpcTiming(NoExitRecorded, null, null, null) : Timing(stream[at].Event!);
             attempts.Add(new StartAttempt(index + 1, label, correlation, generation, start,
                 correlation == Unambiguous ? [.. phases.Select(static item => new PhaseTiming(item.Phase, item.Elapsed!.Value))] : [],
                 connect));
@@ -446,7 +501,7 @@ internal static class StartupTiming
         string logDirectory;
         string outputDirectory;
         string? revision;
-        List<LogEvent> events = [];
+        List<LogLine> lines = [];
         var unreadable = 0;
         var otherTarget = 0;
         try
@@ -489,9 +544,11 @@ internal static class StartupTiming
                 throw new ProbeUsageException("--harness-revision must be a 40-character lowercase commit SHA.");
             if (!Directory.Exists(logDirectory))
                 throw new ProbeUsageException("--server-log-directory does not exist.");
-            if (Directory.Exists(outputDirectory) && Directory.EnumerateFileSystemEntries(outputDirectory).Any())
+            if (File.Exists(outputDirectory) || (Directory.Exists(outputDirectory) && Directory.EnumerateFileSystemEntries(outputDirectory).Any()))
                 throw new ProbeUsageException("--output-directory must be new or empty; records are never overwritten.");
 
+            // Files in name order (the server's rolling names sort by date), and lines in the order
+            // the server wrote them: the analysis pairs records by this position, never by timestamp.
             foreach (var file in Directory.EnumerateFiles(logDirectory, "briosa-*.jsonl").Order(StringComparer.Ordinal))
             {
                 // The server may still hold the file open; read it shared.
@@ -504,14 +561,18 @@ internal static class StartupTiming
                         continue;
                     }
 
-                    var (kind, item) = ParseLine(line);
-                    switch (kind)
+                    var parsed = ParseLine(line);
+                    switch (parsed.Kind)
                     {
                         case LineKind.Event:
-                            events.Add(item!);
+                            lines.Add(parsed);
                             break;
                         case LineKind.OtherTarget:
                             otherTarget++;
+                            break;
+                        case LineKind.Boundary:
+                            lines.Add(parsed);
+                            unreadable++;
                             break;
                         default:
                             unreadable++;
@@ -523,7 +584,7 @@ internal static class StartupTiming
             if (otherTarget > 0)
                 throw new ProbeUsageException(string.Create(CultureInfo.InvariantCulture,
                     $"The log folder holds {otherTarget} records of another SpatialAnalyzer target; measure each target with its own harness and its own log folder."));
-            var instances = events.Select(static item => item.Instance).Distinct(StringComparer.Ordinal).Count();
+            var instances = lines.Where(static item => item.Event is not null).Select(static item => item.Event!.Instance).Distinct(StringComparer.Ordinal).Count();
             if (instances != 1)
                 throw new ProbeUsageException(string.Create(CultureInfo.InvariantCulture,
                     $"The log folder holds {instances} server instances; start each measured server with its own --Briosa:Logging:File:Directory."));
@@ -540,16 +601,11 @@ internal static class StartupTiming
             return 2;
         }
 
-        var report = Analyze(condition, startupTimeout, events, unreadable, revision);
-        Directory.CreateDirectory(outputDirectory);
+        var report = Analyze(condition, startupTimeout, lines, unreadable, revision);
         var stem = Path.Combine(outputDirectory, $"startup-timing-{ConditionName(condition)}-{ProbeTarget.SpatialAnalyzerTarget}");
-        foreach (var (path, content) in new[] { (stem + ".json", ToJson(report)), (stem + ".md", ToMarkdown(report)) })
+        if (!await RecordFiles.TryWriteNewAsync(error, (stem + ".json", ToJson(report)), (stem + ".md", ToMarkdown(report))).ConfigureAwait(false))
         {
-            var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write);
-            await using (stream.ConfigureAwait(false))
-            {
-                await stream.WriteAsync(new UTF8Encoding(false).GetBytes(content), CancellationToken.None).ConfigureAwait(false);
-            }
+            return 2;
         }
 
         var firstStart = report.Attempts.Count > 0 ? report.Attempts[0] : null;

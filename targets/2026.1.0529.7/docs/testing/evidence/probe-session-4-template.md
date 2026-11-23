@@ -11,38 +11,36 @@ a dialog. Write labels (`sdk-1`), counts, byte sizes, times, enum names, MP code
 listed diagnostic codes (`withheld` where the record says so) and the closed
 checkpoint words. Write "not run" with its reason for anything that did not run; a
 missing fixture is never a pass. Nothing here is transferred from the SA 2024.1.0508.5
-record.
+record. The SDK-ownership scenarios are not part of this session
+(https://github.com/spatialanalyzer/briosa/pull/428).
 
 ## Session
 
 | Field | Value |
 | --- | --- |
 | Date (UTC) and runs | |
-| Authorization | the maintainer's go-ahead for A1 to A9, each as given |
-| Agreed rules | the date the proposed rules and decisions D1 to D19 were agreed on #402, and any that differ from the runbook |
+| Authorization | the maintainer's go-ahead for A1 to A5, each as given |
+| Agreed rules | the date the proposed rules and decisions D1 to D14 were agreed on #402, and any that differ from the runbook |
+| Operating precondition | how the clean state established exclusive use of the server and SA for each run |
 | Merge SHA and harness revision | |
 | Package and SHA-256 | `briosa-0.10.1-probe-s4-sa-2026.1.0529.7-win-x64.zip`, |
 | Worker response budget | the bytes the records state (1 MiB since #411) |
 | Activated SDK and connected SA identity | runtime-verified version; operator attestation alias (`sa-title-bar`, `sa-about-dialog`, `sa-installed-programs`, `sdk-file-version` or `installer-record`) |
-| `InteractionMode` registry value | before and after the session, and whether D19 applied |
 | Operator | |
 
 ## Runs
 
 | Run | Started–ended (UTC) | Result | Record |
 | --- | --- | --- | --- |
-| A1 C1 fresh-install | | completed / stopped (reason) / not run (reason) | `ownership-release`, `startup-timing-fresh-install` |
+| A1 C1 fresh-install | | completed / stopped (reason) / not run (reason) | `startup-timing-fresh-install` |
 | A2 R1 public 34 to 37 | | | `probe-277-public-api` |
 | A3 R2 worker 34 | | | `probe-277-worker` |
-| A4 O1 worker-crash | | | `ownership-worker-crash` |
-| A5 O2 parent-death | | | `ownership-parent-death` |
-| A6 O3 watchdog-kill | | | `ownership-watchdog-kill` |
-| A7 C2 after-reboot | | | `ownership-release`, `startup-timing-after-reboot` |
-| A8 tutorials | | per program: exit code, as expected or not | |
-| A9 O4 competing-client (last) | | | `ownership-competing-client` |
+| A4 C2 after-reboot | | | `startup-timing-after-reboot` |
+| A5 tutorials | | per program: exit code, as expected or not | |
 
 Server settings per run: the admission arguments, the `InteractionMode` setting,
-the execution watchdog and the startup bound each server ran with.
+the execution watchdog and the startup bound each server ran with. For every rerun:
+the `--rerun-of` record it named and the probes it selected (F1).
 
 ## 1. Result sizes (probe 34)
 
@@ -76,45 +74,22 @@ Fixtures: the large point group's and the cloud's presence (counts below), or
 
 | Condition | Configuration | Label | Correlation | Endpoint listening (ms) | Start RPC (ms) | process-created | control-pipe-connected | ready-received | Connect RPC (ms) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| fresh-install (C1 attempt 1) | changed configuration (60 s) / stock | | | | | | | | |
-| warm (C1 attempt 2) | | repeat | | | | | | | |
-| after-reboot (C2 attempt 1) | | | | | | | | | |
-| warm (C2 attempt 2) | | repeat | | | | | | | |
+| fresh-install (C1 call 1) | changed configuration (60 s) / stock | | | | | | | | |
+| warm (C1 call 2) | | repeat | | | | | | | |
+| after-reboot (C2 call 1) | | | | | | | | | |
+| warm (C2 call 2) | | repeat | | | | | | | |
 
 - How each condition was established: uptime, minutes since logon, SA idle time,
   and that the package folder was new (C1) or had run before the restart (C2):
+- Each `Briosa.LifecycleClient --scenario external` call's result (started,
+  connected, stopped its own generation), or its typed failure:
 - An attempt labelled `first-attempt-unproven`, or not `unambiguous`, is not a cold
   measurement; say so. An `overlapping-requests` attempt has no RPC time
-  (`withheld-overlapping`) and no phases:
-- The published `start_sdk_milliseconds` and `startup_without_launch_milliseconds`
-  (from the `ownership-release` record):
+  (`withheld-overlapping`) and no phases. The record's `unreadable_lines`:
 - Against the stock 10 s default: the margin, or the phase that would have exceeded
   it. A raised bound is a changed configuration, not a stock start:
 
-## 3. SDK ownership
-
-For each scenario: the bindings (`bound.server`, `bound.worker`,
-`bound.sdk_generation`, and `bind-generation`'s result); the connections verified and
-refused; the SDK process's label, parent role (as the snapshot showed it) and
-attribution; the worker's descendant census; whether the SDK process outlived the
-worker, the server and SA, given only as last-seen and first-absent bounds (never an
-exit time); the snapshot counts; and the residual.
-
-| Scenario | Bindings | SDK process: parent, attribution | Worker descendants | Event outcome | SDK process after the event (last seen / first absent) | After SA closed (`observe`) | Residual and what the operator did |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| identity and normal release (C1, C2) | | | | | | | |
-| worker crash (O1) | | | | `await-faulted`: | | | |
-| parent death (O2) | | | | re-check: ; worker last seen / first absent: | | | |
-| watchdog kill (O3) | | | after the checkpoint, before dispatch: count, not approved, complete or not | stall sent or not run (reason); result: | dialog open: / dismissed: | | |
-| competing client (O4) | | second client's SDK process: | | gates: baseline / package / identity / attach / MP during / exit confirmed; first client MP before / during / after: | | | |
-
-- Snapshots: complete, incomplete and failed counts per run, and the final status:
-- Operator checkpoint answers (O3), as their closed words, and whether the license
-  signal was used (and in which run and step):
-- Every residual: unresolved, or stopped by the operator (label, time, the operator's
-  decision at the time):
-
-## 4. Corrected bindings (probes 35 to 37)
+## 3. Corrected bindings (probes 35 to 37)
 
 | Binding | Step | Fixture | Result |
 | --- | --- | --- | --- |
@@ -132,30 +107,35 @@ exit time); the snapshot counts; and the residual.
 Whether each callout showed the two harness lines (`lines-shown` or
 `lines-not-shown` at the checkpoints):
 
-## 5. Tutorials
+## 4. Tutorials
 
 Installed server version, client pins, and per program (.NET, TypeScript, Python, direct gRPC): the exit code and whether the output was as expected; for a failure, its error type and listed diagnostic code. Or "not run" with its reason (D14).
 
-## Postflight
+## Postflight and process observations
 
-Per run: the `Test-LicensedRunnerState.ps1 -Phase Postflight` line, the `observe`
-record's final snapshot status and residual, and what the operator stopped. No
-generic `stop-sdk` was run; after a refusal or mismatch, say which server and
-generation were left as they were and recorded as unresolved. A run whose last
-census was incomplete has not passed postflight. At the end: no Briosa or SDK
-process, or the list of unresolved residuals and of what was stopped.
+Per run: the `Test-LicensedRunnerState.ps1 -Phase Postflight` line, and the
+`process-observation` record's final snapshot status, `spatial_analyzer_alive` and
+residual (labels, with last-seen and first-absent bounds). No generic `stop-sdk` was
+run. A record whose last snapshot was incomplete has not passed postflight.
+
+- Whether a license prompt appeared, in which run and step, whether the signal or a
+  checkpoint answer raised it, and the record's `superseded_stop_reason`, if any:
+- Every residual: unresolved, or stopped by the maintainer's decision between runs
+  (label, time, decision):
+- At the end: no Briosa or SDK process, or the list of unresolved residuals and of
+  what was stopped:
 
 ## Not run
 
 Every planned item that did not run, with its reason (fixture missing, declined,
-stopped, abandoned, refused by admission, precondition refused, peer unverified,
-worker descendants not approved, license prompt), and every probe not rerun under F1
-because one of its steps had been sent.
+stopped, abandoned, refused by admission, refused by the rerun rule, license
+prompt), and every probe not rerun under F1 because one of its steps had been sent
+or a shared step's completion was unknown.
 
 ## Follow-up
 
 - #245:
-- #252:
+- #252: postflight observations only; the ownership scenarios are in https://github.com/spatialanalyzer/briosa/pull/428.
 - #371:
 - #402:
 

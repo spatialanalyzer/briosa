@@ -27,7 +27,10 @@ internal static partial class ExternalValues
     public static string? DiagnosticCode(string? code) =>
         code is null ? null : Codes.Value.Contains(code) ? code : Withheld;
 
-    /// <summary>A release version such as <c>0.10.1-probe-s4</c>, or <see cref="Withheld"/>.</summary>
+    /// <summary>
+    /// A release version (<c>0.10.1</c>) or a reviewed probe build (<c>0.10.1-probe-s4</c>), or
+    /// <see cref="Withheld"/>: any other suffix could carry a name.
+    /// </summary>
     public static string? Version(string? version) =>
         version is null ? null : VersionShape().IsMatch(version) ? version : Withheld;
 
@@ -43,7 +46,7 @@ internal static partial class ExternalValues
     public static string FieldName(string? name) =>
         name is not null && FieldShape().IsMatch(name) ? name : Withheld;
 
-    [GeneratedRegex("^[0-9]{1,4}\\.[0-9]{1,4}\\.[0-9]{1,6}(-[0-9A-Za-z][0-9A-Za-z.-]{0,39})?$", RegexOptions.CultureInvariant)]
+    [GeneratedRegex("^[0-9]{1,4}\\.[0-9]{1,4}\\.[0-9]{1,6}(-probe-s[1-9][0-9]?)?$", RegexOptions.CultureInvariant)]
     private static partial Regex VersionShape();
 
     [GeneratedRegex("^[a-z][a-z0-9_]{0,63}(\\.[a-z][a-z0-9_]{0,63}){0,3}$", RegexOptions.CultureInvariant)]

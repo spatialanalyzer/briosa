@@ -184,7 +184,7 @@ public sealed class OperatorCheckpointTests : IDisposable
     {
         using var output = new StringWriter();
         var console = NewConsole(output, TimeSpan.FromSeconds(60));
-        Assert.False(console.LicenseAbortRaised);
+        Assert.False(console.LicenseAbort.Raised);
         Assert.Contains(FileOperatorConsole.LicenseAbortFileName, output.ToString(), StringComparison.Ordinal);
 
         var pending = console.CheckpointAsync(AnyStep(), OperatorCheckpoint.After, CancellationToken.None);
@@ -193,7 +193,11 @@ public sealed class OperatorCheckpointTests : IDisposable
         // Only the signal's existence is read; its content never reaches a record.
         await File.WriteAllTextAsync(Path.Combine(_root, FileOperatorConsole.LicenseAbortFileName), TestSupport.Sentinel);
         Assert.Equal(OperatorObservationText.LicensePromptAbort, await pending);
-        Assert.True(console.LicenseAbortRaised);
+        Assert.True(console.LicenseAbort.Raised);
+
+        // Latched: removing the file does not lower it again.
+        File.Delete(Path.Combine(_root, FileOperatorConsole.LicenseAbortFileName));
+        Assert.True(console.LicenseAbort.Raised);
         Assert.DoesNotContain(TestSupport.Sentinel, output.ToString(), StringComparison.Ordinal);
         Assert.Equal(Path.Combine("out", FileOperatorConsole.DirectoryName, FileOperatorConsole.LicenseAbortFileName),
             FileOperatorConsole.LicenseAbortPath("out"));

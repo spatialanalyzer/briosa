@@ -525,13 +525,156 @@ public sealed class SessionFourProbeTests
         Assert.DoesNotContain(record.Steps.SkipWhile(static step => step.Step.Id != "p34-list-500").Skip(1),
             static step => step.Outcome is { } outcome && outcome.Kind != ProbeOutcomeKind.RefusedByHarness);
 
-        // Raised before the first step: nothing is sent at all.
+        // Raised before the run: the transport is never even started.
         var early = new FakeOperator { LicenseAbortRaised = true };
         var untouched = new FakeTransport(plan.Phase, TestSupport.Succeeding);
         var refused = await ProbeSession.RunAsync(plan, untouched, Clock, new SessionIdentity(), early, CancellationToken.None);
+        Assert.False(untouched.Started);
         Assert.Empty(untouched.Executed);
         Assert.True(untouched.Abandoned);
         Assert.Equal(ProbeSession.LicensePromptStop, refused.StopReason);
+
+        // The transport is given the session's one signal.
+        Assert.Same(console.LicenseAbort, transport.LicenseAbort);
+    }
+
+    [Fact]
+    public void ALicensePromptTakesPrecedenceOverTheStopItInterruptedAndIsLatched()
+    {
+        var plan = Select(ProbePhase.Worker, FullManifest(), 34);
+        var record = new ProbeSessionRecord(plan.Phase, false, false, Clock.GetUtcNow(), Clock.GetUtcNow(), SessionIdentity.None, [],
+            "p34-list-100", ProbeSession.UnknownOutcomeStop);
+        var transport = new FakeTransport(plan.Phase, TestSupport.Succeeding);
+        var signalFile = false;
+        var signal = new LicenseAbortSignal(() => signalFile);
+
+        Assert.Same(record, ProbeSession.WithLicensePrecedence(record, signal, transport));
+        Assert.False(transport.Abandoned);
+
+        signalFile = true;
+        var superseded = ProbeSession.WithLicensePrecedence(record, signal, transport);
+        signalFile = false;
+
+        Assert.Equal((ProbeSession.LicensePromptStop, ProbeSession.UnknownOutcomeStop), (superseded.StopReason, superseded.SupersededStopReason));
+        Assert.True(transport.Abandoned);
+        Assert.True(signal.Raised);
+        using var json = JsonDocument.Parse(ProbeRecorder.ToJson(superseded));
+        Assert.Equal(ProbeSession.UnknownOutcomeStop, json.RootElement.GetProperty("superseded_stop_reason").GetString());
+        Assert.Contains("takes precedence", ProbeRecorder.ToMarkdown(superseded), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ARaisedSignalStopsTheWorkerTransportBeforeItLaunchesTheWorker()
+    {
+        // An empty file named like the worker: if the transport ever tried to launch it, the
+        // start would fail with a different error. Nothing can start.
+        var root = Directory.CreateTempSubdirectory("briosa-license-");
+        try
+        {
+            var worker = Path.Combine(root.FullName, "Briosa.Worker.exe");
+            await File.WriteAllBytesAsync(worker, []);
+            var transport = new WorkerTransport(worker, TimeSpan.FromSeconds(5), new OneSpatialAnalyzer());
+            var signal = new LicenseAbortSignal(static () => true);
+            var plan = Select(ProbePhase.Worker, FullManifest(), 34);
+
+            var refusal = await Assert.ThrowsAsync<ProbeRefusedException>(() => transport.StartAsync(plan, signal, CancellationToken.None));
+
+            Assert.Equal(ProbeSession.LicensePromptStop, refusal.DiagnosticCode);
+            Assert.False(transport.WouldSendStopOnDispose);
+            Assert.Equal(ProbeOutcomeKind.RefusedByHarness, (await transport.ExecuteAsync(plan.Steps[0], CancellationToken.None)).Kind);
+            await transport.DisposeAsync();
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
+    private sealed class OneSpatialAnalyzer : IProcessCensus
+    {
+        public int Count(string processName) => processName == ProcessCensus.SpatialAnalyzer ? 1 : 0;
+    }
+
+    [Theory]
+    [InlineData("0.10.1", "0.10.1")]
+    [InlineData("0.10.1-probe-s4", "0.10.1-probe-s4")]
+    [InlineData("0.10.1-alice.smith", ExternalValues.Withheld)]
+    [InlineData("0.10.1-probe-s4.alice", ExternalValues.Withheld)]
+    [InlineData("0.10.1-rc.1", ExternalValues.Withheld)]
+    public void AServerVersionKeepsOnlyTheReleaseOrProbeBuildForm(string version, string expected) =>
+        Assert.Equal(expected, ExternalValues.Version(version));
+
+    // Reruns (F1, D17): only wholly unstarted probes, and none after a shared step's unknown completion.
+
+    private static async Task<string> StoppedRecordAsync(ProbePlan plan, string unknownAt)
+    {
+        var record = await Run(plan, step => step.Id == unknownAt
+            ? ProbeOutcome.Unknown("grpc:DeadlineExceeded", "untyped-rpc-failure")
+            : TestSupport.Succeeding(step));
+        Assert.NotNull(record.StopReason);
+        return ProbeRecorder.ToJson(record);
+    }
+
+    [Fact]
+    public async Task ASharedSetupStepWithUnknownCompletionAllowsNoRerun()
+    {
+        var plan = Select(ProbePhase.PublicApi, FullManifest(), 34, 35, 36, 37);
+        var json = await StoppedRecordAsync(plan, "s-collection");
+
+        var exception = Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [35]));
+
+        Assert.Equal(RerunGate.SharedStepUnknown, exception.Message);
+    }
+
+    [Fact]
+    public async Task ARerunNamesOnlyProbesNoneOfWhoseStepsWereSent()
+    {
+        var plan = Select(ProbePhase.PublicApi, FullManifest(), 34, 35, 36, 37);
+        var json = await StoppedRecordAsync(plan, "p34-list-100");
+
+        Assert.Equal(["35", "36", "37"], RerunGate.WhollyUnstarted(json, ProbePhase.PublicApi).Order(StringComparer.Ordinal));
+        RerunGate.Check(json, ProbePhase.PublicApi, [35, 36, 37]);
+        Assert.Equal(RerunGate.StartedSelected, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [34, 35])).Message);
+        Assert.Equal(RerunGate.SelectionRequired, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [])).Message);
+        Assert.Equal(RerunGate.WrongRecord, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.Worker, [35])).Message);
+        Assert.Equal(RerunGate.Unreadable, Assert.Throws<ProbeUsageException>(() => RerunGate.Check("not json", ProbePhase.PublicApi, [35])).Message);
+    }
+
+    [Fact]
+    public async Task WhenEveryProbeHadStartedTheRunEnds()
+    {
+        // The run stops in its last probe: every probe had started.
+        var plan = Select(ProbePhase.PublicApi, FullManifest(), 34, 37);
+        var json = await StoppedRecordAsync(plan, "p37-parameter");
+
+        Assert.Equal(RerunGate.NoneRemain, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [37])).Message);
+    }
+
+    [Fact]
+    public async Task TheProgramEnforcesTheRerunRuleBeforeAnyPlanRuns()
+    {
+        var root = Directory.CreateTempSubdirectory("briosa-rerun-");
+        try
+        {
+            var plan = Select(ProbePhase.PublicApi, FullManifest(), 34, 35, 36, 37);
+            var previous = Path.Combine(root.FullName, "previous.json");
+            await File.WriteAllTextAsync(previous, await StoppedRecordAsync(plan, "p34-list-100"));
+            var error = new StringWriter();
+
+            var code = await LicensedProbeProgram.RunAsync(["--phase", "public-api", "--dry-run", "--probe", "34", RerunGate.Option, previous],
+                new StringWriter(), error, static _ => throw new InvalidOperationException("no transport"), FakeOperator.Factory, Clock, CancellationToken.None);
+            var allowed = await LicensedProbeProgram.RunAsync(["--phase", "public-api", "--dry-run", "--probe", "35", RerunGate.Option, previous],
+                new StringWriter(), new StringWriter(), static _ => throw new InvalidOperationException("no transport"), FakeOperator.Factory, Clock,
+                CancellationToken.None);
+
+            Assert.Equal((2, 0), (code, allowed));
+            Assert.Contains(RerunGate.StartedSelected, error.ToString(), StringComparison.Ordinal);
+            Assert.DoesNotContain(root.FullName, error.ToString(), StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
     }
 
     [Fact]

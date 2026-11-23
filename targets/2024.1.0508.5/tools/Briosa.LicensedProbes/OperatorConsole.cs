@@ -42,11 +42,13 @@ internal sealed class FileOperatorConsole : IOperatorConsole
 
         // The directory exists from the start, so the license-abort signal can be created at once.
         Directory.CreateDirectory(_directory);
-        Write($"LICENSE PROMPT: if SpatialAnalyzer shows one at any time, create {DirectoryName}\\{LicenseAbortFileName}; " +
-            "nothing more is sent, not even cleanup. Ctrl+C instead cancels and then cleans up.");
+        LicenseAbort = LicenseAbortSignal.ForFile(Path.Combine(_directory, LicenseAbortFileName));
+        Write($"LICENSE PROMPT: if SpatialAnalyzer shows one at any time, create {DirectoryName}\\{LicenseAbortFileName} " +
+            "inside the --output-directory folder. From then on nothing more is sent, started or terminated, not even a " +
+            "graceful stop. Ctrl+C instead cancels and lets the run clean up.");
     }
 
-    public bool LicenseAbortRaised => File.Exists(Path.Combine(_directory, LicenseAbortFileName));
+    public LicenseAbortSignal LicenseAbort { get; }
 
     /// <summary>Where the operator creates the license-abort signal for a run writing to this output directory.</summary>
     public static string LicenseAbortPath(string outputDirectory) => Path.Combine(outputDirectory, DirectoryName, LicenseAbortFileName);
@@ -92,7 +94,7 @@ internal sealed class FileOperatorConsole : IOperatorConsole
         var refused = 0;
         while (true)
         {
-            if (LicenseAbortRaised)
+            if (LicenseAbort.Raised)
             {
                 Write($"OPERATOR CHECKPOINT {name}: license prompt signalled; nothing more is sent.");
                 return OperatorObservationText.LicensePromptAbort;
@@ -208,6 +210,55 @@ internal sealed class FileOperatorConsole : IOperatorConsole
         _output.WriteLine(line);
         _output.Flush();
     }
+}
+
+/// <summary>
+/// The operator's license-abort signal (#402). Once seen it stays raised for the rest of the
+/// run, whatever happens to its file afterwards, and the session, the transport and the command
+/// consult this one object before anything is sent, started or terminated, and in disposal.
+/// </summary>
+internal sealed class LicenseAbortSignal
+{
+    private readonly Func<bool> _probe;
+    private int _raised;
+
+    public LicenseAbortSignal(Func<bool> probe)
+    {
+        ArgumentNullException.ThrowIfNull(probe);
+        _probe = probe;
+    }
+
+    /// <summary>A signal that is never raised, for a transport started without one.</summary>
+    public static LicenseAbortSignal Never => new(static () => false);
+
+    /// <summary>The signal file; only its existence is read, never its content.</summary>
+    public static LicenseAbortSignal ForFile(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        return new(() => File.Exists(path));
+    }
+
+    public bool Raised
+    {
+        get
+        {
+            if (Volatile.Read(ref _raised) != 0)
+            {
+                return true;
+            }
+
+            if (!_probe())
+            {
+                return false;
+            }
+
+            Interlocked.Exchange(ref _raised, 1);
+            return true;
+        }
+    }
+
+    /// <summary>Latches the signal without its file (tests, and an answer of license-prompt-abort).</summary>
+    public void Raise() => Interlocked.Exchange(ref _raised, 1);
 }
 
 /// <summary>

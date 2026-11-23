@@ -91,8 +91,8 @@ public sealed class SessionThreeProbeTests
 
     [Theory]
     [InlineData("selected more than once", "--probe", "30", "--probe", "30")]
-    [InlineData("names a retired probe", "--probe", "22")]
-    [InlineData("not a probe in the approved list", "--probe", "38")]
+    [InlineData("named a retired probe", "--probe", "22")]
+    [InlineData("a probe that is not in the approved list", "--probe", "38")]
     [InlineData("takes one probe number", "--probe", "030")]
     [InlineData("cannot be combined", "--probe", "30", "--exclude-probe", "2")]
     [InlineData("names an opt-in probe", "--exclude-probe", "29")]

@@ -128,21 +128,6 @@ internal static class ProbeCatalog
         return steps.ToList();
     }
 
-    /// <summary>
-    /// The watchdog-kill ownership probe's two MP steps (#252, #402): probe 26's baseline, and a
-    /// wildcard selection that matches nothing in any collection, so it needs no fixture. Its
-    /// dialog stalls the MP until the server's watchdog terminates the worker.
-    /// </summary>
-    internal static IReadOnlyList<ProbeStep> CreateOwnershipWatchdogSteps(InteractionModeSettings interactionMode)
-    {
-        ArgumentNullException.ThrowIfNull(interactionMode);
-        var steps = new StepList(ProbePhase.PublicApi);
-        AddStall(steps, "26", "o-watchdog-stall", "Wildcard selection that matches nothing; leave its dialog open until the server's watchdog ends it",
-            ProbeOperations.ObjectWildcardSelection, ObjectsNamed("*", "B402-NOMATCH*", Api.ObjectType.Any), CommandVariant.Shipped,
-            StallExpectation.ServerReportsModalDialog, PublicStallClientTimeout, interactionMode);
-        return steps.ToList();
-    }
-
     private static void AddCollectionGuard(StepList steps)
     {
         steps.Guard("g-collections-before", "setup", "Count collections before creating the harness-owned collection",

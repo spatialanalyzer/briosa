@@ -45,8 +45,7 @@ public sealed class StartupTimingTests
     ];
 
     private static StartupTiming.Report Analyze(IEnumerable<string> lines, StartupCondition condition = StartupCondition.AfterReboot, TimeSpan? bound = null) =>
-        StartupTiming.Analyze(condition, bound ?? Stock,
-            [.. lines.Select(StartupTiming.ParseLine).Where(static line => line.Kind == StartupTiming.LineKind.Event).Select(static line => line.Event!)], 0, null);
+        StartupTiming.Analyze(condition, bound ?? Stock, [.. lines.Select(StartupTiming.ParseLine)], 0, null);
 
     [Fact]
     public void TheFirstStartIsTheMeasuredConditionOnlyWithProofAndLaterStartsAreRepeats()
@@ -190,9 +189,103 @@ public sealed class StartupTimingTests
     [InlineData("\"Generation\":[1],")]
     public void AKnownFieldOfTheWrongKindMakesTheLineUnreadable(string field)
     {
-        var line = Line(1, 1203, "WorkerStartPhase", field);
+        var line = StartupTiming.ParseLine(Line(1, 1203, "WorkerStartPhase", field));
 
-        Assert.Equal(StartupTiming.LineKind.Unreadable, StartupTiming.ParseLine(line).Kind);
+        // Unusable, but possibly a phase record: it stays in the order as a boundary.
+        Assert.Equal((StartupTiming.LineKind.Boundary, (int?)1203), (line.Kind, line.BoundaryEventId));
+        Assert.Null(line.Event);
+    }
+
+    [Fact]
+    public void APhaseBelongsOnlyToTheStartWhoseArrivalAndExitEncloseItInTheLogsOrder()
+    {
+        // The first start's exit, its ready-received phase and the second start's arrival share
+        // one timestamp. By position, the phase is the first start's alone; the second start,
+        // rejected at once, has none.
+        var report = Analyze(
+        [
+            Line(0, 1001, "EndpointListening", "\"ElapsedMilliseconds\":5,"),
+            Started(1, StartupTiming.StartRpc),
+            Phase(1.2, 1, "process-created", 200),
+            Phase(8.5, 1, "ready-received", 7400),
+            Completed(8.5, StartupTiming.StartRpc, 7500),
+            Started(8.5, StartupTiming.StartRpc),
+            Line(8.5, 1302, "LifecycleRejected",
+                "\"Rpc\":\"StartSpatialAnalyzerSdk\",\"GrpcStatus\":\"FailedPrecondition\",\"DiagnosticCode\":\"sdk-already-active\",\"ElapsedMilliseconds\":3,", "Warning")
+        ], StartupCondition.FreshInstall);
+
+        Assert.Equal(2, report.Attempts.Count);
+        Assert.Equal(["process-created", "ready-received"], report.Attempts[0].Phases.Select(static phase => phase.Phase));
+        Assert.Equal(7500, report.Attempts[0].Start.ElapsedMilliseconds);
+        Assert.Empty(report.Attempts[1].Phases);
+        Assert.Equal(new StartupTiming.RpcTiming("rejected", "FailedPrecondition", "sdk-already-active", 3), report.Attempts[1].Start);
+    }
+
+    [Fact]
+    public void AnUnreadableLifecycleLineMakesEveryPairingItCouldChangeUncertain()
+    {
+        // A second start's arrival is unreadable (a wrong-kind field) and its 7 ms rejection is
+        // readable. Without the boundary, that rejection would pair with the first start, which
+        // completed 4,000 ms later. Both the first start's timing and its phases are withheld.
+        var report = Analyze(
+        [
+            Line(0, 1001, "EndpointListening", "\"ElapsedMilliseconds\":5,"),
+            Started(1, StartupTiming.StartRpc),
+            Line(1.5, 1303, "LifecycleRpcStarted", "\"Rpc\":7,"),
+            Line(1.507, 1302, "LifecycleRejected",
+                "\"Rpc\":\"StartSpatialAnalyzerSdk\",\"GrpcStatus\":\"FailedPrecondition\",\"DiagnosticCode\":\"sdk-already-active\",\"ElapsedMilliseconds\":7,", "Warning"),
+            Phase(4.9, 1, "ready-received", 3900),
+            Completed(5, StartupTiming.StartRpc, 4000),
+            Started(6, StartupTiming.ConnectRpc),
+            Completed(7, StartupTiming.ConnectRpc, 1000)
+        ], StartupCondition.FreshInstall);
+
+        var attempt = Assert.Single(report.Attempts);
+        Assert.Equal((StartupTiming.OverlappingRequests, "first-attempt-unproven"), (attempt.Correlation, attempt.Label));
+        Assert.Equal(new StartupTiming.RpcTiming(StartupTiming.WithheldExit, null, null, null), attempt.Start);
+        Assert.Empty(attempt.Phases);
+        Assert.Null(attempt.Connect);
+        Assert.DoesNotContain("\"elapsed_ms\": 7", StartupTiming.ToJson(report), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AnUnreadableLineOfAnotherEventNumberIsNotABoundary()
+    {
+        var other = StartupTiming.ParseLine(Line(1, 2001, "Other", "\"Phase\":[],"));
+        var listening = StartupTiming.ParseLine(Line(1, 1001, "EndpointListening", "\"ElapsedMilliseconds\":\"1\","));
+        var report = Analyze([.. ColdThenWarm().Take(2), Line(1.1, 2001, "Other", "\"Phase\":[],"), .. ColdThenWarm().Skip(2)]);
+
+        Assert.Equal(StartupTiming.LineKind.Unreadable, other.Kind);
+        Assert.Equal((StartupTiming.LineKind.Boundary, (int?)1001), (listening.Kind, listening.BoundaryEventId));
+        Assert.Equal(StartupTiming.Unambiguous, report.Attempts[0].Correlation);
+    }
+
+    [Fact]
+    public async Task AnOutputDestinationThatIsAFileEndsWithAFixedMessage()
+    {
+        var root = Directory.CreateTempSubdirectory("briosa-startup-");
+        try
+        {
+            var logs = Directory.CreateDirectory(Path.Combine(root.FullName, "server-logs"));
+            await File.WriteAllLinesAsync(Path.Combine(logs.FullName, $"briosa-{Instance}-20261123.jsonl"), ColdThenWarm());
+            var file = Path.Combine(root.FullName, "a-file");
+            await File.WriteAllTextAsync(file, "x");
+            var inside = Path.Combine(file, "out");
+            foreach (var target in new[] { file, inside })
+            {
+                var error = new StringWriter();
+                var code = await StartupTiming.RunAsync(
+                    ["--startup-timing", "--condition", "warm", "--startup-timeout-seconds", "10", "--server-log-directory", logs.FullName,
+                        "--output-directory", target], new StringWriter(), error, CancellationToken.None);
+
+                Assert.Equal(2, code);
+                Assert.DoesNotContain(root.FullName, error.ToString(), StringComparison.OrdinalIgnoreCase);
+            }
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
     }
 
     [Fact]
@@ -234,7 +327,9 @@ public sealed class StartupTimingTests
             "{\"Level\":\"Warning\",\"MessageTemplate\":\"LogRecordTooLarge\",\"Properties\":{\"SchemaVersion\":1}}"
         })
         {
-            Assert.Equal(StartupTiming.LineKind.Unreadable, StartupTiming.ParseLine(line).Kind);
+            // Never an event: either provably another record, or a boundary in the order.
+            Assert.Contains(StartupTiming.ParseLine(line).Kind, new[] { StartupTiming.LineKind.Unreadable, StartupTiming.LineKind.Boundary });
+            Assert.Null(StartupTiming.ParseLine(line).Event);
         }
 
         Assert.Equal(StartupTiming.LineKind.OtherTarget,

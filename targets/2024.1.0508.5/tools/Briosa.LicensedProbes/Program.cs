@@ -8,12 +8,12 @@ Console.CancelKeyPress += (_, eventArgs) =>
     cancellation.Cancel();
 };
 
-// Licensed session 4 (#402): the SDK-ownership probes and the offline startup-timing report
-// are separate commands; everything else is a probe phase.
-if (OwnershipOptions.IsOwnership(args))
+// Licensed session 4 (#402): the read-only process observation and the offline startup-timing
+// report are separate commands; everything else is a probe phase.
+if (ProcessObservation.IsObservation(args))
 {
-    return await OwnershipProgram.RunAsync(args, Console.Out, Console.Error, OwnershipProgram.CreateEnvironment, cancellation.Token)
-        .ConfigureAwait(false);
+    return await ProcessObservation.RunAsync(args, Console.Out, Console.Error, WindowsProcessTable.Instance, SystemPause.Instance,
+        TimeProvider.System, cancellation.Token).ConfigureAwait(false);
 }
 
 if (StartupTiming.IsStartupTiming(args))
