@@ -1,4 +1,5 @@
 using global::Briosa;
+using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -215,7 +216,10 @@ public sealed class GrpcOperationOutcomeMapperTests
             Execution: null,
             connection,
             Diagnostic(workerExecutionStatus, spatialAnalyzerUnavailable),
-            Generation: 7);
+            Generation: 7,
+            PolicyDenial: workerExecutionStatus == WorkerExecutionStatus.PolicyDenied
+                ? OperationPolicyDenial.Override()
+                : null);
 
         var exception = Assert.Throws<RpcException>(() =>
             GrpcOperationOutcomeMapper.RequireSuccess(
@@ -236,6 +240,12 @@ public sealed class GrpcOperationOutcomeMapperTests
         Assert.True(error.HasWorkerGeneration);
         Assert.Equal(7, error.WorkerGeneration);
         Assert.Null(error.MpExecution);
+        // Only a policy denial carries the step that decided.
+        Assert.Equal(
+            workerExecutionStatus == WorkerExecutionStatus.PolicyDenied
+                ? new PolicyDenialDetails { Rule = PolicyDenialRule.Override }
+                : null,
+            error.PolicyDenial);
     }
 
     [Fact]

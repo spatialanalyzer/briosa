@@ -132,6 +132,10 @@ Each entry includes its stable operation ID, gRPC service and RPC, fully qualifi
 | `duration_class` | `QUICK`, `LONG_RUNNING`, or `INTERACTIVE`. It selects the server execution budget; see [worker time bounds](windows-package.md#worker-time-bounds). |
 | `validation_status` | `NO_RECORDED_GAP`, `FIXTURE_PENDING`, or `AT_RISK_UNVALIDATED`. It is informational and never affects admission. |
 | `admission` | `ADMITTED` for every entry of the default response. |
+| `policy_denial` | Only on a denied entry; see the denial table below. Server 0.10.1 and later send it. |
+| `request_options` | The operation's reviewed request options; see [request options in discovery](#request-options-in-discovery). Server 0.10.1 and later send it on every entry, with an empty list when no option applies. |
+
+Server 0.10.0 sends neither `policy_denial` nor `request_options`, and clients built for Server 0.10.0, such as the 0.5.0 clients, ignore both. A client that reads them treats an absent `request_options` as "not described", never as "no options".
 
 Discovery advertises the static row. A request option can still turn on operator UI or leave device work running at call time; the server then decides that request with the added `interactive_ui` flag or as an exclusive workflow, and can deny an advertised operation. See [request options](command-policy-and-auditing.md#request-options).
 
@@ -146,6 +150,29 @@ Set `include_denied` to `true` to list every registered operation instead, so a 
 | `DENIED_PROFILE` | The profile, widened by flags set to `allow`, does not admit every risk flag, or the `read-only` effect filter excludes the operation. |
 
 A denied entry is not callable; the call returns the typed `PermissionDenied` outcome. The denial reason names a precedence step, never a configured value.
+
+On Server 0.10.1 and later, each denied entry also carries `policy_denial`, the same detail that a denied call carries in its typed error (see [typed denial detail](command-policy-and-auditing.md#typed-denial-detail)):
+
+| `policy_denial` field | Meaning |
+| --- | --- |
+| `rule` | `PROFILE`, `FLAG`, `OVERRIDE`, `EXCLUSIVE`, or `UNREVIEWED`: the same step as the denied `admission` value with the same suffix. Match the two by name, because their numbers differ. |
+| `denied_flag` | Only for `FLAG`: the flag set to `deny`, as the lowercase suffix of its `risk_flags` value, for example `filesystem_write` for `FILESYSTEM_WRITE`. When several of the operation's flags are set to `deny`, it names the first in `risk_flags` order. A newer server can name a flag that an older client does not know. |
+| `admission_profile` | Only for `PROFILE`: the active profile. A profile denial names no flag, because the profile or its `read-only` effect filter can exclude an operation for more than one reason. |
+| `request_option_field` | The request field that decided, when a request option did. An entry's own row decision never names one. |
+
+### Request options in discovery
+
+On Server 0.10.1 and later, `request_options` lists the operation's reviewed request options, in no particular order. Each option has:
+
+| Field | Meaning |
+| --- | --- |
+| `field_name` | The request field, by its protobuf name. |
+| `effect` | `INTERACTIVE_UI`: the request opens or blocks on operator UI, so it gains `interactive_ui` and the `INTERACTIVE` duration class. `BACKGROUND_WORK`: the call returns while work keeps running, so the request is an exclusive workflow. |
+| `condition` | `WHEN_TRUE`, `WHEN_FALSE`, `WHEN_PRESENT`, `WHEN_NON_EMPTY`, or `WHEN_ONE_OF`. For `WHEN_ONE_OF`, `enabling_enum_values` lists the enum value names that turn the effect on, and any enum number the server does not recognize turns it on too. |
+| `omission` | `DOES_NOT_ACTIVATE`; `ACTIVATES`, when omitting the field turns the effect on, as for `display_view_control`; or `REQUIRED`. Required by request mapping: if mapping is reached, omission fails validation before worker dispatch. |
+| `admission`, `policy_denial` | What the active policy decides for a request that turns on this option alone, with every other option inactive. |
+
+The options of an admitted operation appear in the default response too. For example, under `standard` the default response lists `QueryPointsToObjects` as `ADMITTED`, and its `show_results_dialog` option as `DENIED_PROFILE` with `request_option_field` set. The per-option decision answers that one question only. The server decides a request that turns on several options with all of them together, and then names the first option of the deciding effect in its reviewed order. When the operation's own row is denied, an option can keep that decision without naming a field, or change it when a step of higher precedence applies: a `BACKGROUND_WORK` option is `DENIED_EXCLUSIVE` even when an override denies the operation. Clients do not pre-validate requests from this description; the server still decides each request.
 
 Serialization covers one MP sequence, not a workflow spanning RPCs. See the [workflow-isolation guide](workflow-isolation.md) before coordinating multiple operations through one target.
 

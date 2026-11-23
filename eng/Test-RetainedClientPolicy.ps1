@@ -42,7 +42,8 @@ try {
     foreach ($target in $targets) {
         $directory = Join-Path $temporary "targets/$target"
         [IO.Directory]::CreateDirectory($directory) | Out-Null
-        '{"schemaVersion":1,"major":3,"revision":0}' | Set-Content (Join-Path $directory 'compatibility.json')
+        # Mirrors the current servers: Server 0.10.1 declares 3.1, and clients requiring 3.0 still run.
+        '{"schemaVersion":1,"major":3,"revision":1}' | Set-Content (Join-Path $directory 'compatibility.json')
     }
     # The current fixture builds the major-3 source candidates. The earlier fixture is the one
     # that tested the published previous-major packages, so they keep it as their own pin.
@@ -106,7 +107,7 @@ try {
         @{ message = $invalidIdentity; change = { param($p) $p.clients[0].requiredContract.major = 0 } }
         @{ message = 'Fixture sources must pin one immutable revision per language.'; change = { param($p) $p.fixtureSources[0].sourceRevision = 'main' } }
         @{ message = $invalidCandidate; change = { param($p) $p.candidates[0].sourceRevision = 'd' * 40 } }
-        @{ message = $invalidCandidate; change = { param($p) $p.candidates[0].requiredContract.minimumRevision = 1 } }
+        @{ message = $invalidCandidate; change = { param($p) $p.candidates[0].requiredContract.minimumRevision = 2 } }
         @{ message = $invalidCandidate; change = { param($p) $p.candidates[0].requiredContract.major = 2 } }
         # Retired records keep the published identity rules.
         @{ message = $invalidRegistry; change = { param($p) $p.retiredClients[0].sha256 = 'invalid' } }

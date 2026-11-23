@@ -111,6 +111,13 @@ evidence-backed pairs: 102 released-package pairs (36 major-1, 54 major-2, and
 12 major-3; 738 accepted scenario runs) and 42 development-candidate pairs. No
 licensed-SA coverage is implied.
 
+For Server 0.10.1, each target's `compatibility.json` declares contract 3.1
+([#397](https://github.com/spatialanalyzer/briosa/issues/397)). The published
+`0.5.0` clients require 3.0, which 3.1 satisfies, so the gate still runs them as
+compatible clients. As for earlier releases, the matrix keeps declaring the
+contract of its recorded release evidence, 3.0, until the 0.10.1 release gate's
+reports are recorded.
+
 Each new tested pair records `expectedCompatibility`. An accepted pair passed
 the fake-SDK scenarios listed in its report; a rejected pair proves
 installation/startup rejection only. Its success flag must never be described as operation compatibility.

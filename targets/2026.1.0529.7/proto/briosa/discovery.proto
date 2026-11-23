@@ -269,6 +269,88 @@ message OperationCapability {
   // which precedence step denied it. Denied values appear only when the request
   // set include_denied.
   OperationAdmission admission = 11;
+  // Which policy step denied the operation's reviewed row. Server 0.10.1 and
+  // later set it exactly when admission is a denied value. Server 0.10.0 does
+  // not set it, and clients built for Server 0.10.0 ignore it.
+  optional PolicyDenialDetails policy_denial = 12;
+  // The operation's reviewed request options. Server 0.10.1 and later always
+  // set it, with an empty list when no option applies, including on an admitted
+  // operation listed without include_denied. Server 0.10.0 does not describe
+  // request options and leaves it absent; clients built for Server 0.10.0
+  // ignore it.
+  optional OperationRequestOptions request_options = 13;
+}
+
+// The reviewed request options of one operation. A present message with an
+// empty list means that no request option applies (Server 0.10.1 and later); an
+// absent message means that the server did not describe options (Server 0.10.0).
+message OperationRequestOptions {
+  // The order of the list carries no meaning.
+  repeated OperationRequestOption options = 1;
+}
+
+// One reviewed request option that turns on operator UI or leaves work running
+// after the call returns. Discovery describes it. The server still decides
+// every actual request, so a client does not pre-validate a request from it.
+message OperationRequestOption {
+  // The protobuf field name of the option in the operation's request message.
+  string field_name = 1;
+  OperationRequestOptionEffect effect = 2;
+  // Which values of the field turn the effect on.
+  OperationRequestOptionCondition condition = 3;
+  // For WHEN_ONE_OF, the protobuf enum value names that turn the effect on; any
+  // enum number the server does not recognize also turns it on. Empty for every
+  // other condition.
+  repeated string enabling_enum_values = 4;
+  // What omitting the field does.
+  OperationRequestOptionOmission omission = 5;
+  // What the active policy decides for a request that turns on this option
+  // alone, with every other request option inactive. The server decides an
+  // actual request that turns on several options with all of them together.
+  OperationAdmission admission = 6;
+  // Which policy step denies such a request. Present exactly when admission is
+  // a denied value.
+  optional PolicyDenialDetails policy_denial = 7;
+}
+
+// What a request option turns on.
+enum OperationRequestOptionEffect {
+  OPERATION_REQUEST_OPTION_EFFECT_UNSPECIFIED = 0;
+  // The request opens or blocks on operator UI. It gains the interactive_ui
+  // risk flag and the INTERACTIVE duration class.
+  OPERATION_REQUEST_OPTION_EFFECT_INTERACTIVE_UI = 1;
+  // The call returns while device or operator work keeps running. The request
+  // is an exclusive workflow, which no setting admits in the current isolation
+  // mode.
+  OPERATION_REQUEST_OPTION_EFFECT_BACKGROUND_WORK = 2;
+}
+
+// Which values of a request option's field turn its effect on.
+enum OperationRequestOptionCondition {
+  OPERATION_REQUEST_OPTION_CONDITION_UNSPECIFIED = 0;
+  // A Boolean field set to true.
+  OPERATION_REQUEST_OPTION_CONDITION_WHEN_TRUE = 1;
+  // A Boolean field set to false.
+  OPERATION_REQUEST_OPTION_CONDITION_WHEN_FALSE = 2;
+  // A message field that is present.
+  OPERATION_REQUEST_OPTION_CONDITION_WHEN_PRESENT = 3;
+  // A string field that is present and not empty.
+  OPERATION_REQUEST_OPTION_CONDITION_WHEN_NON_EMPTY = 4;
+  // An enum field set to one of enabling_enum_values, or to any number the
+  // server does not recognize, which fails closed.
+  OPERATION_REQUEST_OPTION_CONDITION_WHEN_ONE_OF = 5;
+}
+
+// What omitting a request option's field does.
+enum OperationRequestOptionOmission {
+  OPERATION_REQUEST_OPTION_OMISSION_UNSPECIFIED = 0;
+  // Omitting the field does not turn the effect on.
+  OPERATION_REQUEST_OPTION_OMISSION_DOES_NOT_ACTIVATE = 1;
+  // Omitting the field turns the effect on.
+  OPERATION_REQUEST_OPTION_OMISSION_ACTIVATES = 2;
+  // Required by request mapping: if mapping is reached, omission fails
+  // validation before worker dispatch.
+  OPERATION_REQUEST_OPTION_OMISSION_REQUIRED = 3;
 }
 
 // The closed risk vocabulary decided on #242. A profile admits an operation

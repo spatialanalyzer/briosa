@@ -56,7 +56,8 @@ internal sealed class PolicyEnforcingWorkerCommandExecutor(
             OperationPolicyDecisionKind.Denied => Task.FromResult(Rejected(
                 WorkerExecutionStatus.PolicyDenied,
                 decision.DiagnosticCode,
-                effectiveCorrelationId)),
+                effectiveCorrelationId,
+                decision.Denial)),
             _ => Task.FromResult(Rejected(
                 WorkerExecutionStatus.Unsupported,
                 decision.DiagnosticCode,
@@ -78,7 +79,8 @@ internal sealed class PolicyEnforcingWorkerCommandExecutor(
     private WorkerExecutionOutcome Rejected(
         WorkerExecutionStatus status,
         string diagnosticCode,
-        Guid correlationId) =>
+        Guid correlationId,
+        OperationPolicyDenial? policyDenial = null) =>
         new(
             status,
             WorkerExecutionDisposition.NotStarted,
@@ -86,5 +88,6 @@ internal sealed class PolicyEnforcingWorkerCommandExecutor(
             _statusProvider.Current.Connection,
             diagnosticCode,
             _statusProvider.Current.Generation,
-            correlationId);
+            correlationId,
+            policyDenial);
 }
