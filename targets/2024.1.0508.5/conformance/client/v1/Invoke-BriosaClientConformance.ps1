@@ -15,12 +15,16 @@ param(
     [Parameter(ParameterSetName = "Run")]
     [string[]]$OptionalScenario = @(),
 
-    # Longer than the first-party clients' 120 s startup budget, so a slow start
-    # or a hang ends in the client's own typed startup timeout, whose error names
-    # the pending call, before the runner has to kill the fixture.
+    # Longer than a first-party client's startup wait under this runner. Client
+    # 0.5.1 or later waits for the startup allowance the server publishes (Server
+    # 0.10.1 and later) plus 20 s: with the 30 s worker startup bound set below,
+    # 160 s with launch, so 180 s. Client 0.5.0 waits 120 s. This clock starts
+    # before the client does, so the extra time lets a slow start or a hang end
+    # in the client's own typed startup timeout, whose error names the pending
+    # call, and lets that error be printed before the runner kills the fixture.
     [Parameter(ParameterSetName = "Run")]
     [ValidateRange(5, 600)]
-    [int]$FixtureTimeoutSeconds = 180,
+    [int]$FixtureTimeoutSeconds = 240,
 
     # A failing scenario copies the full fixture output and the server's log
     # files here. Callers that cannot pass the parameter, such as a client
