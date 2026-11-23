@@ -82,6 +82,7 @@ public sealed class OwnershipProbeTests
     [InlineData("no-server", "exactly-one-briosa-server-required")]
     [InlineData("started", "server-sdk-not-stopped")]
     [InlineData("other-target", "server-target-identity-mismatch")]
+    [InlineData("long-bound", "step-timeout-below-published-bound")]
     public async Task UnmetPreconditionsRefuseBeforeAnyLifecycleCall(string condition, string refusal)
     {
         var (record, world) = await RunAsync(OwnershipScenario.WorkerCrash, world =>
@@ -93,6 +94,7 @@ public sealed class OwnershipProbeTests
                 case "no-server": world.Remove(ServerId); break;
                 case "started": world.Server.InitialState = Api.SpatialAnalyzerSdkState.Ready; break;
                 case "other-target": world.Server.TargetMatches = false; break;
+                case "long-bound": world.Server.StartBound = 130_000; break;
             }
         });
 
@@ -546,6 +548,8 @@ public sealed class OwnershipProbeTests
 
         public bool TargetMatches { get; set; } = true;
 
+        public long StartBound { get; set; } = 12000;
+
         public bool StartFails { get; set; }
 
         public LifecycleResult? ConnectAnswer { get; set; }
@@ -558,7 +562,7 @@ public sealed class OwnershipProbeTests
 
         public Task<ServerDescription> DescribeAsync(CancellationToken cancellationToken) =>
             Task.FromResult(new ServerDescription(true, TargetMatches, "0.10.1-probe-s4", "abc",
-                new SortedDictionary<string, long>(StringComparer.Ordinal) { ["start_sdk_milliseconds"] = 12000 }));
+                new SortedDictionary<string, long>(StringComparer.Ordinal) { ["start_sdk_milliseconds"] = StartBound }));
 
         public Task<LifecycleResult> GetSdkStateAsync(CancellationToken cancellationToken)
         {

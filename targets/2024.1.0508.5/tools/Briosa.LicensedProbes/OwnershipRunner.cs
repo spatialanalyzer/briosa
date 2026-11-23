@@ -126,7 +126,12 @@ internal static class OwnershipRunner
             {
                 var offset = Offset();
                 _server = await server.DescribeAsync(cancellationToken).ConfigureAwait(false);
-                refusal = !_server.Reachable ? "server-discovery-unavailable" : !_server.TargetMatches ? "server-target-identity-mismatch" : null;
+                refusal = !_server.Reachable ? "server-discovery-unavailable" : !_server.TargetMatches ? "server-target-identity-mismatch" :
+                    // The client deadline must outlast the server's own bound, or a slow start or
+                    // connect would end on the client side with its outcome unknown.
+                    _server.LifecycleBoundsMilliseconds
+                        .Where(static bound => bound.Key is "start_sdk_milliseconds" or "connect_spatial_analyzer_milliseconds" or "stop_sdk_milliseconds")
+                        .Any(bound => bound.Value >= (long)options.StepTimeout.TotalMilliseconds) ? "step-timeout-below-published-bound" : null;
                 _steps.Add(new OwnershipStepRecord("describe", "describe", offset, Offset() - offset, refusal ?? "observed"));
             }
 

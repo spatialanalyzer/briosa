@@ -16,7 +16,10 @@ the omitted fit seed ([#311](https://github.com/spatialanalyzer/briosa/issues/31
 the typed partial success
 ([#351](https://github.com/spatialanalyzer/briosa/issues/351)), and USMN's excluded
 groups omitted or empty
-([briosa-dotnet#39](https://github.com/spatialanalyzer/briosa-dotnet/issues/39)). **Attaching to a running
+([briosa-dotnet#39](https://github.com/spatialanalyzer/briosa-dotnet/issues/39)). Probes 34 to 37 and the
+`--ownership` and `--startup-timing` commands prepare the fourth session
+([#402](https://github.com/spatialanalyzer/briosa/issues/402)); see
+[Licensed session 4](#licensed-session-4-402). **Attaching to a running
 SpatialAnalyzer still needs a separate maintainer go-ahead at session time**
 (AGENTS.md validation level 5). Until then, use the dry run only. The harness is
 never packaged, never part of a licensed-runner payload, and never run by
@@ -78,6 +81,10 @@ values.
 | 31 | Do Fit Geometry to Points and Fit Geometry to Point Group Projected to Plane accept the omitted seed ([#311](https://github.com/spatialanalyzer/briosa/issues/311))? | public (the API omits the setter when the seed is absent) | `p31-*`, `c31-*` |
 | 32 | Is MP code 4 reported end to end as a typed partial success ([#351](https://github.com/spatialanalyzer/briosa/issues/351))? | public | `p32-partial`, `c32-partial` |
 | 33 | Does SA run USMN correctly with `Groups to be Excluded` omitted or empty ([briosa-dotnet#39](https://github.com/spatialanalyzer/briosa-dotnet/issues/39))? The public API never sends SA an empty list. | worker | `p33-*`; see [Probe 33](#probe-33-usmn-excluded-groups) |
+| 34 | How large are representative list results where the response budget applies ([#245](https://github.com/spatialanalyzer/briosa/issues/245), [#399](https://github.com/spatialanalyzer/briosa/issues/399))? | public and worker; opt-in | `p34-*`, `c34-*`; see [Probes 34 to 37](#probes-34-to-37) |
+| 35 | Do the five corrected callout text setters work ([#220](https://github.com/spatialanalyzer/briosa/issues/220))? | public; opt-in; needs `callout_view` | `p35-*`, `c35-*` |
+| 36 | Does the corrected TCP uncertainty notes getter work (#220)? | public; opt-in; needs `tcp_fixture` | `p36-notes` |
+| 37 | Does the corrected robot `Machine ID` reach Get Robot/Machine Parameter (#220)? | public; opt-in; needs `robot_machine` | `p37-parameter` |
 
 **Probe 2 fixture ([#311](https://github.com/spatialanalyzer/briosa/issues/311)).** The fits
 in probes 2 and 17 fit the coplanar group `GFIT` (the four corners of `G1`). The
@@ -106,8 +113,10 @@ per #246: `Compute Group to Group Orientation (Rx,Ry,Rz)`,
 forms (`(Rx, Ry, Rz)`, a curly apostrophe, and `Show/Hide Points`). Each record
 states which text this target ships.
 
-The optional SDK-ownership probes from #252 (worker crash, watchdog kill, parent
-death) are not included. They need their own authorization.
+The SDK-ownership probes from #252 (SDK process identity, normal release, worker
+crash, watchdog kill, parent death, a competing client) are not probe steps. The
+fourth session runs them as separate `--ownership` scenarios, each with its own
+authorization; see [Licensed session 4](#licensed-session-4-402).
 
 **Retired probes.** Probes 7 to 10 and 14 to 16 answered their questions in the
 2026-10-07 session (see [Recorded sessions](#recorded-sessions)): on both exact targets the
@@ -214,6 +223,15 @@ under Silent.
   probe's probe, variant, and check steps. It never removes a guard or fixture
   setup step, and the remaining plan must pass the same validation. See
   [Excluding probes](#excluding-probes).
+- **Missing manual fixtures (#402).** A probe 34 to 37 step whose manual
+  fixture the manifest omits is recorded as `fixture-missing`. It is never sent and
+  never a pass, and the dry run, the JSON record (`fixtures_missing`) and the
+  markdown record each name the missing keys. A guard or setup step never needs a
+  manual fixture.
+- **Ownership probes terminate only Briosa processes.** `--ownership worker-crash`
+  and `parent-death` each end exactly one Briosa worker or server, after checking
+  its name and start time; nothing in the harness ends SpatialAnalyzer or an SDK
+  process.
 - **No sensitive data.** Records hold labels, MP step text, dispositions, MP
   codes, output retrieval, counts of harness-created objects, and value-free
   flags (probes 30 and 33). They never hold argument or returned values,
@@ -271,9 +289,12 @@ Fixture manifest (the harness reads it; its values never appear in any output):
 }
 ```
 
-The manifest no longer accepts `circle_line_surface` or `callout_view`; they
-served the retired probes. Remove both keys from a manifest written for the
-2026-10-07 session, or the harness refuses it as an unknown property.
+The manifest no longer accepts `circle_line_surface`, which served a retired
+probe. Remove it from a manifest written for the 2026-10-07 session, or the harness
+refuses it as an unknown property. `callout_view` served the retired probes 7 to 10
+and now serves probe 35, with the same shape; see
+[Session 4 fixtures](#session-4-fixtures). The other session 4 keys are optional
+too, so a manifest without them stays valid.
 
 ## Probe 25: interaction mode
 
@@ -760,16 +781,355 @@ step's completion is unknown, so recover before any further SDK use:
    Stop it only with the maintainer's OK, and record that in the session notes.
 5. Start the next run from a clean SA.
 
+## Licensed session 4 (#402)
+
+[#402](https://github.com/spatialanalyzer/briosa/issues/402) supplies the
+measurements that Server 0.10.1 and its follow-ups wait for: result sizes for
+[#245](https://github.com/spatialanalyzer/briosa/issues/245) and
+[#399](https://github.com/spatialanalyzer/briosa/issues/399), cold starts for
+[#371](https://github.com/spatialanalyzer/briosa/issues/371), and the dedicated
+SDK-ownership probes of [#252](https://github.com/spatialanalyzer/briosa/issues/252).
+It also exercises the bindings that
+[#220](https://github.com/spatialanalyzer/briosa/issues/220) and
+[#221](https://github.com/spatialanalyzer/briosa/issues/221) corrected but never ran
+live.
+
+**Status: prepared, not run.** Nothing in this section may run against a licensed
+SpatialAnalyzer until the maintainer authorizes the session, and again at each
+authorization point below (AGENTS.md validation level 5). Every rule marked
+**Proposed** is a recommendation until the maintainer agrees to it on #402; change
+it to **Agreed** with the date before the session starts. No timed step may wait
+on a question: if a situation is not covered by an agreed rule, stop the run at
+its next safe point, record it, and ask between runs.
+
+This target is observed on its own. Nothing recorded on SA `2024.1.0508.5` applies here,
+and nothing recorded here applies there.
+
+### What each scope item uses
+
+| # | Scope item | Harness command | Records | Posted on |
+| --- | --- | --- | --- | --- |
+| 1 | Result sizes | `--phase public-api --probe 34` and `--phase worker --probe 34` | element counts; private frame bytes (worker phase) and protobuf message bytes (public phase); whether a result exceeded the worker response budget | #245 (and #399) |
+| 2 | Cold starts | `--ownership release` on a new server, then `--startup-timing` over that server's log | the server's own start-phase and lifecycle RPC times (#412) | #371 |
+| 3 | SDK ownership | `--ownership release`, `worker-crash`, `parent-death`, `watchdog-kill`, `competing-client`; `--ownership observe` after SA closes | labelled processes, their parents, start times, and exit times; lifecycle states | #252 |
+| 4 | Corrected bindings | `--phase public-api --probe 35 --probe 36 --probe 37` | setter and getter dispositions, MP codes, output retrieval | #402 (#220 and #221 are closed) |
+| 5 | Tutorials (optional) | `briosa-examples` on its current pins | each program's exit code and whether its output was as expected | #402 |
+
+### Probes 34 to 37
+
+All four are opt-in: they run only when `--probe` names them, and the default plan
+never contains them. A step that needs a manual fixture the manifest omits is
+recorded as `fixture-missing`: it is never sent, and it is never a pass.
+
+| # | Question | Phase | Steps | Manual fixture |
+| --- | --- | --- | --- | --- |
+| 34 | How large are representative list results, measured where the response budget applies? | public and worker | `p34-bspline`; for each of 100, 500, 2,000, 10,000 and 20,000 points: `p34-points-N`, `c34-count-N`, `p34-list-N`; `p34-objects-harness`, `p34-objects-job`; `c34-count-job-group`, `p34-list-job-group`; `c34-count-job-cloud` | `result_size_point_group` (the job's large group), `result_size_cloud` (the job's cloud); the ladder needs none |
+| 35 | Do the five callout text and notes setters, now `SetEditTextArg`, work through the generated client? | public | `c35-callouts-before`, `p35-text`, `p35-point`, `p35-point-comparison`, `p35-relationship`, `p35-vector`, `c35-callouts-after` | `callout_view` |
+| 36 | Does the TCP uncertainty notes getter, now `GetEditTextArg`, return the notes? | public | `p36-notes` | `tcp_fixture` |
+| 37 | Does the robot `Machine ID`, now `SetColInstIdArg`, reach Get Robot/Machine Parameter? | public | `p37-parameter` | `robot_machine` |
+
+- **Probe 34's ladder.** The harness fits the B-spline `BSZ` through `GFIT`'s four
+  corners and constructs each group `SZ<N>` with Construct Points N-Spaced on
+  Curves, so the ladder needs no manual work. At about 70 bytes of private frame per
+  point name, 500 points fit both the 64 KiB and the 1 MiB response budget, 2,000
+  fit only the larger, and 20,000 fit neither. The protobuf message is roughly a
+  third of the frame. The rungs run in ascending order, so a stop loses only the
+  larger ones.
+- **What is measured.** In the worker phase the harness is the worker's host, and it
+  counts the bytes of each frame it reads: that payload is the quantity the worker
+  response budget bounds. In the public phase it measures the protobuf message the
+  generated client received. A result over the budget arrives as the existing
+  completed `DataLoss` / `OutputRetrievalFailure` outcome with
+  `worker-output-encoding-rejected`, and the record says `budget_exceeded`. Its own
+  size is then unknown, but the count step before it says how many elements did not
+  fit. The record also states this build's budget and the published clients' 4 MiB
+  receive limit, so the probe needs no change whether
+  [#411](https://github.com/spatialanalyzer/briosa/pull/411) (1 MiB) is merged or not.
+- **Clouds.** No operation returns cloud points as a list, so the job's cloud is
+  counted only (`c34-count-job-cloud`). The ladder's bytes per element give the size a
+  list of that many names would need.
+- **Probe 35.** A refused setter is `ArgumentRejected`. Any recorded MP code means
+  every setter, including the text one, returned true. The vector callout names
+  vector `P1` of `VG1`. If that is not a vector name in `VG1`, the MP fails after the
+  setters, which still answers the question. At the checkpoint after each callout,
+  record any dialog, and whether the callout shows the two lines `Briosa probe 35`
+  and `second line`.
+- **Probe 36.** All nine outputs retrieved (hypothesis `9 of 9`) means the notes
+  getter worked. A refused getter after MP code `2` is `OutputRetrievalFailed`. The
+  record keeps only the number of note lines.
+- **Probe 37 and the other two robot routes.** Start and Stop Robot/Machine
+  Interface carry the same `Machine ID` correction, but they are exclusive
+  workflows, which no server setting admits. No generated client can send them, so
+  the session records both as **not run: refused by admission policy (exclusive
+  workflow)**. See decision D10.
+
+### SDK-ownership probes
+
+`Briosa.LicensedProbes --ownership <scenario>` runs one scripted probe against one
+packaged server. Each starts from an inert server: exactly one SA, one Briosa server
+with no SDK started, and no worker or `SpatialAnalyzerSDK` process. It then starts
+the SDK, connects, and runs its own steps. Every lifecycle call has a deadline
+(`--step-timeout-seconds`, default 120 s), and a scenario refuses to start when that
+deadline is not longer than the server's published start, connect or stop bound
+(`step-timeout-below-published-bound`). Every MP step is sent once. Each script
+ends with the SDK generation stopped, where a server remains, and a final
+observation window.
+
+How observations are taken without disturbing the system: the harness takes a
+read-only snapshot of the process list (names, parents, start times) every 500 ms.
+It never opens, signals or ends SpatialAnalyzer or an SDK process. Each process is
+labelled the first time it is seen (`sdk-1`, `worker-1`). The record keeps the
+label, the role, the parent's role (`server`, `harness`, `svchost` for DCOM
+activation, `other`, or `exited`), the start time, and when it was first seen and
+when it exited. It keeps no process id, path or argument. A window ends early once
+the processes it watches are gone, or after `--observe-seconds` (proposed: 120 s).
+
+| Scenario | What it does | Observation |
+| --- | --- | --- |
+| `release` | start, connect, `StopSpatialAnalyzerSdk` | **SDK process identity**: which SDK process appears with the worker, and its parent. **Normal release**: whether the worker and that SDK process exit after a clean stop, and how soon |
+| `worker-crash` | start, connect, then terminate the idle worker, as a crash would | whether the server reports `Faulted` within 30 s; whether the SDK process survives the worker; then the stop of the faulted generation |
+| `parent-death` | start, connect, then terminate the server (that process only) | whether the worker notices its parent's death and exits, and whether it releases the SDK process |
+| `watchdog-kill` | start, connect, set SA Interaction Mode Manual, then a wildcard selection that matches nothing in any collection, which stalls on SA's dialog until the server's watchdog terminates the worker | the SDK process with the dialog still open, then after the operator dismisses it at the checkpoint, then after the stop |
+| `competing-client` | start, connect, a read-only MP through the server; then a second, unchanged worker from the same package activates the SDK and attaches with one `ConnectEx`; a read-only MP through the server; the second worker stops; a read-only MP | whether the second client gets its own SDK process, whether its `ConnectEx` succeeds, and whether the first client still works. **The second client never runs an MP.** |
+| `observe` | nothing but snapshots, until no SDK, worker or server process remains | what is left after SA closes |
+
+The harness terminates only the one Briosa worker (`worker-crash`) or server
+(`parent-death`) that the script names, and only after it checks that the process
+id still has the name and start time it labelled. It never terminates SA or an SDK
+process. The competing second worker is the harness's own child, which it stops,
+or terminates after 15 s.
+
+**Residual process.** At the end of a scenario's final window: any
+`SpatialAnalyzerSDK` or `Briosa.Worker` process still alive, and after
+`parent-death` or in `observe` any `Briosa.Server` process. The record lists each
+under `residual`. Postflight then follows [Session 4 postflight](#session-4-postflight).
+
+### Cold starts
+
+The server logs each worker start's phases (`WorkerStartPhase`, event 1203:
+`process-created`, `control-pipe-connected`, `ready-received`, or
+`startup-bound-expired` and `start-failed`) and each lifecycle RPC's arrival and
+exit (1303 to 1305), merged in [#412](https://github.com/spatialanalyzer/briosa/pull/412).
+`ready-received` includes the SDK's COM activation. The harness adds no timing of its
+own. `--startup-timing` reads one server's log folder, offline, and reports every
+`StartSpatialAnalyzerSdk` in order: the first is the measured condition, and later
+ones are labelled `repeat` (warm). It also reports `EndpointListening` (1001) and the
+following `ConnectToSpatialAnalyzer`.
+
+**Proposed** definitions of "cold":
+
+| Condition | How the operator establishes it |
+| --- | --- |
+| `fresh-install` | Extract the probe package into a new folder that no process has run from. The machine has been up for at least 10 minutes. SA has been started normally with the fixture job and left idle for 2 minutes. Then start the server from the new folder and run `--ownership release`. Its `StartSpatialAnalyzerSdk` is the first that package has ever run. |
+| `after-reboot` | The same package, which has already started the SDK before the restart. Restart Windows, log on, and wait 5 minutes. Start SA normally with the fixture job and leave it idle for 2 minutes. No Briosa or SDK process has run since the restart. Then start the server and run `--ownership release`. |
+| `warm` | The second `--ownership release` on the same server, right after the first. It is reported as attempt 2 (`repeat`) of the same log. |
+
+Each measured server is started with its own empty log folder
+(`--Briosa:Logging:File:Directory=<run folder>\server-logs`), because the report
+refuses a folder that holds more than one server instance. **Proposed:** the cold-start
+servers also get `--Briosa:Worker:StartupTimeout=00:01:00`, so a slow start is
+measured to its end instead of being cut off at the 10 s default (decision D4). The
+report states the 10 s default beside each `ready-received` time.
+
+### Tutorials (optional, SA 2026 only)
+
+The only licensed run of
+[briosa-examples](https://github.com/spatialanalyzer/briosa-examples) on record used
+Server 0.7.0 and the 0.2.0 clients. If time allows (A9), run its four
+point-inspection tutorials on that repository's current pins: the 0.5.0 .NET,
+TypeScript and Python clients and the Server 0.10.0 protocol. Nothing in that
+repository changes.
+
+1. The language clients start the *installed* Briosa server for SA 2026, not the
+   probe package, so the installed Briosa must be Server 0.10.0 (decision D14).
+2. Close every Briosa and SDK process. Start SA 2026 with a new empty job, never the
+   fixture job.
+3. Follow that repository's `docs/setup.md`: set the two connected-SA attestation
+   variables in the terminal, run the .NET, TypeScript and Python programs one at a
+   time, then run the direct gRPC program against a server that Control Center
+   started and connected.
+4. Record, per program, its exit code and whether it printed the coordinates and the
+   distance the tutorial expects. Record "as expected" or "not as expected", never
+   the printed values.
+5. Postflight as for any run, and close SA without saving.
+
+**Fallback (proposed).** A program that fails is recorded with its exit code, its
+error type and its diagnostic code. The remaining programs still run. Never edit a
+tutorial during the session.
+
+### Session 4 fixtures
+
+The probe 1 to 4 fixtures are unchanged. Session 4 adds optional manifest keys;
+leave out any fixture that does not exist, and its steps are recorded as not run.
+Prepare them in the same disposable fixture job, never in `B277`.
+
+| Key | Fixture | Used by |
+| --- | --- | --- |
+| `result_size_point_group` | `{ "collection", "name" }` of a representative large point group, proposed at least 20,000 points (for example from an imported ASCII point file) | `c34-count-job-group`, `p34-list-job-group` |
+| `result_size_cloud` | `{ "collection", "name" }` of a representative scan cloud, proposed at least 1,000,000 points | `c34-count-job-cloud` |
+| `callout_view` | `{ "collection", "name" }` of an existing callout view. The key served the retired probes 7 to 10 with the same shape; it now serves probe 35. | probe 35 |
+| `tcp_fixture` | `{ "fixture": { "collection", "name" }, "measurements": [ { "collection", "group", "target" }, ... ], "tcp_in_working": [16 numbers, row by row] }`; `tcp_in_working` defaults to the identity | probe 36 |
+| `robot_machine` | `{ "collection", "instrument_id", "parameter_name" }` of a robot in the job and one of its parameter names | probe 37 |
+
+The values never appear in any output. The dry run with `--fixtures` lists each
+missing key as `FIXTURE MISSING`.
+
+### Before the session (once per target)
+
+1. Build the package and the harness from the reviewed merge commit, as for the
+   third session, with the label `0.10.1-probe-s4`. Record the merge SHA and the
+   package's SHA-256 in the evidence, and note whether #411 was part of the build.
+   Pass `--harness-revision <sha>` to every harness command.
+2. Write the fixture manifest, then check it with the dry runs. Each must exit `0`
+   and print no `FIXTURE MISSING` line that you did not expect:
+
+   ```powershell
+   & $probe --phase public-api --dry-run --fixtures <manifest> --probe 34 --probe 35 --probe 36 --probe 37
+   & $probe --phase worker --dry-run --fixtures <manifest> --probe 34
+   & $probe --ownership watchdog-kill --dry-run --restore-sa-interaction-mode manual
+   & $probe --ownership competing-client --dry-run
+   ```
+
+3. Confirm on #402 that every **Proposed** rule and decision in this section is
+   agreed. Agree the go-ahead for each run separately.
+4. Read the `InteractionMode` registry value, as for probe 25. Record it.
+
+Every run below starts from a clean SA with the fixture job copied over from the
+pristine copy, `Test-LicensedRunnerState.ps1 -Phase Preflight` passing, and no SA
+job ever saved.
+
+### Run order and authorization points
+
+**Proposed:** SA 2026.1.0529.7 first, then SA 2024.1.0508.5 (decision D1). Each row is one
+authorization point (A1 to A9): the maintainer's go-ahead for that row, given
+between runs.
+
+| Run | What | Server started with | Expected | Abandon after |
+| --- | --- | --- | --- | --- |
+| A1 C1 | `fresh-install` cold start: new package folder; `--ownership release`, then `--ownership release` again (warm), each with `--step-timeout-seconds 300` (above the published bounds at the raised startup bound); stop the server; `--startup-timing --condition fresh-install` | the standard arguments, its own log folder, `--Briosa:Worker:StartupTimeout=00:01:00` | 5 to 10 min | 20 min |
+| A2 R1 | `--phase public-api --probe 34 --probe 35 --probe 36 --probe 37` | the public-phase dry run's admission and `InteractionMode` arguments; `--Briosa:Worker:ExecutionWatchdogTimeout=00:02:00`; harness `--step-timeout-seconds 150` | 15 to 25 min | 45 min |
+| A3 R2 | `--phase worker --probe 34` | no server | 5 to 10 min | 30 min |
+| A4 O1 | `--ownership worker-crash` | standard arguments | 3 to 6 min | 15 min |
+| A5 O2 | `--ownership parent-death` | standard arguments | 2 to 5 min | 15 min |
+| A6 O3 | `--ownership watchdog-kill --restore-sa-interaction-mode manual` | the dry run's admission arguments; the default 30 s quick budget | 4 to 8 min | 20 min |
+| A7 O4 | `--ownership competing-client --worker-path <package>\Briosa.Worker.exe`, **last on this target** (decision D6) | standard arguments | 3 to 6 min | 15 min |
+| A8 C2 | `after-reboot` cold start: restart Windows (decision D2); as C1 with the C1 package and `--condition after-reboot` | as C1 | 15 to 20 min including the restart | 40 min |
+| A9 T | Optional: the four `briosa-examples` tutorials on their current pins, as in [Tutorials](#tutorials-optional-sa-2026-only) | the installed Server 0.10.0; Control Center for direct gRPC | 10 min | 20 min |
+
+"Standard arguments" are those of [Phase 1](#phase-1-public-api), step 3:
+`--Briosa:Desktop:Mode=Disabled`, the loopback port, and the four identity
+attestation values. R1 and R2 follow Phase 1 and Phase 2 exactly, with the session
+4 selection. For C1, C2 and O1 to O4, start the server but **do not** run Phase 1's
+step 4 (`external-connect`): each `--ownership` scenario starts and connects the SDK
+itself, and refuses a server whose SDK is already started. Give every run's server
+its own log folder. After every run, follow
+[Session 4 postflight](#session-4-postflight) before the next run's preflight.
+
+**Abandon rule (proposed).** When a run's "Abandon after" time passes, stop the
+harness with Ctrl+C. Its record then states an unknown outcome for the step in
+flight. Recover as in [When a session stops](#when-a-session-stops), record the run as
+abandoned, and go on to the next run's authorization point. Never extend a time box
+during the run.
+
+### Fallback rules (proposed)
+
+Each rule is decided before the session, so no timed step waits on a question.
+
+| # | Situation | Rule |
+| --- | --- | --- |
+| F1 | A probe run (R1, R2) stops with `outcome-unknown-do-not-replay` | Recover on a clean SA. Rerun once, at the next authorization point, with `--probe` naming only the probes that did not finish. Probe 34 restarts from its first rung, because a rerun repeats every step. A second stop ends that run as recorded. |
+| F2 | A probe 34 rung, or a probe 35 to 37 step, ends with a determinate failure (an MP failure, a refused setter, a failed getter) | Nothing to do: that outcome is the answer, and the run continues. |
+| F3 | A dialog opens during a probe 34 to 37 step | Dismiss it at once with OK, so that no quick budget expires. Record its exact title and text: at the step's checkpoint for probes 35 to 37, or in the session notes with the step id for probe 34. |
+| F4 | A manual fixture is missing | Do not create it during the session. The harness records the steps as `fixture-missing`. |
+| F5 | An ownership scenario's start or connect fails | The harness stops the SDK and records it. Rerun the scenario once from a clean SA at the next authorization point; a second failure is recorded as such. |
+| F6 | A scenario's record lists a residual process | Follow [Session 4 postflight](#session-4-postflight). |
+| F7 | In `competing-client` the second worker does not become ready, or its `ConnectEx` does not answer within 90 s | The harness terminates the second worker and continues its script. Never rerun O4 on this SA instance. |
+| F8 | In `watchdog-kill` the stall ends another way (for example MP code `3` at once, or the generic watchdog code) | Recorded as unexpected. The script still watches and stops the SDK. No rerun. |
+| F9 | A cold start ends in `startup-bound-expired` at the raised bound | Recorded as a typed failure with its phases. Do not retry. Measure `warm` on a new server from the same package. |
+| F10 | An operator checkpoint is not answered within 300 s | The harness stops, as it does today. No rerun of that step. |
+| F11 | SA crashes, hangs or shows a license prompt | Stop this target's session at that point and record what ran. The other target starts only at its own authorization point. |
+| F12 | The reboot is declined, or the machine cannot be restarted | Record C2 as not run. |
+
+### Session 4 postflight
+
+After each run:
+
+1. Public and ownership runs: if the server is still running, run
+   `Briosa.LifecycleClient ... --scenario stop-sdk`, then stop the server.
+2. Run `Test-LicensedRunnerState.ps1 -Phase Postflight` while SA is still open, and
+   keep its JSON line.
+3. Close SA without saving (File > Exit > No).
+4. Run `--ownership observe --observe-seconds 300` (proposed; decision D8) with a
+   new output folder. It needs no server and no SA. It stops as soon as no SDK, worker or
+   server process remains, and otherwise lists what is left as residual. A process
+   that is alive at its start and has the same start time as a labelled process in
+   the run's record is that process.
+5. **Proposed (decision D7):** if `observe` ends with a residual, the operator stops
+   each listed `SpatialAnalyzerSDK` or Briosa process with `Stop-Process -Id`, after
+   checking its name and start time against the record, and writes in the session
+   notes which label was stopped and when. Otherwise wait for the maintainer.
+6. The next run starts from a clean SA.
+
+Postflight passes when the `observe` record says `residual: none`, or when the
+session notes name every residual the operator stopped.
+
+### Recording and posting
+
+Each command writes a JSON record and a markdown draft into its own output folder:
+`probe-277-<phase>-2026.1.0529.7.*` (schema 5), `ownership-<scenario>-2026.1.0529.7.*`
+(schema 1), and `startup-timing-<condition>-2026.1.0529.7.*` (schema 1). None holds a
+returned value, a path, a process id, or license data. The raw records stay with
+the operator. Commit one reviewed summary, filled in from
+[the session 4 evidence template](evidence/probe-session-4-template.md), as
+`evidence/probe-session-4-2026.1.0529.7-<date>.md`.
+
+Post afterwards, per target, each observation stated as this target's own:
+
+- **#245:** probe 34's table (elements, worker frame bytes, protobuf bytes, over the
+  budget) for both phases, the bytes per element per list kind, the job's
+  representative counts, and which rungs exceeded which budget.
+- **#252:** one row per ownership scenario: the SDK process's parent, whether it
+  outlived the worker, the server or SA, how long it lived, and what the operator
+  stopped.
+- **#371:** the `fresh-install`, `after-reboot` and `warm` start times with their
+  phases, against the 10 s default and the published `start_sdk_milliseconds`.
+- **#402:** probes 35 to 37 per target, Start and Stop Robot/Machine Interface as
+  not run (exclusive workflow), and the tutorials result or "not run".
+
+### Decisions for the maintainer (proposed until agreed)
+
+| # | Decision | Recommendation |
+| --- | --- | --- |
+| D1 | Order of targets | SA 2026 first, then SA 2024; each target's session is complete before the other starts. |
+| D2 | A restart of Windows per target for `after-reboot` | Yes, at the end of each target's session (two restarts). If declined, C2 is not run. |
+| D3 | What "fresh install" means | A new extraction of the probe package into an unused folder. Neither SA nor the Briosa Installer is reinstalled. |
+| D4 | The worker startup bound for the cold-start servers | `--Briosa:Worker:StartupTimeout=00:01:00`, so the whole start is measured. Alternative: keep 10 s and learn only whether it holds. |
+| D5 | Time boxes | As in the run table; the abandon rule applies. |
+| D6 | Whether to run `competing-client` | Yes, last on each target, `ConnectEx` only and no MP through the second client, then a clean SA restart. If declined, it is recorded as not run. |
+| D7 | Stopping a residual SDK or Briosa process | Pre-authorize the operator to stop it after the 300 s `observe` window, recording what was stopped. |
+| D8 | Observation windows | `--observe-seconds 120` inside scenarios and 300 s after SA closes. Earlier residuals exited 18 to 26 minutes after SA. One longer window (1,800 s) after `watchdog-kill` on SA 2026 only if time allows. |
+| D9 | Which manual fixtures to prepare | A large point group (20,000 or more points), a scan cloud (1,000,000 or more points) and a callout view on each target. A TCP fixture and a robot only if the maintainer can prepare them; otherwise probes 36 and 37 are not run. |
+| D10 | Start and Stop Robot/Machine Interface | Record them as not run (refused by admission: exclusive workflow). No worker-phase bypass in this session. |
+| D11 | The ladder | 100, 500, 2,000, 10,000 and 20,000 points (32,600 points created in `B277`). |
+| D12 | Watchdog budgets | 2 min for R1, as in session 3; the default 30 s for O3. |
+| D13 | The response budget under test | Run after #411 merges, so the 1 MiB budget is measured as it ships. If the session runs first, 64 KiB is measured; the ladder brackets both. |
+| D14 | The tutorials | Optional, SA 2026 only. The current pins need Server 0.10.0 installed for SA 2026 with the Briosa Installer, because the 0.5.0 clients start the installed server; the machine had 0.9.2 in session 3. Run them only if 0.10.0 is already installed or the maintainer agrees to install it; otherwise record them as not run. |
+| D15 | The probe build | `0.10.1-probe-s4` from this pull request's merge commit, with #411 if it has merged. |
+| D16 | Who operates | As in session 3: Claude through computer use while the maintainer watches, never asking a question while a step's clock runs. |
+| D17 | Reruns | At most one rerun per run, under F1 or F5. |
+
 ## Recording
 
-Each phase writes `probe-277-<phase>-2026.1.0529.7.json` (structured, schema 4;
+Each phase writes `probe-277-<phase>-2026.1.0529.7.json` (structured, schema 5;
 schema 2 added the `exclusions` object and the `excluded` step classification;
 schema 3 added `interaction_mode` and, per step, the planned checkpoints, the
 operator's checkpoint answers, the client deadline, and the elapsed time;
 schema 4 adds `selection`, `server_interaction_mode_setting`, and
 `ended_in_planned_stall`, per step `expected_stall`, `server_interaction_mode`, and
 the `empty-list-argument` variant kind, and per outcome `recovery_guidance` and
-`execution_state`)
+`execution_state`; schema 5 adds `fixtures_missing` and `response_limits`, per step
+`required_fixture`, `measures_response_size` and the `fixture-missing`
+classification, and per outcome `response_size`)
 and a markdown draft in the style of
 [`string-setters-2026-09-28.md`](evidence/string-setters-2026-09-28.md). Review
 the draft, add follow-up tasks, and commit it under `docs/testing/evidence/`
