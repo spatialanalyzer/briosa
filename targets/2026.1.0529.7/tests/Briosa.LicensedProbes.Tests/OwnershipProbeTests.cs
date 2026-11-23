@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -987,7 +986,7 @@ public sealed class OwnershipProbeTests
     [Fact]
     public void NoHarnessSourceTerminatesAProcessTree()
     {
-        var folder = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(SourcePath())!, "..", "..", "tools", "Briosa.LicensedProbes"));
+        var folder = HarnessSourceFolder();
         var sources = Directory.EnumerateFiles(folder, "*.cs", SearchOption.AllDirectories)
             .Where(static file => !file.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) &&
                 !file.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
@@ -995,12 +994,34 @@ public sealed class OwnershipProbeTests
         var forbidden = new Regex(@"entireProcessTree\s*:\s*true|\.Kill\(\s*true\s*\)|taskkill|TerminateJobObject|KillProcessTree",
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
-        Assert.True(sources.Count > 10);
+        // The guard can never pass on an empty or wrong folder: it must see the harness itself.
+        Assert.True(sources.Count > 10, $"Expected the harness sources under {folder}, but found {sources.Count} source files.");
+        Assert.Contains(sources, static file => string.Equals(Path.GetFileName(file), "OwnershipRunner.cs", StringComparison.Ordinal));
         Assert.Contains(sources, static file => File.ReadAllText(file).Contains("entireProcessTree: false", StringComparison.Ordinal));
         Assert.All(sources, file => Assert.False(forbidden.IsMatch(File.ReadAllText(file)), Path.GetFileName(file)));
     }
 
-    private static string SourcePath([CallerFilePath] string path = "") => path;
+    // Found at run time from the test's own output folder, as the other tests here find
+    // repository files: up to the target's Briosa.slnx, then its harness folder. A compile-time
+    // source path cannot be used, because a CI build maps it to /_/.
+    private static string HarnessSourceFolder()
+    {
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Briosa.slnx")))
+        {
+            root = root.Parent;
+        }
+
+        if (root is null)
+        {
+            Assert.Fail($"No Briosa.slnx was found in {AppContext.BaseDirectory} or any folder above it, so the harness sources cannot be checked.");
+        }
+
+        var folder = Path.Combine(root.FullName, "tools", "Briosa.LicensedProbes");
+        Assert.True(File.Exists(Path.Combine(folder, "Briosa.LicensedProbes.csproj")),
+            $"The harness project was not found in {folder}, so the harness sources cannot be checked.");
+        return folder;
+    }
 
     [Fact]
     public void TheWindowsProcessTableListsTheCurrentProcessReadOnly()
