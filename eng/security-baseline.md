@@ -69,7 +69,10 @@ it does not modify protection for other repositories.
   `global.json` .NET SDK pin and the Python publishing requirements. Routine
   minor/patch updates are grouped; NuGet security fixes have separate groups.
   SDK major versions are ignored, so moving to a new .NET major stays a
-  deliberate change. Maintainers review and merge updates.
+  deliberate change. Two package ignores record their reason in
+  `dependabot.yml`: `Serilog.Extensions.Logging` 11.x, whose major follows
+  .NET 11, and `python-dateutil` 3.0.0 or later, which the pinned `botocore`
+  rejects. Maintainers review and merge updates.
 - Third-party Actions are pinned to immutable commit SHAs, enforced by the existing
   workflow policy check. Dependabot maintains these pins.
 

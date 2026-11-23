@@ -5,11 +5,18 @@
       "briosa.worker": {
         "type": "Project",
         "dependencies": {
-          "Briosa.Worker.Control": "[1.0.0, )"
+          "Briosa.Worker.Control": "[1.0.0, )",
+          "System.Diagnostics.DiagnosticSource": "[11.0.0, )"
         }
       },
       "briosa.worker.control": {
         "type": "Project"
+      },
+      "System.Diagnostics.DiagnosticSource": {
+        "type": "CentralTransitive",
+        "requested": "[11.0.0, )",
+        "resolved": "11.0.0",
+        "contentHash": "+boRR9uSKiIPtFeRLGwO5xylhDF80xpwM+dmk5jgIqqeUKLbujGkGICMTKqQrBzKO6fIp8BU8DV6YZkQukqo3A=="
       }
     }
   }
