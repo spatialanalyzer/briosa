@@ -148,6 +148,25 @@ internal static class TestWorkerProcess
                         break;
                     case WorkerControlMessageKind.Execute:
                         executionCount++;
+                        if (options.SdkFaultOutput is { } faultedOutput && executionCount == 1)
+                        {
+                            // An output-getter fault on the first execution, sent as the
+                            // production worker host sends it: a frame over the response
+                            // budget is replaced by the bounded fallback.
+                            var fault = SdkFaultResponse(message.Command!, faultedOutput,
+                                options.OutputTextLengths ?? [], options.Scenario);
+                            try
+                            {
+                                channel.Send(WorkerControlMessage.ExecutionResult(message.CorrelationId, fault));
+                            }
+                            catch (WorkerMessageRejectedException)
+                            {
+                                channel.Send(WorkerExecutionDelivery.Undeliverable(message.CorrelationId, fault));
+                            }
+
+                            break;
+                        }
+
                         if (options.Scenario == TestWorkerScenario.HangOnExecute)
                         {
                             Thread.Sleep(Timeout.Infinite);
@@ -273,6 +292,31 @@ internal static class TestWorkerProcess
 
     // Never fabricate a value the production adapter cannot retrieve; doing so would hide
     // declared outputs that fail after MP success in the real worker.
+    // The named output's getter faults; Text outputs before and after it take the
+    // given lengths in order, and every other output its usual value.
+    private static WorkerExecutionResponse SdkFaultResponse(
+        WorkerMpCommand command,
+        string faultedOutput,
+        IReadOnlyList<int> textLengths,
+        TestWorkerScenario scenario)
+    {
+        var nextLength = 0;
+        var outputs = command.OutputArguments.Select(output =>
+            output.Name == faultedOutput
+                ? new WorkerUnavailableOutput(output.Name, output.Kind,
+                    WorkerSdkFaultDiagnosticCodes.OutputGetter, WorkerUnavailableOutputReason.SdkCallFaulted)
+                : output.Kind == WorkerMpValueKind.Text && nextLength < textLengths.Count
+                    ? new WorkerRetrievedOutput(output.Name, output.Kind,
+                        new WorkerTextValue(new string('x', textLengths[nextLength++])))
+                    : CreateOutputValue(output, outputTextLength: null)).ToArray();
+        return new WorkerExecutionResponse(
+            WorkerExecutionResponseStatus.Completed,
+            new WorkerSdkCallFaulted(WorkerSdkCallPhase.OutputGetter, 5, outputs,
+                WorkerSdkFaultDiagnosticCodes.OutputGetter, resultCode: 2),
+            ConnectionSnapshot(WorkerExecutionReadinessState.ExecutionReady, scenario: scenario),
+            DiagnosticCode: null);
+    }
+
     // --output-text-length makes every Text output that many characters, so a test
     // can send a result of a chosen size through the real private channel.
     private static WorkerMpOutputValue CreateOutputValue(WorkerMpOutputArgument output, int? outputTextLength) =>
@@ -511,7 +555,9 @@ internal sealed record TestWorkerOptions(
     string? LifecycleRecordPath,
     string? PipeRecordPath,
     int? OutputTextLength = null,
-    int? ProtocolVersionOffset = null)
+    int? ProtocolVersionOffset = null,
+    string? SdkFaultOutput = null,
+    IReadOnlyList<int>? OutputTextLengths = null)
 {
     public static TestWorkerOptions Parse(string[] arguments)
     {
@@ -535,8 +581,14 @@ internal sealed record TestWorkerOptions(
         int? protocolVersionOffset = TryGetArgument(arguments, "--protocol-version-offset", out var offset)
             ? int.Parse(offset, System.Globalization.CultureInfo.InvariantCulture)
             : null;
+        string? sdkFaultOutput = TryGetArgument(arguments, "--sdk-fault-output", out var faulted)
+            ? faulted
+            : null;
+        IReadOnlyList<int>? outputTextLengths = TryGetArgument(arguments, "--output-text-lengths", out var lengths)
+            ? [.. lengths.Split(',').Select(item => int.Parse(item, System.Globalization.CultureInfo.InvariantCulture))]
+            : null;
         return new TestWorkerOptions(pipeName, scenario, recordPath, pipeRecordPath, outputTextLength,
-            protocolVersionOffset);
+            protocolVersionOffset, sdkFaultOutput, outputTextLengths);
     }
 
     private static TestWorkerScenario ParseScenario(string value) =>

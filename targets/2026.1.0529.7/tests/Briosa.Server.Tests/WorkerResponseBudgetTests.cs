@@ -157,9 +157,10 @@ public sealed class WorkerResponseBudgetTests(ITestOutputHelper output)
 
     // Every operation that returns double lists, through its real mapper, with a
     // private frame at the response budget whose first double list holds only
-    // zeros: the densest JSON. Its public response must stay within the published
-    // clients' 4 MiB receive limit. Other output kinds encode to less protobuf than
-    // JSON, so they cannot come closer.
+    // zeros: the densest JSON. The frame uses the smallest legal envelope
+    // (MinimalEnvelope), so as many values as possible fit. Its public response
+    // must stay within the published clients' 4 MiB receive limit. Other output
+    // kinds encode to less protobuf than JSON, so they cannot come closer.
     public static TheoryData<string> DoubleListOperations() => new()
     {
         GetNamedDoubleListVariableOperation.Descriptor.OperationId,
@@ -264,7 +265,7 @@ public sealed class WorkerResponseBudgetTests(ITestOutputHelper output)
                 outputs.Add(new WorkerRetrievedOutput(output.Name, output.Kind, value));
             }
 
-            return Completed(outputs);
+            return MinimalEnvelope(outputs);
         }
 
         int lower = 0, upper = WorkerControlProtocol.MaximumResponseBytes;
@@ -320,6 +321,27 @@ public sealed class WorkerResponseBudgetTests(ITestOutputHelper output)
             new WorkerDoubleArrayValue(new double[count])));
 
     private static WorkerExecutionResponse Completed(WorkerMpOutputValue output) => Completed([output]);
+
+    // The smallest execution result the channel accepts around these outputs.
+    // Every other field is fixed by the protocol or the operation (version, kind,
+    // discriminators, output names and kinds, the Connected and ExecutionReady
+    // values) or has a fixed width (correlation ID, timestamp). The rest are at
+    // their minimum: optional fields omitted (the connection status code, runtime
+    // identity and diagnostic codes), the required connection diagnostic code at
+    // the one character the channel allows, and every number at one digit.
+    private static WorkerExecutionResponse MinimalEnvelope(IReadOnlyList<WorkerMpOutputValue> outputs) =>
+        new(
+            WorkerExecutionResponseStatus.Completed,
+            new WorkerMpResultAvailable(2, 0, outputs, null),
+            new WorkerConnectionSnapshot(
+                WorkerConnectionState.Connected,
+                WorkerExecutionReadinessState.ExecutionReady,
+                StatusCode: null,
+                Attempt: 1,
+                MaximumAttempts: 1,
+                DiagnosticCode: "c",
+                default),
+            DiagnosticCode: null);
 
     private static WorkerExecutionResponse Completed(IReadOnlyList<WorkerMpOutputValue> outputs) =>
         new(

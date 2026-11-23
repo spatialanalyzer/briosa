@@ -67,31 +67,46 @@ Requests and results have separate size limits.
 - **Results.** From Server 0.10.1, one result can be up to 1 MiB (1,048,576
   bytes) in the worker's JSON encoding; Server 0.10.0 allowed 64 KiB. About
   this much fits:
-  - text of about 1,000,000 plain ASCII characters, or fewer when it has
-    characters that JSON escapes, such as `<`, `&`, quotes or non-ASCII
-    letters, which take up to 6 bytes each;
+  - text of about 1,000,000 plain ASCII characters, or less when it has
+    characters that JSON escapes. Quotes, `<`, `&`, control characters and
+    non-ASCII letters take up to 6 bytes per UTF-16 code unit, so a character
+    outside the Basic Multilingual Plane, such as an emoji, takes 12;
   - about 55,000 full-precision numbers in a double list, or about 520,000
     single-digit values;
   - name lists with fewer entries, because each entry carries its collection
     and group names.
 - **When a result is too large.** The MP command has run. The call fails with
-  `DATA_LOSS`, failure kind `OUTPUT_RETRIEVAL_FAILURE` (or `SDK_CALL_FAULTED`
-  when an output getter also faulted), disposition `COMPLETED` and replay
-  guidance `DO_NOT_REPLAY`. The MP result code stays in the error details, and
-  the outputs are reported as not retrieved. Running the call again repeats the
-  command and does not return the outputs; split the work so that each result is
-  smaller.
+  `DATA_LOSS`, disposition `COMPLETED`, replay guidance `DO_NOT_REPLAY`, and
+  the MP result code in the error details. The failure kind and the reported
+  outputs depend on whether an output getter also faulted:
+  - **No getter faulted.** The failure kind is `OUTPUT_RETRIEVAL_FAILURE`, and
+    every output is reported as not retrieved.
+  - **A getter also faulted.** The failure kind is `SDK_CALL_FAULTED`, and each
+    output keeps its own status. An output whose value cannot fit is reported as
+    failed with `worker-output-encoding-rejected`, and every output that fits is
+    reported as retrieved.
+
+  Because a 1 MiB result holds more, such a call can report more outputs as
+  retrieved than Server 0.10.0 did. Its status, failure kind, disposition,
+  replay and recovery guidance, MP result code and diagnostic code are the same.
+
+  Running the call again repeats the command and does not return the outputs;
+  split the work so that each result is smaller.
 - **Clients.** The published 0.5.0 clients for .NET, JavaScript/TypeScript
   and Python receive every result up to this limit from Server 0.10.1 with no
-  configuration. The largest response a 1 MiB result produces is about 2 KB
-  under 4 MiB, which is the clients' default receive limit. A client you build
-  from the published protocol needs a receive limit of at least 4 MiB, the
-  default of grpc-dotnet, grpc-js and grpcio.
-- **Memory.** Processing one result near the limit can briefly allocate up to
-  about 22 MB of server memory (measured; under 30 MiB by analysis), and a
-  response waiting for a slow client keeps its bytes until the client reads
-  them. Encoding one result in the worker holds at most about 1.5 MiB, however
-  large the result SpatialAnalyzer returns.
+  configuration. The largest response a 1 MiB result produced in Briosa's tests
+  was 4,192,459 bytes, 1,845 bytes under the clients' default 4 MiB
+  (4,194,304-byte) receive limit. A client you build from the published
+  protocol needs a receive limit of at least 4 MiB, the default of grpc-dotnet,
+  grpc-js and grpcio.
+- **Memory.** In Briosa's tests, processing one result at the limit (six double
+  lists in one response) allocated about 30 MB (28.76 MiB) of server memory in
+  total. The first call after the server starts allocated up to 37 MB, which
+  includes one-time initialization. These are totals allocated for one result,
+  not memory in use at one time. Concurrent calls, and responses still waiting
+  for a slow client to read them, each add their own. Encoding one result in
+  the worker holds at most 25 buffers of 64 KiB (1.56 MiB) plus 16 KiB of
+  escaping scratch, however large the result SpatialAnalyzer returns.
 
 ### Worker time bounds
 

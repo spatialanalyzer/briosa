@@ -1,4 +1,6 @@
 using System.Buffers;
+using System.Diagnostics.Tracing;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using Briosa.Worker.Control;
@@ -124,6 +126,201 @@ public sealed class WorkerControlEncodingTests
                 Assert.IsType<WorkerRetrievedOutput>(second).Value).Value),
             third => Assert.Equal(WorkerUnavailableOutputReason.SdkCallFaulted,
                 Assert.IsType<WorkerUnavailableOutput>(third).Reason));
+    }
+
+    // Every pooled buffer the encoder rents is returned on every path, including a
+    // rejection that interrupts the writer while it holds escaping scratch.
+    public static TheoryData<string> PoolPaths() => new()
+    {
+        "rejected-text",
+        "rejected-escaped-text",
+        "rejected-double-list",
+        "rejected-string-list",
+        "sdk-fault-fallback",
+        "delivered-escaped-text",
+        "stream-write-failure",
+        "cancelled-send"
+    };
+
+    [Theory]
+    [MemberData(nameof(PoolPaths))]
+    public void EveryPooledBufferIsReturned(string path)
+    {
+        using var ledger = new PoolLedger();
+        ledger.Start(NativeMethods.GetCurrentThreadId());
+        try
+        {
+            RunPoolPath(path);
+        }
+        finally
+        {
+            ledger.Stop();
+        }
+
+        Assert.True(ledger.Rentals > 0, "The pool ledger observed no rentals.");
+        Assert.Empty(ledger.Outstanding);
+    }
+
+    private static void RunPoolPath(string path)
+    {
+        WorkerControlMessage Oversized(string shape) => WorkerControlMessage.ExecutionResult(CorrelationId,
+            Response(new WorkerMpResultAvailable(2, 5, [OversizedOutput(shape)], null)));
+        switch (path)
+        {
+            case "rejected-text":
+            case "rejected-escaped-text":
+            case "rejected-double-list":
+            case "rejected-string-list":
+            {
+                using var stream = new MemoryStream();
+                using var channel = new WorkerControlChannel(stream, leaveOpen: true);
+                Assert.Throws<WorkerMessageRejectedException>(() =>
+                    channel.Send(Oversized(path["rejected-".Length..])));
+                Assert.Equal(0, stream.Length);
+                break;
+            }
+            case "sdk-fault-fallback":
+            {
+                var fault = new WorkerSdkCallFaulted(WorkerSdkCallPhase.OutputGetter, 5,
+                    [
+                        OversizedOutput("escaped-text"),
+                        OversizedOutput("text"),
+                        new WorkerRetrievedOutput("Small", WorkerMpValueKind.Text, new WorkerTextValue("<ok>")),
+                        new WorkerUnavailableOutput("Count", WorkerMpValueKind.WholeNumber,
+                            WorkerSdkFaultDiagnosticCodes.OutputGetter, WorkerUnavailableOutputReason.SdkCallFaulted)
+                    ],
+                    WorkerSdkFaultDiagnosticCodes.OutputGetter, resultCode: 2);
+                var replacement = WorkerExecutionDelivery.Undeliverable(CorrelationId, Response(fault));
+                using var stream = new MemoryStream();
+                using var channel = new WorkerControlChannel(stream, leaveOpen: true);
+                channel.Send(replacement);
+                break;
+            }
+            case "delivered-escaped-text":
+            {
+                using var stream = new MemoryStream();
+                using var channel = new WorkerControlChannel(stream, leaveOpen: true);
+                channel.Send(Result(new string('<', 170_000)));
+                break;
+            }
+            case "stream-write-failure":
+            {
+                using var channel = new WorkerControlChannel(new FailingStream(), leaveOpen: true);
+                Assert.Throws<IOException>(() => channel.Send(Result(new string('<', 170_000))));
+                break;
+            }
+            case "cancelled-send":
+            {
+                using var stream = new MemoryStream();
+                using var channel = new WorkerControlChannel(stream, leaveOpen: true);
+                using var cancellation = new CancellationTokenSource();
+                cancellation.Cancel();
+                Assert.ThrowsAny<OperationCanceledException>(() =>
+                    channel.SendAsync(Result(new string('<', 170_000)), cancellation.Token).AsTask().GetAwaiter().GetResult());
+                break;
+            }
+            default:
+                throw new ArgumentOutOfRangeException(nameof(path));
+        }
+    }
+
+    // Records ArrayPool rentals and returns on one OS thread, by buffer and pool.
+    private sealed class PoolLedger : EventListener
+    {
+        private readonly object _gate = new();
+        private readonly Dictionary<(int Pool, int Buffer), int> _outstanding = [];
+        private long _thread = -1;
+
+        public int Rentals { get; private set; }
+
+        public IReadOnlyCollection<(int Pool, int Buffer)> Outstanding
+        {
+            get
+            {
+                lock (_gate)
+                {
+                    return [.. _outstanding.Where(entry => entry.Value != 0).Select(entry => entry.Key)];
+                }
+            }
+        }
+
+        public void Start(long osThreadId)
+        {
+            lock (_gate)
+            {
+                _outstanding.Clear();
+                Rentals = 0;
+                _thread = osThreadId;
+            }
+        }
+
+        public void Stop()
+        {
+            lock (_gate)
+            {
+                _thread = -1;
+            }
+        }
+
+        protected override void OnEventSourceCreated(EventSource eventSource)
+        {
+            if (eventSource.Name == "System.Buffers.ArrayPoolEventSource")
+            {
+                EnableEvents(eventSource, EventLevel.Verbose);
+            }
+        }
+
+        protected override void OnEventWritten(EventWrittenEventArgs eventData)
+        {
+            if (eventData.PayloadNames is not { } names || eventData.Payload is not { } payload)
+            {
+                return;
+            }
+
+            var delta = eventData.EventName switch
+            {
+                "BufferRented" => 1,
+                "BufferReturned" or "BufferDropped" => -1,
+                _ => 0
+            };
+            if (delta == 0)
+            {
+                return;
+            }
+
+            var key = (Convert.ToInt32(payload[names.IndexOf("poolId")], System.Globalization.CultureInfo.InvariantCulture),
+                Convert.ToInt32(payload[names.IndexOf("bufferId")], System.Globalization.CultureInfo.InvariantCulture));
+            lock (_gate)
+            {
+                if (eventData.OSThreadId != _thread)
+                {
+                    return;
+                }
+
+                if (delta > 0)
+                {
+                    Rentals++;
+                }
+
+                _outstanding[key] = _outstanding.GetValueOrDefault(key) + delta;
+            }
+        }
+    }
+
+    private sealed class FailingStream : MemoryStream
+    {
+        public override void Write(byte[] buffer, int offset, int count) =>
+            throw new IOException("Simulated stream write failure.");
+
+        public override void Write(ReadOnlySpan<byte> buffer) =>
+            throw new IOException("Simulated stream write failure.");
+    }
+
+    private static class NativeMethods
+    {
+        [DllImport("kernel32.dll")]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        internal static extern uint GetCurrentThreadId();
     }
 
     // The new allocation a measured rejection may make, with a warm buffer pool:

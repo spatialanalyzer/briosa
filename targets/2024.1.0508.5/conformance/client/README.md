@@ -275,11 +275,25 @@ publishes the UTF-8 length and SHA-256 of that text as
    {"schema_version":1,"contract_id":"briosa.first-party-client.v1","scenario":"large-result","success":true,"working_directory":{"utf8_length":1046528,"sha256":"<hex>"}}
    ```
 
-The runner rejects the scenario unless the reported length and SHA-256 match
-the contract. A fixture that discards the value cannot pass, so the scenario
-shows that the client received all of it, not only that the call succeeded.
-The packaged client scenarios (`eng/Test-ClientScenarios.ps1`) run the same
-worker scenario against this repository's generated .NET client.
+The runner checks what the fixture reports, and it cannot see the value
+itself:
+- `utf8_length` must be a JSON integer equal to the contract's, compared as a
+  number;
+- `sha256` must be a string equal to the contract's, compared ordinally, so case
+  and ignorable characters count.
+
+The runner rejects the scenario otherwise. The scenario shows that a client
+received the whole value only when its fixture computes both from the value
+the client returned; a fixture that copied the contract's values would also
+pass.
+
+`eng/Test-ClientConformancePackage.ps1` runs the runner with fixtures that
+echo the contract's values, and with malformed reports. It therefore proves
+the runner's check, not a client's receipt. Receipt is shown today by the
+packaged client scenarios (`eng/Test-ClientScenarios.ps1`), where this
+repository's generated .NET client computes the length and digest from the
+value it received. For the first-party clients it will be shown by fixture
+revisions that do the same, once the retained-client gate pins them.
 
 The `capability-denied` scenario runs the packaged `standard` profile with one
 per-operation override that denies `file_operations.get_working_directory`.

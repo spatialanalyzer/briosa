@@ -1794,19 +1794,31 @@ try {
                 throw "The client fixture report did not satisfy scenario '$($scenarioDefinition.id)'."
             }
 
-            # A scenario that returns a known working directory also needs proof that
-            # the client received all of it: the fixture reports the UTF-8 length and
-            # SHA-256 of the value it got, never the value, and both must match.
+            # A scenario that returns a known working directory also checks what the
+            # fixture reports it received: the UTF-8 length and SHA-256 of the value,
+            # never the value. The runner verifies the report only; the fixture must
+            # compute both from the value its client returned.
             if ($scenarioDefinition.PSObject.Properties.Name -contains "expected_working_directory") {
                 $expectedDirectory = $scenarioDefinition.expected_working_directory
                 $observedDirectory = if ($report.PSObject.Properties.Name -contains "working_directory") {
                     $report.working_directory
                 }
-                if ($null -eq $observedDirectory -or
-                    $observedDirectory.PSObject.Properties.Name -notcontains "utf8_length" -or
-                    $observedDirectory.PSObject.Properties.Name -notcontains "sha256" -or
-                    [string]$observedDirectory.utf8_length -cne [string]$expectedDirectory.utf8_length -or
-                    [string]$observedDirectory.sha256 -cne [string]$expectedDirectory.sha256) {
+                $observedLength = if ($null -ne $observedDirectory -and
+                    $observedDirectory.PSObject.Properties.Name -contains "utf8_length") {
+                    $observedDirectory.utf8_length
+                }
+                $observedDigest = if ($null -ne $observedDirectory -and
+                    $observedDirectory.PSObject.Properties.Name -contains "sha256") {
+                    $observedDirectory.sha256
+                }
+                # The length must be a JSON integer, compared as a number, and the
+                # digest a string, compared ordinally: no culture rules, no ignorable
+                # characters, no case folding.
+                $lengthMatches = ($observedLength -is [long] -or $observedLength -is [int]) -and
+                    [long]$observedLength -eq [long]$expectedDirectory.utf8_length
+                $digestMatches = $observedDigest -is [string] -and
+                    [string]::Equals($observedDigest, [string]$expectedDirectory.sha256, [StringComparison]::Ordinal)
+                if (-not $lengthMatches -or -not $digestMatches) {
                     throw "The client fixture did not report receiving the whole working directory in scenario '$($scenarioDefinition.id)': its UTF-8 length and SHA-256 must match the scenario contract."
                 }
             }

@@ -33,9 +33,9 @@ private response budget from worker to host, which covers every execution
 result (1 MiB from Server 0.10.1). Changing one moves neither of the others. The
 largest public response a 1 MiB private frame can produce stays under the 4 MiB
 default receive limit of the first-party clients. The worker encodes into a
-buffer bounded by the budget and stops as soon as a frame is over it, so
-encoding a result holds at most about 1.5 MiB (24 chunks of 64 KiB), however
-large the result. A
+buffer bounded by the budget and stops at most one write past it, so encoding
+a result holds at most 25 chunks of 64 KiB (1.56 MiB) plus 16 KiB of escaping
+scratch, however large the result. A
 host and worker built for different budgets disagree on the private protocol
 version and fail at startup, before any command runs; see
 [worker response budget](../development/worker-response-budget.md). The public

@@ -75,8 +75,8 @@ public sealed class WorkerControlChannel(
     }
 
     // Encodes into a buffer bounded by the budget of the message kind. The encoder
-    // stops as soon as the frame is over it, so an oversized message never costs
-    // more than the budget plus one chunk, whatever it contains.
+    // stops at most one write past it, so an oversized message never holds more
+    // than 25 chunks of 64 KiB for a 1 MiB budget, whatever it contains.
     private static BoundedFrameBuffer Serialize(WorkerControlMessage message)
     {
         ArgumentNullException.ThrowIfNull(message);
@@ -100,6 +100,7 @@ public sealed class WorkerControlChannel(
         var buffer = new BoundedFrameBuffer(maximumBytes);
         try
         {
+            using (buffer.Encoding())
             using (var writer = new Utf8JsonWriter(buffer))
             {
                 JsonSerializer.Serialize(writer, value, typeInfo);

@@ -284,10 +284,10 @@ $definition = Get-Content -LiteralPath $Contract -Raw | ConvertFrom-Json
     Assert-Condition (@($passedLines | Where-Object { $_ -like "*: large-result *" }).Count -eq 0) `
         "The conformance runner ran an optional scenario that no fixture asked for."
 
-    # An optional scenario runs only on request, and the runner checks that the
-    # fixture received the whole working directory: the reported UTF-8 length and
-    # SHA-256 must match the contract. These fixtures only echo a report, so they
-    # test the runner's check, not a client.
+    # An optional scenario runs only on request, and the runner checks the
+    # working directory the fixture reports: the UTF-8 length and SHA-256 must
+    # match the contract exactly. These fixtures only echo a report built from
+    # the contract, so they test the runner's check, not a client's receipt.
     $largeResultFixtureSource = @'
 [CmdletBinding()]
 param(
@@ -302,19 +302,36 @@ $report = [ordered]@{
     success = $true
 }
 $optional = @($definition.optional_scenarios | Where-Object { $_.id -eq $Scenario })
+$json = $report | ConvertTo-Json -Compress
 if ($optional.Count -eq 1) {
-    $report.working_directory = [ordered]@{
-        utf8_length = [long]$optional[0].expected_working_directory.utf8_length + __LENGTH_OFFSET__
-        sha256 = [string]$optional[0].expected_working_directory.sha256
-    }
+    # The reported working directory, as raw JSON, so a case can use any type.
+    $json = $json.Substring(0, $json.Length - 1) + ',"working_directory":__WORKING_DIRECTORY__}'
 }
-$report | ConvertTo-Json -Compress
+$json
 '@
-    foreach ($lengthOffset in @(0, -1)) {
-        $largeResultFixturePath = Join-Path $temporaryRoot "large-result-fixture-$($lengthOffset + 1).ps1"
+    # Malformed reports. The soft hyphen is written as a JSON escape, so it reaches
+    # the runner unchanged; a linguistic comparison would ignore it.
+    $expectedLength = [long]$optionalScenarios[0].expected_working_directory.utf8_length
+    $expectedDigest = [string]$optionalScenarios[0].expected_working_directory.sha256
+    $softHyphen = '\' + 'u00ad'
+    $largeResultCases = [ordered]@{
+        "exact" = "{`"utf8_length`":$expectedLength,`"sha256`":`"$expectedDigest`"}"
+        "short" = "{`"utf8_length`":$($expectedLength - 1),`"sha256`":`"$expectedDigest`"}"
+        "length-as-string" = "{`"utf8_length`":`"$expectedLength`",`"sha256`":`"$expectedDigest`"}"
+        "length-as-fraction" = "{`"utf8_length`":$expectedLength.0,`"sha256`":`"$expectedDigest`"}"
+        "length-with-soft-hyphen" = "{`"utf8_length`":`"$expectedLength$softHyphen`",`"sha256`":`"$expectedDigest`"}"
+        "digest-with-soft-hyphen" = "{`"utf8_length`":$expectedLength,`"sha256`":`"$($expectedDigest.Substring(0, 8))$softHyphen$($expectedDigest.Substring(8))`"}"
+        "digest-upper-case" = "{`"utf8_length`":$expectedLength,`"sha256`":`"$($expectedDigest.ToUpperInvariant())`"}"
+        "digest-as-number" = "{`"utf8_length`":$expectedLength,`"sha256`":12345}"
+        "digest-missing" = "{`"utf8_length`":$expectedLength}"
+        "length-missing" = "{`"sha256`":`"$expectedDigest`"}"
+        "not-an-object" = "`"$expectedDigest`""
+    }
+    foreach ($caseName in $largeResultCases.Keys) {
+        $largeResultFixturePath = Join-Path $temporaryRoot "large-result-fixture-$caseName.ps1"
         [IO.File]::WriteAllText(
             $largeResultFixturePath,
-            $largeResultFixtureSource.Replace("__LENGTH_OFFSET__", [string]$lengthOffset),
+            $largeResultFixtureSource.Replace("__WORKING_DIRECTORY__", $largeResultCases[$caseName]),
             [Text.UTF8Encoding]::new($false))
         $largeResultOutput = [Collections.Generic.List[string]]::new()
         $largeResultFailure = $null
@@ -331,7 +348,7 @@ $report | ConvertTo-Json -Compress
         catch {
             $largeResultFailure = $_
         }
-        if ($lengthOffset -eq 0) {
+        if ($caseName -eq "exact") {
             Assert-Condition ($null -eq $largeResultFailure -and
                 @($largeResultOutput | Where-Object { $_ -like "Passed client conformance scenario: large-result *" }).Count -eq 1) `
                 "The conformance runner did not run the requested optional scenario: $largeResultFailure"
@@ -339,7 +356,7 @@ $report | ConvertTo-Json -Compress
         else {
             Assert-Condition ($null -ne $largeResultFailure -and
                 "$largeResultFailure" -like "*did not report receiving the whole working directory in scenario 'large-result'*") `
-                "The conformance runner accepted a truncated working directory: $largeResultFailure"
+                "The conformance runner accepted a $caseName working directory report: $largeResultFailure"
         }
     }
     $unknownOptionalFailure = $null
