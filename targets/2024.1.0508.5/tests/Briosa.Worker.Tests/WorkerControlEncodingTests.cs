@@ -280,7 +280,7 @@ public sealed class WorkerControlEncodingTests
             var delta = eventData.EventName switch
             {
                 "BufferRented" => 1,
-                "BufferReturned" or "BufferDropped" => -1,
+                "BufferReturned" => -1,
                 _ => 0
             };
             if (delta == 0)

@@ -156,11 +156,11 @@ public sealed class WorkerResponseBudgetTests(ITestOutputHelper output)
     }
 
     // Every operation that returns double lists, through its real mapper, with a
-    // private frame at the response budget whose first double list holds only
-    // zeros: the densest JSON. The frame uses the smallest legal envelope
-    // (MinimalEnvelope), so as many values as possible fit. Its public response
-    // must stay within the published clients' 4 MiB receive limit. Other output
-    // kinds encode to less protobuf than JSON, so they cannot come closer.
+    // private frame at the response budget in the smallest legal envelope
+    // (MinimalEnvelope). The first double list holds as many zeros, the densest
+    // JSON, as the frame allows; later lists are empty. That is one tested
+    // distribution per operation, not each operation's maximum. Its public
+    // response must stay within the published clients' 4 MiB receive limit.
     public static TheoryData<string> DoubleListOperations() => new()
     {
         GetNamedDoubleListVariableOperation.Descriptor.OperationId,
@@ -177,15 +177,42 @@ public sealed class WorkerResponseBudgetTests(ITestOutputHelper output)
     public async Task EveryDoubleListResponseAtTheBudgetFitsTheClientsDefaultReceiveLimit(string operationId)
     {
         var (frameBytes, responseBytes) = await DensestResponse(operationId).ConfigureAwait(true);
-        output.WriteLine(
-            $"{operationId}: frame {frameBytes} bytes, response {responseBytes} bytes, " +
-            $"{FirstPartyClientDefaultReceiveBytes - responseBytes} bytes under the client limit");
+        WriteMargin(operationId, frameBytes, responseBytes);
 
         Assert.InRange(frameBytes, WorkerControlProtocol.MaximumResponseBytes - 1,
             WorkerControlProtocol.MaximumResponseBytes);
         Assert.InRange(responseBytes, 3 * WorkerControlProtocol.MaximumResponseBytes,
             FirstPartyClientDefaultReceiveBytes);
     }
+
+    // A distribution with every list populated: the six covariance rows, each just
+    // over a power of two in length, in a 1,048,575-byte frame. Each populated row
+    // adds its own protobuf field header, so this response is larger than the
+    // first-list distribution's for the same operation.
+    [Fact]
+    public async Task ASixRowCovarianceResponseAtTheBudgetFitsTheClientsDefaultReceiveLimit()
+    {
+        int[] rows = [262_145, 131_073, 65_537, 32_769, 16_385, 15_914];
+        var (frameBytes, responseBytes) = await Densest<Api.GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldRequest,
+            Api.GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldResult>(
+            GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldOperation.Descriptor,
+            GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldOperation.CreateCommand,
+            GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldOperation.OutputContracts,
+            GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldOperation.CreateResult,
+            command => MinimalEnvelope([.. command.OutputArguments.Select((argument, index) =>
+                (WorkerMpOutputValue)new WorkerRetrievedOutput(argument.Name, argument.Kind,
+                    new WorkerDoubleArrayValue(new double[rows[index]])))])).ConfigureAwait(true);
+        WriteMargin("six-row covariance", frameBytes, responseBytes);
+
+        Assert.Equal(WorkerControlProtocol.MaximumResponseBytes - 1, frameBytes);
+        Assert.InRange(responseBytes, 3 * WorkerControlProtocol.MaximumResponseBytes,
+            FirstPartyClientDefaultReceiveBytes);
+    }
+
+    private void WriteMargin(string name, int frameBytes, int responseBytes) =>
+        output.WriteLine(
+            $"{name}: frame {frameBytes} bytes, response {responseBytes} bytes, " +
+            $"{FirstPartyClientDefaultReceiveBytes - responseBytes} bytes under the client limit");
 
     private static Task<(int FrameBytes, int ResponseBytes)> DensestResponse(string operationId) => operationId switch
     {
@@ -221,11 +248,12 @@ public sealed class WorkerResponseBudgetTests(ITestOutputHelper output)
         OperationDescriptor descriptor,
         Func<TRequest, WorkerMpCommand> createCommand,
         IReadOnlyList<OperationOutputContract> outputContracts,
-        Func<SuccessfulOperationExecution, TResult> createResult)
+        Func<SuccessfulOperationExecution, TResult> createResult,
+        Func<WorkerMpCommand, WorkerExecutionResponse>? respond = null)
         where TRequest : class, IMessage<TRequest>, new()
         where TResult : class, IMessage
     {
-        var worker = new PrivateChannelWorker(DensestDoubleLists);
+        var worker = new PrivateChannelWorker(respond ?? DensestDoubleLists);
         var executor = new OperationExecutor(worker,
             new OperationAuditLogger(NullLogger<OperationAuditLogger>.Instance), TimeProvider.System);
         var request = OperationConditionalOptionTests.RequestPopulator.Create<TRequest>();
@@ -255,7 +283,7 @@ public sealed class WorkerResponseBudgetTests(ITestOutputHelper output)
                 WorkerMpValue value = output.Kind switch
                 {
                     WorkerMpValueKind.DoubleArray => new WorkerDoubleArrayValue(new double[remaining]),
-                    WorkerMpValueKind.Logical => new WorkerBooleanValue(false),
+                    WorkerMpValueKind.Logical => new WorkerBooleanValue(true),
                     WorkerMpValueKind.FloatingPoint => new WorkerDoubleValue(0),
                     WorkerMpValueKind.Transform => new WorkerTransformValue(new double[16]),
                     WorkerMpValueKind.EditText => new WorkerStringListValue([]),
@@ -325,10 +353,11 @@ public sealed class WorkerResponseBudgetTests(ITestOutputHelper output)
     // The smallest execution result the channel accepts around these outputs.
     // Every other field is fixed by the protocol or the operation (version, kind,
     // discriminators, output names and kinds, the Connected and ExecutionReady
-    // values) or has a fixed width (correlation ID, timestamp). The rest are at
-    // their minimum: optional fields omitted (the connection status code, runtime
-    // identity and diagnostic codes), the required connection diagnostic code at
-    // the one character the channel allows, and every number at one digit.
+    // values), has a fixed width (the correlation ID), or is at its minimum: the
+    // timestamp at its minimum width, with no fractional seconds; optional fields
+    // omitted (the connection status code, runtime identity and diagnostic codes);
+    // the required connection diagnostic code at the one character the channel
+    // allows; and every number at one digit.
     private static WorkerExecutionResponse MinimalEnvelope(IReadOnlyList<WorkerMpOutputValue> outputs) =>
         new(
             WorkerExecutionResponseStatus.Completed,

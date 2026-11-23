@@ -20,19 +20,31 @@ are in each target's `docs/operations/windows-package.md`.
 Private frames are JSON, and public messages are protobuf. A single-digit
 double costs 2 JSON bytes and 8 protobuf bytes, so the densest public response
 is about four times its private frame. All seven operations that return double
-lists were measured through their real mappers
-(`EveryDoubleListResponseAtTheBudgetFitsTheClientsDefaultReceiveLimit`). Each
-used a frame at the budget, holding zeros in the smallest legal envelope:
+lists were measured through their real mappers, each with a frame at the budget
+in the smallest legal envelope. The table gives measurements for the tested
+distributions, not each operation's maximum:
+- **first-list distribution** (`EveryDoubleListResponseAtTheBudgetFitsTheClientsDefaultReceiveLimit`):
+  the first double list holds as many zeros as fit, later lists are empty, and
+  every other output has its shortest JSON value;
+- **six-row distribution** (`ASixRowCovarianceResponseAtTheBudgetFitsTheClientsDefaultReceiveLimit`):
+  all six covariance rows populated, with the review's row lengths.
 
-| Operation | Public response | Under 4,194,304 |
-| --- | --- | --- |
-| `robot_operations.get_robot_pose_for_a_frame` | 4,192,459 | **1,845** |
-| `robot_operations.get_calibration_appliance_data` | 4,192,453 | 1,851 |
-| `robot_calibration_appliance_node_operations.get_calibration_appliance_node_data` | 4,192,453 | 1,851 |
-| `variables.get_named_double_list_variable` | 4,192,430 | 1,874 |
-| `instrument_operations.get_instrument_base_uncertainty_covariance_matrix_wrt_world` | 4,190,739 | 3,565 |
-| `instrument_operations.get_last_solved_tcp_fixture_uncertainty_covariance_matrix` | 4,190,739 | 3,565 |
-| `instrument_operations.calculate_tcp_fixture_uncertainties` | 4,189,434 | 4,870 |
+| Operation | Distribution | Public response | Under 4,194,304 |
+| --- | --- | --- | --- |
+| `robot_operations.get_robot_pose_for_a_frame` | first list (one list) | 4,192,459 | **1,845** |
+| `robot_operations.get_calibration_appliance_data` | first list (one list) | 4,192,453 | 1,851 |
+| `robot_calibration_appliance_node_operations.get_calibration_appliance_node_data` | first list (one list) | 4,192,453 | 1,851 |
+| `variables.get_named_double_list_variable` | first list (one list) | 4,192,430 | 1,874 |
+| `instrument_operations.get_instrument_base_uncertainty_covariance_matrix_wrt_world` | six rows | 4,190,785 | 3,519 |
+| `instrument_operations.get_instrument_base_uncertainty_covariance_matrix_wrt_world` | first list | 4,190,739 | 3,565 |
+| `instrument_operations.get_last_solved_tcp_fixture_uncertainty_covariance_matrix` | first list | 4,190,739 | 3,565 |
+| `instrument_operations.calculate_tcp_fixture_uncertainties` | first list | 4,189,444 | 4,860 |
+
+Populating every list adds one protobuf field header per list, so for a
+multi-list operation the six-row distribution gives the larger response. The
+independent review found the same 3,519 bytes. The four single-list operations
+have only one list, so their first-list figure covers their whole output.
+`GetRobotPoseForAFrame`'s 1,845 bytes is the smallest margin found.
 
 **The smallest legal envelope.** Every byte the envelope saves fits another
 value, so the smallest envelope gives the largest response. Each field of the
@@ -40,11 +52,12 @@ private execution result falls into one of three groups:
 - fixed by the protocol or the operation: version, kind, status,
   discriminators, the output names and kinds, and the `Connected` and
   `ExecutionReady` values;
-- fixed in width: the correlation ID and the timestamp;
-- at its minimum: every optional field the channel omits when null (the
-  connection status code, runtime identity and diagnostic codes), the required
-  connection diagnostic code at the one non-whitespace character the channel
-  allows, and every number at one digit.
+- fixed in width: the correlation ID;
+- at its minimum: the timestamp at its minimum width, with no fractional
+  seconds; every optional field the channel omits when null (the connection
+  status code, runtime identity and diagnostic codes); the required connection
+  diagnostic code at the one non-whitespace character the channel allows; and
+  every number at one digit.
 
 The test sends that envelope through the production channel, which accepts it.
 An earlier envelope (status code 0, diagnostic `sdk-connected`) left 1,949
@@ -73,6 +86,15 @@ characters and a later getter faulting.
 - Everything else is unchanged: `DATA_LOSS`, `SDK_CALL_FAULTED`, `Completed`,
   `DoNotReplay`, recovery `None`, MP code 2 and diagnostic
   `sdk-output-getter-faulted`. The next call succeeds on the same worker.
+
+The faulted getter stays failed. Successfully retrieved values retained in the
+combined frame are marked retrieved, and values dropped to fit it are marked
+`worker-output-encoding-rejected`.
+
+Without a getter fault, an oversized result is unchanged:
+`OUTPUT_RETRIEVAL_FAILURE` with `worker-output-encoding-rejected` as the
+call's diagnostic. Every output is `Failed`, and that code is not repeated on
+each output (`GrpcOperationOutcomeMapper.CreateMpDetails`).
 
 ## Private protocol version
 
@@ -180,7 +202,7 @@ allocated for one result, not peak memory in use:
 | --- | --- | --- | --- |
 | Six double lists of zeros (`GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorld`; rows 262,145, 131,073, 65,537, 32,769, 16,385 and 15,914), 2026 warm | 1,048,575 | 30,153,648 (28.76 MiB) | 28.8 |
 | The same, 2024 warm | 1,048,575 | 30,157,312 (28.76 MiB) | 28.8 |
-| The same, first call in a fresh process, with one-time initialization | 1,048,575 | 36,651,128 to 37,077,792 | 35.0 to 35.4 |
+| The same, first call in a fresh process, with one-time initialization (recorded cold measurements, not a cap; the review measured 32.03 MB or 38.45 MB depending on which initialization it included) | 1,048,575 | 36,651,128 to 37,077,792 | 35.0 to 35.4 |
 | One double list of zeros (`GetNamedDoubleListVariable`) | 1,048,575 | 22,023,920 | 21.0 |
 | The same, 266,239-byte frame, warm | 266,239 | 7,659,224 | 28.8 |
 
@@ -205,8 +227,12 @@ Briosa budget.
 
 The optional conformance scenario `large-result` returns a working directory
 just under 1 MiB. The fixture reports the UTF-8 length and SHA-256 of the value
-its client returned. The runner checks both exactly: the length as a JSON
-integer, compared as a number, and the digest as a string, compared ordinally.
+its client returned. The runner checks both exactly, reading the fixture's
+original JSON with `System.Text.Json`:
+- objects at the root and at `working_directory`;
+- exact property names;
+- the length a JSON number that is an Int64 equal to the contract's;
+- the digest a JSON string equal to it ordinally.
 The runner cannot see the value, so the scenario shows receipt only when the
 fixture computes both from what its client actually received.
 

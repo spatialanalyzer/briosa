@@ -1677,11 +1677,15 @@ function Invoke-Fixture {
             throw "The client fixture returned no report for scenario '$($ScenarioDefinition.id)'."
         }
         try {
-            return $output | ConvertFrom-Json
+            $null = $output | ConvertFrom-Json
         }
         catch {
             throw "The client fixture returned an invalid JSON report for scenario '$($ScenarioDefinition.id)'."
         }
+
+        # The original report text: a check that needs the report's exact JSON
+        # shape reads it with System.Text.Json.
+        return $output
     }
     finally {
         $process.Dispose()
@@ -1782,11 +1786,12 @@ try {
                 $externalApplication = [Diagnostics.Process]::Start($applicationStartInfo)
             }
 
-            $report = Invoke-Fixture `
+            $reportJson = Invoke-Fixture `
                 -ScenarioDefinition $scenarioDefinition `
                 -Environment $environment `
                 -ScenarioRoot $scenarioRoot `
                 -Timing $timing
+            $report = $reportJson | ConvertFrom-Json
             if ($report.schema_version -ne 1 -or
                 $report.contract_id -ne $contract.contract_id -or
                 $report.scenario -ne $scenarioDefinition.id -or
@@ -1797,28 +1802,43 @@ try {
             # A scenario that returns a known working directory also checks what the
             # fixture reports it received: the UTF-8 length and SHA-256 of the value,
             # never the value. The runner verifies the report only; the fixture must
-            # compute both from the value its client returned.
+            # compute both from the value its client returned. The check reads the
+            # original JSON, because ConvertFrom-Json and PowerShell property access
+            # unwrap singleton arrays and ignore the case of property names.
             if ($scenarioDefinition.PSObject.Properties.Name -contains "expected_working_directory") {
                 $expectedDirectory = $scenarioDefinition.expected_working_directory
-                $observedDirectory = if ($report.PSObject.Properties.Name -contains "working_directory") {
-                    $report.working_directory
+                try {
+                    $reportDocument = [Text.Json.JsonDocument]::Parse($reportJson)
                 }
-                $observedLength = if ($null -ne $observedDirectory -and
-                    $observedDirectory.PSObject.Properties.Name -contains "utf8_length") {
-                    $observedDirectory.utf8_length
+                catch {
+                    throw "The client fixture returned an invalid JSON report for scenario '$($scenarioDefinition.id)'."
                 }
-                $observedDigest = if ($null -ne $observedDirectory -and
-                    $observedDirectory.PSObject.Properties.Name -contains "sha256") {
-                    $observedDirectory.sha256
+                try {
+                    # An object at the root and at working_directory; exact property
+                    # names; utf8_length a JSON number that is an Int64 equal to the
+                    # contract's; sha256 a JSON string equal to it ordinally.
+                    $reportRoot = $reportDocument.RootElement
+                    $observedDirectory = [Text.Json.JsonElement]::new()
+                    $observedLength = [Text.Json.JsonElement]::new()
+                    $observedDigest = [Text.Json.JsonElement]::new()
+                    $observedLengthValue = [long]0
+                    $receiptMatches =
+                        $reportRoot.ValueKind -eq [Text.Json.JsonValueKind]::Object -and
+                        $reportRoot.TryGetProperty([string]"working_directory", [ref]$observedDirectory) -and
+                        $observedDirectory.ValueKind -eq [Text.Json.JsonValueKind]::Object -and
+                        $observedDirectory.TryGetProperty([string]"utf8_length", [ref]$observedLength) -and
+                        $observedLength.ValueKind -eq [Text.Json.JsonValueKind]::Number -and
+                        $observedLength.TryGetInt64([ref]$observedLengthValue) -and
+                        $observedLengthValue -eq [long]$expectedDirectory.utf8_length -and
+                        $observedDirectory.TryGetProperty([string]"sha256", [ref]$observedDigest) -and
+                        $observedDigest.ValueKind -eq [Text.Json.JsonValueKind]::String -and
+                        [string]::Equals($observedDigest.GetString(), [string]$expectedDirectory.sha256,
+                            [StringComparison]::Ordinal)
                 }
-                # The length must be a JSON integer, compared as a number, and the
-                # digest a string, compared ordinally: no culture rules, no ignorable
-                # characters, no case folding.
-                $lengthMatches = ($observedLength -is [long] -or $observedLength -is [int]) -and
-                    [long]$observedLength -eq [long]$expectedDirectory.utf8_length
-                $digestMatches = $observedDigest -is [string] -and
-                    [string]::Equals($observedDigest, [string]$expectedDirectory.sha256, [StringComparison]::Ordinal)
-                if (-not $lengthMatches -or -not $digestMatches) {
+                finally {
+                    $reportDocument.Dispose()
+                }
+                if (-not $receiptMatches) {
                     throw "The client fixture did not report receiving the whole working directory in scenario '$($scenarioDefinition.id)': its UTF-8 length and SHA-256 must match the scenario contract."
                 }
             }

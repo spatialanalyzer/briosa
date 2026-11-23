@@ -80,15 +80,18 @@ Requests and results have separate size limits.
   the MP result code in the error details. The failure kind and the reported
   outputs depend on whether an output getter also faulted:
   - **No getter faulted.** The failure kind is `OUTPUT_RETRIEVAL_FAILURE`, and
-    every output is reported as not retrieved.
+    the call's diagnostic code is `worker-output-encoding-rejected`. Every output
+    is reported as failed, without repeating that code on each output. This is
+    the same as in Server 0.10.0.
   - **A getter also faulted.** The failure kind is `SDK_CALL_FAULTED`, and each
-    output keeps its own status. An output whose value cannot fit is reported as
-    failed with `worker-output-encoding-rejected`, and every output that fits is
-    reported as retrieved.
+    output keeps its own status. A faulted getter stays failed. Successfully
+    retrieved values retained in the combined frame are marked retrieved; values
+    dropped to fit it are marked `worker-output-encoding-rejected`.
 
-  Because a 1 MiB result holds more, such a call can report more outputs as
-  retrieved than Server 0.10.0 did. Its status, failure kind, disposition,
-  replay and recovery guidance, MP result code and diagnostic code are the same.
+  Because a 1 MiB result holds more, a call with a getter fault can report more
+  outputs as retrieved than Server 0.10.0 did. Its status, failure kind,
+  disposition, replay and recovery guidance, MP result code and diagnostic code
+  are the same.
 
   Running the call again repeats the command and does not return the outputs;
   split the work so that each result is smaller.
@@ -101,8 +104,10 @@ Requests and results have separate size limits.
   grpc-js and grpcio.
 - **Memory.** In Briosa's tests, processing one result at the limit (six double
   lists in one response) allocated about 30 MB (28.76 MiB) of server memory in
-  total. The first call after the server starts allocated up to 37 MB, which
-  includes one-time initialization. These are totals allocated for one result,
+  total. In one recorded cold measurement, the first call after the server
+  started allocated 37 MB, including one-time initialization. That is a
+  measurement, not a cap: how much initialization a first call includes varies.
+  These are totals allocated for one result,
   not memory in use at one time. Concurrent calls, and responses still waiting
   for a slow client to read them, each add their own. Encoding one result in
   the worker holds at most 25 buffers of 64 KiB (1.56 MiB) plus 16 KiB of

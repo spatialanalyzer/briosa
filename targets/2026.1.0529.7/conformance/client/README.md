@@ -276,11 +276,14 @@ publishes the UTF-8 length and SHA-256 of that text as
    ```
 
 The runner checks what the fixture reports, and it cannot see the value
-itself:
-- `utf8_length` must be a JSON integer equal to the contract's, compared as a
-  number;
-- `sha256` must be a string equal to the contract's, compared ordinally, so case
-  and ignorable characters count.
+itself. It reads the fixture's original JSON:
+- the report and `working_directory` must be JSON objects, and property names
+  match exactly;
+- `utf8_length` must be a JSON number that is an integer equal to the
+  contract's;
+- `sha256` must be a JSON string equal to the contract's, compared ordinally,
+  so case and ignorable characters count. Lowercase hexadecimal is the
+  documented form.
 
 The runner rejects the scenario otherwise. The scenario shows that a client
 received the whole value only when its fixture computes both from the value

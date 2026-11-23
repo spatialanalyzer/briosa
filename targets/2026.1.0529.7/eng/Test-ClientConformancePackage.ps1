@@ -306,6 +306,7 @@ $json = $report | ConvertTo-Json -Compress
 if ($optional.Count -eq 1) {
     # The reported working directory, as raw JSON, so a case can use any type.
     $json = $json.Substring(0, $json.Length - 1) + ',"working_directory":__WORKING_DIRECTORY__}'
+    if ('__WRAP_REPORT__' -eq 'true') { $json = "[$json]" }
 }
 $json
 '@
@@ -326,12 +327,24 @@ $json
         "digest-missing" = "{`"utf8_length`":$expectedLength}"
         "length-missing" = "{`"sha256`":`"$expectedDigest`"}"
         "not-an-object" = "`"$expectedDigest`""
+        "length-huge" = "{`"utf8_length`":99999999999999999999999,`"sha256`":`"$expectedDigest`"}"
+        "length-null" = "{`"utf8_length`":null,`"sha256`":`"$expectedDigest`"}"
+        "length-empty-array" = "{`"utf8_length`":[],`"sha256`":`"$expectedDigest`"}"
+        # Singleton arrays, which PowerShell would unwrap, and property names in
+        # another case, which PowerShell property access would match.
+        "length-in-array" = "{`"utf8_length`":[$expectedLength],`"sha256`":`"$expectedDigest`"}"
+        "digest-in-array" = "{`"utf8_length`":$expectedLength,`"sha256`":[`"$expectedDigest`"]}"
+        "directory-in-array" = "[{`"utf8_length`":$expectedLength,`"sha256`":`"$expectedDigest`"}]"
+        "report-in-array" = "{`"utf8_length`":$expectedLength,`"sha256`":`"$expectedDigest`"}"
+        "length-name-upper-case" = "{`"UTF8_LENGTH`":$expectedLength,`"sha256`":`"$expectedDigest`"}"
+        "digest-name-upper-case" = "{`"utf8_length`":$expectedLength,`"SHA256`":`"$expectedDigest`"}"
     }
     foreach ($caseName in $largeResultCases.Keys) {
         $largeResultFixturePath = Join-Path $temporaryRoot "large-result-fixture-$caseName.ps1"
         [IO.File]::WriteAllText(
             $largeResultFixturePath,
-            $largeResultFixtureSource.Replace("__WORKING_DIRECTORY__", $largeResultCases[$caseName]),
+            $largeResultFixtureSource.Replace("__WORKING_DIRECTORY__", $largeResultCases[$caseName]).Replace(
+                "__WRAP_REPORT__", $(if ($caseName -eq "report-in-array") { "true" } else { "false" })),
             [Text.UTF8Encoding]::new($false))
         $largeResultOutput = [Collections.Generic.List[string]]::new()
         $largeResultFailure = $null
