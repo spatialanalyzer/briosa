@@ -1,7 +1,7 @@
 # First-party client behavioral contract
 
 - Status: Current v1 design contract; client implementations may still be pre-conformance
-- Last reviewed: 2026-11-09
+- Last reviewed: 2026-11-22
 
 ## Purpose and authority
 
@@ -326,8 +326,60 @@ launches SpatialAnalyzer reaches readiness within 95 seconds and receives a type
 server failure within 100 seconds. The 20-second margin covers server host
 startup, process observation, installation discovery, and round trips. Raising
 `StartupTimeout` by some amount raises the minimum budget by three times that
-amount; raising either other bound raises it by the same amount. A deployment
-that raises server bounds raises its client startup budget to match.
+amount; raising either other bound raises it by the same amount.
+
+Server 0.10.1 and later publish the server side of this rule, computed from
+their effective settings, in `GetServerInfo`: `startup_with_launch_milliseconds`
+and `startup_without_launch_milliseconds` in `lifecycle_bounds`, without the
+client margin
+([health and discovery](../../targets/2026.1.0529.7/docs/operations/health-and-discovery.md#lifecycle-bounds)).
+For such a server, those published allowances, not the formula, are the source
+of a 0.5.1 or later client's budget, as described below. Against Server 0.10.0,
+which publishes no lifecycle bounds, and in the 0.5.0 clients, the budget stays
+at the fixed 120 seconds or the caller's explicit timeout, and a deployment that
+raises server bounds raises its client startup budget to match.
+
+### Startup budget from published lifecycle bounds
+
+Clients 0.5.1 and later adopt the published startup allowance as follows. The
+120-second default stays the floor, so adoption only ever lengthens a default
+budget.
+
+1. Capture one monotonic start instant, `t0`, when startup begins, before host
+   launch or discovery.
+2. An explicit caller startup timeout always wins, including an explicit 120
+   seconds. Clients therefore distinguish an omitted timeout from an explicit
+   one, which the 0.5.0 clients do not.
+3. When the timeout is omitted, arm the initial bootstrap deadline at
+   `t0 + 120 s`. Against a server that publishes no `lifecycle_bounds`, such as
+   Server 0.10.0, leave that deadline unchanged.
+4. Adopt once, at the first validated startup snapshot: server information and
+   capabilities, with a live identity that matches the selected installation.
+   Choose the allowance for the selected actions:
+   - Start SDK, Launch, and Connect: `startup_with_launch_milliseconds`;
+   - Start SDK and Connect: `startup_without_launch_milliseconds`;
+   - Start SDK and Launch: `start_sdk_milliseconds` +
+     `launch_spatial_analyzer_milliseconds`;
+   - Start SDK only: `start_sdk_milliseconds`;
+   - Launch only: `launch_spatial_analyzer_milliseconds`;
+   - none: there is no server phase.
+
+   Connect without Start SDK is invalid. If any allowance that the selection
+   needs is absent, zero, or unusable, keep the bootstrap deadline; never sum a
+   partial budget.
+5. Compute the new deadline from `t0`, so that time already spent counts:
+   `deadline = t0 + max(120 s, selected allowance + 20 s)`. Adoption never
+   revives an expired startup: if startup is already cancelled or finished, or
+   the monotonic clock is at or past the current deadline, do not extend it or
+   submit another phase. If the new deadline has already passed, expire
+   immediately. Otherwise re-arm the timer for `deadline - now`. For example, a
+   snapshot observed at 121 seconds must not extend the budget for a
+   300-second allowance just because the timer callback has not yet run.
+   Before replacing the bootstrap timer, check that `deadline - now` can be
+   scheduled. If it cannot, keep the existing bootstrap deadline; do not
+   schedule a clamped delay. Caller cancellation stays independent, and no budget restarts at the post-Connect
+   refresh.
+6. Keep no default deadline on individual lifecycle RPCs.
 
 ## Client validation boundary
 
@@ -483,7 +535,10 @@ the runtime behavioral major/minimum revision and exact target, then compares
 server build coordinates against the selected installation's manifest. Compatible
 servers need not equal the generation artifact's release or source revision.
 Only the documented exact 0.6.1 legacy entry permits absent contract metadata.
-Published exact-pinned clients retain their original checks.
+Published exact-pinned clients retain their original checks. Clients 0.5.1 use
+minimum revision 0 for both installation selection and live discovery, so they
+still accept Server 0.10.0, which declares revision 0; Server 0.10.1 declares
+revision 1.
 
 The client captures the admitted capability set for each generation. Runtime
 policy may expose a supported subset, so startup does not infer that every RPC
@@ -520,6 +575,24 @@ Clients adopting compatibility major 3:
   Such a default never applies a `QUICK` budget to a `LONG_RUNNING` or
   `INTERACTIVE` operation.
 
+From Server 0.10.1, `GetServerInfo` also reports the server's lifecycle bounds
+and its configured SpatialAnalyzer interaction mode
+([lifecycle bounds](../../targets/2026.1.0529.7/docs/operations/health-and-discovery.md#lifecycle-bounds),
+[configured interaction mode](../../targets/2026.1.0529.7/docs/operations/health-and-discovery.md#configured-interaction-mode)).
+Server 0.10.0 reports neither. Clients 0.5.1 and later:
+
+- expose each lifecycle allowance as an optional duration. An absent or zero
+  allowance is unavailable;
+- expose the host graceful shutdown bound as unavailable, finite, or unbounded,
+  read from its `limit` case. An absent bound, an unset case,
+  `finite_milliseconds = 0`, or a case the client does not recognize is
+  unavailable, never unbounded;
+- expose the configured interaction mode with a distinct unknown member for
+  `UNSPECIFIED` and for any value the client does not recognize. They describe
+  it as the server's configuration, never as SpatialAnalyzer's live mode; and
+- fall back per purpose, not per reply. An unknown mode or a missing host bound
+  does not make a usable startup allowance unavailable.
+
 Server 0.10.1 adds typed denial detail and request option descriptions
 ([#397](https://github.com/spatialanalyzer/briosa/issues/397); see the
 [discovery guide](../../targets/2026.1.0529.7/docs/operations/health-and-discovery.md#request-options-in-discovery)
@@ -548,10 +621,6 @@ clients surface it and still work with Server 0.10.0:
   pre-validate requests from it.
 - An unknown rule, effect, condition, or omission value is unknown metadata,
   never permission, and never fails discovery.
-- Installation selection and live discovery keep requiring revision 0 or later
-  of the current major, while live coordinates must still match the selected
-  installation's manifest. Server 0.10.1 declares revision 1, so a client that
-  required its own generated revision would reject Server 0.10.0.
 
 Package semantic version, Briosa server semantic version, exact SpatialAnalyzer
 target, protocol artifact identity, and runtime architecture remain separate

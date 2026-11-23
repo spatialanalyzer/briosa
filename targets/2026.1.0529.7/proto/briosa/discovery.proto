@@ -34,6 +34,119 @@ message GetServerInfoResponse {
   RuntimeIdentityEvidence connected_spatial_analyzer_identity = 10;
   // Behavioral promise, independent of release and source identity.
   CompatibilityContract compatibility = 11;
+  // The lifecycle wait allowances that this server computes from its own
+  // effective configuration. Available before the SDK starts and whether or not
+  // SpatialAnalyzer is connected. Server 0.10.1 and later set it; Server 0.10.0
+  // leaves it absent, and a client then keeps its own fixed waits. The 0.5.0
+  // clients ignore this field and work with Server 0.10.1 unchanged; clients
+  // from 0.5.1 read it.
+  optional LifecycleBounds lifecycle_bounds = 12;
+  // The SpatialAnalyzer interaction mode that this server is configured to set
+  // after each verified Connect. It reports server configuration only and is
+  // published whether or not SpatialAnalyzer is connected; it is never read back
+  // from SpatialAnalyzer. Server 0.10.1 and later set a known value; Server
+  // 0.10.0 leaves it UNSPECIFIED. The 0.5.0 clients ignore this field and work
+  // with Server 0.10.1 unchanged.
+  ConfiguredSpatialAnalyzerInteractionMode configured_spatial_analyzer_interaction_mode = 13;
+}
+
+// Lifecycle wait allowances in milliseconds, each computed by the server from
+// the bounds it enforces and rounded up to a whole millisecond. Fields 1 to 6
+// cover individual lifecycle operations; fields 7 and 8 size a startup of
+// several requests and are not server deadlines; field 9 describes the host's
+// graceful shutdown cancellation window. Each covers only the server's own
+// work, from the event named on its field. None includes transport or network
+// time, and none promises that a response reaches the caller or that any
+// process exits within it.
+//
+// Server 0.10.1 and later set every finite allowance (fields 1 to 8) to a
+// positive value. Server 0.10.0 does not send this message. A reader treats an
+// absent or zero allowance as unavailable and keeps its own default for that
+// purpose; it never reads an absent allowance as unbounded.
+message LifecycleBounds {
+  // StartSpatialAnalyzerSdk, from the server's acceptance of the request to its
+  // typed outcome. Includes the readiness check when the new worker reports an
+  // already attached SDK, and forced worker cleanup after a failure. Excludes a
+  // request rejected for its state.
+  optional uint32 start_sdk_milliseconds = 1;
+  // LaunchSpatialAnalyzer, from the moment the server has started the
+  // application process until its main window is ready, the process is seen to
+  // exit, or this allowance expires. Expiry does not close the application,
+  // which may still finish starting. Excludes the checks before the process
+  // starts.
+  optional uint32 launch_spatial_analyzer_milliseconds = 2;
+  // ConnectToSpatialAnalyzer and ReconnectToSpatialAnalyzer, from the server's
+  // acceptance of the request to its typed outcome. Includes ConnectEx, the
+  // readiness probe with the configured interaction mode, the application
+  // association, a liveness check when one falls due, and forced worker
+  // cleanup after a failure. Excludes waiting behind a launch in progress.
+  optional uint32 connect_spatial_analyzer_milliseconds = 3;
+  // RecoverSpatialAnalyzerSdk, from the server's acceptance of the request to
+  // the typed outcome of the replacement: the old worker's drain and cleanup,
+  // then the replacement's start. Excludes any later Connect; recovery never
+  // replays a command.
+  optional uint32 recover_sdk_milliseconds = 4;
+  // StopSpatialAnalyzerSdk, from the start of the worker stop, after any MP
+  // command in flight has finished, to the typed stop or cleanup outcome, which
+  // can report that cleanup did not complete. Excludes that command's own
+  // execution budget and any wait before the stop is accepted.
+  optional uint32 stop_sdk_milliseconds = 5;
+  // CloseOwnedSpatialAnalyzer, from the moment the application accepts the
+  // server's close request until the process is seen to exit, this allowance
+  // expires, or the caller cancels. The server never forces the application to
+  // end. Excludes the checks before the close request.
+  optional uint32 close_owned_spatial_analyzer_milliseconds = 6;
+  // A sizing rule, not a deadline the server enforces: the ordinary Start of a
+  // disconnected SDK, then LaunchSpatialAnalyzer, then Connect, each from its
+  // own acceptance. Excludes the client's own server startup, discovery, and
+  // round trips, which a client adds as its margin.
+  optional uint32 startup_with_launch_milliseconds = 7;
+  // The same sizing rule without the launch: the ordinary Start of a
+  // disconnected SDK, then Connect.
+  optional uint32 startup_without_launch_milliseconds = 8;
+  // The most a graceful stop of the server host may wait, from the moment the
+  // host stop begins, before the host cancels the remaining shutdown work. A
+  // stop can finish sooner or be cancelled sooner. An MP command still in
+  // flight counts against it. Expiry does not prove that the worker was
+  // released or that any process exited. Absent when the configured value is
+  // finite and its ceiling exceeds 4,294,967,294 milliseconds.
+  optional GracefulShutdownBound host_graceful_shutdown = 9;
+}
+
+// A graceful shutdown allowance that is either finite or explicitly unbounded.
+// A reader that finds neither case it recognizes treats the allowance as
+// unavailable, never as unbounded.
+message GracefulShutdownBound {
+  oneof limit {
+    // Positive finite allowance, in milliseconds. Zero is invalid.
+    uint64 finite_milliseconds = 1;
+    // The server host is configured with no graceful shutdown time limit.
+    UnboundedShutdownWait unbounded = 2;
+  }
+}
+
+// Marks an explicitly unbounded wait. It has no fields.
+message UnboundedShutdownWait {}
+
+// The SpatialAnalyzer interaction mode that the server is configured to set
+// after each verified Connect. It reports server configuration only.
+// SpatialAnalyzer has no getter for its live mode, and an operator or a
+// SetInteractionMode call can change that mode at any time, so this value never
+// describes the mode SpatialAnalyzer is using now. It is distinct from the MP
+// and MP dialog interaction modes. SILENT, AUTOMATIC, and MANUAL correspond by
+// name to the SaInteractionMode values of the same name; their numbers differ.
+// A reader treats an unrecognized value as unknown.
+enum ConfiguredSpatialAnalyzerInteractionMode {
+  // Not reported. Server 0.10.0 leaves the field at this value.
+  CONFIGURED_SPATIAL_ANALYZER_INTERACTION_MODE_UNSPECIFIED = 0;
+  // The server never sets the mode and leaves SpatialAnalyzer's mode untouched.
+  CONFIGURED_SPATIAL_ANALYZER_INTERACTION_MODE_UNCHANGED = 1;
+  // The server sets Silent after each verified Connect.
+  CONFIGURED_SPATIAL_ANALYZER_INTERACTION_MODE_SILENT = 2;
+  // The server sets Automatic after each verified Connect.
+  CONFIGURED_SPATIAL_ANALYZER_INTERACTION_MODE_AUTOMATIC = 3;
+  // The server sets Manual after each verified Connect.
+  CONFIGURED_SPATIAL_ANALYZER_INTERACTION_MODE_MANUAL = 4;
 }
 
 // Scoped to the exact SA target. Revisions preserve earlier behavior.
