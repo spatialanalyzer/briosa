@@ -20,7 +20,8 @@ internal static class ProbeRecorder
     // "recovery_guidance" and "execution_state".
     // 5 (#402) adds "fixtures_missing" and "response_limits", per step "required_fixture",
     // "measures_response_size" and the "fixture-missing" classification, and per outcome
-    // "response_size".
+    // "response_size"; a size step also has "list_result" (whether a list came back, and where
+    // its element count comes from, if anywhere).
     public const int SchemaVersion = 5;
 
     public static string FileStem(ProbeSessionRecord record)
@@ -72,7 +73,6 @@ internal static class ProbeRecorder
             WriteNullable(json, "stopped_at", record.StoppedAt);
             WriteNullable(json, "stop_reason", record.StopReason);
             WriteNullable(json, "superseded_stop_reason", record.SupersededStopReason);
-            json.WriteBoolean("rerun", record.Rerun);
             json.WriteBoolean("ended_in_planned_stall", record.EndedInPlannedStall);
             WriteExclusions(json, record);
             WriteSelection(json, record);
@@ -102,7 +102,7 @@ internal static class ProbeRecorder
             json.WriteStartArray("steps");
             foreach (var step in record.Steps)
             {
-                WriteStep(json, step);
+                WriteStep(json, step, record);
             }
 
             json.WriteEndArray();
@@ -178,7 +178,7 @@ internal static class ProbeRecorder
         json.WriteEndObject();
     }
 
-    private static void WriteStep(Utf8JsonWriter json, ProbeStepRecord record)
+    private static void WriteStep(Utf8JsonWriter json, ProbeStepRecord record, ProbeSessionRecord session)
     {
         var step = record.Step;
         json.WriteStartObject();
@@ -221,6 +221,19 @@ internal static class ProbeRecorder
         WriteNullable(json, "destructive_target", step.DestructiveTarget);
         WriteNullable(json, "required_fixture", step.RequiredFixture);
         json.WriteBoolean("measures_response_size", step.MeasuresResponseSize);
+        if (step.MeasuresResponseSize && record.Outcome is not null)
+        {
+            var list = ListResultOf(session, record);
+            json.WriteStartObject("list_result");
+            json.WriteString("list", list.List);
+            if (list.Elements is { } elements)
+                json.WriteNumber("elements", elements);
+            else
+                json.WriteNull("elements");
+            json.WriteString("elements_from", list.ElementsFrom);
+            json.WriteEndObject();
+        }
+
         json.WriteBoolean("requires_operator", step.RequiresOperator);
         json.WriteStartArray("operator_checkpoints");
         foreach (var timing in new[] { OperatorCheckpoint.Before, OperatorCheckpoint.After }.Where(timing => step.Checkpoints.HasFlag(timing)))
@@ -480,11 +493,14 @@ internal static class ProbeRecorder
             .Append("| --- | --- | --- | --- | --- |\n");
         foreach (var step in sized)
         {
-            var outcome = step.Outcome;
-            var elements = outcome?.Observations.TryGetValue("element_count", out var count) == true
-                ? count
-                : outcome?.Observations.TryGetValue("match_count", out var matches) == true ? matches : "-";
-            var size = outcome?.Size;
+            var size = step.Outcome?.Size;
+            var list = step.Outcome is null ? null : ListResultOf(record, step);
+            var elements = list is null ? "-" : list.Elements?.ToString(CultureInfo.InvariantCulture) ?? "unknown";
+            if (list is { ElementsFrom: "count" })
+            {
+                elements += " (from its count)";
+            }
+
             text.Append(CultureInfo.InvariantCulture,
                 $"| `{step.Step.Id}` | {elements} | {Bytes(size?.ReceivedFrameBytes)} | {Bytes(size?.PublicMessageBytes)} | ")
                 .Append(step.Classification switch
@@ -492,14 +508,57 @@ internal static class ProbeRecorder
                     StepClassification.FixtureMissing => "not run (fixture missing)",
                     StepClassification.Excluded => "excluded",
                     StepClassification.NotRun => "not run",
-                    _ when size is null => "not measured",
-                    _ => size.EncodingRejected ? "rejected; original size unknown" : "delivered"
+                    _ => list?.List switch
+                    {
+                        "delivered" => "delivered",
+                        "rejected" => "rejected; original size unknown",
+                        _ => "unavailable (no list returned)"
+                    }
                 })
                 .Append(" |\n");
         }
 
         text.Append("\nWhen the worker rejected a result's encoding, the frame size is that of its bounded replacement and the ")
-            .Append("original size is unknown: the same code covers a result over the budget and a value that cannot be encoded.\n");
+            .Append("original size is unknown: the same code covers a result over the budget and a value that cannot be encoded. ")
+            .Append("When no list came back, the sizes are those of the error that came instead. The element count comes from the ")
+            .Append("list, or else from a successful count of the same group just before it; with neither, it is unknown.\n");
+    }
+
+    /// <summary>Whether a size step's list came back, and its element count with its source.</summary>
+    internal sealed record ListResult(string List, int? Elements, string ElementsFrom);
+
+    // A list is "delivered" only when the step succeeded with its element count; otherwise it was
+    // "rejected" (its encoding) or is "unavailable". The count is the list's own, or else that of
+    // a successful count check the step depends on (c34-count-N, c34-count-job-group); the
+    // object lists have none, and a count check that ended in an MP failure supplies none.
+    internal static ListResult ListResultOf(ProbeSessionRecord session, ProbeStepRecord step)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        ArgumentNullException.ThrowIfNull(step);
+        var outcome = step.Outcome;
+        int? listed = outcome is { Kind: ProbeOutcomeKind.Succeeded } &&
+            (outcome.Observations.TryGetValue("element_count", out var text) || outcome.Observations.TryGetValue("match_count", out text)) &&
+            int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out var value)
+                ? value
+                : null;
+        var list = listed is not null ? "delivered" : outcome?.Size is { EncodingRejected: true } ? "rejected" : "unavailable";
+        if (listed is not null)
+        {
+            return new ListResult(list, listed, "list");
+        }
+
+        foreach (var prerequisite in step.Step.Prerequisites)
+        {
+            if (session.Steps.FirstOrDefault(other => other.Step.Id == prerequisite) is
+                    { Step.Kind: ProbeStepKind.Check, Outcome: { Kind: ProbeOutcomeKind.Succeeded } counted } &&
+                counted.Observations.TryGetValue("points_count", out var countText) &&
+                int.TryParse(countText, NumberStyles.None, CultureInfo.InvariantCulture, out var count))
+            {
+                return new ListResult(list, count, "count");
+            }
+        }
+
+        return new ListResult(list, null, "unknown");
     }
 
     private static string Bytes(int? value) => value?.ToString(CultureInfo.InvariantCulture) ?? "-";

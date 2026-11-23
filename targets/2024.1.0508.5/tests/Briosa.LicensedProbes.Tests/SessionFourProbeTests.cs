@@ -606,149 +606,6 @@ public sealed class SessionFourProbeTests
     public void AServerVersionKeepsOnlyTheReleaseOrProbeBuildForm(string version, string expected) =>
         Assert.Equal(expected, ExternalValues.Version(version));
 
-    // Reruns (F1, D12): only wholly unstarted probes, none after a shared step's unknown
-    // completion, and only from an unedited record of a stopped first run by the same build.
-
-    private const string RevisionA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-    private const string RevisionB = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
-
-    private static async Task<string> StoppedRecordAsync(ProbePlan plan, string unknownAt, bool rerun = false)
-    {
-        var record = await ProbeSession.RunAsync(plan, new FakeTransport(plan.Phase, step => step.Id == unknownAt
-                ? ProbeOutcome.Unknown("grpc:DeadlineExceeded", "untyped-rpc-failure")
-                : TestSupport.Succeeding(step)), Clock, new SessionIdentity { HarnessRevision = RevisionA }, new FakeOperator(),
-            CancellationToken.None);
-        Assert.NotNull(record.StopReason);
-        return ProbeRecorder.ToJson(record with { Rerun = rerun });
-    }
-
-    // Applies one edit to a genuine record, as the review did by hand.
-    private static string Edited(string json, Action<System.Text.Json.Nodes.JsonObject> edit)
-    {
-        var node = System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
-        edit(node);
-        return node.ToJsonString();
-    }
-
-    private static System.Text.Json.Nodes.JsonObject StepNode(System.Text.Json.Nodes.JsonObject record, string id) =>
-        record["steps"]!.AsArray().Select(static step => step!.AsObject()).Single(step => (string?)step["id"] == id);
-
-    [Fact]
-    public async Task ASharedSetupStepWithUnknownCompletionAllowsNoRerun()
-    {
-        var plan = Select(ProbePhase.PublicApi, FullManifest(), 34, 35, 36, 37);
-        var json = await StoppedRecordAsync(plan, "s-collection");
-
-        var exception = Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [35], RevisionA));
-
-        Assert.Equal(RerunGate.SharedStepUnknown, exception.Message);
-    }
-
-    [Fact]
-    public async Task ARerunNamesOnlyProbesNoneOfWhoseStepsWereSent()
-    {
-        var plan = Select(ProbePhase.PublicApi, FullManifest(), 34, 35, 36, 37);
-        var json = await StoppedRecordAsync(plan, "p34-list-100");
-
-        Assert.Equal(["35", "36", "37"], RerunGate.WhollyUnstarted(json, ProbePhase.PublicApi, RevisionA).Order(StringComparer.Ordinal));
-        RerunGate.Check(json, ProbePhase.PublicApi, [35, 36, 37], RevisionA);
-        Assert.Equal(RerunGate.StartedSelected, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [34, 35], RevisionA)).Message);
-        Assert.Equal(RerunGate.SelectionRequired, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [], RevisionA)).Message);
-        Assert.Equal(RerunGate.WrongRecord, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.Worker, [35], RevisionA)).Message);
-        Assert.Equal(RerunGate.Unreadable, Assert.Throws<ProbeUsageException>(() => RerunGate.Check("not json", ProbePhase.PublicApi, [35], RevisionA)).Message);
-    }
-
-    [Fact]
-    public async Task WhenEveryProbeHadStartedTheRunEnds()
-    {
-        // The run stops in its last probe: every probe had started.
-        var plan = Select(ProbePhase.PublicApi, FullManifest(), 34, 37);
-        var json = await StoppedRecordAsync(plan, "p37-parameter");
-
-        Assert.Equal(RerunGate.NoneRemain, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [37], RevisionA)).Message);
-    }
-
-    [Fact]
-    public async Task TheGateRefusesARecordWhoseUnknownStepLostItsOutcome()
-    {
-        // The review's case: a genuine record stopped at s-collection, with that step's outcome
-        // removed. Without the outcome the gate cannot see the unknown completion, so it refuses.
-        var plan = Select(ProbePhase.PublicApi, FullManifest(), 34, 35, 36, 37);
-        var json = Edited(await StoppedRecordAsync(plan, "s-collection"), static record => StepNode(record, "s-collection")["outcome"] = null);
-
-        Assert.Equal(RerunGate.WrongRecord, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [34], RevisionA)).Message);
-    }
-
-    [Fact]
-    public async Task TheGateRefusesARecordWithoutCompletedOrWithAnInventedStep()
-    {
-        var plan = Select(ProbePhase.PublicApi, FullManifest(), 34, 35, 36, 37);
-        var genuine = await StoppedRecordAsync(plan, "p34-list-100");
-        var cases = new[]
-        {
-            Edited(genuine, static record => record.Remove("completed")),
-            Edited(genuine, static record => { StepNode(record, "p35-text")["kind"] = "invented"; }),
-            Edited(genuine, static record => { StepNode(record, "p35-text")["classification"] = "invented"; }),
-            Edited(genuine, static record => record["steps"]!.AsArray().RemoveAt(0)),
-            Edited(genuine, static record => record["steps"]!.AsArray().Add(StepNode(record, "p35-text").DeepClone())),
-            Edited(genuine, static record => { StepNode(record, "p34-list-100")["outcome"] = null; }),
-            Edited(genuine, static record => { StepNode(record, "p36-notes")["classification"] = "observed"; }),
-            Edited(genuine, static record => record["stop_reason"] = null),
-            Edited(genuine, static record => record.Remove("rerun"))
-        };
-
-        Assert.All(cases, json => Assert.Equal(RerunGate.WrongRecord,
-            Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [35], RevisionA)).Message));
-    }
-
-    [Fact]
-    public async Task TheGateNeedsTheSameHarnessRevisionAndAFirstRun()
-    {
-        var plan = Select(ProbePhase.PublicApi, FullManifest(), 34, 35, 36, 37);
-        var json = await StoppedRecordAsync(plan, "p34-list-100");
-        var rerun = await StoppedRecordAsync(plan, "p34-list-100", rerun: true);
-
-        Assert.Equal(RerunGate.RevisionMismatch, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [35], RevisionB)).Message);
-        Assert.Equal(RerunGate.RevisionMismatch, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [35], null)).Message);
-        Assert.Equal(RerunGate.AlreadyRerun, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(rerun, ProbePhase.PublicApi, [35], RevisionA)).Message);
-        Assert.All(new[] { RerunGate.WrongRecord, RerunGate.RevisionMismatch, RerunGate.AlreadyRerun },
-            static message => Assert.DoesNotContain(RevisionA, message, StringComparison.Ordinal));
-    }
-
-    [Fact]
-    public async Task TheProgramEnforcesTheRerunRuleBeforeAnyPlanRuns()
-    {
-        var root = Directory.CreateTempSubdirectory("briosa-rerun-");
-        try
-        {
-            var plan = Select(ProbePhase.PublicApi, FullManifest(), 34, 35, 36, 37);
-            var previous = Path.Combine(root.FullName, "previous.json");
-            await File.WriteAllTextAsync(previous, await StoppedRecordAsync(plan, "p34-list-100"));
-            var error = new StringWriter();
-
-            var code = await LicensedProbeProgram.RunAsync(["--phase", "public-api", "--dry-run", "--probe", "34", RerunGate.Option, previous,
-                    "--harness-revision", RevisionA],
-                new StringWriter(), error, static _ => throw new InvalidOperationException("no transport"), FakeOperator.Factory, Clock, CancellationToken.None);
-            var otherBuild = new StringWriter();
-            var revision = await LicensedProbeProgram.RunAsync(["--phase", "public-api", "--dry-run", "--probe", "35", RerunGate.Option, previous,
-                    "--harness-revision", RevisionB],
-                new StringWriter(), otherBuild, static _ => throw new InvalidOperationException("no transport"), FakeOperator.Factory, Clock, CancellationToken.None);
-            var allowed = await LicensedProbeProgram.RunAsync(["--phase", "public-api", "--dry-run", "--probe", "35", RerunGate.Option, previous,
-                    "--harness-revision", RevisionA],
-                new StringWriter(), new StringWriter(), static _ => throw new InvalidOperationException("no transport"), FakeOperator.Factory, Clock,
-                CancellationToken.None);
-
-            Assert.Equal((2, 2, 0), (code, revision, allowed));
-            Assert.Contains(RerunGate.StartedSelected, error.ToString(), StringComparison.Ordinal);
-            Assert.Contains(RerunGate.RevisionMismatch, otherBuild.ToString(), StringComparison.Ordinal);
-            Assert.DoesNotContain(root.FullName, error.ToString() + otherBuild, StringComparison.OrdinalIgnoreCase);
-        }
-        finally
-        {
-            root.Delete(recursive: true);
-        }
-    }
-
     [Fact]
     public async Task ALicensePromptDuringAnUnknownSharedStepSupersedesItsStopReason()
     {
@@ -909,8 +766,130 @@ public sealed class SessionFourProbeTests
         Assert.True(steps["p34-list-100"].GetProperty("measures_response_size").GetBoolean());
         Assert.Contains("**Result sizes (probe 34).**", markdown, StringComparison.Ordinal);
         Assert.Contains("| `p34-list-100` | 100 | 7321 | - | delivered |", markdown, StringComparison.Ordinal);
-        Assert.Contains("| `p34-list-20000` | - | 412 | - | rejected; original size unknown |", markdown, StringComparison.Ordinal);
+        Assert.Contains("| `p34-list-20000` | unknown | 412 | - | rejected; original size unknown |", markdown, StringComparison.Ordinal);
         Assert.DoesNotContain(TestSupport.Sentinel, markdown, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task AListThatDidNotComeBackIsUnavailableAndItsCountComesOnlyFromASuccessfulCount()
+    {
+        // The review's case: an object list that ended in an MP failure returned no list; its
+        // error frame's size is kept, but nothing says how many elements there were.
+        var plan = Select(ProbePhase.Worker, FullManifest(), 34);
+        var record = await Run(plan, step => step.Id switch
+        {
+            "p34-objects-job" => TestSupport.Outcome(ProbeOutcomeKind.MpFailed) with { Size = new ResponseSize(391, null, false) },
+            "c34-count-500" => TestSupport.Outcome(ProbeOutcomeKind.Succeeded, ("points_count", "500")),
+            "p34-list-500" => TestSupport.Outcome(ProbeOutcomeKind.MpFailed) with { Size = new ResponseSize(300, null, false) },
+            "c34-count-2000" => TestSupport.Outcome(ProbeOutcomeKind.MpFailed),
+            "p34-list-2000" => TestSupport.Outcome(ProbeOutcomeKind.OutputRetrievalFailed) with { Size = new ResponseSize(412, null, true) },
+            _ => TestSupport.Succeeding(step)
+        });
+        var markdown = ProbeRecorder.ToMarkdown(record);
+        using var document = JsonDocument.Parse(ProbeRecorder.ToJson(record));
+        var steps = document.RootElement.GetProperty("steps").EnumerateArray().ToDictionary(static step => step.GetProperty("id").GetString()!);
+        JsonElement List(string id) => steps[id].GetProperty("list_result");
+
+        Assert.True(record.Completed);
+        Assert.Contains("| `p34-objects-job` | unknown | 391 | - | unavailable (no list returned) |", markdown, StringComparison.Ordinal);
+        Assert.Contains("| `p34-list-500` | 500 (from its count) | 300 | - | unavailable (no list returned) |", markdown, StringComparison.Ordinal);
+        Assert.Contains("| `p34-list-2000` | unknown | 412 | - | rejected; original size unknown |", markdown, StringComparison.Ordinal);
+        Assert.Equal(("unavailable", JsonValueKind.Null, "unknown"),
+            (List("p34-objects-job").GetProperty("list").GetString(), List("p34-objects-job").GetProperty("elements").ValueKind,
+                List("p34-objects-job").GetProperty("elements_from").GetString()));
+        Assert.Equal((500, "count"), (List("p34-list-500").GetProperty("elements").GetInt32(), List("p34-list-500").GetProperty("elements_from").GetString()));
+        Assert.Equal("rejected", List("p34-list-2000").GetProperty("list").GetString());
+    }
+
+    private static readonly string[] UndefinedNumbers = ["977", "988", "999", "966", "955"];
+
+    // The runbook's own commands for R1 and R2, and their dry runs, read from the committed
+    // runbook so that what the operator copies is what this build accepts.
+    [Fact]
+    public void TheRunbooksCommandsForEachRunAreAcceptedWithExactlyTheirProbes()
+    {
+        var runbook = File.ReadAllText(Path.Combine(TestSupport.TargetRoot(), "docs", "testing", "licensed-probe-session.md"));
+        var section = runbook[runbook.IndexOf("## Licensed session 4 (#402)", StringComparison.Ordinal)..runbook.IndexOf("## Recording\n", StringComparison.Ordinal)];
+        ProbeOptions Command(string after)
+        {
+            var start = section.IndexOf("```powershell\n", section.IndexOf(after, StringComparison.Ordinal), StringComparison.Ordinal) + "```powershell\n".Length;
+            var text = section[start..section.IndexOf("```", start, StringComparison.Ordinal)].Replace(" `\n", " ", StringComparison.Ordinal);
+            return ParseRunbookCommand(text);
+        }
+
+        var dryRuns = section.Split('\n').Where(static line => line.TrimStart().StartsWith("& $probe", StringComparison.Ordinal) && line.Contains("--dry-run", StringComparison.Ordinal))
+            .Select(ParseRunbookCommand).ToList();
+        var r1 = Command("R1's harness command");
+        var r2 = Command("R2's harness command");
+
+        Assert.Equal((ProbePhase.PublicApi, false, "34 35 36 37"), (r1.Phase, r1.DryRun, string.Join(' ', r1.SelectedProbes)));
+        Assert.Equal((ProbePhase.Worker, false, "34"), (r2.Phase, r2.DryRun, string.Join(' ', r2.SelectedProbes)));
+        Assert.Equal(TimeSpan.FromSeconds(150), r1.StepTimeout);
+        Assert.Equal(ProbeTarget.SpatialAnalyzerTarget, r2.ConnectedSaAttestedVersion);
+        (ProbePhase, bool, string)[] expectedDryRuns = [(ProbePhase.PublicApi, true, "34 35 36 37"), (ProbePhase.Worker, true, "34")];
+        Assert.Equal(expectedDryRuns, dryRuns.Select(static options => (options.Phase, options.DryRun, string.Join(' ', options.SelectedProbes))));
+        Assert.All(new[] { r1, r2 }, options => ProbePlan.Create(options.Phase, FullManifest(), [], options.InteractionMode, options.SelectedProbes));
+    }
+
+    private static ProbeOptions ParseRunbookCommand(string text)
+    {
+        foreach (var (placeholder, value) in RunbookPlaceholders)
+        {
+            text = text.Replace(placeholder, value, StringComparison.Ordinal);
+        }
+
+        Assert.DoesNotContain("<", text, StringComparison.Ordinal);
+        var arguments = text.Split(CommandSeparators, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(("&", "$probe"), (arguments[0], arguments[1]));
+        return ProbeOptions.Parse(arguments[2..]);
+    }
+
+    private static readonly char[] CommandSeparators = [' ', '\n'];
+
+    private static readonly (string Placeholder, string Value)[] RunbookPlaceholders =
+    [
+        ("<manifest>", @"C:\briosa-402\fixtures.json"),
+        ("<new folder for R1>", @"C:\briosa-402\r1"),
+        ("<new folder for R2>", @"C:\briosa-402\r2"),
+        (@"<extracted package>\Briosa.Worker.exe", @"C:\briosa-402\package\Briosa.Worker.exe"),
+        ("<evidence alias>", "sa-title-bar"),
+        ("<sha>", new string('a', 40))
+    ];
+
+    [Fact]
+    public async Task UndefinedExternalEnumValuesAreWithheldAndNeverEstablishCompletion()
+    {
+        // The review's case: a public error trailer with four undefined enum numbers.
+        var error = new Api.OperationError
+        {
+            Kind = (Api.OperationFailureKind)977,
+            ExecutionDisposition = (Api.ExecutionDisposition)988,
+            RecoveryGuidance = (Api.RecoveryGuidance)999,
+            MpExecution = new Api.MpExecutionDetails { State = (Api.MpExecutionState)966, MpResultCode = 3 }
+        };
+        ProbeOutcome FromTrailer(Api.OperationError trailer, StatusCode status) => PublicOutcomes.FromRpcException(
+            new RpcException(new Status(status, "x"), new Metadata { { PublicOutcomes.ErrorTrailerName, trailer.ToByteArray() } }));
+        var outcome = FromTrailer(error, (StatusCode)955);
+        var failure = error.Clone();
+        failure.Kind = Api.OperationFailureKind.MpFailure;
+        var mpFailure = FromTrailer(failure, StatusCode.FailedPrecondition);
+
+        Assert.Equal((ExternalValues.Withheld, ExternalValues.Withheld, ExternalValues.Withheld, ExternalValues.Withheld),
+            (outcome.FailureKind, outcome.ExecutionDisposition, outcome.RecoveryGuidance, outcome.ExecutionState));
+        Assert.Equal("grpc:" + ExternalValues.Withheld, outcome.Transport);
+        Assert.Equal((ProbeOutcomeKind.Indeterminate, true), (outcome.Kind, outcome.CompletionUnknown));
+        Assert.Equal((ProbeOutcomeKind.Indeterminate, true), (mpFailure.Kind, mpFailure.CompletionUnknown));
+        Assert.True((TestSupport.Outcome(ProbeOutcomeKind.MpFailed) with { ExecutionDisposition = ExternalValues.Withheld }).CompletionUnknown);
+        Assert.False(TestSupport.Outcome(ProbeOutcomeKind.MpFailed).CompletionUnknown);
+
+        var plan = Select(ProbePhase.PublicApi, FullManifest(), 35);
+        var record = await Run(plan, step => step.Id == "p35-text" ? outcome : TestSupport.Succeeding(step));
+        var json = ProbeRecorder.ToJson(record) + ProbeRecorder.ToMarkdown(record);
+        Assert.Equal((ProbeSession.UnknownOutcomeStop, "p35-text"), (record.StopReason, record.StoppedAt));
+        foreach (var number in UndefinedNumbers)
+        {
+            Assert.DoesNotContain(number, json, StringComparison.Ordinal);
+        }
     }
 
     [Fact]

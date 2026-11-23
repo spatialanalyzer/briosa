@@ -45,6 +45,32 @@ public sealed class ProcessObservationTests
     }
 
     [Fact]
+    public async Task ASnapshotThatTakesTimeBoundsTheExitByItsStartAndItsEnd()
+    {
+        // The review's case: a snapshot that captures at 0 ms and returns at 100 ms. The process
+        // was listed by it, so it was alive at some moment after 0 ms, not after 100 ms.
+        var clock = new ManualClock(Epoch);
+        var table = new Table(Tracked(SdkId, ServiceHostId, ProcessCensus.SpatialAnalyzerSdk))
+        {
+            RemoveAfterPauses = (SdkId, 1),
+            Clock = clock,
+            SnapshotTakes = TimeSpan.FromMilliseconds(100)
+        };
+
+        var record = await ProcessObservation.ObserveAsync(new ProcessObservation.Options("unused", TimeSpan.FromSeconds(30), null), table,
+            new Pause(clock, table), clock, HarnessId, CancellationToken.None);
+        var sdk = Assert.Single(record.Processes);
+        using var json = JsonDocument.Parse(ProcessObservation.ToJson(record));
+        var written = json.RootElement.GetProperty("processes")[0];
+
+        Assert.Equal("settled", record.Result);
+        Assert.Equal((100L, 0L, (long?)700), (sdk.FirstSeenMilliseconds, sdk.LastSeenMilliseconds, sdk.FirstAbsentMilliseconds));
+        Assert.Equal((100, 0, 700), (written.GetProperty("first_seen_snapshot_end_ms").GetInt32(),
+            written.GetProperty("last_seen_snapshot_start_ms").GetInt32(), written.GetProperty("first_absent_snapshot_end_ms").GetInt32()));
+        Assert.Contains("after the start of the last snapshot that listed it", ProcessObservation.ToMarkdown(record), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task AProcessStillAliveAtTheEndIsAResidualAndZeroSecondsTakesOneSnapshot()
     {
         var table = new Table(Tracked(ServerId, 1, ProcessCensus.BriosaServer), Tracked(WorkerId, ServerId, ProcessCensus.BriosaWorker));
@@ -157,8 +183,9 @@ public sealed class ProcessObservationTests
         Assert.Equal("complete", document.RootElement.GetProperty("snapshots").GetProperty("final").GetString());
         Assert.Equal(["sdk-1"], document.RootElement.GetProperty("residual").EnumerateArray().Select(static label => label.GetString()));
         var process = document.RootElement.GetProperty("processes").EnumerateArray().First();
-        Assert.True(process.TryGetProperty("last_seen_ms", out _));
-        Assert.True(process.TryGetProperty("first_absent_ms", out _));
+        Assert.True(process.TryGetProperty("last_seen_snapshot_start_ms", out _));
+        Assert.True(process.TryGetProperty("first_absent_snapshot_end_ms", out _));
+        Assert.False(process.TryGetProperty("last_seen_ms", out _));
         Assert.False(process.TryGetProperty("exited_ms", out _));
     }
 
@@ -246,23 +273,10 @@ public sealed class ProcessObservationTests
         Assert.All(sources, file => Assert.False(forbidden.IsMatch(File.ReadAllText(file)), Path.GetFileName(file)));
     }
 
-    // Found at run time from the test's own output folder, as the other tests here find
-    // repository files: up to the target's Briosa.slnx, then its harness folder. A compile-time
-    // source path cannot be used, because a CI build maps it to /_/.
+    // Found at run time from the test's own output folder (see TestSupport.TargetRoot).
     private static string HarnessSourceFolder()
     {
-        var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Briosa.slnx")))
-        {
-            root = root.Parent;
-        }
-
-        if (root is null)
-        {
-            Assert.Fail($"No Briosa.slnx was found in {AppContext.BaseDirectory} or any folder above it, so the harness sources cannot be checked.");
-        }
-
-        var folder = Path.Combine(root.FullName, "tools", "Briosa.LicensedProbes");
+        var folder = Path.Combine(TestSupport.TargetRoot(), "tools", "Briosa.LicensedProbes");
         Assert.True(File.Exists(Path.Combine(folder, "Briosa.LicensedProbes.csproj")),
             $"The harness project was not found in {folder}, so the harness sources cannot be checked.");
         return folder;
@@ -293,9 +307,19 @@ public sealed class ProcessObservationTests
 
         public Action? OnPause { get; init; }
 
-        public ProcessSnapshot Snapshot() => DegradeAfter is { } after && ++_snapshots > after
-            ? new ProcessSnapshot(SnapshotStatus.Incomplete, [.. _entries.Where(entry => !Hidden.Contains(entry.Id))])
-            : ProcessSnapshot.Of([.. _entries]);
+        // A snapshot that captures the list at once and returns this much later.
+        public ManualClock? Clock { get; init; }
+
+        public TimeSpan SnapshotTakes { get; init; }
+
+        public ProcessSnapshot Snapshot()
+        {
+            var snapshot = DegradeAfter is { } after && ++_snapshots > after
+                ? new ProcessSnapshot(SnapshotStatus.Incomplete, [.. _entries.Where(entry => !Hidden.Contains(entry.Id))])
+                : ProcessSnapshot.Of([.. _entries]);
+            Clock?.Advance(SnapshotTakes);
+            return snapshot;
+        }
 
         public void Paused()
         {

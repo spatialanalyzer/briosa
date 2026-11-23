@@ -225,9 +225,12 @@ internal static class ProcessRoles
 }
 
 /// <summary>
-/// One tracked process over an observation: its label, never its id. Exit is never stated as
-/// a time: it happened after <see cref="LastSeenMilliseconds"/> and no later than
-/// <see cref="FirstAbsentMilliseconds"/>, the first complete snapshot without it.
+/// One tracked process over an observation: its label, never its id. A snapshot takes time,
+/// so every offset is bounded by the snapshot that saw it: the process existed no later than
+/// <see cref="FirstSeenMilliseconds"/>, the end of the first snapshot that listed it; it was
+/// still running at some moment after <see cref="LastSeenMilliseconds"/>, the start of the last
+/// snapshot that listed it; and it had exited no later than <see cref="FirstAbsentMilliseconds"/>,
+/// the end of the first complete snapshot without it. Exit is never stated as a time.
 /// </summary>
 internal sealed record TrackedProcess(string Label, string Role, DateTimeOffset? StartedAt, string ParentRole, long FirstSeenMilliseconds, bool PresentAtStart)
 {
@@ -273,7 +276,15 @@ internal sealed class ProcessTracker(int harnessProcessId)
     public bool NoneConfirmed(params string[] roles) =>
         LastStatus == SnapshotStatus.Complete && roles.All(role => Alive(role).Count == 0);
 
-    public void Observe(ProcessSnapshot snapshot, long offsetMilliseconds)
+    /// <summary>A snapshot taken in an instant (tests); see the other overload.</summary>
+    public void Observe(ProcessSnapshot snapshot, long offsetMilliseconds) => Observe(snapshot, offsetMilliseconds, offsetMilliseconds);
+
+    /// <summary>
+    /// One snapshot that started at <paramref name="startedMilliseconds"/> and returned at
+    /// <paramref name="endedMilliseconds"/>: a listed process was alive at some moment between
+    /// the two, and an absent one had exited by the end.
+    /// </summary>
+    public void Observe(ProcessSnapshot snapshot, long startedMilliseconds, long endedMilliseconds)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         LastStatus = snapshot.Status;
@@ -311,7 +322,7 @@ internal sealed class ProcessTracker(int harnessProcessId)
             {
                 _processes[key] = known with
                 {
-                    LastSeenMilliseconds = offsetMilliseconds,
+                    LastSeenMilliseconds = startedMilliseconds,
                     FirstAbsentMilliseconds = null,
                     Reappearances = known.Alive ? known.Reappearances : known.Reappearances + 1
                 };
@@ -321,9 +332,9 @@ internal sealed class ProcessTracker(int harnessProcessId)
             var ordinal = _ordinals[role] = _ordinals.GetValueOrDefault(role) + 1;
             var label = $"{role}-{ordinal.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
             _processes[key] = new TrackedProcess(label, role, started,
-                ProcessRoles.ParentRoleOf(entry.ParentId, byId.GetValueOrDefault(entry.ParentId), harnessProcessId), offsetMilliseconds, PresentAtStart: !_observed)
+                ProcessRoles.ParentRoleOf(entry.ParentId, byId.GetValueOrDefault(entry.ParentId), harnessProcessId), endedMilliseconds, PresentAtStart: !_observed)
             {
-                LastSeenMilliseconds = offsetMilliseconds
+                LastSeenMilliseconds = startedMilliseconds
             };
         }
 
@@ -334,7 +345,7 @@ internal sealed class ProcessTracker(int harnessProcessId)
             {
                 if (_processes[key].Alive && !present.Contains(key))
                 {
-                    _processes[key] = _processes[key] with { FirstAbsentMilliseconds = offsetMilliseconds };
+                    _processes[key] = _processes[key] with { FirstAbsentMilliseconds = endedMilliseconds };
                 }
             }
         }

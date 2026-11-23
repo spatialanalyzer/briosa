@@ -241,8 +241,11 @@ internal sealed record ProbeOutcome(
     public const string FactPrefix = "outcome.";
 
     /// <summary>The call may have started and its completion is unknown, by kind or by reported disposition.</summary>
+    // Only the two recognized dispositions establish completion one way or the other; any other
+    // one, withheld or unrecognized, leaves it unknown. No disposition (a success, a harness
+    // refusal) defers to the kind.
     public bool CompletionUnknown =>
-        Kind.IsCompletionUnknown() || string.Equals(ExecutionDisposition, StartedOutcomeUnknown, StringComparison.Ordinal);
+        Kind.IsCompletionUnknown() || ExecutionDisposition is not (null or "Completed" or "NotStarted");
 
     // The public error's recovery guidance (for example OperatorInterventionRequired). Null in the worker phase.
     public string? RecoveryGuidance { get; init; }

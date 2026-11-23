@@ -645,7 +645,8 @@ arguments.
    close every SpatialAnalyzer, Briosa, and `SpatialAnalyzerSDK` process. Start
    exactly one SA `2026.1.0529.7` instance normally, not hidden, and open the
    fixture job.
-2. Run `./eng/Test-LicensedRunnerState.ps1 -Phase Preflight`.
+2. Run `./eng/Test-LicensedRunnerState.ps1 -Phase Preflight`. For session 4, run it
+   through the [state check](#running-the-state-check) wrapper instead.
 3. Extract the package. Start `Briosa.Server.exe` with
    `--Briosa:Desktop:Mode=Disabled`, the loopback port, and the four
    `--Briosa:SpatialAnalyzer:Identity:...:OperatorAttestation:...` values,
@@ -663,7 +664,8 @@ arguments.
    30 s quick budget would end the run as an unknown outcome first. Record the
    setting in the evidence.
 4. Run `Briosa.LifecycleClient --address http://127.0.0.1:50051 --scenario external-connect --timeout-seconds 90`.
-   It must report `ready_for_mp`.
+   It must report `ready_for_mp`. For session 4, a license prompt during this step
+   has its own branch in [License prompt first](#license-prompt-first).
 5. Run the public phase. Its client step timeout must exceed the 2-minute quick
    budget:
 
@@ -689,7 +691,8 @@ arguments.
    instead and skip the rest of this step. Otherwise, close SA completely, without
    saving. Start one clean SA `2026.1.0529.7`
    instance and reopen the fixture job. Do not start a Briosa server.
-2. Run `Test-LicensedRunnerState.ps1 -Phase Preflight`.
+2. Run `Test-LicensedRunnerState.ps1 -Phase Preflight`. For session 4, run it
+   through the [state check](#running-the-state-check) wrapper instead.
 3. Run the worker phase with the worker from the same extracted package:
 
    ```powershell
@@ -812,15 +815,20 @@ bindings that [#220](https://github.com/spatialanalyzer/briosa/issues/220) and
 [#221](https://github.com/spatialanalyzer/briosa/issues/221) corrected but never ran
 live.
 
-**Not in this session's harness.** The SDK-ownership scenarios of
+**Not in this session.** The SDK-ownership scenarios of
 [#252](https://github.com/spatialanalyzer/briosa/issues/252) are kept, with the
 findings that keep them out, in the draft pull request
 https://github.com/spatialanalyzer/briosa/pull/428. Cold-start timings for
 [#371](https://github.com/spatialanalyzer/briosa/issues/371) are prepared
 separately in the draft pull request https://github.com/spatialanalyzer/briosa/pull/431.
+The `briosa-examples` tutorials are recorded as not run in session 4 (decision D9):
+each language example starts its own Briosa server, and this session has no residual
+check between programs, no empty-job preflight, and no timeout or license-prompt rule
+for a running example.
+
 Session 4 attaches no second SDK client, and its harness stops no SDK generation and
-terminates no process except the worker it launches itself in the worker phase.
-For #252 it only records, read-only, what postflight observes.
+terminates no process except the worker it launches itself in the worker phase. For
+#252 it only records, read-only, what postflight observes.
 
 **Status: prepared, not run.** Nothing in this section may run against a licensed
 SpatialAnalyzer until the maintainer authorizes the session, and again at each
@@ -854,12 +862,12 @@ and nothing recorded here applies there.
 
 | # | Scope item | Command | Records | Posted on |
 | --- | --- | --- | --- | --- |
-| 1 | Result sizes | `--phase public-api --probe 34` and `--phase worker --probe 34` | element counts; private frame bytes (worker phase) and protobuf message bytes (public phase); whether the worker rejected a result's encoding (its size is then unknown) | #245 (and #399) |
+| 1 | Result sizes | `--phase public-api --probe 34` and `--phase worker --probe 34` | element counts, or unknown; private frame bytes (worker phase) and protobuf message bytes (public phase); whether a list came back, and whether the worker rejected a result's encoding (its size is then unknown) | #245 (and #399) |
 | 2 | Corrected bindings | `--phase public-api --probe 35 --probe 36 --probe 37` | setter and getter dispositions, MP codes, output retrieval | #402 (#220 and #221 are closed) |
-| 3 | Tutorials (optional) | `briosa-examples` on its current pins | each program's exit code and whether its output was as expected | #402 |
 
 Preflight and postflight use `--observe-processes`, a
-[read-only process observation](#read-only-process-observation).
+[read-only process observation](#read-only-process-observation), and the
+[state check](#running-the-state-check).
 
 ### Probes 34 to 37
 
@@ -893,8 +901,18 @@ recorded as `fixture-missing`: it is never sent, and it is never a pass.
   `worker-output-encoding-rejected`. The product gives that code both to a result
   over the budget and to a value it cannot encode at all (for example a non-finite
   number), so the record says `encoding_rejected` with `original_size: unknown`,
-  never an overflow, and keeps the replacement frame's size apart. The count step
-  before each list says how many elements the rejected result held.
+  never an overflow, and keeps the replacement frame's size apart.
+- **Whether a list came back, and its element count.** Each size step's
+  `list_result` says `delivered` (the step succeeded with its list), `rejected` (the
+  worker rejected the result's encoding) or `unavailable` (no list came back, for
+  example after an MP failure); the markdown table says the same. For a rejected or
+  unavailable list, the sizes recorded are those of the error frame or message that
+  came instead, never the list's. The element count comes from the list itself, or
+  else from a successful count of the same group just before it (`c34-count-N`,
+  `c34-count-job-group`), marked "from its count". Whenever neither a successful list
+  nor a successful corresponding count supplies one, the element count is recorded as
+  unknown. The two object lists have no count step, so a rejected or unavailable
+  object list's element count is always unknown.
 - **Clouds.** No operation returns cloud points as a list, so the job's cloud is
   counted only (`c34-count-job-cloud`). The ladder's bytes per element give the size a
   list of that many names would need, as an estimate labelled as such.
@@ -908,10 +926,15 @@ recorded as `fixture-missing`: it is never sent, and it is never a pass.
   getter worked. A refused getter after MP code `2` is `OutputRetrievalFailed`. The
   record keeps only the number of note lines.
 - **Probe 37 and the other two robot routes.** Start and Stop Robot/Machine
-  Interface carry the same `Machine ID` correction, but they are exclusive
-  workflows, which no server setting admits. No generated client can send them, so
-  the session records both as **not run: refused by admission policy (exclusive
-  workflow)**. See decision D6.
+  Interface carry the same `Machine ID` correction. Their generated RPCs exist, but
+  the server's admission refuses both: they are exclusive workflows, which no server
+  setting admits, so no request to them reaches the worker. The session records both
+  as **not run: refused by admission policy (exclusive workflow)**. See decision D6.
+- **Undefined values.** A failure kind, execution disposition, recovery guidance,
+  execution state or gRPC status number that this build does not define is recorded
+  as `withheld`. Only a disposition this build recognizes (`Completed` or
+  `NotStarted`) establishes completion; any other leaves the step's completion
+  unknown, so the run stops without replay.
 
 ### Read-only process observation
 
@@ -925,11 +948,18 @@ terminates or signals anything.
 
 Each snapshot is **complete**, **incomplete** (the list ended early, or a tracked
 process's start time could not be read) or **failed**. Only a complete snapshot can
-show a process absent; the others are counted as gaps. The record never claims an
-exit time: a process exited after its `last_seen_ms` and no later than its
-`first_absent_ms`. A process that a complete snapshot missed and a later one listed
-again is counted under `reappearances`. Each process is labelled the first time it is
-seen (`sdk-1`, `worker-1`) with its role, its parent's role (`server`, `harness`,
+show a process absent; the others are counted as gaps. Reading the list takes time,
+so the observation records, as monotonic offsets from its start, when each snapshot
+began and when it returned, and states every bound conservatively: a process listed
+by a snapshot was alive at some moment after that snapshot began, and a process
+missing from a complete snapshot had exited by the time that snapshot returned. The
+record never claims an exit time: a process exited after its
+`last_seen_snapshot_start_ms` (the start of the last snapshot that listed it) and no
+later than its `first_absent_snapshot_end_ms` (the end of the first complete snapshot
+without it); `first_seen_snapshot_end_ms` is the end of the first snapshot that
+listed it. A process that a complete snapshot missed and a later one listed again is
+counted under `reappearances`. Each process is labelled the first time it is seen
+(`sdk-1`, `worker-1`) with its role, its parent's role (`server`, `harness`,
 `svchost` for a Windows service host, `other`, or `exited`) and its start time.
 Process names are matched without case, as Windows matches them. The record keeps no
 process id, path or argument.
@@ -939,34 +969,58 @@ observation ended without a complete snapshot, `residual_known` is false and
 postflight cannot pass on that record. The command exits `0` only for a known, empty
 residual.
 
-### Tutorials (optional, SA 2026 only)
+### Running the state check
 
-The only licensed run of
-[briosa-examples](https://github.com/spatialanalyzer/briosa-examples) on record used
-Server 0.7.0 and the 0.2.0 clients. If time allows (A3), run its four
-point-inspection tutorials on that repository's current pins: the 0.5.0 .NET,
-TypeScript and Python clients and the Server 0.10.0 protocol. Nothing in that
-repository changes.
+`eng/Test-LicensedRunnerState.ps1` prints one JSON line and, when it finds an issue,
+throws; PowerShell's error display for that throw would include the script's path.
+So in session 4 run it only through this wrapper, from the target directory, and
+keep only the two lines the wrapper prints: the script's JSON line, if it printed
+one, and the fixed status line.
 
-1. The language clients start the *installed* Briosa server for SA 2026, not the
-   probe package, so the installed Briosa must be Server 0.10.0 (decision D9).
-2. Check the [clean state](#before-the-session-once-per-target): the previous run's
-   postflight passed, and no Briosa or SDK process runs. A process that breaks it is
-   a residual, never closed to make the state clean. Start SA 2026 with a new empty
-   job, never the fixture job.
-3. Follow that repository's `docs/setup.md`: set the two connected-SA attestation
-   variables in the terminal, run the .NET, TypeScript and Python programs one at a
-   time, then run the direct gRPC program against a server that Control Center
-   started and connected.
-4. Record, per program, its exit code and whether it printed the coordinates and the
-   distance the tutorial expects. Record "as expected" or "not as expected", never
-   the printed values.
-5. Postflight as for any run: its step 1 closes the server Control Center started,
-   and its step 3 closes SA without saving.
+Preflight:
 
-**Fallback (proposed).** A program that fails is recorded with its exit code, its
-error type and its diagnostic code. The remaining programs still run. Never edit a
-tutorial during the session.
+```powershell
+$lines = [System.Collections.Generic.List[string]]::new()
+try {
+    & ./eng/Test-LicensedRunnerState.ps1 -Phase Preflight *>&1 | ForEach-Object { $lines.Add([string]$_) }
+    $status = 'passed'
+}
+catch {
+    $status = 'failed'
+}
+$lines | Where-Object { $_.StartsWith('{') } | Select-Object -Last 1
+"State check (Preflight): $status"
+```
+
+Postflight:
+
+```powershell
+$lines = [System.Collections.Generic.List[string]]::new()
+try {
+    & ./eng/Test-LicensedRunnerState.ps1 -Phase Postflight *>&1 | ForEach-Object { $lines.Add([string]$_) }
+    $status = 'passed'
+}
+catch {
+    $status = 'failed'
+}
+$lines | Where-Object { $_.StartsWith('{') } | Select-Object -Last 1
+"State check (Postflight): $status"
+```
+
+The wrapper prints nothing of the exception, so a failure shows only its JSON line
+(whose `issue_codes` say why) or, if the script failed before printing it, the status
+line alone. After a `failed` status, take
+`--observe-processes --observe-seconds 0` with a new output folder at once, and
+record exactly one of these for the process the check counted:
+
+- **observed: `<label>`**: the follow-up snapshot is complete and lists it; write its
+  label (`sdk-1`, `worker-1`, `server-1`);
+- **absent when rechecked**: the follow-up snapshot is complete and lists no SDK,
+  worker or server process;
+- **observation inconclusive**: the follow-up snapshot is incomplete or failed, or the
+  check printed no JSON line, so the label cannot be established.
+
+None of the three is closed or stopped.
 
 ### Session 4 fixtures
 
@@ -991,8 +1045,9 @@ missing key as `FIXTURE MISSING`.
    third session, with the label `0.10.1-probe-s4`. Record the merge SHA and the
    package's SHA-256 in the evidence. Pass `--harness-revision <sha>` to every
    harness command.
-2. Write the fixture manifest, then check it with the dry runs. Each must exit `0`
-   and print no `FIXTURE MISSING` line that you did not expect:
+2. Write the fixture manifest, then check it with the dry runs of exactly the two
+   selections the runs use. Each must exit `0` and print no `FIXTURE MISSING` line
+   that you did not expect:
 
    ```powershell
    & $probe --phase public-api --dry-run --fixtures <manifest> --probe 34 --probe 35 --probe 36 --probe 37
@@ -1000,17 +1055,23 @@ missing key as `FIXTURE MISSING`.
    ```
 
 3. Confirm on #402 that every **Proposed** rule and decision in this section is
-   agreed, including the maintainer's exclusive-use reservation (D2). Agree the
-   go-ahead for each run separately.
+   agreed, including the maintainer's exclusive-use reservation (D2) and whether
+   the maintainer accepts R1's setup risk (D12). Agree the go-ahead for each run
+   separately.
 
 **Clean state (checked, never made).** Every run below starts only when the
 operator has checked all of these, and none is produced by closing or terminating a
 process:
 
 - the maintainer's exclusive-use reservation (D2) covers the session;
-- the previous run's postflight passed, or every residual it left is recorded as
-  unresolved and the maintainer agreed, between runs, to go on;
-- `Test-LicensedRunnerState.ps1 -Phase Preflight` passes;
+- the run's authorization was given after the maintainer saw every earlier run's
+  record, and every residual an earlier run left is recorded and resolved by the
+  maintainer's decision between runs, or recorded as unresolved with the
+  maintainer's agreement, between runs, to go on;
+- no license prompt is open, and any license prompt that appeared earlier in the
+  session has been resolved by the maintainer between runs;
+- the [state check](#running-the-state-check) with `-Phase Preflight` prints
+  `State check (Preflight): passed`;
 - `--observe-processes --observe-seconds 0` with a new output folder ends with a
   complete snapshot, `spatial_analyzer_alive` `1` and `residual: none`: at that
   moment no known Briosa or SDK process runs (the run's own server is not started
@@ -1024,14 +1085,14 @@ and the process is recorded, not closed to make the state clean.
 ### Run order and authorization points
 
 **Proposed:** SA 2026.1.0529.7 first, then SA 2024.1.0508.5 (decision D1). Each row is one
-authorization point (A1 to A3): the maintainer's go-ahead for that row, given
-between runs.
+authorization point (A1, A2): the maintainer's go-ahead for that row, given between
+runs. If the maintainer does not accept R1's setup risk (D12), R1 is not run and only
+R2 is authorized.
 
 | Run | What | Server started with | Expected | Abandon after |
 | --- | --- | --- | --- | --- |
 | A1 R1 | `--phase public-api --probe 34 --probe 35 --probe 36 --probe 37` | the standard arguments, the public-phase dry run's admission and `InteractionMode` arguments, and `--Briosa:Worker:ExecutionWatchdogTimeout=00:02:00`, as in session 3; harness `--step-timeout-seconds 150` | 15 to 25 min | 45 min |
 | A2 R2 | `--phase worker --probe 34` | no server | 5 to 10 min | 30 min |
-| A3 T | Optional: the four `briosa-examples` tutorials on their current pins, as in [Tutorials](#tutorials-optional-sa-2026-only) | the installed Server 0.10.0; Control Center for direct gRPC | 10 min | 20 min |
 
 "Standard arguments" are those of [Phase 1](#phase-1-public-api), step 3:
 `--Briosa:Desktop:Mode=Disabled`, the loopback port, and the four identity
@@ -1040,26 +1101,72 @@ attestation values, whose references are predefined evidence aliases (see
 R2 follow Phase 1 and Phase 2 with the session 4 selection, with two differences:
 each starts from the clean state above instead of Phase 1's step 1, and each ends
 with [Session 4 postflight](#session-4-postflight) instead of Phase 1's step 6, so no
-generic `stop-sdk` is run. R1 runs Phase 1's step 3 (it starts the server) and step 4
-(`external-connect`, which starts and connects the SDK) as usual. After every run,
-follow [Session 4 postflight](#session-4-postflight) before the next run's
-preflight.
+generic `stop-sdk` is run. Phase 1's and Phase 2's step 2 is the
+[state check](#running-the-state-check) wrapper with `-Phase Preflight`. R1 runs
+Phase 1's step 3 (it starts the server) and step 4 (`external-connect`, which starts
+and connects the SDK) as usual; a license prompt during step 4 has its own branch in
+[License prompt first](#license-prompt-first).
+
+R1's harness command (Phase 1's step 5):
+
+```powershell
+& $probe --phase public-api --confirm-licensed-sa2026 `
+  --probe 34 --probe 35 --probe 36 --probe 37 `
+  --fixtures <manifest> `
+  --output-directory <new folder for R1> `
+  --address http://127.0.0.1:50051 --harness-revision <sha> `
+  --step-timeout-seconds 150
+```
+
+R2's harness command (Phase 2's step 3):
+
+```powershell
+& $probe --phase worker --confirm-licensed-sa2026 `
+  --probe 34 `
+  --fixtures <manifest> `
+  --output-directory <new folder for R2> `
+  --worker-path <extracted package>\Briosa.Worker.exe `
+  --connected-sa-attested-version 2026.1.0529.7 `
+  --connected-sa-attestation-reference <evidence alias> `
+  --harness-revision <sha>
+```
+
+Neither plan changes SA Interaction Mode, so neither command takes
+`--restore-sa-interaction-mode`. After every run, follow
+[Session 4 postflight](#session-4-postflight) before the next run's preflight.
 
 ### License prompt first
 
 If SpatialAnalyzer shows a license prompt at any time, this rule comes before every
-other instruction in this section, including the abandon rule, the fallback rules,
-reruns and postflight:
+other instruction in this section, including the abandon rule, the fallback rules
+and postflight:
 
 1. Do not dismiss the prompt, and copy nothing from it.
-2. If a harness run (`--phase`) is in progress: at a checkpoint, answer
+2. **During R1's Phase 1 step 4** (`Briosa.LifecycleClient --scenario
+   external-connect`): leave the prompt open. Start no probe run and no cleanup
+   command: no `stop-sdk`, no stop of the server. Do not press Ctrl+C in the lifecycle
+   client's window: let the client end at its own bound (`--timeout-seconds 90`, so
+   about 90 s after it started). Then take read-only observations only
+   (`--observe-processes --observe-seconds 0` with a new output folder), and go to the
+   license exception of [Session 4 postflight](#session-4-postflight). R1's probes
+   are recorded as not run (license prompt). Plainly, what still happens without
+   anyone acting: the client may still send Start and Connect after the prompt
+   appears; a Connect the server has accepted runs to the server's own bound, not the
+   client's (up to 60 s to a typed failure at the defaults, including the server's
+   one readiness probe, a trivial MP read, after a successful `ConnectEx`); and when
+   that bound passes, the server may terminate its own worker and that worker's
+   process tree. The operator cannot prevent this without changing the lifecycle
+   client; the maintainer accepts it by authorizing R1 (D12).
+3. **During a harness run** (`--phase`): at a checkpoint, answer
    `license-prompt-abort`; at any other time, including during probe 34, which has
    no checkpoints, create the signal file `checkpoints\license-prompt-abort.signal`
    inside that run's `--output-directory` folder, for example
    `New-Item -ItemType File <output-directory>\checkpoints\license-prompt-abort.signal`.
    The harness prints this location when it starts and creates the folder. Only the
    file's existence is read. Start nothing else.
-3. Follow the license exception of [Session 4 postflight](#session-4-postflight).
+4. **At any other time**, including postflight: start nothing, and take read-only
+   observations only.
+5. Follow the license exception of [Session 4 postflight](#session-4-postflight).
 
 **What the signal does, and what it cannot do.** The cutoff is the harness's next
 check of the one latched signal, not the instant the file is created. The harness
@@ -1100,8 +1207,8 @@ harness with Ctrl+C. It then sends nothing more on that run's token. The interru
 step is recorded with its outcome unknown and is never replayed; in the worker phase
 the harness then ends the worker it launched, that process only; and it writes its
 records. Then follow [Session 4 postflight](#session-4-postflight), which never
-closes a residual to recover, record the run as abandoned, and go on to the next
-run's authorization point. Never extend a time box during the run.
+closes a residual to recover, and record the run as abandoned; F1 applies. Never
+extend a time box during the run.
 
 ### Fallback rules (proposed)
 
@@ -1110,12 +1217,12 @@ Each rule is decided before the session, so no timed step waits on a question. T
 
 | # | Situation | Rule |
 | --- | --- | --- |
-| F1 | A probe run (R1, R2) stops | Recover on a clean SA. If a shared guard or fixture-setup step has unknown completion, record the run unfinished and do not rerun it in session 4. Otherwise select only wholly unstarted probes: rerun once, at the next authorization point, with `--rerun-of <the stopped run's JSON record>`, the same `--harness-revision` as that run, and `--probe` naming only probes none of whose steps were sent; the harness refuses any other selection. If none remain, end the run. See D12 for what the harness checks and what the operator enforces. |
+| F1 | A probe run (R1, R2) stops, for any reason | The run is over. Its remaining probes are recorded as not run, and nothing from it is run again under the same authorization. Follow [Session 4 postflight](#session-4-postflight), then go on to the next authorization point. A later run of any of its probes needs a fresh maintainer authorization, a resolved license state, and a clean preflight; the maintainer decides then, with the stopped run's record, whether a shared step with unknown completion may be sent again. |
 | F2 | A probe 34 to 37 **probe** step ends with a determinate failure (an MP failure, a refused setter, a failed getter) | Nothing to do: that outcome is the answer, and the run continues. A **count check** (`c34-*`, `c35-*`) accepts only success or an MP failure, so a refused setter or a failed getter there stops the run as an unexpected disposition, which is recorded; F1 then applies. |
 | F3 | A dialog opens during a probe 34 to 37 step | Dismiss it at once with OK, so that no quick budget expires, and answer `dialog-dismissed` at the step's checkpoint (probes 35 to 37), or note the step id in the session notes (probe 34). Never record the dialog's text. A license prompt is never dismissed: [License prompt first](#license-prompt-first) applies. |
 | F4 | A manual fixture is missing | Do not create it during the session. The harness records the steps as `fixture-missing`. |
-| F5 | A postflight observation lists a residual process, or `residual_known` is false | Follow [Session 4 postflight](#session-4-postflight). |
-| F6 | An operator checkpoint is not answered within 300 s, or its request file cannot be written | The harness stops, as it does today, and keeps the step's own outcome in the record. No rerun of that step. |
+| F5 | A state check fails, a postflight observation lists a residual process, or `residual_known` is false | Record it as [Running the state check](#running-the-state-check) says, and follow [Session 4 postflight](#session-4-postflight). |
+| F6 | An operator checkpoint is not answered within 300 s, or its request file cannot be written | The harness stops, as it does today, and keeps the step's own outcome in the record; F1 applies. |
 | F7 | SA crashes or hangs | Stop this target's session at that point and record what ran. The other target starts only at its own authorization point, after the maintainer has seen the record. |
 
 ### Session 4 postflight
@@ -1130,18 +1237,14 @@ Never run a generic `Briosa.LifecycleClient ... --scenario stop-sdk` in session 
 stops whatever generation the server reports. Otherwise, after each run:
 
 1. **Stop what this run started, and nothing else.** This is the only step that
-   stops anything. **R1:** stop the server you started in Phase 1's step 3 with
-   Ctrl+C in its own console window; the server's own shutdown stops its worker and
-   the SDK generation that Phase 1's step 4 started. **R2:** nothing: the harness
-   hosted its worker and stopped it, or after a license prompt left it (see
-   [License prompt first](#license-prompt-first)). **T:** close the server Control
-   Center started, through Control Center; a server a language client started and
-   left running is a residual (D4): record it, do not stop it.
-2. Run `Test-LicensedRunnerState.ps1 -Phase Postflight` while SA is still open, and
-   keep its JSON line. If it fails or throws because a Briosa or SDK process is still
-   running, keep what it printed, take `--observe-processes --observe-seconds 0`
-   with a new output folder to record that residual by its label, do not stop it, and
-   go on to step 3.
+   stops anything, and it stops one thing: after R1, the server that R1's Phase 1
+   step 3 started, with Ctrl+C in that server's own console window. The server's own
+   shutdown stops its worker and the SDK generation that Phase 1's step 4 started.
+   After R2 there is nothing to stop: the harness hosted its worker and ended it, or
+   after a license prompt left it (see [License prompt first](#license-prompt-first)).
+2. Run the [state check](#running-the-state-check) with `-Phase Postflight` while SA
+   is still open, and keep its two lines. After a `failed` status, record the
+   follow-up snapshot as that section says, stop nothing, and go on to step 3.
 3. Close SA without saving (File > Exit > No).
 4. Run `--observe-processes --observe-seconds 300` (proposed) with a new output
    folder. It needs no server and no SA. It stops as soon as a complete snapshot
@@ -1162,26 +1265,30 @@ stopped by the maintainer's decision, is listed in the evidence.
 
 Each command writes a JSON record and a markdown draft into its own output folder:
 `probe-277-<phase>-2026.1.0529.7.*` (schema 5) and `process-observation-2026.1.0529.7.*`
-(schema 1). None holds a returned value, a path, a process id, license data, or free
+(schema 2). None holds a returned value, a path, a process id, license data, or free
 text: checkpoint answers are a closed vocabulary, and any diagnostic code, version,
-revision or field name from the server, the worker or a log that is not on the
-reviewed list or in its strict shape is recorded as `withheld`. A folder or file that
-cannot be written ends a command with a fixed message that names no path, and any
-other unexpected failure prints one fixed line with the exception's type name only.
-The raw records stay with the operator. Commit one reviewed summary, filled in from
+revision, field name or enum value from the server, the worker or a log that is not
+on the reviewed list, in its strict shape, or defined by this build is recorded as
+`withheld`. A folder or file that cannot be written ends a command with a fixed
+message that names no path, and any other unexpected failure prints one fixed line
+with the exception's type name only. The raw records stay with the operator. Commit
+one reviewed summary, filled in from
 [the session 4 evidence template](evidence/probe-session-4-template.md), as
 `evidence/probe-session-4-2026.1.0529.7-<date>.md`.
 
 Post afterwards, per target, each observation stated as this target's own:
 
-- **#245:** probe 34's table (elements, received frame bytes, protobuf bytes,
-  encoding rejected or not) for both phases, the bytes per element per list kind,
-  the job's representative counts, and which rungs the worker rejected.
+- **#245:** probe 34's table (elements or unknown, received frame bytes, protobuf
+  bytes, delivered, rejected or unavailable) for both phases, the bytes per element
+  per list kind, the job's representative counts, and which rungs the worker
+  rejected.
 - **#402:** probes 35 to 37 per target, Start and Stop Robot/Machine Interface as
-  not run (exclusive workflow), and the tutorials result or "not run".
+  not run (refused by admission: exclusive workflow), and the tutorials as not run in
+  session 4 (D9).
 - **#252:** only what postflight observed, read-only: which SDK or Briosa processes
-  were still alive after SA closed, with their last-seen and first-absent bounds. The
-  ownership scenarios are in https://github.com/spatialanalyzer/briosa/pull/428.
+  were still alive after SA closed, with their last-seen and first-absent snapshot
+  bounds. The ownership scenarios are in
+  https://github.com/spatialanalyzer/briosa/pull/428.
 
 ### Decisions for the maintainer (proposed until agreed)
 
@@ -1192,13 +1299,13 @@ Post afterwards, per target, each observation stated as this target's own:
 | D3 | Time boxes | As in the run table; the abandon rule applies. |
 | D4 | Residual SDK or Briosa processes | Recorded as unresolved, by observation only. The session never stops one; whether one is stopped is the maintainer's decision between runs, recorded with its label and time. |
 | D5 | Which manual fixtures to prepare | A large point group (20,000 or more points), a scan cloud (1,000,000 or more points) and a callout view on each target. A TCP fixture and a robot only if the maintainer can prepare them; otherwise probes 36 and 37 are not run. |
-| D6 | Start and Stop Robot/Machine Interface | Record them as not run (refused by admission: exclusive workflow). No worker-phase bypass in this session. |
+| D6 | Start and Stop Robot/Machine Interface | Record them as not run: their generated RPCs exist, but the server's admission refuses them (exclusive workflow). No worker-phase bypass in this session. |
 | D7 | The ladder | 100, 500, 2,000, 10,000 and 20,000 points (32,600 points created in `B277`). |
 | D8 | The response budget under test | Settled: the 1 MiB worker response budget from #411 is on `main` and is what the session measures. |
-| D9 | The tutorials | Optional, SA 2026 only. The current pins need Server 0.10.0 installed for SA 2026 with the Briosa Installer, because the 0.5.0 clients start the installed server; the machine had 0.9.2 in session 3. Run them only if 0.10.0 is already installed or the maintainer agrees to install it; otherwise record them as not run. |
+| D9 | The tutorials | Not run in session 4. Each language example starts its own Briosa server, and this session has no residual check between programs, no empty-job preflight, and no timeout or license-prompt rule for a running example. |
 | D10 | The probe build | `0.10.1-probe-s4` from this pull request's merge commit. |
 | D11 | Who operates | As in session 3: Claude through computer use while the maintainer watches, never asking a question or making a judgement while a step's clock runs; every timed action is one of the agreed rules. This is not itself permission to operate a desktop: each run still needs its own go-ahead, as AGENTS.md requires. |
-| D12 | Reruns | At most one rerun per stopped run, under F1, never replaying an operation whose completion was unknown: if a shared guard or fixture-setup step has unknown completion, the run is recorded unfinished and not rerun in session 4; otherwise only wholly unstarted probes are selected, and if none remain, the run ends. The harness enforces this with `--rerun-of`: it accepts only the unedited record of a stopped first run by the same harness revision, with exactly the recorded plan's steps and consistent classifications and outcomes, and refuses a rerun of a rerun. It checks the record's consistency; it does not defend against a record edited on purpose. That a stopped run is rerun at most once is the operator's to keep, recorded in the evidence template. |
+| D12 | A license prompt during R1's setup | Accepted by authorizing R1. If a license prompt appears during Phase 1's step 4, the lifecycle client is left to end at its own bound, and Start, Connect and the server's readiness probe may still be sent; an accepted Connect runs to the server's own bound, after which the server may terminate its own worker and that worker's process tree (see [License prompt first](#license-prompt-first)). If the maintainer does not accept this, R1 is not run and only R2 is: that leaves probe 34's worker phase (element counts and private frame bytes), and records probe 34's public phase (protobuf message bytes) and probes 35 to 37 as not run. |
 
 ## Recording
 

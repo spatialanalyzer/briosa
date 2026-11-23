@@ -184,7 +184,7 @@ internal static class PublicOutcomes
     public static ProbeOutcome FromRpcException(RpcException exception, IReadOnlySet<string>? declaredFields = null)
     {
         ArgumentNullException.ThrowIfNull(exception);
-        var transport = "grpc:" + exception.StatusCode.ToString();
+        var transport = "grpc:" + ExternalValues.EnumName(exception.StatusCode);
         var trailer = exception.Trailers.FirstOrDefault(entry => entry.Key == ErrorTrailerName);
         OperationError? error = null;
         if (trailer is not null)
@@ -204,12 +204,13 @@ internal static class PublicOutcomes
             return ProbeOutcome.Unknown(transport, "untyped-rpc-failure");
         }
 
+        // Every enum from the trailer reaches the record only as a name this build defines.
         var kind = Classify(error);
         return FromExecution(
-            kind, transport, error.MpExecution, error.DiagnosticCode, error.Kind.ToString(),
-            error.ExecutionDisposition.ToString(), ProbeOutcome.EmptyObservations, declaredFields) with
+            kind, transport, error.MpExecution, error.DiagnosticCode, ExternalValues.EnumName(error.Kind),
+            ExternalValues.EnumName(error.ExecutionDisposition), ProbeOutcome.EmptyObservations, declaredFields) with
         {
-            RecoveryGuidance = error.RecoveryGuidance.ToString(),
+            RecoveryGuidance = ExternalValues.EnumName(error.RecoveryGuidance),
             // A result, or one of its outputs, that the worker could not encode (#399, #402):
             // its size is unknown, so it is never reported as a measurement.
             Size = ResponseSize.FromPublicError(error)
@@ -219,7 +220,11 @@ internal static class PublicOutcomes
     internal static ProbeOutcomeKind Classify(OperationError error)
     {
         ArgumentNullException.ThrowIfNull(error);
-        if (error.ExecutionDisposition == ExecutionDisposition.StartedOutcomeUnknown ||
+
+        // Only a disposition this build recognizes can establish completion; any other is
+        // indeterminate, so the session stops without replay.
+        if (!Enum.IsDefined(error.ExecutionDisposition) ||
+            error.ExecutionDisposition == ExecutionDisposition.StartedOutcomeUnknown ||
             error.ExecutionDisposition == ExecutionDisposition.Unspecified)
         {
             return ProbeOutcomeKind.Indeterminate;
@@ -294,7 +299,7 @@ internal static class PublicOutcomes
             disposition,
             observations)
         {
-            ExecutionState = execution?.State.ToString()
+            ExecutionState = execution is null ? null : ExternalValues.EnumName(execution.State)
         };
     }
 }

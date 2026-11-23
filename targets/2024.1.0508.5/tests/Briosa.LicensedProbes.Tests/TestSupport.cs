@@ -4,6 +4,25 @@ internal static class TestSupport
 {
     public const string Sentinel = "SENTINEL";
 
+    // The target folder, found at run time from the test's own output folder: the nearest folder
+    // above it that holds the target's Briosa.slnx. A compile-time source path cannot be used,
+    // because a CI build maps it to /_/.
+    public static string TargetRoot()
+    {
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Briosa.slnx")))
+        {
+            root = root.Parent;
+        }
+
+        if (root is null)
+        {
+            Assert.Fail($"No Briosa.slnx was found in {AppContext.BaseDirectory} or any folder above it, so the repository files cannot be checked.");
+        }
+
+        return root.FullName;
+    }
+
     // Manual fixture values that must never appear in plans, records, or console output.
     public static FixtureManifest SentinelManifest(string? profileFile = null) => new()
     {

@@ -34,6 +34,14 @@ internal static partial class ExternalValues
     public static string? Version(string? version) =>
         version is null ? null : VersionShape().IsMatch(version) ? version : Withheld;
 
+    /// <summary>
+    /// The name of an enum value that arrived from outside (a server trailer, a status code), or
+    /// <see cref="Withheld"/> when the value is not one this build defines: an undefined value's
+    /// text would be its raw number, which is not a reviewed name.
+    /// </summary>
+    public static string EnumName<T>(T value)
+        where T : struct, Enum => Enum.IsDefined(value) ? value.ToString() : Withheld;
+
     /// <summary>A full lowercase commit SHA, or <see cref="Withheld"/>.</summary>
     public static string? Revision(string? revision) =>
         revision is null ? null : revision.Length == 40 && revision.All(char.IsAsciiHexDigitLower) ? revision : Withheld;

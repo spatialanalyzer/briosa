@@ -23,8 +23,6 @@ internal static class LicensedProbeProgram
               --probe <n> (repeatable; run only these probes of the selected phase; opt-in probes 26 to 29 need it)
           A licensed run pauses at operator checkpoints; answer each by writing its response file
           in the checkpoints folder of the output directory.
-          After a stopped run: --rerun-of <that run's JSON record> with --probe naming only probes it never started,
-              and the same --harness-revision as that run.
           Licensed session 4 (#402) also has --observe-processes, a read-only process observation; run it with
           no other options for its own usage.
         """;
@@ -84,22 +82,6 @@ internal static class LicensedProbeProgram
             if (options.OutputDirectory is not null && (File.Exists(options.OutputDirectory) ||
                 (Directory.Exists(options.OutputDirectory) && Directory.EnumerateFileSystemEntries(options.OutputDirectory).Any())))
                 throw new ProbeUsageException("--output-directory must be new or empty; records are never overwritten.");
-
-            // A rerun after a stopped run (F1, D12): only probes that run never started.
-            if (options.RerunOf is not null)
-            {
-                string previous;
-                try
-                {
-                    previous = await File.ReadAllTextAsync(options.RerunOf, cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
-                {
-                    throw new ProbeUsageException(RerunGate.Unreadable);
-                }
-
-                RerunGate.Check(previous, options.Phase, options.SelectedProbes, options.HarnessRevision);
-            }
 
             // An exclusion outside this phase or of a prerequisite is a usage error.
             plan = options.InteractionModeRestoreOnly
@@ -174,7 +156,7 @@ internal static class LicensedProbeProgram
         }
 
         // A license prompt signalled while the transport was being disposed still takes precedence.
-        record = ProbeSession.WithLicensePrecedence(record, console.LicenseAbort, transport: null) with { Rerun = options.RerunOf is not null };
+        record = ProbeSession.WithLicensePrecedence(record, console.LicenseAbort, transport: null);
         if (!TryWrite(record, options.OutputDirectory!, out var written))
         {
             await error.WriteLineAsync(RecordFiles.WriteFailure).ConfigureAwait(false);

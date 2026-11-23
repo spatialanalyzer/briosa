@@ -20,9 +20,10 @@ record. The SDK-ownership scenarios
 | Field | Value |
 | --- | --- |
 | Date (UTC) and runs | |
-| Authorization | the maintainer's go-ahead for A1 to A3, each as given |
+| Authorization | the maintainer's go-ahead for A1 and A2, each as given, or that A1 was not given |
 | Agreed rules | the date the proposed rules and decisions D1 to D12 were agreed on #402, and any that differ from the runbook |
 | Exclusive-use reservation (D2) | the date the maintainer confirmed that no other client would use a Briosa worker, a loopback Briosa server or SpatialAnalyzer on the machine during the session |
+| R1 setup risk (D12) | accepted by authorizing R1, or not accepted (R1 not run: probe 34's public phase and probes 35 to 37 not run) |
 | Merge SHA and harness revision | |
 | Package and SHA-256 | `briosa-0.10.1-probe-s4-sa-2024.1.0508.5-win-x64.zip`, |
 | Worker response budget | the bytes the records state (1 MiB since #411) |
@@ -35,23 +36,21 @@ record. The SDK-ownership scenarios
 | --- | --- | --- | --- |
 | A1 R1 public 34 to 37 | | completed / stopped (reason) / not run (reason) | `probe-277-public-api` |
 | A2 R2 worker 34 | | | `probe-277-worker` |
-| A3 tutorials | | not on this target (SA 2026 only) | |
 
 Server settings for R1: the admission arguments, the `InteractionMode` setting and
 the execution watchdog it ran with.
 
-Reruns (F1, D12): for each, the stopped run it reran, the probes it selected, and
-that no stopped run was rerun more than once (the operator keeps this; the harness
-refuses only a rerun of a rerun):
+A run that stopped is over (F1): list the probes it left not run. Nothing from it was
+run again under the same authorization.
 
 ## 1. Result sizes (probe 34)
 
 Fixtures: the large point group's and the cloud's presence (counts below), or
 "not run: fixture missing".
 
-| Step | Elements | Received frame bytes (R2) | Protobuf message bytes (R1) | Encoding (R1 / R2) |
+| Step | Elements | Received frame bytes (R2) | Protobuf message bytes (R1) | List (R1 / R2) |
 | --- | --- | --- | --- | --- |
-| `p34-list-100` | | | | delivered / rejected, size unknown |
+| `p34-list-100` | | | | delivered / rejected, size unknown / unavailable (no list returned) |
 | `p34-list-500` | | | | |
 | `p34-list-2000` | | | | |
 | `p34-list-10000` | | | | |
@@ -61,13 +60,17 @@ Fixtures: the large point group's and the cloud's presence (counts below), or
 | `p34-list-job-group` | | | | |
 | `c34-count-job-cloud` | points (count only) | - | - | - |
 
+Elements: the list's own count, the count step's "N (from its count)", or "unknown"
+when neither a successful list nor a successful corresponding count supplies one. For
+a rejected or unavailable list, the bytes are those of the error that came instead.
+
 - Bytes per point name in the frame and in the message (from the rungs that were
   delivered):
 - Bytes per object name (from the two object lists):
 - The cloud's count as a name list, at the measured bytes per name (an estimate,
   labelled as such):
 - The largest rung delivered, and the first whose encoding was rejected. A rejected
-  result's size is unknown; write its count, never a size:
+  result's size is unknown; write its count, or "unknown", never a size:
 - `c34-count-N` hypotheses: did every group hold N points?
 - Construct times of the larger rungs (`elapsed_ms`), and any dialog (F3: the step
   id only):
@@ -90,21 +93,30 @@ Fixtures: the large point group's and the cloud's presence (counts below), or
 Whether each callout showed the two harness lines (`lines-shown` or
 `lines-not-shown` at the checkpoints):
 
+Any value the records give as `withheld` (a code, field name or enum value this
+build does not list or define), with its step:
+
 ## 3. Tutorials
 
-Not on this target: the `briosa-examples` tutorials target SA 2026 only.
+Not run in session 4 (D9): each language example starts its own Briosa server, and
+this session has no residual check between programs, no empty-job preflight, and no
+timeout or license-prompt rule for a running example. The tutorials also target SA 2026 only.
 
 ## Postflight and process observations
 
-Per run: what postflight step 1 stopped (R1's server, Control Center's server, or
-nothing), the `Test-LicensedRunnerState.ps1 -Phase Postflight` line (or that it
-failed on a residual, and that residual's label), and the `process-observation`
-record's final snapshot status, `spatial_analyzer_alive` and residual (labels, with
-last-seen and first-absent bounds). No generic `stop-sdk` was run. A record whose
+Per run: what postflight step 1 stopped (after R1, the server R1's Phase 1 step 3
+started; after R2, nothing), and each state check's two lines
+(`Test-LicensedRunnerState.ps1` through the runbook's wrapper, preflight and
+postflight). After a `failed` state check, the follow-up snapshot's one recording:
+**observed: `<label>`**, **absent when rechecked**, or **observation inconclusive**.
+Then the `process-observation` record's final snapshot status,
+`spatial_analyzer_alive` and residual (labels, each with its last-listed snapshot
+start and first-absent snapshot end). No generic `stop-sdk` was run. A record whose
 last snapshot was incomplete has not passed postflight.
 
-- Whether a license prompt appeared, in which run and step, whether the signal or a
-  checkpoint answer raised it, and the record's `superseded_stop_reason`, if any:
+- Whether a license prompt appeared, in which run and step (R1's Phase 1 step 4, a
+  harness step, or postflight), whether the signal or a checkpoint answer raised it,
+  and the record's `superseded_stop_reason`, if any:
 - Every residual: unresolved, or stopped by the maintainer's decision between runs
   (label, time, decision):
 - At the end: no Briosa or SDK process, or the list of unresolved residuals and of
@@ -112,10 +124,9 @@ last snapshot was incomplete has not passed postflight.
 
 ## Not run
 
-Every planned item that did not run, with its reason (fixture missing, declined,
-stopped, abandoned, refused by admission, refused by the rerun rule, license
-prompt), and every probe not rerun under F1 because one of its steps had been sent
-or a shared step's completion was unknown.
+Every planned item that did not run, with its reason (fixture missing, declined, not
+authorized, stopped, abandoned, refused by admission, license prompt), every probe
+left not run when its run stopped (F1), and the tutorials (D9).
 
 ## Follow-up
 

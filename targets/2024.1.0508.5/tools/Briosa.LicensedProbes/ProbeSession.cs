@@ -150,9 +150,6 @@ internal sealed record ProbeSessionRecord(
     /// </summary>
     public string? SupersededStopReason { get; init; }
 
-    /// <summary>The run was a rerun (<c>--rerun-of</c>); a rerun's own record admits no further rerun (D12).</summary>
-    public bool Rerun { get; init; }
-
     /// <summary>
     /// Every step that could be sent was observed as planned. Excluded and fixture-missing
     /// steps were never sent; the record lists them.

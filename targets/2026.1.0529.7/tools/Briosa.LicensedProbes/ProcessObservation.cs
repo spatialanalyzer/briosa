@@ -29,7 +29,9 @@ internal sealed class SystemPause : IPause
 internal static class ProcessObservation
 {
     public const string Option = "--observe-processes";
-    public const int SchemaVersion = 1;
+
+    // 2: every process offset is bounded by the snapshot that saw it (snapshot start or end).
+    public const int SchemaVersion = 2;
 
     public static TimeSpan PollInterval { get; } = TimeSpan.FromMilliseconds(500);
 
@@ -122,7 +124,10 @@ internal static class ProcessObservation
         string result;
         while (true)
         {
-            tracker.Observe(table.Snapshot(), Offset());
+            // A snapshot takes time: the offsets before and after bound what it saw.
+            var snapshotStarted = Offset();
+            var snapshot = table.Snapshot();
+            tracker.Observe(snapshot, snapshotStarted, Offset());
             if (tracker.NoneConfirmed(ProcessRoles.Sdk, ProcessRoles.Worker, ProcessRoles.Server))
             {
                 result = "settled";
@@ -222,15 +227,16 @@ internal static class ProcessObservation
                 else
                     json.WriteNull("started_at");
                 json.WriteBoolean("present_at_start", process.PresentAtStart);
-                json.WriteNumber("first_seen_ms", process.FirstSeenMilliseconds);
 
-                // No exit time is claimed: the process exited after last_seen_ms and no later than
-                // first_absent_ms, the first complete snapshot without it.
-                json.WriteNumber("last_seen_ms", process.LastSeenMilliseconds);
+                // No exit time is claimed. The process existed by the end of the first snapshot
+                // that listed it, was still running at some moment after the start of the last
+                // one, and had exited by the end of the first complete snapshot without it.
+                json.WriteNumber("first_seen_snapshot_end_ms", process.FirstSeenMilliseconds);
+                json.WriteNumber("last_seen_snapshot_start_ms", process.LastSeenMilliseconds);
                 if (process.FirstAbsentMilliseconds is { } absent)
-                    json.WriteNumber("first_absent_ms", absent);
+                    json.WriteNumber("first_absent_snapshot_end_ms", absent);
                 else
-                    json.WriteNull("first_absent_ms");
+                    json.WriteNull("first_absent_snapshot_end_ms");
                 json.WriteNumber("reappearances", process.Reappearances);
                 json.WriteEndObject();
             }
@@ -261,7 +267,7 @@ internal static class ProcessObservation
             $"Read-only: the list of processes only, every {PollInterval.TotalMilliseconds:0} ms for up to {record.Window.TotalSeconds:0} s. Result: `{record.Result}`. ")
             .Append(CultureInfo.InvariantCulture,
                 $"Snapshots: {record.CompleteSnapshots} complete, {record.IncompleteSnapshots} incomplete, {record.FailedSnapshots} failed; the last was {SnapshotName(record.FinalSnapshot)}.\n\n");
-        text.Append("| Process | Role | Parent | Present at start | First seen (ms) | Last seen (ms) | First absent (ms) |\n")
+        text.Append("| Process | Role | Parent | Present at start | First listed by (snapshot end, ms) | Last listed after (snapshot start, ms) | First absent by (snapshot end, ms) |\n")
             .Append("| --- | --- | --- | --- | --- | --- | --- |\n");
         foreach (var process in record.Processes)
         {
@@ -271,8 +277,9 @@ internal static class ProcessObservation
                 $"| `{process.Label}` | {process.Role} | {process.ParentRole} | {(process.PresentAtStart ? "yes" : "no")} | {process.FirstSeenMilliseconds} | {process.LastSeenMilliseconds} | {absent} |\n");
         }
 
-        text.Append("\nAn exit happened after the last-seen time and no later than the first-absent time; no exit time is measured. ")
-            .Append("Only a complete snapshot can show a process absent.\n");
+        text.Append("\nA snapshot takes time, so each offset is that of a snapshot's start or end. A process was still running at some ")
+            .Append("moment after the start of the last snapshot that listed it, and had exited no later than the end of the first ")
+            .Append("complete snapshot without it; no exit time is measured. Only a complete snapshot can show a process absent.\n");
         text.Append(!record.ResidualKnown
             ? "\nResidual: unknown. The observation ended without a complete snapshot, so postflight cannot pass on this record.\n"
             : record.Residual.Count == 0

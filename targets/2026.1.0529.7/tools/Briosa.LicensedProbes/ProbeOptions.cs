@@ -19,7 +19,7 @@ internal sealed record ProbeOptions
         "--phase", "--fixtures", "--output-directory", "--address", "--worker-path",
         "--connected-sa-attested-version", "--connected-sa-attestation-reference",
         "--activated-sdk-attestation-reference", "--step-timeout-seconds", "--operator-timeout-seconds",
-        "--harness-revision", RestoreModeOption, RerunGate.Option
+        "--harness-revision", RestoreModeOption
     };
 
     // The only options that may repeat: each occurrence names one more probe.
@@ -45,9 +45,6 @@ internal sealed record ProbeOptions
     public string? ActivatedSdkAttestationReference { get; init; }
 
     public string? HarnessRevision { get; init; }
-
-    /// <summary>The JSON record of the stopped run this one reruns (F1, D12); null for a first run.</summary>
-    public string? RerunOf { get; init; }
 
     public TimeSpan StepTimeout { get; init; } = TimeSpan.FromSeconds(120);
 
@@ -150,7 +147,6 @@ internal sealed record ProbeOptions
             ConnectedSaAttestationReference = Value(values, "--connected-sa-attestation-reference"),
             ActivatedSdkAttestationReference = Value(values, "--activated-sdk-attestation-reference"),
             HarnessRevision = Value(values, "--harness-revision"),
-            RerunOf = Value(values, RerunGate.Option),
             WorkerPath = Value(values, "--worker-path"),
             StepTimeout = Seconds(values, "--step-timeout-seconds", 120, 5, 600),
             OperatorTimeout = Seconds(values, "--operator-timeout-seconds", 300, 30, 1800),
@@ -168,9 +164,6 @@ internal sealed record ProbeOptions
 
         if (options.SelectedProbes.Count > 0 && options.ExcludedProbes.Count > 0)
             throw new ProbeUsageException($"{SelectProbe} and {ExcludeProbe} cannot be combined; name only the probes to run.");
-
-        if (options.RerunOf is not null && (options.InteractionModeRestoreOnly || options.ExcludedProbes.Count > 0))
-            throw new ProbeUsageException($"{RerunGate.Option} takes {SelectProbe} only; {ExcludeProbe} and {RestoreOnlyFlag} do not apply.");
 
         if (options.InteractionModeRestoreOnly)
         {
