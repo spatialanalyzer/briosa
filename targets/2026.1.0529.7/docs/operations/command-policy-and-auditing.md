@@ -128,10 +128,11 @@ Discovery reports the operation's reviewed row (its `risk_flags` and
 enables an option. Server 0.10.1 and later also describe each reviewed option in
 `request_options`, with the decision for a request that turns on that option
 alone; see [request options in discovery](health-and-discovery.md#request-options-in-discovery).
-Server 0.10.0 does not describe the options. A denied request names the option
-field in its audit rule, for example
-`option.show_results_dialog/flag.interactive_ui`, and on Server 0.10.1 and later
-in its typed error; the option's value is never recorded. An admitted request carries its effective
+Server 0.10.0 does not describe the options. When the evaluator attributes a
+denial to a request option, the audit rule names its field (for example,
+`option.show_results_dialog/flag.interactive_ui`); Server 0.10.1 and later also
+set `policy_denial.request_option_field`. A static denial names no request
+field. The option's value is never recorded. An admitted request carries its effective
 duration class to the worker supervisor, which arms that class's execution
 budget; see [worker time bounds](windows-package.md#worker-time-bounds).
 

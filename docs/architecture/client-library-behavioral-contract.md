@@ -609,9 +609,10 @@ clients surface it and still work with Server 0.10.0:
 - A denied capability exposes the same detail from
   `OperationCapability.policy_denial`, and the diagnostic listing returns it
   with each denied operation.
-- A missing, malformed, or unrecognized detail from a newer server never
-  changes the existing typed failure (its kind, disposition, and guidance) or
-  a capability's admission. The detail is then absent or unknown.
+- When the enclosing message decodes, absent, inconsistent, or unrecognized
+  denial detail does not change the typed failure or capability admission. If
+  the enclosing message cannot be decoded, existing malformed-message handling
+  applies.
 - Each capability exposes its request options so that "not described"
   (`request_options` absent, Server 0.10.0) stays distinct from "none apply"
   (present and empty). Each option exposes its field name, effect, condition,

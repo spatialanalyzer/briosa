@@ -348,8 +348,8 @@ enum OperationRequestOptionOmission {
   OPERATION_REQUEST_OPTION_OMISSION_DOES_NOT_ACTIVATE = 1;
   // Omitting the field turns the effect on.
   OPERATION_REQUEST_OPTION_OMISSION_ACTIVATES = 2;
-  // The request requires the field: when policy admits the request, omitting
-  // it fails request validation before dispatch.
+  // Required by request mapping: if mapping is reached, omission fails
+  // validation before worker dispatch.
   OPERATION_REQUEST_OPTION_OMISSION_REQUIRED = 3;
 }
 
