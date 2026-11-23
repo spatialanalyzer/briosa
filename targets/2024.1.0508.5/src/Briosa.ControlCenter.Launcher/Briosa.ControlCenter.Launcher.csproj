@@ -5,4 +5,8 @@
     <AssemblyName>Briosa.ControlCenter</AssemblyName>
     <ApplicationIcon>../Briosa.ControlCenter/Assets/AppIcon/briosa.ico</ApplicationIcon>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Shared with the server and worker in the package directory; see Directory.Packages.props. -->
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" />
+  </ItemGroup>
 </Project>
