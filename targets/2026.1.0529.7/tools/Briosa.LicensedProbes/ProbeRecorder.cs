@@ -72,6 +72,7 @@ internal static class ProbeRecorder
             WriteNullable(json, "stopped_at", record.StoppedAt);
             WriteNullable(json, "stop_reason", record.StopReason);
             WriteNullable(json, "superseded_stop_reason", record.SupersededStopReason);
+            json.WriteBoolean("rerun", record.Rerun);
             json.WriteBoolean("ended_in_planned_stall", record.EndedInPlannedStall);
             WriteExclusions(json, record);
             WriteSelection(json, record);
@@ -437,7 +438,7 @@ internal static class ProbeRecorder
             if (record.SupersededStopReason is { } superseded)
             {
                 text.Append(CultureInfo.InvariantCulture,
-                    $"A license prompt was signalled while `{superseded}` was being handled, and takes precedence: from the moment the harness saw it, it sent, started and terminated nothing more. ");
+                    $"A license prompt was signalled while `{superseded}` was being handled, and takes precedence: from the harness's next check of the signal it sent, started and terminated nothing more; an action already sent was not recalled. ");
             }
 
             text.Append(string.Equals(record.StopReason, ProbeSession.UnknownOutcomeStop, StringComparison.Ordinal)

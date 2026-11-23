@@ -44,8 +44,10 @@ internal sealed class FileOperatorConsole : IOperatorConsole
         Directory.CreateDirectory(_directory);
         LicenseAbort = LicenseAbortSignal.ForFile(Path.Combine(_directory, LicenseAbortFileName));
         Write($"LICENSE PROMPT: if SpatialAnalyzer shows one at any time, create {DirectoryName}\\{LicenseAbortFileName} " +
-            "inside the --output-directory folder. From then on nothing more is sent, started or terminated, not even a " +
-            "graceful stop. Ctrl+C instead cancels and lets the run clean up.");
+            "inside the --output-directory folder. The harness stops at its next check of the signal, not when the file " +
+            "appears: an action whose check had already passed may still be sent, and nothing already sent is recalled. " +
+            "After that check nothing more is sent, started or terminated, not even a graceful stop. Ctrl+C instead " +
+            "cancels and lets the run clean up.");
     }
 
     public LicenseAbortSignal LicenseAbort { get; }
@@ -78,14 +80,25 @@ internal sealed class FileOperatorConsole : IOperatorConsole
     public async Task<string?> CheckpointAsync(ProbeStep step, OperatorCheckpoint timing, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(step);
-        Directory.CreateDirectory(_directory);
         var name = string.Create(CultureInfo.InvariantCulture, $"{++_sequence:D3}-{step.Id}-{TimingName(timing)}");
         var response = Path.Combine(_directory, name + ResponseSuffix);
-        var request = new StreamWriter(
-            new FileStream(Path.Combine(_directory, name + RequestSuffix), FileMode.CreateNew, FileAccess.Write), new UTF8Encoding(false));
-        await using (request.ConfigureAwait(false))
+        try
         {
-            await request.WriteAsync(Instruction(step, timing)).ConfigureAwait(false);
+            Directory.CreateDirectory(_directory);
+            var request = new StreamWriter(
+                new FileStream(Path.Combine(_directory, name + RequestSuffix), FileMode.CreateNew, FileAccess.Write), new UTF8Encoding(false));
+            await using (request.ConfigureAwait(false))
+            {
+                await request.WriteAsync(Instruction(step, timing)).ConfigureAwait(false);
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // An existing or unwritable request file: the checkpoint cannot be asked, so it is
+            // unanswered and nothing more is sent. The step's own outcome stays in the record,
+            // and the message names no path.
+            Write($"OPERATOR CHECKPOINT {name}: its request file could not be written; nothing more is sent.");
+            return null;
         }
 
         Write($"OPERATOR CHECKPOINT {name}: {(timing == OperatorCheckpoint.Before ? "before dispatch of" : "after the result of")} {step.Id}. " +
@@ -214,8 +227,11 @@ internal sealed class FileOperatorConsole : IOperatorConsole
 
 /// <summary>
 /// The operator's license-abort signal (#402). Once seen it stays raised for the rest of the
-/// run, whatever happens to its file afterwards, and the session, the transport and the command
-/// consult this one object before anything is sent, started or terminated, and in disposal.
+/// run, whatever happens to its file afterwards. The session, the transport and the command
+/// consult this one object at fixed points: before a transport starts, immediately before the
+/// worker is launched, before each public call, after a worker frame is serialized and
+/// immediately before its first byte is written, immediately before a fallback termination,
+/// and in disposal. The cutoff is the next such check, not the moment the file appears.
 /// </summary>
 internal sealed class LicenseAbortSignal
 {

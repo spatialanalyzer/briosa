@@ -601,19 +601,37 @@ public sealed class SessionFourProbeTests
     [InlineData("0.10.1-alice.smith", ExternalValues.Withheld)]
     [InlineData("0.10.1-probe-s4.alice", ExternalValues.Withheld)]
     [InlineData("0.10.1-rc.1", ExternalValues.Withheld)]
+    [InlineData("0.10.1-probe-s4\n", ExternalValues.Withheld)]
+    [InlineData("0.10.1\n", ExternalValues.Withheld)]
     public void AServerVersionKeepsOnlyTheReleaseOrProbeBuildForm(string version, string expected) =>
         Assert.Equal(expected, ExternalValues.Version(version));
 
-    // Reruns (F1, D17): only wholly unstarted probes, and none after a shared step's unknown completion.
+    // Reruns (F1, D12): only wholly unstarted probes, none after a shared step's unknown
+    // completion, and only from an unedited record of a stopped first run by the same build.
 
-    private static async Task<string> StoppedRecordAsync(ProbePlan plan, string unknownAt)
+    private const string RevisionA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    private const string RevisionB = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+
+    private static async Task<string> StoppedRecordAsync(ProbePlan plan, string unknownAt, bool rerun = false)
     {
-        var record = await Run(plan, step => step.Id == unknownAt
-            ? ProbeOutcome.Unknown("grpc:DeadlineExceeded", "untyped-rpc-failure")
-            : TestSupport.Succeeding(step));
+        var record = await ProbeSession.RunAsync(plan, new FakeTransport(plan.Phase, step => step.Id == unknownAt
+                ? ProbeOutcome.Unknown("grpc:DeadlineExceeded", "untyped-rpc-failure")
+                : TestSupport.Succeeding(step)), Clock, new SessionIdentity { HarnessRevision = RevisionA }, new FakeOperator(),
+            CancellationToken.None);
         Assert.NotNull(record.StopReason);
-        return ProbeRecorder.ToJson(record);
+        return ProbeRecorder.ToJson(record with { Rerun = rerun });
     }
+
+    // Applies one edit to a genuine record, as the review did by hand.
+    private static string Edited(string json, Action<System.Text.Json.Nodes.JsonObject> edit)
+    {
+        var node = System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
+        edit(node);
+        return node.ToJsonString();
+    }
+
+    private static System.Text.Json.Nodes.JsonObject StepNode(System.Text.Json.Nodes.JsonObject record, string id) =>
+        record["steps"]!.AsArray().Select(static step => step!.AsObject()).Single(step => (string?)step["id"] == id);
 
     [Fact]
     public async Task ASharedSetupStepWithUnknownCompletionAllowsNoRerun()
@@ -621,7 +639,7 @@ public sealed class SessionFourProbeTests
         var plan = Select(ProbePhase.PublicApi, FullManifest(), 34, 35, 36, 37);
         var json = await StoppedRecordAsync(plan, "s-collection");
 
-        var exception = Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [35]));
+        var exception = Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [35], RevisionA));
 
         Assert.Equal(RerunGate.SharedStepUnknown, exception.Message);
     }
@@ -632,12 +650,12 @@ public sealed class SessionFourProbeTests
         var plan = Select(ProbePhase.PublicApi, FullManifest(), 34, 35, 36, 37);
         var json = await StoppedRecordAsync(plan, "p34-list-100");
 
-        Assert.Equal(["35", "36", "37"], RerunGate.WhollyUnstarted(json, ProbePhase.PublicApi).Order(StringComparer.Ordinal));
-        RerunGate.Check(json, ProbePhase.PublicApi, [35, 36, 37]);
-        Assert.Equal(RerunGate.StartedSelected, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [34, 35])).Message);
-        Assert.Equal(RerunGate.SelectionRequired, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [])).Message);
-        Assert.Equal(RerunGate.WrongRecord, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.Worker, [35])).Message);
-        Assert.Equal(RerunGate.Unreadable, Assert.Throws<ProbeUsageException>(() => RerunGate.Check("not json", ProbePhase.PublicApi, [35])).Message);
+        Assert.Equal(["35", "36", "37"], RerunGate.WhollyUnstarted(json, ProbePhase.PublicApi, RevisionA).Order(StringComparer.Ordinal));
+        RerunGate.Check(json, ProbePhase.PublicApi, [35, 36, 37], RevisionA);
+        Assert.Equal(RerunGate.StartedSelected, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [34, 35], RevisionA)).Message);
+        Assert.Equal(RerunGate.SelectionRequired, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [], RevisionA)).Message);
+        Assert.Equal(RerunGate.WrongRecord, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.Worker, [35], RevisionA)).Message);
+        Assert.Equal(RerunGate.Unreadable, Assert.Throws<ProbeUsageException>(() => RerunGate.Check("not json", ProbePhase.PublicApi, [35], RevisionA)).Message);
     }
 
     [Fact]
@@ -647,7 +665,54 @@ public sealed class SessionFourProbeTests
         var plan = Select(ProbePhase.PublicApi, FullManifest(), 34, 37);
         var json = await StoppedRecordAsync(plan, "p37-parameter");
 
-        Assert.Equal(RerunGate.NoneRemain, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [37])).Message);
+        Assert.Equal(RerunGate.NoneRemain, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [37], RevisionA)).Message);
+    }
+
+    [Fact]
+    public async Task TheGateRefusesARecordWhoseUnknownStepLostItsOutcome()
+    {
+        // The review's case: a genuine record stopped at s-collection, with that step's outcome
+        // removed. Without the outcome the gate cannot see the unknown completion, so it refuses.
+        var plan = Select(ProbePhase.PublicApi, FullManifest(), 34, 35, 36, 37);
+        var json = Edited(await StoppedRecordAsync(plan, "s-collection"), static record => StepNode(record, "s-collection")["outcome"] = null);
+
+        Assert.Equal(RerunGate.WrongRecord, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [34], RevisionA)).Message);
+    }
+
+    [Fact]
+    public async Task TheGateRefusesARecordWithoutCompletedOrWithAnInventedStep()
+    {
+        var plan = Select(ProbePhase.PublicApi, FullManifest(), 34, 35, 36, 37);
+        var genuine = await StoppedRecordAsync(plan, "p34-list-100");
+        var cases = new[]
+        {
+            Edited(genuine, static record => record.Remove("completed")),
+            Edited(genuine, static record => { StepNode(record, "p35-text")["kind"] = "invented"; }),
+            Edited(genuine, static record => { StepNode(record, "p35-text")["classification"] = "invented"; }),
+            Edited(genuine, static record => record["steps"]!.AsArray().RemoveAt(0)),
+            Edited(genuine, static record => record["steps"]!.AsArray().Add(StepNode(record, "p35-text").DeepClone())),
+            Edited(genuine, static record => { StepNode(record, "p34-list-100")["outcome"] = null; }),
+            Edited(genuine, static record => { StepNode(record, "p36-notes")["classification"] = "observed"; }),
+            Edited(genuine, static record => record["stop_reason"] = null),
+            Edited(genuine, static record => record.Remove("rerun"))
+        };
+
+        Assert.All(cases, json => Assert.Equal(RerunGate.WrongRecord,
+            Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [35], RevisionA)).Message));
+    }
+
+    [Fact]
+    public async Task TheGateNeedsTheSameHarnessRevisionAndAFirstRun()
+    {
+        var plan = Select(ProbePhase.PublicApi, FullManifest(), 34, 35, 36, 37);
+        var json = await StoppedRecordAsync(plan, "p34-list-100");
+        var rerun = await StoppedRecordAsync(plan, "p34-list-100", rerun: true);
+
+        Assert.Equal(RerunGate.RevisionMismatch, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [35], RevisionB)).Message);
+        Assert.Equal(RerunGate.RevisionMismatch, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(json, ProbePhase.PublicApi, [35], null)).Message);
+        Assert.Equal(RerunGate.AlreadyRerun, Assert.Throws<ProbeUsageException>(() => RerunGate.Check(rerun, ProbePhase.PublicApi, [35], RevisionA)).Message);
+        Assert.All(new[] { RerunGate.WrongRecord, RerunGate.RevisionMismatch, RerunGate.AlreadyRerun },
+            static message => Assert.DoesNotContain(RevisionA, message, StringComparison.Ordinal));
     }
 
     [Fact]
@@ -661,20 +726,133 @@ public sealed class SessionFourProbeTests
             await File.WriteAllTextAsync(previous, await StoppedRecordAsync(plan, "p34-list-100"));
             var error = new StringWriter();
 
-            var code = await LicensedProbeProgram.RunAsync(["--phase", "public-api", "--dry-run", "--probe", "34", RerunGate.Option, previous],
+            var code = await LicensedProbeProgram.RunAsync(["--phase", "public-api", "--dry-run", "--probe", "34", RerunGate.Option, previous,
+                    "--harness-revision", RevisionA],
                 new StringWriter(), error, static _ => throw new InvalidOperationException("no transport"), FakeOperator.Factory, Clock, CancellationToken.None);
-            var allowed = await LicensedProbeProgram.RunAsync(["--phase", "public-api", "--dry-run", "--probe", "35", RerunGate.Option, previous],
+            var otherBuild = new StringWriter();
+            var revision = await LicensedProbeProgram.RunAsync(["--phase", "public-api", "--dry-run", "--probe", "35", RerunGate.Option, previous,
+                    "--harness-revision", RevisionB],
+                new StringWriter(), otherBuild, static _ => throw new InvalidOperationException("no transport"), FakeOperator.Factory, Clock, CancellationToken.None);
+            var allowed = await LicensedProbeProgram.RunAsync(["--phase", "public-api", "--dry-run", "--probe", "35", RerunGate.Option, previous,
+                    "--harness-revision", RevisionA],
                 new StringWriter(), new StringWriter(), static _ => throw new InvalidOperationException("no transport"), FakeOperator.Factory, Clock,
                 CancellationToken.None);
 
-            Assert.Equal((2, 0), (code, allowed));
+            Assert.Equal((2, 2, 0), (code, revision, allowed));
             Assert.Contains(RerunGate.StartedSelected, error.ToString(), StringComparison.Ordinal);
-            Assert.DoesNotContain(root.FullName, error.ToString(), StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(RerunGate.RevisionMismatch, otherBuild.ToString(), StringComparison.Ordinal);
+            Assert.DoesNotContain(root.FullName, error.ToString() + otherBuild, StringComparison.OrdinalIgnoreCase);
         }
         finally
         {
             root.Delete(recursive: true);
         }
+    }
+
+    [Fact]
+    public async Task ALicensePromptDuringAnUnknownSharedStepSupersedesItsStopReason()
+    {
+        // The review's case: the signal is raised inside s-collection, which returns unknown.
+        var plan = Select(ProbePhase.PublicApi, FullManifest(), 34);
+        var console = new FakeOperator();
+        var record = await ProbeSession.RunAsync(plan, new FakeTransport(plan.Phase, step =>
+        {
+            if (step.Id != "s-collection")
+            {
+                return TestSupport.Succeeding(step);
+            }
+
+            console.LicenseAbortRaised = true;
+            return ProbeOutcome.Unknown("grpc:DeadlineExceeded", "untyped-rpc-failure");
+        }), Clock, new SessionIdentity(), console, CancellationToken.None);
+
+        Assert.Equal((ProbeSession.LicensePromptStop, ProbeSession.UnknownOutcomeStop, "s-collection"),
+            (record.StopReason, record.SupersededStopReason, record.StoppedAt));
+    }
+
+    [Fact]
+    public async Task TheFrameGateRefusesBeforeTheFirstByteAndNeverLeavesAPartialFrame()
+    {
+        // The product channel serializes the whole frame, then writes it through the stream it is
+        // given. The gate runs before the first write of each frame: a refused frame writes nothing.
+        using var pipe = new MemoryStream();
+        var refuse = false;
+        await using var counter = new CountingStream(pipe, () =>
+        {
+            if (refuse)
+            {
+                throw new InvalidOperationException("refused");
+            }
+        });
+        using var channel = new WorkerControlChannel(counter, leaveOpen: true);
+
+        await channel.SendAsync(WorkerControlMessage.Stop(Guid.NewGuid()));
+        var written = pipe.Length;
+        refuse = true;
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await channel.SendAsync(WorkerControlMessage.Stop(Guid.NewGuid())));
+
+        Assert.True(written > 4);
+        Assert.Equal(written, pipe.Length);
+    }
+
+    [Fact]
+    public async Task AWorkerFileThatCannotBeLaunchedIsAFixedRefusalWithoutItsPath()
+    {
+        // An empty file is not a program: the launch fails without starting any process.
+        var root = Directory.CreateTempSubdirectory("briosa-launch-");
+        try
+        {
+            var worker = Path.Combine(root.FullName, "Briosa.Worker.exe");
+            await File.WriteAllBytesAsync(worker, []);
+            await using var transport = new WorkerTransport(worker, TimeSpan.FromSeconds(5), new OneSpatialAnalyzer());
+            var plan = Select(ProbePhase.Worker, FullManifest(), 34);
+
+            var refusal = await Assert.ThrowsAsync<ProbeRefusedException>(() => transport.StartAsync(plan, LicenseAbortSignal.Never, CancellationToken.None));
+
+            Assert.Equal("worker-start-failed", refusal.DiagnosticCode);
+            Assert.DoesNotContain(root.FullName, refusal.Message, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task TheCommandBoundaryPrintsOnlyTheExceptionType()
+    {
+        var error = new StringWriter();
+
+        var code = await CommandBoundary.RunAsync(static () => throw new InvalidOperationException(@"C:\SENTINEL\private\path"), error);
+
+        Assert.Equal(CommandBoundary.UnexpectedFailureExit, code);
+        Assert.Contains("InvalidOperationException", error.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain(TestSupport.Sentinel, error.ToString(), StringComparison.Ordinal);
+        Assert.Equal(0, await CommandBoundary.RunAsync(static () => Task.FromResult(0), new StringWriter()));
+    }
+
+    [Theory]
+    [InlineData("{\"fixture\":{\"collection\":\"SENTINEL-JOB\",\"name\":\"SENTINEL-TCP\"},\"measurements\":[null]}")]
+    [InlineData("{\"fixture\":{\"collection\":\"SENTINEL-JOB\",\"name\":\"SENTINEL-TCP\"},\"measurements\":null}")]
+    public void AManifestWithANullCollectionOrEntryIsRefusedNeverDereferenced(string tcp)
+    {
+        var manifest = System.Text.Json.Nodes.JsonNode.Parse(JsonSerializer.Serialize(new
+        {
+            schema_version = 1,
+            spatial_analyzer_target = ProbeTarget.SpatialAnalyzerTarget,
+            usmn_instruments = new[] { new { collection = "SENTINEL-M", instrument_id = 0 }, new { collection = "SENTINEL-M", instrument_id = 1 } },
+            usmn_nominals_group = new { collection = "SENTINEL-M", name = "SENTINEL-NOMINALS" },
+            template_chart_name = "SENTINEL-CHART",
+            ui_profile_file = @"C:\SENTINEL\profile.xml"
+        }))!.AsObject();
+        manifest["tcp_fixture"] = System.Text.Json.Nodes.JsonNode.Parse(tcp);
+        var instruments = manifest.DeepClone().AsObject();
+        instruments["usmn_instruments"] = System.Text.Json.Nodes.JsonNode.Parse("[null, null]");
+        instruments.Remove("tcp_fixture");
+
+        var exception = Assert.Throws<InvalidDataException>(() => FixtureManifest.Parse(manifest.ToJsonString()));
+        Assert.Throws<InvalidDataException>(() => FixtureManifest.Parse(instruments.ToJsonString()));
+        Assert.DoesNotContain(TestSupport.Sentinel, exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]

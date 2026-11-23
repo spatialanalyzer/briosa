@@ -11,17 +11,18 @@ a dialog. Write labels (`sdk-1`), counts, byte sizes, times, enum names, MP code
 listed diagnostic codes (`withheld` where the record says so) and the closed
 checkpoint words. Write "not run" with its reason for anything that did not run; a
 missing fixture is never a pass. Nothing here is transferred from the SA 2026.1.0529.7
-record. The SDK-ownership scenarios are not part of this session
-(https://github.com/spatialanalyzer/briosa/pull/428).
+record. The SDK-ownership scenarios
+(https://github.com/spatialanalyzer/briosa/pull/428) and the cold-start timings
+(https://github.com/spatialanalyzer/briosa/pull/431) are not part of this session.
 
 ## Session
 
 | Field | Value |
 | --- | --- |
 | Date (UTC) and runs | |
-| Authorization | the maintainer's go-ahead for A1 to A5, each as given |
-| Agreed rules | the date the proposed rules and decisions D1 to D14 were agreed on #402, and any that differ from the runbook |
-| Operating precondition | how the clean state established exclusive use of the server and SA for each run |
+| Authorization | the maintainer's go-ahead for A1 to A3, each as given |
+| Agreed rules | the date the proposed rules and decisions D1 to D12 were agreed on #402, and any that differ from the runbook |
+| Exclusive-use reservation (D2) | the date the maintainer confirmed that no other client would use a Briosa worker, a loopback Briosa server or SpatialAnalyzer on the machine during the session |
 | Merge SHA and harness revision | |
 | Package and SHA-256 | `briosa-0.10.1-probe-s4-sa-2024.1.0508.5-win-x64.zip`, |
 | Worker response budget | the bytes the records state (1 MiB since #411) |
@@ -32,15 +33,16 @@ record. The SDK-ownership scenarios are not part of this session
 
 | Run | Started–ended (UTC) | Result | Record |
 | --- | --- | --- | --- |
-| A1 C1 fresh-install | | completed / stopped (reason) / not run (reason) | `startup-timing-fresh-install` |
-| A2 R1 public 34 to 37 | | | `probe-277-public-api` |
-| A3 R2 worker 34 | | | `probe-277-worker` |
-| A4 C2 after-reboot | | | `startup-timing-after-reboot` |
-| A5 tutorials | | not on this target (SA 2026 only) | |
+| A1 R1 public 34 to 37 | | completed / stopped (reason) / not run (reason) | `probe-277-public-api` |
+| A2 R2 worker 34 | | | `probe-277-worker` |
+| A3 tutorials | | not on this target (SA 2026 only) | |
 
-Server settings per run: the admission arguments, the `InteractionMode` setting,
-the execution watchdog and the startup bound each server ran with. For every rerun:
-the `--rerun-of` record it named and the probes it selected (F1).
+Server settings for R1: the admission arguments, the `InteractionMode` setting and
+the execution watchdog it ran with.
+
+Reruns (F1, D12): for each, the stopped run it reran, the probes it selected, and
+that no stopped run was rerun more than once (the operator keeps this; the harness
+refuses only a rerun of a rerun):
 
 ## 1. Result sizes (probe 34)
 
@@ -70,26 +72,7 @@ Fixtures: the large point group's and the cloud's presence (counts below), or
 - Construct times of the larger rungs (`elapsed_ms`), and any dialog (F3: the step
   id only):
 
-## 2. Cold starts
-
-| Condition | Configuration | Label | Correlation | Endpoint listening (ms) | Start RPC (ms) | process-created | control-pipe-connected | ready-received | Connect RPC (ms) |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| fresh-install (C1 call 1) | changed configuration (60 s) / stock | | | | | | | | |
-| warm (C1 call 2) | | repeat | | | | | | | |
-| after-reboot (C2 call 1) | | | | | | | | | |
-| warm (C2 call 2) | | repeat | | | | | | | |
-
-- How each condition was established: uptime, minutes since logon, SA idle time,
-  and that the package folder was new (C1) or had run before the restart (C2):
-- Each `Briosa.LifecycleClient --scenario external` call's result (started,
-  connected, stopped its own generation), or its typed failure:
-- An attempt labelled `first-attempt-unproven`, or not `unambiguous`, is not a cold
-  measurement; say so. An `overlapping-requests` attempt has no RPC time
-  (`withheld-overlapping`) and no phases. The record's `unreadable_lines`:
-- Against the stock 10 s default: the margin, or the phase that would have exceeded
-  it. A raised bound is a changed configuration, not a stock start:
-
-## 3. Corrected bindings (probes 35 to 37)
+## 2. Corrected bindings (probes 35 to 37)
 
 | Binding | Step | Fixture | Result |
 | --- | --- | --- | --- |
@@ -107,16 +90,18 @@ Fixtures: the large point group's and the cloud's presence (counts below), or
 Whether each callout showed the two harness lines (`lines-shown` or
 `lines-not-shown` at the checkpoints):
 
-## 4. Tutorials
+## 3. Tutorials
 
 Not on this target: the `briosa-examples` tutorials target SA 2026 only.
 
 ## Postflight and process observations
 
-Per run: the `Test-LicensedRunnerState.ps1 -Phase Postflight` line, and the
-`process-observation` record's final snapshot status, `spatial_analyzer_alive` and
-residual (labels, with last-seen and first-absent bounds). No generic `stop-sdk` was
-run. A record whose last snapshot was incomplete has not passed postflight.
+Per run: what postflight step 1 stopped (R1's server, Control Center's server, or
+nothing), the `Test-LicensedRunnerState.ps1 -Phase Postflight` line (or that it
+failed on a residual, and that residual's label), and the `process-observation`
+record's final snapshot status, `spatial_analyzer_alive` and residual (labels, with
+last-seen and first-absent bounds). No generic `stop-sdk` was run. A record whose
+last snapshot was incomplete has not passed postflight.
 
 - Whether a license prompt appeared, in which run and step, whether the signal or a
   checkpoint answer raised it, and the record's `superseded_stop_reason`, if any:
@@ -136,7 +121,7 @@ or a shared step's completion was unknown.
 
 - #245:
 - #252: postflight observations only; the ownership scenarios are in https://github.com/spatialanalyzer/briosa/pull/428.
-- #371:
+- #371: not measured in this session; the cold-start timings are in https://github.com/spatialanalyzer/briosa/pull/431.
 - #402:
 
 These are observations of one bounded session on one machine, not vendor guarantees.

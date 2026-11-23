@@ -204,6 +204,39 @@ public sealed class OperatorCheckpointTests : IDisposable
     }
 
     [Fact]
+    public async Task ACheckpointWhoseRequestFileCannotBeWrittenStopsWithoutAPathAndKeepsTheOutcome()
+    {
+        // The review's case: a request file of the same name already exists. The checkpoint is
+        // unanswered, the session stops, and the step's own outcome stays in the record.
+        using var output = new StringWriter();
+        var console = NewConsole(output, TimeSpan.FromSeconds(60));
+        await File.WriteAllTextAsync(Path.Combine(_root, "001-p02-value-after.request.txt"), "collision");
+        var plan = WatchedPlan();
+
+        var record = await ProbeSession.RunAsync(plan, new FakeTransport(plan.Phase, TestSupport.Succeeding), Clock, SessionIdentity.None,
+            new BeforeAnswered(console), CancellationToken.None);
+
+        Assert.Equal((ProbeSession.CheckpointStop, Watched), (record.StopReason, record.StoppedAt));
+        Assert.Equal(ProbeOutcomeKind.Succeeded, record.Steps.Single(static step => step.Step.Id == Watched).Outcome!.Kind);
+        Assert.Contains("its request file could not be written", output.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain(_root, output.ToString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    // Answers the before-dispatch checkpoint at once and hands the after-checkpoint to the file console.
+    private sealed class BeforeAnswered(FileOperatorConsole files) : IOperatorConsole
+    {
+        public LicenseAbortSignal LicenseAbort => files.LicenseAbort;
+
+        public void Dispatching(ProbeStep step, int ordinal, int count) => files.Dispatching(step, ordinal, count);
+
+        public void Completed(ProbeStep step, int ordinal, int count, ProbeOutcome outcome, long elapsedMilliseconds) =>
+            files.Completed(step, ordinal, count, outcome, elapsedMilliseconds);
+
+        public Task<string?> CheckpointAsync(ProbeStep step, OperatorCheckpoint timing, CancellationToken cancellationToken) =>
+            timing == OperatorCheckpoint.Before ? Task.FromResult<string?>(OperatorObservationText.None) : files.CheckpointAsync(step, timing, cancellationToken);
+    }
+
+    [Fact]
     public async Task TheFileConsoleWaitsForTheResponseFileAndNormalizesIt()
     {
         using var output = new StringWriter();

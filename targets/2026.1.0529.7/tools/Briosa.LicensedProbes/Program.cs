@@ -8,19 +8,14 @@ Console.CancelKeyPress += (_, eventArgs) =>
     cancellation.Cancel();
 };
 
-// Licensed session 4 (#402): the read-only process observation and the offline startup-timing
-// report are separate commands; everything else is a probe phase.
+// Licensed session 4 (#402): the read-only process observation is a separate command;
+// everything else is a probe phase. Both run inside the command boundary.
 if (ProcessObservation.IsObservation(args))
 {
-    return await ProcessObservation.RunAsync(args, Console.Out, Console.Error, WindowsProcessTable.Instance, SystemPause.Instance,
-        TimeProvider.System, cancellation.Token).ConfigureAwait(false);
+    return await CommandBoundary.RunAsync(() => ProcessObservation.RunAsync(args, Console.Out, Console.Error, WindowsProcessTable.Instance,
+        SystemPause.Instance, TimeProvider.System, cancellation.Token), Console.Error).ConfigureAwait(false);
 }
 
-if (StartupTiming.IsStartupTiming(args))
-{
-    return await StartupTiming.RunAsync(args, Console.Out, Console.Error, cancellation.Token).ConfigureAwait(false);
-}
-
-return await LicensedProbeProgram.RunAsync(
+return await CommandBoundary.RunAsync(() => LicensedProbeProgram.RunAsync(
     args, Console.Out, Console.Error, LicensedProbeProgram.CreateTransport, LicensedProbeProgram.CreateOperatorConsole,
-    TimeProvider.System, cancellation.Token).ConfigureAwait(false);
+    TimeProvider.System, cancellation.Token), Console.Error).ConfigureAwait(false);

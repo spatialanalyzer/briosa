@@ -119,8 +119,8 @@ internal sealed record FixtureManifest
         Require(SchemaVersion == 1, "The fixture manifest schema_version must be 1.");
         Require(string.Equals(SpatialAnalyzerTarget, ProbeTarget.SpatialAnalyzerTarget, StringComparison.Ordinal),
             "The fixture manifest names a different SpatialAnalyzer target.");
-        Require(UsmnInstruments.Count >= 2, "At least two USMN instruments are required.");
-        Require(UsmnInstruments.All(static instrument => instrument.IsValid), "Every instrument needs a collection and a non-negative id.");
+        Require(UsmnInstruments is { Count: >= 2 }, "At least two USMN instruments are required.");
+        Require(UsmnInstruments.All(static instrument => instrument is { IsValid: true }), "Every instrument needs a collection and a non-negative id.");
         Require(UsmnNominalsGroup is { IsValid: true }, "usmn_nominals_group is required.");
         Require(!string.IsNullOrWhiteSpace(TemplateChartName), "template_chart_name is required.");
         Require(!string.IsNullOrWhiteSpace(UiProfileName), "ui_profile_name must not be blank.");
@@ -189,8 +189,10 @@ internal sealed record ManifestTcpFixture
     // Sixteen numbers, row by row; the identity transform when absent.
     public IReadOnlyList<double>? TcpInWorking { get; init; }
 
+    // A null list or a null entry (JSON null) is invalid, never dereferenced.
     [JsonIgnore]
-    public bool IsValid => Fixture is { IsValid: true } && Measurements.Count > 0 && Measurements.All(static point => point.IsValid) &&
+    public bool IsValid => Fixture is { IsValid: true } && Measurements is { Count: > 0 } &&
+        Measurements.All(static point => point is { IsValid: true }) &&
         (TcpInWorking is null || (TcpInWorking.Count == 16 && TcpInWorking.All(double.IsFinite)));
 }
 

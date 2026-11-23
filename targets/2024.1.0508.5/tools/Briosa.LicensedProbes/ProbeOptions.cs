@@ -46,7 +46,7 @@ internal sealed record ProbeOptions
 
     public string? HarnessRevision { get; init; }
 
-    /// <summary>The JSON record of the stopped run this one reruns (F1, D17); null for a first run.</summary>
+    /// <summary>The JSON record of the stopped run this one reruns (F1, D12); null for a first run.</summary>
     public string? RerunOf { get; init; }
 
     public TimeSpan StepTimeout { get; init; } = TimeSpan.FromSeconds(120);

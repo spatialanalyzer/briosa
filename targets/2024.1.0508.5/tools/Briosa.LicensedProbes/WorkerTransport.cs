@@ -90,10 +90,19 @@ internal sealed class WorkerTransport : IProbeTransport
         startInfo.ArgumentList.Add("--parent-process-id");
         startInfo.ArgumentList.Add(Environment.ProcessId.ToString(CultureInfo.InvariantCulture));
 
-        // The last check before the worker is launched.
+        // The last check, immediately before the worker is launched. A launch error (for
+        // example a file that is not a program) is a fixed refusal; its message, which can
+        // hold the path, is never passed on.
         if (Abandoning())
             throw new ProbeRefusedException(ProbeSession.LicensePromptStop);
-        _process = Process.Start(startInfo) ?? throw new ProbeRefusedException("worker-start-failed");
+        try
+        {
+            _process = Process.Start(startInfo) ?? throw new ProbeRefusedException("worker-start-failed");
+        }
+        catch (Exception exception) when (exception is Win32Exception or InvalidOperationException or IOException or UnauthorizedAccessException)
+        {
+            throw new ProbeRefusedException("worker-start-failed");
+        }
 
         try
         {
@@ -107,8 +116,10 @@ internal sealed class WorkerTransport : IProbeTransport
                 clientProcessId != (uint)_process.Id)
                 throw new ProbeRefusedException("worker-pipe-client-mismatch");
 
-            // The channel reads through a byte counter, so each frame's size is known (#402).
-            _counter = new CountingStream(_pipe);
+            // The channel reads through a byte counter, so each frame's size is known (#402),
+            // and writes through it, so the license signal is checked once more after a frame is
+            // serialized and immediately before its first byte reaches the pipe.
+            _counter = new CountingStream(_pipe, ThrowIfAbandoning);
             _channel = new WorkerControlChannel(_counter, leaveOpen: true);
             var ready = await ReceiveAsync(StartupTimeout, cancellationToken).ConfigureAwait(false);
             if (ready.Kind != WorkerControlMessageKind.Ready || ready.ProcessId != _process.Id)
@@ -216,6 +227,12 @@ internal sealed class WorkerTransport : IProbeTransport
     // Whether disposal would send the worker a graceful stop: never after a license prompt.
     internal bool WouldSendStopOnDispose => !Abandoning() && _process is not null && !_process.HasExited && !_faulted && _channel is not null;
 
+    private void ThrowIfAbandoning()
+    {
+        if (Abandoning())
+            throw new LicenseAbortedException();
+    }
+
     // Latches the operator's license-abort signal into this transport: once true, nothing more
     // is launched, sent or terminated.
     private bool Abandoning()
@@ -313,9 +330,7 @@ internal sealed class WorkerTransport : IProbeTransport
     // terminated rather than reused. SDK and SA state then need operator review.
     private async Task TerminateAsync()
     {
-        // The last check before the fallback termination: after a license prompt the worker is
-        // left as it is.
-        if (_process is null || Abandoning())
+        if (_process is null)
         {
             return;
         }
@@ -324,6 +339,13 @@ internal sealed class WorkerTransport : IProbeTransport
         {
             if (!_process.HasExited)
             {
+                // The last check, immediately before the fallback termination: after a license
+                // prompt the worker is left as it is.
+                if (Abandoning())
+                {
+                    return;
+                }
+
                 // The worker only, never its process tree: the harness ends nothing it did not start.
                 _process.Kill(entireProcessTree: false);
             }

@@ -46,10 +46,11 @@ internal static partial class ExternalValues
     public static string FieldName(string? name) =>
         name is not null && FieldShape().IsMatch(name) ? name : Withheld;
 
-    [GeneratedRegex("^[0-9]{1,4}\\.[0-9]{1,4}\\.[0-9]{1,6}(-probe-s[1-9][0-9]?)?$", RegexOptions.CultureInvariant)]
+    // \z, never $: $ also matches before a final newline.
+    [GeneratedRegex("^[0-9]{1,4}\\.[0-9]{1,4}\\.[0-9]{1,6}(-probe-s[1-9][0-9]?)?\\z", RegexOptions.CultureInvariant)]
     private static partial Regex VersionShape();
 
-    [GeneratedRegex("^[a-z][a-z0-9_]{0,63}(\\.[a-z][a-z0-9_]{0,63}){0,3}$", RegexOptions.CultureInvariant)]
+    [GeneratedRegex("^[a-z][a-z0-9_]{0,63}(\\.[a-z][a-z0-9_]{0,63}){0,3}\\z", RegexOptions.CultureInvariant)]
     private static partial Regex FieldShape();
 
     private static HashSet<string> LoadCodes()

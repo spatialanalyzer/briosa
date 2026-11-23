@@ -88,10 +88,15 @@ internal static class WorkerResponseBudget
 /// </summary>
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213:Disposable fields should be disposed",
     Justification = "The inner stream belongs to its owner, which disposes it; the counter never closes it.")]
-internal sealed class CountingStream(Stream inner) : Stream
+internal sealed class CountingStream(Stream inner, Action? beforeFrameWrite = null) : Stream
 {
     private readonly Stream _inner = inner ?? throw new ArgumentNullException(nameof(inner));
     private long _bytesRead;
+
+    // The control channel serializes a whole frame, then writes it (header, payload) and
+    // flushes. The gate runs before the first write of each frame, after serialization, so a
+    // refusal never leaves a partial frame on the pipe.
+    private bool _frameOpen;
 
     public long BytesRead => Interlocked.Read(ref _bytesRead);
 
@@ -119,19 +124,51 @@ internal sealed class CountingStream(Stream inner) : Stream
     public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>
         Count(await _inner.ReadAsync(buffer, cancellationToken).ConfigureAwait(false));
 
-    public override void Write(byte[] buffer, int offset, int count) => _inner.Write(buffer, offset, count);
+    public override void Write(byte[] buffer, int offset, int count)
+    {
+        OpenFrame();
+        _inner.Write(buffer, offset, count);
+    }
 
-    public override void Write(ReadOnlySpan<byte> buffer) => _inner.Write(buffer);
+    public override void Write(ReadOnlySpan<byte> buffer)
+    {
+        OpenFrame();
+        _inner.Write(buffer);
+    }
 
-    public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) =>
-        _inner.WriteAsync(buffer, offset, count, cancellationToken);
+    public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+    {
+        OpenFrame();
+        return _inner.WriteAsync(buffer, offset, count, cancellationToken);
+    }
 
-    public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default) =>
-        _inner.WriteAsync(buffer, cancellationToken);
+    public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+    {
+        OpenFrame();
+        return _inner.WriteAsync(buffer, cancellationToken);
+    }
 
-    public override void Flush() => _inner.Flush();
+    public override void Flush()
+    {
+        _frameOpen = false;
+        _inner.Flush();
+    }
 
-    public override Task FlushAsync(CancellationToken cancellationToken) => _inner.FlushAsync(cancellationToken);
+    public override Task FlushAsync(CancellationToken cancellationToken)
+    {
+        _frameOpen = false;
+        return _inner.FlushAsync(cancellationToken);
+    }
+
+    // The gate may throw to refuse the frame; nothing of it has been written then.
+    private void OpenFrame()
+    {
+        if (!_frameOpen)
+        {
+            beforeFrameWrite?.Invoke();
+            _frameOpen = true;
+        }
+    }
 
     public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
 

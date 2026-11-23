@@ -51,8 +51,8 @@ internal interface IOperatorConsole
 
     /// <summary>
     /// The operator's license-abort signal (#402), raised by the signal file or by a checkpoint
-    /// answer. Distinct from Ctrl+C, which cancels and lets the run clean up: once it is raised
-    /// nothing more is sent, started or terminated, not even a graceful stop.
+    /// answer. Distinct from Ctrl+C, which cancels and lets the run clean up: from the harness's
+    /// next check of it, nothing more is sent, started or terminated, not even a graceful stop.
     /// </summary>
     LicenseAbortSignal LicenseAbort { get; }
 }
@@ -149,6 +149,9 @@ internal sealed record ProbeSessionRecord(
     /// or an unknown outcome that was still being cleaned up when the signal was raised.
     /// </summary>
     public string? SupersededStopReason { get; init; }
+
+    /// <summary>The run was a rerun (<c>--rerun-of</c>); a rerun's own record admits no further rerun (D12).</summary>
+    public bool Rerun { get; init; }
 
     /// <summary>
     /// Every step that could be sent was observed as planned. Excluded and fixture-missing
@@ -381,18 +384,21 @@ internal static class ProbeSession
                     created.Add(step.CreatesFixture);
                 }
 
-                // The step's own result stands; nothing later is sent without the operator.
-                if (licensePrompt)
-                {
-                    (stoppedAt, stopReason) = (step.Id, LicensePromptStop);
-                }
-                else if (unanswered)
+                // The step's own result stands; nothing later is sent without the operator. Its
+                // ordinary stop, if any, comes first; a license prompt then takes precedence once,
+                // at the end of the run, and keeps that reason as superseded.
+                if (unanswered)
                 {
                     (stoppedAt, stopReason) = (step.Id, CheckpointStop);
                 }
                 else if (stalled)
                 {
                     stalledAt = step.Id;
+                }
+
+                if (licensePrompt && stopReason is null)
+                {
+                    (stoppedAt, stopReason) = (step.Id, LicensePromptStop);
                 }
 
                 continue;
@@ -406,7 +412,9 @@ internal static class ProbeSession
             stoppedAt = step.Id;
             // ExecuteStep false, a missing MP result, or any other unknown completion:
             // the step is never replayed and no later step runs.
-            stopReason = licensePrompt ? LicensePromptStop : outcome.CompletionUnknown
+            // A license prompt signalled during the step takes precedence once, at the end of the
+            // run, and keeps this reason as superseded.
+            stopReason = outcome.CompletionUnknown
                 ? UnknownOutcomeStop
                 : accepted ? RequirementStop : UnexpectedDispositionStop;
         }
