@@ -23,6 +23,9 @@ internal static class LicensedProbeProgram
               --probe <n> (repeatable; run only these probes of the selected phase; opt-in probes 26 to 29 need it)
           A licensed run pauses at operator checkpoints; answer each by writing its response file
           in the checkpoints folder of the output directory.
+          Licensed session 4 (#402) also has: --ownership <scenario> (SDK-ownership probes) and
+          --startup-timing (an offline report from the server's log); run either with no other
+          options for its own usage.
         """;
 
     public static IProbeTransport CreateTransport(ProbeOptions options)
@@ -40,8 +43,10 @@ internal static class LicensedProbeProgram
             SpatialAnalyzerApplicationOptions.BindAndValidate(new ConfigurationBuilder().Build()),
             new WindowsSpatialAnalyzerProcessPlatform(),
             new WindowsSpatialAnalyzerWindowSource());
+        var signal = FileOperatorConsole.LicenseAbortPath(options.OutputDirectory!);
         return new WorkerTransport(options.WorkerPath!, options.StepTimeout, ProcessCensus.Instance,
-            () => detector.Observe() == SpatialAnalyzerModalDialogState.ModalDialogOpen);
+            () => detector.Observe() == SpatialAnalyzerModalDialogState.ModalDialogOpen,
+            () => File.Exists(signal));
     }
 
     /// <summary>The licensed-run operator console: progress on standard output, checkpoints through files.</summary>

@@ -34,12 +34,16 @@ internal sealed class WorkerTransport : IProbeTransport
     private readonly TimeSpan _stepTimeout;
     private readonly IProcessCensus _census;
     private readonly Func<bool>? _modalDialogOpen;
+    private readonly Func<bool>? _licenseAbortRaised;
     private NamedPipeServerStream? _pipe;
+    private CountingStream? _counter;
     private WorkerControlChannel? _channel;
     private Process? _process;
     private bool _faulted;
+    private bool _abandoned;
 
-    public WorkerTransport(string workerPath, TimeSpan stepTimeout, IProcessCensus census, Func<bool>? modalDialogOpen = null)
+    public WorkerTransport(string workerPath, TimeSpan stepTimeout, IProcessCensus census, Func<bool>? modalDialogOpen = null,
+        Func<bool>? licenseAbortRaised = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(workerPath);
         ArgumentNullException.ThrowIfNull(census);
@@ -47,6 +51,7 @@ internal sealed class WorkerTransport : IProbeTransport
         _stepTimeout = stepTimeout;
         _census = census;
         _modalDialogOpen = modalDialogOpen;
+        _licenseAbortRaised = licenseAbortRaised;
     }
 
     /// <summary>A step timeout checks for an open SpatialAnalyzer dialog.</summary>
@@ -96,7 +101,9 @@ internal sealed class WorkerTransport : IProbeTransport
                 clientProcessId != (uint)_process.Id)
                 throw new ProbeRefusedException("worker-pipe-client-mismatch");
 
-            _channel = new WorkerControlChannel(_pipe, leaveOpen: true);
+            // The channel reads through a byte counter, so each frame's size is known (#402).
+            _counter = new CountingStream(_pipe);
+            _channel = new WorkerControlChannel(_counter, leaveOpen: true);
             var ready = await ReceiveAsync(StartupTimeout, cancellationToken).ConfigureAwait(false);
             if (ready.Kind != WorkerControlMessageKind.Ready || ready.ProcessId != _process.Id)
                 throw new ProbeRefusedException("worker-ready-invalid");
@@ -133,6 +140,11 @@ internal sealed class WorkerTransport : IProbeTransport
     public async Task<ProbeOutcome> ExecuteAsync(ProbeStep step, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(step);
+        if (_abandoned)
+        {
+            return ProbeOutcome.Refused(ProbeSession.LicensePromptStop);
+        }
+
         if (_faulted || _channel is null)
         {
             return ProbeOutcome.Unknown("worker:faulted", "worker-transport-faulted");
@@ -140,11 +152,16 @@ internal sealed class WorkerTransport : IProbeTransport
 
         try
         {
+            var before = _counter!.BytesRead;
             var response = await RequestAsync(WorkerControlMessage.Execute(Guid.NewGuid(), step.Command),
                 WorkerControlMessageKind.ExecutionResult, step.ClientTimeout ?? _stepTimeout, cancellationToken).ConfigureAwait(false);
+            var frameBytes = FrameBytes(before, _counter.BytesRead);
             var outcome = response.ExecutionResponse is { } execution
                 ? WorkerOutcomes.FromResponse(execution, outputs => step.Operation.ObserveWorker(step.Request, outputs),
-                    step.Command.OperationId)
+                    step.Command.OperationId, [.. step.Command.OutputArguments.Select(static output => output.Name)]) with
+                {
+                    Size = ResponseSize.FromWorkerResponse(frameBytes, execution)
+                }
                 : ProbeOutcome.Unknown("worker:invalid-response", "worker-response-invalid");
 
             // ExecuteStep false or a missing MP result leaves completion unknown even
@@ -177,11 +194,24 @@ internal sealed class WorkerTransport : IProbeTransport
         }
     }
 
+    public void Abandon() => _abandoned = true;
+
+    // Whether disposal would send the worker a graceful stop: never after a license prompt.
+    internal bool WouldSendStopOnDispose => !_abandoned && _process is not null && !_process.HasExited && !_faulted && _channel is not null;
+
     [SuppressMessage("Design", "CA1031:Do not catch general exception types",
         Justification = "Best-effort graceful stop; termination below is the bounded fallback.")]
     public async ValueTask DisposeAsync()
     {
-        if (_process is not null && !_process.HasExited && !_faulted && _channel is not null)
+        if (_abandoned)
+        {
+            // After a license prompt nothing is sent and nothing is terminated: the harness only
+            // releases its own handles, and the worker is left for postflight (F11).
+            await ReleaseAsync().ConfigureAwait(false);
+            return;
+        }
+
+        if (WouldSendStopOnDispose && _process is not null)
         {
             try
             {
@@ -196,7 +226,17 @@ internal sealed class WorkerTransport : IProbeTransport
         }
 
         await TerminateAsync().ConfigureAwait(false);
+        await ReleaseAsync().ConfigureAwait(false);
+    }
+
+    private async Task ReleaseAsync()
+    {
         _channel?.Dispose();
+        if (_counter is not null)
+        {
+            await _counter.DisposeAsync().ConfigureAwait(false);
+        }
+
         if (_pipe is not null)
         {
             await _pipe.DisposeAsync().ConfigureAwait(false);
@@ -219,6 +259,11 @@ internal sealed class WorkerTransport : IProbeTransport
         return response;
     }
 
+    // The payload bytes of the one frame read between the two counts: everything read minus
+    // its 4-byte length header. The channel reads exactly one frame per receive.
+    internal static int FrameBytes(long before, long after) =>
+        checked((int)(after - before)) - ResponseSize.FrameHeaderBytes;
+
     private async Task<WorkerControlMessage> ReceiveAsync(TimeSpan timeout, CancellationToken cancellationToken)
     {
         using var bounded = Linked(timeout, cancellationToken);
@@ -228,6 +273,15 @@ internal sealed class WorkerTransport : IProbeTransport
     private async Task FaultAsync()
     {
         _faulted = true;
+
+        // A license prompt signalled while the step ran: the worker is left as it is, and
+        // nothing more is sent to it or done to it.
+        if (_licenseAbortRaised?.Invoke() == true)
+        {
+            _abandoned = true;
+            return;
+        }
+
         await TerminateAsync().ConfigureAwait(false);
     }
 
@@ -244,7 +298,8 @@ internal sealed class WorkerTransport : IProbeTransport
         {
             if (!_process.HasExited)
             {
-                _process.Kill(entireProcessTree: true);
+                // The worker only, never its process tree: the harness ends nothing it did not start.
+                _process.Kill(entireProcessTree: false);
             }
         }
         catch (InvalidOperationException) when (_process.HasExited)

@@ -83,7 +83,7 @@ public sealed class OutcomeClassificationTests
         var execution = new Api.MpExecutionDetails { State = Api.MpExecutionState.Succeeded, MpResultCode = 2 };
         execution.OutputRetrievals.Add(new Api.OutputRetrievalDetails { FieldName = "points_count", State = Api.OutputRetrievalState.Retrieved });
 
-        var success = PublicOutcomes.FromSuccess(execution, ProbeOutcome.EmptyObservations);
+        var success = PublicOutcomes.FromSuccess(execution, ProbeOutcome.EmptyObservations, new HashSet<string>(StringComparer.Ordinal) { "points_count" });
 
         Assert.Equal(ProbeOutcomeKind.Succeeded, success.Kind);
         Assert.Equal(2, success.MpResultCode);

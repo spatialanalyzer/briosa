@@ -48,6 +48,9 @@ internal sealed class FakeOperator(Func<ProbeStep, OperatorCheckpoint, string?>?
 
     public List<string> Dispatched { get; } = [];
 
+    // The operator's license-abort signal, raised outside any checkpoint.
+    public bool LicenseAbortRaised { get; set; }
+
     public void Dispatching(ProbeStep step, int ordinal, int count) => Dispatched.Add(step.Id);
 
     public void Completed(ProbeStep step, int ordinal, int count, ProbeOutcome outcome, long elapsedMilliseconds)
@@ -70,6 +73,8 @@ internal sealed class FakeTransport(ProbePhase phase, Func<ProbeStep, ProbeOutco
     public bool Started { get; private set; }
 
     public bool Disposed { get; private set; }
+
+    public bool Abandoned { get; private set; }
 
     public ProbeRefusedException? Refusal { get; init; }
 
@@ -95,6 +100,8 @@ internal sealed class FakeTransport(ProbePhase phase, Func<ProbeStep, ProbeOutco
         Executed.Add(step.Id);
         return Task.FromResult(respond(step));
     }
+
+    public void Abandon() => Abandoned = true;
 
     public ValueTask DisposeAsync()
     {

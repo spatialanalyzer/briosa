@@ -9,7 +9,7 @@ public sealed class ProbeRecorderTests
             new FixedClock(), new SessionIdentity
             {
                 ConnectedSpatialAnalyzerAttestedVersion = ProbeTarget.SpatialAnalyzerTarget,
-                ConnectedSpatialAnalyzerAttestationReference = "r277-connected"
+                ConnectedSpatialAnalyzerAttestationReference = "sa-title-bar"
             }, new FakeOperator(), CancellationToken.None);
 
     [Fact]
@@ -26,7 +26,7 @@ public sealed class ProbeRecorderTests
         Assert.Equal("worker", root.GetProperty("phase").GetString());
         Assert.Equal("licensed", root.GetProperty("mode").GetString());
         Assert.True(root.GetProperty("completed").GetBoolean());
-        Assert.Equal("r277-connected", root.GetProperty("identity").GetProperty("connected_sa_attestation_reference").GetString());
+        Assert.Equal("sa-title-bar", root.GetProperty("identity").GetProperty("connected_sa_attestation_reference").GetString());
         var steps = root.GetProperty("steps").EnumerateArray().ToList();
         Assert.Equal(record.Steps.Count, steps.Count);
         var omit = steps.Single(static step => step.GetProperty("id").GetString() == "p02-omit");

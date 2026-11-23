@@ -12,10 +12,16 @@ namespace Briosa.LicensedProbes;
 /// </summary>
 internal sealed class PublicApiTransport : IProbeTransport
 {
+    // Above the published clients' 4 MiB limit, so that probe 34 can measure and record a
+    // response the published clients could not receive instead of losing it as an untyped
+    // transport failure (#402). Every response the server sends today is far smaller.
+    public const int MeasurementReceiveLimitBytes = 64 * 1024 * 1024;
+
     private readonly GrpcChannel _channel;
     private readonly TimeSpan _stepTimeout;
     private readonly TimeSpan _operatorTimeout;
     private readonly IProcessCensus _census;
+    private bool _abandoned;
 
     public PublicApiTransport(Uri address, TimeSpan stepTimeout, TimeSpan operatorTimeout, IProcessCensus census)
     {
@@ -26,7 +32,7 @@ internal sealed class PublicApiTransport : IProbeTransport
             throw new ArgumentException("The probe address must be loopback HTTP.", nameof(address));
         }
 
-        _channel = GrpcChannel.ForAddress(address);
+        _channel = GrpcChannel.ForAddress(address, new GrpcChannelOptions { MaxReceiveMessageSize = MeasurementReceiveLimitBytes });
         _stepTimeout = stepTimeout;
         _operatorTimeout = operatorTimeout;
         _census = census;
@@ -73,14 +79,20 @@ internal sealed class PublicApiTransport : IProbeTransport
 
         return new SessionIdentity
         {
-            ServerVersion = info.Version.HasBriosaVersion ? info.Version.BriosaVersion : null,
-            ServerSourceRevision = info.Version.HasSourceRevision ? info.Version.SourceRevision : null
+            // External values: only a release-version shape and a full commit SHA reach a record.
+            ServerVersion = info.Version.HasBriosaVersion ? ExternalValues.Version(info.Version.BriosaVersion) : null,
+            ServerSourceRevision = info.Version.HasSourceRevision ? ExternalValues.Revision(info.Version.SourceRevision) : null
         };
     }
 
     public async Task<ProbeOutcome> ExecuteAsync(ProbeStep step, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(step);
+        if (_abandoned)
+        {
+            return ProbeOutcome.Refused(ProbeSession.LicensePromptStop);
+        }
+
         var timeout = step.ClientTimeout ?? (step.RequiresOperator ? _operatorTimeout : _stepTimeout);
         var options = new CallOptions(deadline: DateTime.UtcNow.Add(timeout), cancellationToken: cancellationToken);
         try
@@ -92,6 +104,9 @@ internal sealed class PublicApiTransport : IProbeTransport
             return ProbeOutcome.Unknown("grpc:client-cancelled", "client-cancelled");
         }
     }
+
+    // The public path sends nothing on disposal; after a license prompt it sends nothing at all.
+    public void Abandon() => _abandoned = true;
 
     public ValueTask DisposeAsync()
     {

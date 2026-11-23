@@ -27,13 +27,15 @@ internal sealed class ProbePlan
         bool placeholderFixtures,
         InteractionModeSettings interactionMode,
         bool interactionModeRestoreOnly,
-        IReadOnlyList<int> selectedProbes)
+        IReadOnlyList<int> selectedProbes,
+        IReadOnlySet<string>? fixtureMissingStepIds = null)
     {
         Phase = phase;
         CatalogSteps = catalogSteps;
         ExcludedStepIds = excludedStepIds;
         ExcludedProbes = excludedProbes;
-        Steps = [.. catalogSteps.Where(step => !excludedStepIds.Contains(step.Id))];
+        FixtureMissingStepIds = fixtureMissingStepIds ?? new HashSet<string>(StringComparer.Ordinal);
+        Steps = [.. catalogSteps.Where(step => !excludedStepIds.Contains(step.Id) && !FixtureMissingStepIds.Contains(step.Id))];
         PlaceholderFixtures = placeholderFixtures;
         InteractionMode = interactionMode;
         InteractionModeRestoreOnly = interactionModeRestoreOnly;
@@ -58,6 +60,16 @@ internal sealed class ProbePlan
     public IReadOnlyList<ProbeStep> CatalogSteps { get; }
 
     public IReadOnlySet<string> ExcludedStepIds { get; }
+
+    /// <summary>
+    /// Steps whose manual fixture the supplied manifest omits (#402). They are recorded as
+    /// fixture-missing and never sent; a missing fixture is never a pass.
+    /// </summary>
+    public IReadOnlySet<string> FixtureMissingStepIds { get; }
+
+    /// <summary>The manifest keys whose absence removed steps from this plan, in catalog order.</summary>
+    public IReadOnlyList<string> MissingFixtures =>
+        [.. CatalogSteps.Where(IsFixtureMissing).Select(static step => step.RequiredFixture!).Distinct(StringComparer.Ordinal)];
 
     /// <summary>Probe numbers the operator excluded, ascending.</summary>
     public IReadOnlyList<int> ExcludedProbes { get; }
@@ -93,6 +105,12 @@ internal sealed class ProbePlan
     {
         ArgumentNullException.ThrowIfNull(step);
         return ExcludedStepIds.Contains(step.Id);
+    }
+
+    public bool IsFixtureMissing(ProbeStep step)
+    {
+        ArgumentNullException.ThrowIfNull(step);
+        return FixtureMissingStepIds.Contains(step.Id);
     }
 
     /// <summary>The statement every output carries when probes were excluded.</summary>
@@ -164,7 +182,15 @@ internal sealed class ProbePlan
 
         var probes = excludedProbes.Distinct().Order().ToList();
         var excluded = SelectExcludedSteps(phase, catalog, probes);
-        var plan = new ProbePlan(phase, catalog, excluded, probes, manifest.IsPlaceholder, interactionMode, interactionModeRestoreOnly: false, selected);
+
+        // A step whose manual fixture the manifest omits is never sent (#402). The placeholder
+        // manifest supplies every key, so a dry run without a manifest shows every step.
+        var missing = catalog
+            .Where(step => step.RequiredFixture is { } key && !excluded.Contains(step.Id) && !manifest.Supplies(key))
+            .Select(static step => step.Id)
+            .ToHashSet(StringComparer.Ordinal);
+        var plan = new ProbePlan(phase, catalog, excluded, probes, manifest.IsPlaceholder, interactionMode, interactionModeRestoreOnly: false, selected,
+            missing);
 
         // The remaining plan must satisfy every invariant the full plan does.
         Validate(phase, plan.Steps);
@@ -452,6 +478,7 @@ internal sealed class ProbePlan
 
         var created = new HashSet<string>(StringComparer.Ordinal);
         var earlier = new HashSet<string>(StringComparer.Ordinal);
+        var byId = steps.ToDictionary(static step => step.Id, StringComparer.Ordinal);
         var silent = setting == Api.SaInteractionMode.Silent;
         foreach (var step in steps)
         {
@@ -484,6 +511,16 @@ internal sealed class ProbePlan
             // A step's control or before-count must run earlier in the same session.
             Require(step.Prerequisites.All(earlier.Contains),
                 $"Step '{step.Id}' has a prerequisite that does not run before it.");
+
+            // A manual-fixture step depends only on steps that need no manual fixture or the
+            // same one, so a missing fixture removes whole blocks and never a prerequisite.
+            Require(step.RequiredFixture is null || FixtureKeysKnown.Contains(step.RequiredFixture),
+                $"Step '{step.Id}' needs an unknown fixture.");
+            Require(step.Kind is ProbeStepKind.Probe or ProbeStepKind.Check || step.RequiredFixture is null,
+                $"Step '{step.Id}' is a guard or setup step and cannot depend on a manual fixture.");
+            Require(step.Prerequisites.All(prerequisite => byId[prerequisite].RequiredFixture is null ||
+                    string.Equals(byId[prerequisite].RequiredFixture, step.RequiredFixture, StringComparison.Ordinal)),
+                $"Step '{step.Id}' depends on a step that needs a different manual fixture.");
 
             // Only determinate outcomes can be accepted; completion-unknown kinds have no flag.
             Require((step.Acceptable & ~ProbeOutcomes.AnyDeterminateSdkOutcome) == ProbeOutcomes.None,
@@ -555,6 +592,19 @@ internal sealed class ProbePlan
         return settings.Count == 0 ? null : settings[0];
     }
 
+    private static readonly HashSet<string> FixtureKeysKnown = new(StringComparer.Ordinal)
+    {
+        FixtureKeys.ResultSizePointGroup, FixtureKeys.ResultSizeCloud, FixtureKeys.CalloutView,
+        FixtureKeys.TcpFixture, FixtureKeys.RobotMachine
+    };
+
+    /// <summary>The statement every output carries when manual fixtures are missing (#402).</summary>
+    public static string FixtureMissingStatement(IReadOnlyList<string> missingFixtures)
+    {
+        ArgumentNullException.ThrowIfNull(missingFixtures);
+        return $"Fixtures missing from the manifest: {string.Join(", ", missingFixtures)} — their steps were not run, which is never a pass";
+    }
+
     /// <summary>The longest client deadline a step may declare.</summary>
     public static TimeSpan MaximumClientTimeout { get; } = TimeSpan.FromHours(1);
 
@@ -583,6 +633,22 @@ internal sealed class ProbePlan
         if (SelectedProbes.Count > 0)
         {
             text.Append(SelectionStatement(SelectedProbes)).Append(".\n");
+        }
+
+        if (MissingFixtures.Count > 0)
+        {
+            text.Append(FixtureMissingStatement(MissingFixtures)).Append(".\n");
+        }
+
+        if (Steps.Any(static step => step.MeasuresResponseSize))
+        {
+            text.Append(CultureInfo.InvariantCulture,
+                $"Result sizes (probe 34): this build's worker response budget is {WorkerResponseBudget.Bytes} bytes; ")
+                .Append(CultureInfo.InvariantCulture,
+                    $"the published clients receive at most {ResponseSize.PublishedClientReceiveLimitBytes} bytes. ")
+                .Append(Phase == ProbePhase.Worker
+                    ? "Each list step records the private frame it received.\n"
+                    : "Each list step records the protobuf message it received.\n");
         }
 
         if (ExcludedProbes.Count > 0)
@@ -665,6 +731,14 @@ internal sealed class ProbePlan
                 continue;
             }
 
+            if (IsFixtureMissing(step))
+            {
+                text.Append(CultureInfo.InvariantCulture,
+                    $"[---] {step.Id} ({KindName(step.Kind)}, probe {step.Probe}) {step.Purpose}\n");
+                text.Append(CultureInfo.InvariantCulture, $"      FIXTURE MISSING: the manifest has no {step.RequiredFixture}; never sent, recorded as not run.\n");
+                continue;
+            }
+
             text.Append(CultureInfo.InvariantCulture,
                 $"[{++index:D3}] {step.Id} ({KindName(step.Kind)}, probe {step.Probe}) {step.Purpose}\n");
             text.Append(CultureInfo.InvariantCulture, $"      RPC {step.Operation.FullyQualifiedMethod}");
@@ -695,6 +769,16 @@ internal sealed class ProbePlan
             if (step.RequiresOperator)
             {
                 text.Append("      OPERATOR: SpatialAnalyzer prompts the operator during this step\n");
+            }
+
+            if (step.RequiredFixture is { } fixture)
+            {
+                text.Append(CultureInfo.InvariantCulture, $"      manual fixture: {fixture}\n");
+            }
+
+            if (step.MeasuresResponseSize)
+            {
+                text.Append("      RESULT SIZE: records the element count and the received response size, never a value\n");
             }
 
             if (step.Checkpoints.HasFlag(OperatorCheckpoint.Before))
