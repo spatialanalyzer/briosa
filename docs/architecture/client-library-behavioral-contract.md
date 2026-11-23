@@ -532,12 +532,13 @@ clients surface it and still work with Server 0.10.0:
   the admission profile for a profile denial, and the request field the server
   attributed the denial to. One helper maps `denied_flag` to the public risk
   flag value, with a distinct unknown member for a name the client does not
-  know. A missing, malformed, or unrecognized detail never changes the
-  failure's kind, disposition, or guidance; the detail is simply absent or
-  unknown.
+  know, and every new site uses it.
 - A denied capability exposes the same detail from
   `OperationCapability.policy_denial`, and the diagnostic listing returns it
   with each denied operation.
+- A missing, malformed, or unrecognized detail from a newer server never
+  changes the existing typed failure (its kind, disposition, and guidance) or
+  a capability's admission. The detail is then absent or unknown.
 - Each capability exposes its request options so that "not described"
   (`request_options` absent, Server 0.10.0) stays distinct from "none apply"
   (present and empty). Each option exposes its field name, effect, condition,
