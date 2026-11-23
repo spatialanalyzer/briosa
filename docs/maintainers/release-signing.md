@@ -247,8 +247,7 @@ When reviewing and editing the draft release notes from Server 0.10.1 onward,
 state which server and client versions work together (for example, "works with
 clients 0.5.x") and link [`docs/versioning.md`](../versioning.md). Do not use
 "contract major", "contract 3.x", or "behavioral contract major" to tell users
-what is compatible. Follow the published version convention: a patch release is
-compatible with the same clients, and a minor release may break them.
+what is compatible.
 
 ### If the draft release is refused
 
