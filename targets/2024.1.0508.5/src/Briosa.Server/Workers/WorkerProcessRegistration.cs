@@ -33,6 +33,8 @@ internal static class WorkerProcessRegistration
             readinessProbeTimeout: workerOptions.ReadinessProbeTimeout);
         // Host shutdown waits for an accepted SDK exchange, then stops the worker (#321).
         services.AddLifecycleShutdownBound("worker", policy.AcceptedExchangeBound + policy.StopBound);
+        // Discovery publishes this same policy instance and mode, which the supervisor enforces (#400).
+        services.TryAddSingleton(new WorkerLifecycleProjection(policy, spatialAnalyzerOptions.InteractionMode));
 
         services.TryAddSingleton(provider =>
         {

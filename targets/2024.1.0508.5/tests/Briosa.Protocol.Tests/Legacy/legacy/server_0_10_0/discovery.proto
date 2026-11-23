@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+// GetServerInfoResponse exactly as Server 0.10.0 published it (fields 1 to 11),
+// frozen so that a test can read a newer server's reply with the older schema.
+// Its other message and enum types did not change, so it reuses them.
+package legacy.server_0_10_0;
+
+import "briosa/discovery.proto";
+import "briosa/version_coordinates.proto";
+
+option csharp_namespace = "Briosa.Protocol.Tests.Legacy.Server0100";
+
+message GetServerInfoResponse {
+  briosa.VersionCoordinates version = 1;
+  briosa.WorkerRuntimeState worker_state = 2;
+  briosa.SpatialAnalyzerConnectionState spatial_analyzer_connection_state = 3;
+  bool ready_for_mp = 4;
+  optional string connected_spatial_analyzer_version = 5;
+  briosa.ConnectedSpatialAnalyzerVersionState connected_spatial_analyzer_version_state = 6;
+  briosa.SpatialAnalyzerExecutionReadinessState spatial_analyzer_execution_readiness_state = 7;
+  briosa.TargetIsolationMode target_isolation_mode = 8;
+  briosa.RuntimeIdentityEvidence activated_sdk_identity = 9;
+  briosa.RuntimeIdentityEvidence connected_spatial_analyzer_identity = 10;
+  briosa.CompatibilityContract compatibility = 11;
+}
