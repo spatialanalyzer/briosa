@@ -53,7 +53,45 @@ The public endpoint has one authoritative configuration surface: `Briosa:Endpoin
 
 LAN, Internet, reverse-proxy, tunnel, shared-host, and other remotely reachable deployments are unsupported. Briosa currently has no client authentication, per-operation authorization, or TLS configuration. See the [public endpoint operator guide](endpoint-security.md) and [current threat model](../security/threat-model.md) before deployment.
 
-The worker admission budget defaults to 32 MiB and can be set with `Briosa__Worker__MaxRetainedWorkMiB` (1–1024 MiB). Each accepted request reserves 16 KiB plus eight times its protobuf wire size, capped at 1 MiB, before MP command mapping. The reservation remains charged while queued or in flight; this is a conservative retained-work budget, not an exact CLR heap measurement. The existing queue count remains an independent limit. Worker response frames are limited separately to 64 KiB, with one active exchange per worker.
+The worker admission budget defaults to 32 MiB and can be set with `Briosa__Worker__MaxRetainedWorkMiB` (1–1024 MiB). Each accepted request reserves 16 KiB plus eight times its protobuf wire size, capped at 1 MiB, before MP command mapping. The reservation remains charged while queued or in flight; this is a conservative retained-work budget, not an exact CLR heap measurement. The existing queue count remains an independent limit. Results have their own size limit (below), with one active exchange per worker.
+
+### Request and result sizes
+
+Requests and results have separate size limits.
+
+- **Requests.** A request message can be up to 64 KiB (65,536 bytes), as in
+  Server 0.10.0. gRPC rejects a larger request with `RESOURCE_EXHAUSTED` before
+  Briosa runs it. The server passes each request to its worker as JSON, which
+  can be larger than the request message. A request whose JSON is over 64 KiB
+  fails with the typed `INVALID_ARGUMENT` validation error and does not start.
+- **Results.** From Server 0.10.1, one result can be up to 1 MiB (1,048,576
+  bytes) in the worker's JSON encoding; Server 0.10.0 allowed 64 KiB. About
+  this much fits:
+  - text of about 1,000,000 plain ASCII characters, or fewer when it has
+    characters that JSON escapes, such as `<`, `&`, quotes or non-ASCII
+    letters, which take up to 6 bytes each;
+  - about 55,000 full-precision numbers in a double list, or about 520,000
+    single-digit values;
+  - name lists with fewer entries, because each entry carries its collection
+    and group names.
+- **When a result is too large.** The MP command has run. The call fails with
+  `DATA_LOSS`, failure kind `OUTPUT_RETRIEVAL_FAILURE` (or `SDK_CALL_FAULTED`
+  when an output getter also faulted), disposition `COMPLETED` and replay
+  guidance `DO_NOT_REPLAY`. The MP result code stays in the error details, and
+  the outputs are reported as not retrieved. Running the call again repeats the
+  command and does not return the outputs; split the work so that each result is
+  smaller.
+- **Clients.** The published 0.5.0 clients for .NET, JavaScript/TypeScript
+  and Python receive every result up to this limit from Server 0.10.1 with no
+  configuration. The largest response a 1 MiB result produces is about 2 KB
+  under 4 MiB, which is the clients' default receive limit. A client you build
+  from the published protocol needs a receive limit of at least 4 MiB, the
+  default of grpc-dotnet, grpc-js and grpcio.
+- **Memory.** A result near the limit can briefly use about 30 MiB of server
+  memory while it is processed, and a response waiting for a slow client keeps
+  its bytes until the client reads them. Encoding one result in the worker
+  holds at most about 1.5 MiB, however large the result SpatialAnalyzer
+  returns.
 
 ### Worker time bounds
 

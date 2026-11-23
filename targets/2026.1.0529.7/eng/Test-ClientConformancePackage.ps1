@@ -122,6 +122,25 @@ try {
     $scenarioIds = @($contract.scenarios.id)
     Assert-Condition ($scenarioIds.Count -eq @($scenarioIds | Select-Object -Unique).Count) `
         "Conformance scenario identifiers must be unique."
+
+    # large-result is optional: a fixture runs it only by asking for it, so the
+    # published fixtures, which do not know it, never receive it. Its expected
+    # working directory is the smoke worker's fixed text: 1 MiB minus 2 KiB of a
+    # 36-character ASCII pattern.
+    $optionalScenarios = @($contract.optional_scenarios)
+    Assert-Condition ($optionalScenarios.Count -eq 1 -and
+        $optionalScenarios[0].id -eq "large-result" -and
+        $optionalScenarios[0].worker_scenario -eq "large-result" -and
+        $optionalScenarios[0].id -notin $scenarioIds) `
+        "The conformance contract must list large-result as its only optional scenario."
+    $largeResultPattern = "abcdefghijklmnopqrstuvwxyz0123456789"
+    $largeResultLength = 1048576 - 2048
+    $largeResultText = ($largeResultPattern * [Math]::Ceiling($largeResultLength / $largeResultPattern.Length)).Substring(0, $largeResultLength)
+    $largeResultBytes = [Text.Encoding]::UTF8.GetBytes($largeResultText)
+    $largeResultHash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($largeResultBytes)).ToLowerInvariant()
+    Assert-Condition ([long]$optionalScenarios[0].expected_working_directory.utf8_length -eq $largeResultBytes.Length -and
+        [string]$optionalScenarios[0].expected_working_directory.sha256 -ceq $largeResultHash) `
+        "The large-result scenario must publish the length and SHA-256 of the smoke worker's text."
     foreach ($requiredScenario in @(
         "control-plane-only",
         "default-ready",
@@ -261,6 +280,79 @@ $definition = Get-Content -LiteralPath $Contract -Raw | ConvertFrom-Json
     Assert-Condition ($passedLines.Count -eq $scenarioIds.Count -and
         @($passedLines | Where-Object { $_ -notmatch '^Passed client conformance scenario: [a-z0-9-]+ \(fixture [0-9]+\.[0-9] s\)$' }).Count -eq 0) `
         "The conformance runner did not report each passed scenario with its fixture time."
+
+    Assert-Condition (@($passedLines | Where-Object { $_ -like "*: large-result *" }).Count -eq 0) `
+        "The conformance runner ran an optional scenario that no fixture asked for."
+
+    # An optional scenario runs only on request, and the runner checks that the
+    # fixture received the whole working directory: the reported UTF-8 length and
+    # SHA-256 must match the contract. These fixtures only echo a report, so they
+    # test the runner's check, not a client.
+    $largeResultFixtureSource = @'
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory)][string]$Scenario,
+    [Parameter(Mandatory)][string]$Contract
+)
+$definition = Get-Content -LiteralPath $Contract -Raw | ConvertFrom-Json
+$report = [ordered]@{
+    schema_version = 1
+    contract_id = $definition.contract_id
+    scenario = $Scenario
+    success = $true
+}
+$optional = @($definition.optional_scenarios | Where-Object { $_.id -eq $Scenario })
+if ($optional.Count -eq 1) {
+    $report.working_directory = [ordered]@{
+        utf8_length = [long]$optional[0].expected_working_directory.utf8_length + __LENGTH_OFFSET__
+        sha256 = [string]$optional[0].expected_working_directory.sha256
+    }
+}
+$report | ConvertTo-Json -Compress
+'@
+    foreach ($lengthOffset in @(0, -1)) {
+        $largeResultFixturePath = Join-Path $temporaryRoot "large-result-fixture-$($lengthOffset + 1).ps1"
+        [IO.File]::WriteAllText(
+            $largeResultFixturePath,
+            $largeResultFixtureSource.Replace("__LENGTH_OFFSET__", [string]$lengthOffset),
+            [Text.UTF8Encoding]::new($false))
+        $largeResultOutput = [Collections.Generic.List[string]]::new()
+        $largeResultFailure = $null
+        try {
+            $largeResultArguments = @{
+                FixtureCommand = (Get-Process -Id $PID).Path
+                FixtureArguments = @("-NoProfile", "-File", $largeResultFixturePath)
+                Scenario = @("control-plane-only")
+                OptionalScenario = @("large-result")
+                FixtureTimeoutSeconds = 30
+            }
+            & $runnerPath @largeResultArguments *>&1 | ForEach-Object { $largeResultOutput.Add([string]$_) }
+        }
+        catch {
+            $largeResultFailure = $_
+        }
+        if ($lengthOffset -eq 0) {
+            Assert-Condition ($null -eq $largeResultFailure -and
+                @($largeResultOutput | Where-Object { $_ -like "Passed client conformance scenario: large-result *" }).Count -eq 1) `
+                "The conformance runner did not run the requested optional scenario: $largeResultFailure"
+        }
+        else {
+            Assert-Condition ($null -ne $largeResultFailure -and
+                "$largeResultFailure" -like "*did not report receiving the whole working directory in scenario 'large-result'*") `
+                "The conformance runner accepted a truncated working directory: $largeResultFailure"
+        }
+    }
+    $unknownOptionalFailure = $null
+    try {
+        & $runnerPath -FixtureCommand (Get-Process -Id $PID).Path -FixtureArguments @("-NoProfile", "-File", $fixturePath) `
+            -Scenario @("control-plane-only") -OptionalScenario @("no-such-scenario") *>&1 | Out-Null
+    }
+    catch {
+        $unknownOptionalFailure = $_
+    }
+    Assert-Condition ($null -ne $unknownOptionalFailure -and
+        "$unknownOptionalFailure" -like "*Unknown optional conformance scenario 'no-such-scenario'*") `
+        "The conformance runner did not reject an unknown optional scenario."
 
     # Every rejected scenario prints the fixture's complete stderr and, when a
     # diagnostics directory is configured, keeps it with the scenario's server

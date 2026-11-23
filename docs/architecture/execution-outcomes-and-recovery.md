@@ -27,10 +27,19 @@ callers waiting outside that bound for a queue slot. A full queue returns
 and `NotStarted`. `MayReplay` permits the caller to submit a new request later;
 it never enables automatic retries in first-party clients.
 
-Three separate limits bound message sizes, and each is 64 KiB today: the public
-gRPC receive limit, the private request budget (host to worker), and the private
-response budget (worker to host, including every execution result). Changing one
-moves neither of the others. The public limit applies before operation mapping.
+Three separate limits bound message sizes: the public gRPC receive limit
+(64 KiB), the private request budget from host to worker (64 KiB), and the
+private response budget from worker to host, which covers every execution
+result (1 MiB from Server 0.10.1). Changing one moves neither of the others. The
+largest public response a 1 MiB private frame can produce stays under the 4 MiB
+default receive limit of the first-party clients. The worker encodes into a
+buffer bounded by the budget and stops as soon as a frame is over it, so
+encoding a result holds at most about 1.5 MiB (24 chunks of 64 KiB), however
+large the result. A
+host and worker built for different budgets disagree on the private protocol
+version and fail at startup, before any command runs; see
+[worker response budget](../development/worker-response-budget.md). The public
+limit applies before operation mapping.
 JSON envelope overhead can still make a smaller protobuf request exceed the
 request budget; encoding rejection returns typed `InvalidArgument`/`Validation`
 with `NotStarted` and does not retire a healthy worker. These limits bound encoded

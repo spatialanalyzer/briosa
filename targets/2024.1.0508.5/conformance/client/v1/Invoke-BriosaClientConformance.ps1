@@ -9,6 +9,12 @@ param(
     [Parameter(ParameterSetName = "Run")]
     [string[]]$Scenario = @(),
 
+    # Optional scenarios run only when a fixture asks for them by ID, so a fixture
+    # revision that does not know one never receives it. They are listed under
+    # optional_scenarios in the contract, apart from the scenarios every fixture runs.
+    [Parameter(ParameterSetName = "Run")]
+    [string[]]$OptionalScenario = @(),
+
     # Longer than the first-party clients' 120 s startup budget, so a slow start
     # or a hang ends in the client's own typed startup timeout, whose error names
     # the pending call, before the runner has to kill the fixture.
@@ -1713,6 +1719,17 @@ foreach ($requested in $requestedScenarios) {
     }
 }
 
+$optionalDefinitions = @(
+    if ($contract.PSObject.Properties.Name -contains "optional_scenarios") { $contract.optional_scenarios })
+$optionalIds = @($optionalDefinitions | ForEach-Object { [string]$_.id })
+$requestedOptional = @($OptionalScenario | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+foreach ($requested in $requestedOptional) {
+    if ($requested -notin $optionalIds) {
+        throw "Unknown optional conformance scenario '$requested'."
+    }
+}
+$selectedScenarios += @($optionalDefinitions | Where-Object { $_.id -in $requestedOptional })
+
 [IO.Directory]::CreateDirectory($temporaryRoot) | Out-Null
 try {
     foreach ($scenarioDefinition in $selectedScenarios) {
@@ -1775,6 +1792,23 @@ try {
                 $report.scenario -ne $scenarioDefinition.id -or
                 $report.success -ne $true) {
                 throw "The client fixture report did not satisfy scenario '$($scenarioDefinition.id)'."
+            }
+
+            # A scenario that returns a known working directory also needs proof that
+            # the client received all of it: the fixture reports the UTF-8 length and
+            # SHA-256 of the value it got, never the value, and both must match.
+            if ($scenarioDefinition.PSObject.Properties.Name -contains "expected_working_directory") {
+                $expectedDirectory = $scenarioDefinition.expected_working_directory
+                $observedDirectory = if ($report.PSObject.Properties.Name -contains "working_directory") {
+                    $report.working_directory
+                }
+                if ($null -eq $observedDirectory -or
+                    $observedDirectory.PSObject.Properties.Name -notcontains "utf8_length" -or
+                    $observedDirectory.PSObject.Properties.Name -notcontains "sha256" -or
+                    [string]$observedDirectory.utf8_length -cne [string]$expectedDirectory.utf8_length -or
+                    [string]$observedDirectory.sha256 -cne [string]$expectedDirectory.sha256) {
+                    throw "The client fixture did not report receiving the whole working directory in scenario '$($scenarioDefinition.id)': its UTF-8 length and SHA-256 must match the scenario contract."
+                }
             }
 
             if ($null -ne $externalApplication -and $externalApplication.HasExited) {

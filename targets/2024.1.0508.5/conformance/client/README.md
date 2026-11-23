@@ -246,6 +246,41 @@ and the second Connect then has about 2 seconds before the hold ends. The hold
 stays well inside the server's `StartupTimeout`, 30 seconds here, which bounds an
 accepted Connect, and its 5-second heartbeat timeout.
 
+## Optional scenarios
+
+`optional_scenarios` in the contract lists scenarios that a fixture runs only
+when it asks for them. The fixture's test script passes their IDs to the
+runner with `-OptionalScenario`, for example `-OptionalScenario large-result`.
+Without that parameter the runner runs only `scenarios`, so a fixture revision
+that does not know an optional scenario never receives it. A script that lists
+the scenarios it ran in its evidence should read both lists and record only the
+optional ones it requested. An optional entry has the same fields as a scenario
+and the same `minimum_contract_major` gate.
+
+`large-result` (#399) shows that a client receives a result at the 1 MiB
+worker response budget whole. The fake worker returns a working directory of
+1,046,528 characters of a fixed ASCII pattern, so its private frame is just
+under 1,048,576 bytes. The public response is a little larger and stays well
+under the 4 MiB default receive limit of the first-party clients. The contract
+publishes the UTF-8 length and SHA-256 of that text as
+`expected_working_directory`. The fixture starts in `default` mode, calls
+`get_working_directory` once, and:
+
+1. asserts through its public API that the call succeeded, and that the UTF-8
+   length and lowercase hexadecimal SHA-256 of the returned directory equal
+   `expected_working_directory`;
+2. adds them to its report, never the value itself:
+
+   ```json
+   {"schema_version":1,"contract_id":"briosa.first-party-client.v1","scenario":"large-result","success":true,"working_directory":{"utf8_length":1046528,"sha256":"<hex>"}}
+   ```
+
+The runner rejects the scenario unless the reported length and SHA-256 match
+the contract. A fixture that discards the value cannot pass, so the scenario
+shows that the client received all of it, not only that the call succeeded.
+The packaged client scenarios (`eng/Test-ClientScenarios.ps1`) run the same
+worker scenario against this repository's generated .NET client.
+
 The `capability-denied` scenario runs the packaged `standard` profile with one
 per-operation override that denies `file_operations.get_working_directory`.
 Fixtures for every contract major assert that the operation is absent from the
