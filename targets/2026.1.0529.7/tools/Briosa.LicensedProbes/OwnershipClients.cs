@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO.Pipes;
+using System.Net;
 using System.Runtime.InteropServices;
 using Briosa.Worker.Control;
 using Grpc.Core;
@@ -15,7 +16,7 @@ namespace Briosa.LicensedProbes;
 /// <summary>
 /// The packaged server through generated clients, on loopback HTTP only. Every call has its
 /// own deadline and is sent once; a failure becomes a value-free result, never an exception
-/// with server text.
+/// with server text. Every value the server returns is checked before it can reach a record.
 /// </summary>
 internal sealed class OwnershipServer : IOwnershipServer
 {
@@ -44,17 +45,23 @@ internal sealed class OwnershipServer : IOwnershipServer
             var info = await new Api.DiscoveryService.DiscoveryServiceClient(_channel)
                 .GetServerInfoAsync(new Api.GetServerInfoRequest(), deadline: DateTime.UtcNow.Add(DiscoveryTimeout), cancellationToken: cancellationToken)
                 .ResponseAsync.ConfigureAwait(false);
-            return new ServerDescription(
-                Reachable: true,
-                TargetMatches: string.Equals(info.Version?.SpatialAnalyzerTarget, ProbeTarget.SpatialAnalyzerTarget, StringComparison.Ordinal),
-                ServerVersion: info.Version is { HasBriosaVersion: true } version ? version.BriosaVersion : null,
-                SourceRevision: info.Version is { HasSourceRevision: true } source ? source.SourceRevision : null,
-                LifecycleBoundsMilliseconds: Bounds(info.LifecycleBounds));
+            return Describe(info);
         }
         catch (RpcException)
         {
             return ServerDescription.Unreachable;
         }
+    }
+
+    internal static ServerDescription Describe(Api.GetServerInfoResponse info)
+    {
+        ArgumentNullException.ThrowIfNull(info);
+        return new ServerDescription(
+            Reachable: true,
+            TargetMatches: string.Equals(info.Version?.SpatialAnalyzerTarget, ProbeTarget.SpatialAnalyzerTarget, StringComparison.Ordinal),
+            ServerVersion: info.Version is { HasBriosaVersion: true } version ? ExternalValues.Version(version.BriosaVersion) : null,
+            SourceRevision: info.Version is { HasSourceRevision: true } source ? ExternalValues.Revision(source.SourceRevision) : null,
+            LifecycleBoundsMilliseconds: Bounds(info.LifecycleBounds));
     }
 
     public Task<LifecycleResult> GetSdkStateAsync(CancellationToken cancellationToken) =>
@@ -85,7 +92,7 @@ internal sealed class OwnershipServer : IOwnershipServer
         }
         catch (OperationCanceledException)
         {
-            return ProbeOutcome.Unknown("grpc:client-cancelled", "client-cancelled");
+            return ProbeOutcome.Unknown(LifecycleResult.ClientCancelledTransport, "client-cancelled");
         }
     }
 
@@ -103,7 +110,7 @@ internal sealed class OwnershipServer : IOwnershipServer
             state.HasSdkGeneration ? state.SdkGeneration : null,
             state.ReadyForMp,
             state.ConnectionState.ToString(),
-            state.HasDiagnosticCode ? SafeCode.OrNull(state.DiagnosticCode) : null,
+            state.HasDiagnosticCode ? ExternalValues.DiagnosticCode(state.DiagnosticCode) : null,
             state.LastIncident?.TerminationKind.ToString());
 
     internal static LifecycleResult FromRpcException(RpcException exception)
@@ -119,7 +126,7 @@ internal sealed class OwnershipServer : IOwnershipServer
         try
         {
             var error = Api.SpatialAnalyzerSdkLifecycleError.Parser.ParseFrom(trailer.ValueBytes);
-            return FromState(error.State, transport) with { DiagnosticCode = SafeCode.OrNull(error.DiagnosticCode) };
+            return FromState(error.State, transport) with { DiagnosticCode = ExternalValues.DiagnosticCode(error.DiagnosticCode) };
         }
         catch (Google.Protobuf.InvalidProtocolBufferException)
         {
@@ -162,33 +169,37 @@ internal sealed class OwnershipServer : IOwnershipServer
                 .ConfigureAwait(false);
             return FromState(state(response), "grpc:OK");
         }
+        catch (RpcException exception) when (exception.StatusCode == StatusCode.Cancelled && cancellationToken.IsCancellationRequested)
+        {
+            return LifecycleResult.Failed(LifecycleResult.ClientCancelledTransport, "client-cancelled");
+        }
         catch (RpcException exception)
         {
             return FromRpcException(exception);
         }
         catch (OperationCanceledException)
         {
-            return LifecycleResult.Failed("grpc:client-cancelled", "client-cancelled");
+            return LifecycleResult.Failed(LifecycleResult.ClientCancelledTransport, "client-cancelled");
         }
     }
 }
 
 /// <summary>
-/// Terminates one Briosa worker or server process, never anything else, after checking that
-/// the id still names the process the tracker saw (name and start time). It ends that process
-/// only, not its children.
+/// Binds Briosa worker and server processes through handles, reads the loopback endpoint's
+/// listener owners, and compares the second worker's folder with the bound server's. It never
+/// opens SpatialAnalyzer or an SDK process.
 /// </summary>
-internal sealed class ProcessTerminator : IProcessTerminator
+internal sealed class ProcessControl : IProcessControl
 {
-    private static readonly TimeSpan ExitWait = TimeSpan.FromSeconds(10);
+    public static ProcessControl Instance { get; } = new();
 
-    public static ProcessTerminator Instance { get; } = new();
+    public int HarnessSessionId { get; } = CurrentSession();
 
-    public string Terminate(int processId, DateTimeOffset? startedAt, string expectedName)
+    public IBoundProcess? Bind(int processId, DateTimeOffset startedAt, string expectedName)
     {
         if (expectedName is not (ProcessCensus.BriosaWorker or ProcessCensus.BriosaServer))
         {
-            throw new ArgumentException("Only a Briosa worker or server may be terminated.", nameof(expectedName));
+            throw new ArgumentException("Only a Briosa worker or server may be bound.", nameof(expectedName));
         }
 
         Process process;
@@ -198,39 +209,207 @@ internal sealed class ProcessTerminator : IProcessTerminator
         }
         catch (ArgumentException)
         {
-            return "not-found";
+            return null;
         }
 
-        using (process)
+        try
+        {
+            // The handle is opened first; the name and start time are then read through it, so
+            // they describe the process the handle names, not whatever holds the id later.
+            _ = process.SafeHandle;
+            if (process.HasExited ||
+                !string.Equals(process.ProcessName, expectedName, StringComparison.OrdinalIgnoreCase) ||
+                new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero) != startedAt)
+            {
+                process.Dispose();
+                return null;
+            }
+
+            return new BoundProcess(process);
+        }
+        catch (Exception exception) when (exception is InvalidOperationException or Win32Exception or NotSupportedException)
+        {
+            process.Dispose();
+            return null;
+        }
+    }
+
+    public IReadOnlyList<int>? EndpointListeners(Uri address)
+    {
+        ArgumentNullException.ThrowIfNull(address);
+        var owners = new List<int>();
+        foreach (var family in new[] { NativeMethods.AddressFamilyIPv4, NativeMethods.AddressFamilyIPv6 })
+        {
+            if (TcpListeners(family) is not { } listeners)
+            {
+                return null;
+            }
+
+            owners.AddRange(listeners.Where(listener => listener.Port == address.Port && listener.LoopbackOrAny).Select(static listener => listener.OwnerId));
+        }
+
+        return owners;
+    }
+
+    public bool? WorkerFromServerPackage(IBoundProcess server, string workerPath)
+    {
+        ArgumentNullException.ThrowIfNull(server);
+        if (server is not BoundProcess bound || string.IsNullOrWhiteSpace(workerPath))
+        {
+            return null;
+        }
+
+        // Paths are compared in memory only and never recorded.
+        try
+        {
+            var serverFolder = Path.GetDirectoryName(bound.Process.MainModule?.FileName);
+            var workerFolder = Path.GetDirectoryName(Path.GetFullPath(workerPath));
+            return serverFolder is not null && workerFolder is not null &&
+                string.Equals(Path.GetFullPath(serverFolder), workerFolder, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(Path.GetFileName(workerPath), "Briosa.Worker.exe", StringComparison.OrdinalIgnoreCase) &&
+                File.Exists(workerPath);
+        }
+        catch (Exception exception) when (exception is InvalidOperationException or Win32Exception or NotSupportedException or ArgumentException or IOException)
+        {
+            return null;
+        }
+    }
+
+    private static int CurrentSession()
+    {
+        using var self = Process.GetCurrentProcess();
+        return self.SessionId;
+    }
+
+    // Every TCP listener of one address family, or null when the table cannot be read.
+    internal static IReadOnlyList<(int Port, bool LoopbackOrAny, int OwnerId)>? TcpListeners(int family)
+    {
+        var size = 0;
+        _ = NativeMethods.GetExtendedTcpTable(IntPtr.Zero, ref size, false, family, NativeMethods.TcpTableOwnerPidListener, 0);
+        for (var attempt = 0; attempt < 3 && size > 0; attempt++)
+        {
+            var buffer = Marshal.AllocHGlobal(size);
+            try
+            {
+                var result = NativeMethods.GetExtendedTcpTable(buffer, ref size, false, family, NativeMethods.TcpTableOwnerPidListener, 0);
+                if (result == NativeMethods.InsufficientBuffer)
+                {
+                    continue;
+                }
+
+                if (result != 0)
+                {
+                    return null;
+                }
+
+                return Parse(buffer, family);
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(buffer);
+            }
+        }
+
+        return size == 0 ? [] : null;
+    }
+
+    private static List<(int Port, bool LoopbackOrAny, int OwnerId)> Parse(IntPtr table, int family)
+    {
+        var rows = Marshal.ReadInt32(table);
+        var listeners = new List<(int, bool, int)>(rows);
+        var rowSize = family == NativeMethods.AddressFamilyIPv4 ? 24 : 56;
+        for (var index = 0; index < rows; index++)
+        {
+            var row = table + 4 + (index * rowSize);
+            if (family == NativeMethods.AddressFamilyIPv4)
+            {
+                // MIB_TCPROW_OWNER_PID: state, local address, local port, remote address, remote port, owner.
+                var address = new IPAddress(unchecked((uint)Marshal.ReadInt32(row + 4)));
+                var port = NetworkPort(Marshal.ReadInt32(row + 8));
+                listeners.Add((port, IPAddress.IsLoopback(address) || address.Equals(IPAddress.Any), Marshal.ReadInt32(row + 20)));
+            }
+            else
+            {
+                // MIB_TCP6ROW_OWNER_PID: local address (16), scope, local port, remote address (16),
+                // scope, remote port, state, owner.
+                var bytes = new byte[16];
+                Marshal.Copy(row, bytes, 0, 16);
+                var address = new IPAddress(bytes);
+                var port = NetworkPort(Marshal.ReadInt32(row + 20));
+                listeners.Add((port, IPAddress.IsLoopback(address) || address.Equals(IPAddress.IPv6Any), Marshal.ReadInt32(row + 52)));
+            }
+        }
+
+        return listeners;
+    }
+
+    // The port is in network byte order in the low two bytes.
+    private static int NetworkPort(int value) => ((value & 0xFF) << 8) | ((value >> 8) & 0xFF);
+
+    private sealed class BoundProcess(Process process) : IBoundProcess
+    {
+        private static readonly TimeSpan ExitWait = TimeSpan.FromSeconds(10);
+
+        public Process Process { get; } = process;
+
+        public BindingCheck Check()
         {
             try
             {
-                if (!string.Equals(process.ProcessName, expectedName, StringComparison.OrdinalIgnoreCase) ||
-                    (startedAt is { } expected && new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero) != expected))
+                return Process.HasExited ? BindingCheck.Exited : BindingCheck.Running;
+            }
+            catch (Exception exception) when (exception is InvalidOperationException or Win32Exception)
+            {
+                return BindingCheck.Unverifiable;
+            }
+        }
+
+        public string Terminate()
+        {
+            try
+            {
+                if (Process.HasExited)
                 {
-                    return "identity-changed";
+                    return "exited";
                 }
 
-                process.Kill(entireProcessTree: false);
-                return process.WaitForExit(ExitWait) ? "terminated" : "failed";
+                // That process only, through the held handle; never its children.
+                Process.Kill(entireProcessTree: false);
+                return Process.WaitForExit(ExitWait) ? "terminated" : "failed";
             }
             catch (InvalidOperationException)
             {
-                return "not-found";
+                return "exited";
             }
             catch (Win32Exception)
             {
                 return "failed";
             }
         }
+
+        public void Dispose() => Process.Dispose();
+    }
+
+    private static class NativeMethods
+    {
+        public const int AddressFamilyIPv4 = 2;
+        public const int AddressFamilyIPv6 = 23;
+        public const int TcpTableOwnerPidListener = 3;
+        public const uint InsufficientBuffer = 122;
+
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [DllImport("iphlpapi.dll", SetLastError = true)]
+        public static extern uint GetExtendedTcpTable(IntPtr table, ref int size, [MarshalAs(UnmanagedType.Bool)] bool order, int family, int tableClass, uint reserved);
     }
 }
 
 /// <summary>
 /// The competing client: a second, unchanged Briosa worker from the same package, hosted by
 /// the harness over the private control protocol while the server's worker is connected. It
-/// activates the SDK and attaches with one ConnectEx attempt; it never runs an MP. Every
-/// exchange is bounded, and a worker that does not stop in time is terminated.
+/// activates the SDK and attaches with one ConnectEx attempt; it never runs an MP. A worker
+/// whose activated SDK is not runtime-verified as this exact target is stopped at once. Every
+/// exchange is bounded, and a worker that does not stop in time is terminated (that process
+/// only).
 /// </summary>
 internal sealed class SecondWorker : ISecondWorker
 {
@@ -310,9 +489,18 @@ internal sealed class SecondWorker : ISecondWorker
             }
 
             var activated = ready.Connection?.RuntimeIdentity?.ActivatedSdk;
-            return new SecondWorkerResult("ready", ready.Connection?.State.ToString(), SafeCode.OrNull(ready.Connection?.DiagnosticCode),
-                activated is { Source: WorkerRuntimeIdentityEvidenceSource.RuntimeVerified } &&
-                string.Equals(activated.Version, ProbeTarget.SpatialAnalyzerTarget, StringComparison.Ordinal));
+            var matches = activated is { Source: WorkerRuntimeIdentityEvidenceSource.RuntimeVerified } &&
+                string.Equals(activated.Version, ProbeTarget.SpatialAnalyzerTarget, StringComparison.Ordinal);
+            var state = ready.Connection?.State.ToString();
+            var code = ExternalValues.DiagnosticCode(ready.Connection?.DiagnosticCode);
+            if (!matches)
+            {
+                // Never attached: a client whose SDK is not this exact target is stopped at once.
+                await FaultAsync().ConfigureAwait(false);
+                return new SecondWorkerResult("activated-sdk-identity-mismatch", state, code, false);
+            }
+
+            return new SecondWorkerResult(SecondWorkerResult.Ready, state, code, true);
         }
         catch (Exception exception) when (exception is OperationCanceledException or IOException or InvalidDataException or TimeoutException)
         {
@@ -338,8 +526,8 @@ internal sealed class SecondWorker : ISecondWorker
             }
 
             return new SecondWorkerResult(
-                response.Connection?.State == WorkerConnectionState.Connected ? "connected" : "not-connected",
-                response.Connection?.State.ToString(), SafeCode.OrNull(response.Connection?.DiagnosticCode), null);
+                response.Connection?.State == WorkerConnectionState.Connected ? SecondWorkerResult.Connected : "not-connected",
+                response.Connection?.State.ToString(), ExternalValues.DiagnosticCode(response.Connection?.DiagnosticCode), null);
         }
         catch (Exception exception) when (exception is OperationCanceledException or IOException or InvalidDataException or TimeoutException)
         {
@@ -404,7 +592,7 @@ internal sealed class SecondWorker : ISecondWorker
 
         try
         {
-            // Only the second worker itself: SDK activation never makes the SDK process its child.
+            // The second worker itself only, never its process tree.
             if (!_process.HasExited)
             {
                 _process.Kill(entireProcessTree: false);

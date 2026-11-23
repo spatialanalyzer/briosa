@@ -173,11 +173,9 @@ internal static class PublicOutcomes
             error.ExecutionDisposition.ToString(), ProbeOutcome.EmptyObservations) with
         {
             RecoveryGuidance = error.RecoveryGuidance.ToString(),
-            // A completed result that did not fit the worker response budget (#399, #402).
-            Size = kind == ProbeOutcomeKind.OutputRetrievalFailed &&
-                string.Equals(error.DiagnosticCode, ResponseSize.BudgetExceededDiagnosticCode, StringComparison.Ordinal)
-                    ? ResponseSize.PublicBudgetExceeded
-                    : null
+            // A result, or one of its outputs, that the worker could not encode (#399, #402):
+            // its size is unknown, so it is never reported as a measurement.
+            Size = ResponseSize.FromPublicError(error)
         };
     }
 
@@ -237,10 +235,11 @@ internal static class PublicOutcomes
             MpExecutionState.ResultUnavailable => false,
             _ => null
         };
+        // Field names come from the server: only the protobuf name shape reaches a record.
         var outputs = execution is null
             ? []
             : execution.OutputRetrievals
-                .Select(output => new OutputObservation(output.FieldName, output.State == OutputRetrievalState.Retrieved))
+                .Select(output => new OutputObservation(ExternalValues.FieldName(output.FieldName), output.State == OutputRetrievalState.Retrieved))
                 .ToList();
         return new ProbeOutcome(
             kind,
@@ -249,7 +248,7 @@ internal static class PublicOutcomes
             mpResultRetrieved,
             execution is { HasMpResultCode: true } ? execution.MpResultCode : null,
             outputs,
-            SafeCode.OrNull(diagnosticCode),
+            ExternalValues.DiagnosticCode(SafeCode.OrNull(diagnosticCode) ?? (diagnosticCode is null ? null : ExternalValues.Withheld)),
             failureKind,
             disposition,
             observations)
@@ -268,7 +267,8 @@ internal static class WorkerOutcomes
     public static ProbeOutcome FromResponse(
         WorkerExecutionResponse response,
         Func<IReadOnlyList<WorkerMpOutputValue>, IReadOnlyDictionary<string, string>> observe,
-        string operationId)
+        string operationId,
+        IReadOnlyCollection<string>? expectedOutputs = null)
     {
         ArgumentNullException.ThrowIfNull(response);
         ArgumentNullException.ThrowIfNull(observe);
@@ -276,12 +276,12 @@ internal static class WorkerOutcomes
         if (response.Status != WorkerExecutionResponseStatus.Completed || response.Execution is null)
         {
             return new ProbeOutcome(ProbeOutcomeKind.NotStarted, "worker:unavailable", null, null, null, [],
-                SafeCode.OrNull(response.DiagnosticCode), null, "NotStarted", ProbeOutcome.EmptyObservations);
+                External(response.DiagnosticCode), null, "NotStarted", ProbeOutcome.EmptyObservations);
         }
 
         var execution = response.Execution;
         var outputs = execution.OutputValues
-            .Select(output => new OutputObservation(output.Name, output.Retrieved))
+            .Select(output => new OutputObservation(OutputName(output.Name, expectedOutputs), output.Retrieved))
             .ToList();
         var kind = execution switch
         {
@@ -313,11 +313,24 @@ internal static class WorkerOutcomes
             execution.ExecuteStepReturned ? execution.MpResultRetrieved : null,
             execution.MpResultCode,
             outputs,
-            SafeCode.OrNull(execution.DiagnosticCode),
+            External(execution.DiagnosticCode),
             null,
             DispositionOf(kind),
             observations);
     }
+
+    // Output names come back from the worker: only a name the command asked for, in the MP
+    // label shape, reaches a record.
+    internal static string OutputName(string? name, IReadOnlyCollection<string>? expected) =>
+        name is { Length: > 0 and <= 128 } &&
+        name.All(static c => char.IsAsciiLetterOrDigit(c) || c is ' ' or '(' or ')' or '?' or '\'' or '.' or ',' or '-' or '/' or '_') &&
+        (expected is null || expected.Contains(name, StringComparer.Ordinal))
+            ? name
+            : ExternalValues.Withheld;
+
+    // The worker's codes are external values: only a listed code reaches a record.
+    private static string? External(string? code) =>
+        ExternalValues.DiagnosticCode(SafeCode.OrNull(code) ?? (code is null ? null : ExternalValues.Withheld));
 
     // Mirrors the shipped server's GrpcOperationOutcomeMapper: a rejected argument
     // or an SDK fault before ExecuteStep never started; ExecuteStep false after the

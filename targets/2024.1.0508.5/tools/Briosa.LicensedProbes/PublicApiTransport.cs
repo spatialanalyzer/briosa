@@ -78,8 +78,9 @@ internal sealed class PublicApiTransport : IProbeTransport
 
         return new SessionIdentity
         {
-            ServerVersion = info.Version.HasBriosaVersion ? info.Version.BriosaVersion : null,
-            ServerSourceRevision = info.Version.HasSourceRevision ? info.Version.SourceRevision : null
+            // External values: only a release-version shape and a full commit SHA reach a record.
+            ServerVersion = info.Version.HasBriosaVersion ? ExternalValues.Version(info.Version.BriosaVersion) : null,
+            ServerSourceRevision = info.Version.HasSourceRevision ? ExternalValues.Revision(info.Version.SourceRevision) : null
         };
     }
 

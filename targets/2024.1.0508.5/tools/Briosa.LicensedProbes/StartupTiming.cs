@@ -21,9 +21,13 @@ internal enum StartupCondition
 /// <summary>
 /// Reads the server's own JSON log, offline, for the startup timings it already records
 /// (#412): EndpointListening (1001), WorkerStartPhase (1203), and the lifecycle RPC records
-/// (1303 to 1305). It connects to nothing and adds no timing of its own. Only event names,
-/// closed-vocabulary phases and statuses, stable diagnostic codes, integers and timestamps are
-/// read; any other value is ignored.
+/// (1302 to 1305). It connects to nothing and adds no timing of its own. Only records of this
+/// exact SpatialAnalyzer target are read, every JSON value's kind is checked, and only event
+/// numbers, closed-vocabulary phases, RPC names and statuses, listed diagnostic codes, integers
+/// and timestamps are kept. A line that is not such a record is counted, never thrown on. An
+/// attempt is labelled with the measured condition only when the log proves it was the
+/// server's first start, and its phases are reported only when they can be told apart from any
+/// other request.
 /// </summary>
 internal static class StartupTiming
 {
@@ -32,12 +36,23 @@ internal static class StartupTiming
     public const string StartRpc = "StartSpatialAnalyzerSdk";
     public const string ConnectRpc = "ConnectToSpatialAnalyzer";
 
+    // Correlation of an attempt with its phases and its Connect.
+    public const string Unambiguous = "unambiguous";
+    public const string OverlappingRequests = "overlapping-requests";
+    public const string SeveralGenerations = "several-generations";
+    public const string NoExitRecorded = "no-exit-recorded";
+
     private static readonly HashSet<string> Phases = new(StringComparer.Ordinal)
     {
         "process-created", "control-pipe-connected", "ready-received", "startup-bound-expired", "start-failed"
     };
 
-    private static readonly HashSet<string> Rpcs = new(StringComparer.Ordinal) { StartRpc, ConnectRpc };
+    // Every state-changing lifecycle RPC, so that a request overlapping an attempt is seen.
+    private static readonly HashSet<string> Rpcs = new(StringComparer.Ordinal)
+    {
+        StartRpc, ConnectRpc, "ReconnectToSpatialAnalyzer", "StopSpatialAnalyzerSdk", "RecoverSpatialAnalyzerSdk",
+        "LaunchSpatialAnalyzer", "CloseOwnedSpatialAnalyzer"
+    };
 
     public static bool IsStartupTiming(IReadOnlyList<string> arguments)
     {
@@ -52,6 +67,13 @@ internal static class StartupTiming
         _ => "warm"
     };
 
+    internal enum LineKind
+    {
+        Event,
+        Unreadable,
+        OtherTarget
+    }
+
     /// <summary>One log record the analysis uses.</summary>
     internal sealed record LogEvent(DateTimeOffset Timestamp, int EventId, string Instance, IReadOnlyDictionary<string, string> Fields);
 
@@ -59,17 +81,27 @@ internal static class StartupTiming
 
     internal sealed record RpcTiming(string Exit, string? GrpcStatus, string? DiagnosticCode, long? ElapsedMilliseconds);
 
-    internal sealed record StartAttempt(int Ordinal, int? Generation, RpcTiming Start, IReadOnlyList<PhaseTiming> Phases, RpcTiming? Connect);
+    internal sealed record StartAttempt(int Ordinal, string Label, string Correlation, int? Generation, RpcTiming Start, IReadOnlyList<PhaseTiming> Phases, RpcTiming? Connect);
 
     internal sealed record Report(
         StartupCondition Condition,
+        TimeSpan ConfiguredStartupTimeout,
         long? EndpointListeningMilliseconds,
         IReadOnlyList<StartAttempt> Attempts,
         int UnreadableLines,
-        string? HarnessRevision);
+        string? HarnessRevision)
+    {
+        /// <summary>A start under a startup bound other than the product default is a changed configuration, not a stock start.</summary>
+        public bool StockConfiguration => ConfiguredStartupTimeout == WorkerProcessOptions.DefaultStartupTimeout;
 
-    /// <summary>Parses one JSON log line, or returns null when it is not a usable record.</summary>
-    internal static LogEvent? ParseLine(string line)
+        public string ConfigurationLabel => StockConfiguration
+            ? "stock"
+            : string.Create(CultureInfo.InvariantCulture,
+                $"changed configuration: worker startup bound {ConfiguredStartupTimeout.TotalSeconds:0} s, not a stock start");
+    }
+
+    /// <summary>Parses one JSON log line, never throwing.</summary>
+    internal static (LineKind Kind, LogEvent? Event) ParseLine(string line)
     {
         ArgumentNullException.ThrowIfNull(line);
         try
@@ -81,20 +113,26 @@ internal static class StartupTiming
                 !DateTimeOffset.TryParse(timestamp.GetString(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var at) ||
                 !root.TryGetProperty("Properties", out var properties) || properties.ValueKind != JsonValueKind.Object ||
                 !properties.TryGetProperty("EventId", out var eventId) || eventId.ValueKind != JsonValueKind.Object ||
-                !eventId.TryGetProperty("Id", out var id) || !id.TryGetInt32(out var number) ||
+                !eventId.TryGetProperty("Id", out var id) || id.ValueKind != JsonValueKind.Number || !id.TryGetInt32(out var number) ||
                 !properties.TryGetProperty("ServerInstanceId", out var instance) || instance.ValueKind != JsonValueKind.String ||
-                instance.GetString() is not { Length: 32 } instanceId || !instanceId.All(char.IsAsciiHexDigitLower))
+                instance.GetString() is not { Length: 32 } instanceId || !instanceId.All(char.IsAsciiHexDigitLower) ||
+                !properties.TryGetProperty("SpatialAnalyzerTarget", out var target) || target.ValueKind != JsonValueKind.String)
             {
-                return null;
+                return (LineKind.Unreadable, null);
+            }
+
+            if (!string.Equals(target.GetString(), ProbeTarget.SpatialAnalyzerTarget, StringComparison.Ordinal))
+            {
+                return (LineKind.OtherTarget, null);
             }
 
             var fields = new SortedDictionary<string, string>(StringComparer.Ordinal);
             foreach (var name in new[] { "Phase", "Rpc", "GrpcStatus", "DiagnosticCode" })
             {
                 if (properties.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String &&
-                    value.GetString() is { } text && Accept(name, text))
+                    value.GetString() is { } text && Accept(name, text) is { } accepted)
                 {
-                    fields[name] = text;
+                    fields[name] = accepted;
                 }
             }
 
@@ -106,71 +144,96 @@ internal static class StartupTiming
                 }
             }
 
-            return new LogEvent(at.ToUniversalTime(), number, instanceId, fields);
+            return (LineKind.Event, new LogEvent(at.ToUniversalTime(), number, instanceId, fields));
         }
-        catch (JsonException)
+        catch (Exception exception) when (exception is JsonException or InvalidOperationException or FormatException or ArgumentException)
         {
-            return null;
+            return (LineKind.Unreadable, null);
         }
     }
 
-    private static bool Accept(string name, string text) => name switch
+    private static string? Accept(string name, string text) => name switch
     {
-        "Phase" => Phases.Contains(text),
-        "Rpc" => Rpcs.Contains(text),
-        "GrpcStatus" => Enum.TryParse<Grpc.Core.StatusCode>(text, ignoreCase: false, out _) && text.All(char.IsAsciiLetter),
-        "DiagnosticCode" => SafeCode.OrNull(text) is not null,
-        _ => false
+        "Phase" => Phases.Contains(text) ? text : null,
+        "Rpc" => Rpcs.Contains(text) ? text : null,
+        "GrpcStatus" => text.All(char.IsAsciiLetter) && Enum.TryParse<Grpc.Core.StatusCode>(text, ignoreCase: false, out _) ? text : null,
+        "DiagnosticCode" => ExternalValues.DiagnosticCode(text),
+        _ => null
     };
 
     /// <summary>
     /// Builds the report from one server instance's events. Each StartSpatialAnalyzerSdk is an
-    /// attempt, in order; its worker start phases are those logged between its arrival and its
-    /// exit, and its Connect is the next ConnectToSpatialAnalyzer exit before the next start.
+    /// attempt, in order. Its phases are attributed only when no other lifecycle request arrived
+    /// while it ran and its phases name one worker generation; its Connect is the next
+    /// ConnectToSpatialAnalyzer, likewise only when nothing overlapped it.
     /// </summary>
-    internal static Report Analyze(StartupCondition condition, IReadOnlyList<LogEvent> events, int unreadableLines, string? harnessRevision)
+    internal static Report Analyze(StartupCondition condition, TimeSpan configuredStartupTimeout, IReadOnlyList<LogEvent> events,
+        int unreadableLines, string? harnessRevision)
     {
         ArgumentNullException.ThrowIfNull(events);
         var ordered = events.OrderBy(static item => item.Timestamp).ToList();
-        long? listening = ordered.FirstOrDefault(static item => item.EventId == 1001) is { } first && Long(first, "ElapsedMilliseconds") is { } ms
-            ? ms
-            : null;
+        var listeningEvent = ordered.FirstOrDefault(static item => item.EventId == 1001);
+        long? listening = listeningEvent is not null && Long(listeningEvent, "ElapsedMilliseconds") is { } ms ? ms : null;
 
+        var arrivals = ordered.Where(static item => item.EventId == 1303 && Field(item, "Rpc") is not null).ToList();
+        var starts = arrivals.Where(static item => Field(item, "Rpc") == StartRpc).ToList();
         var attempts = new List<StartAttempt>();
-        var starts = ordered.Where(static item => item.EventId == 1303 && Field(item, "Rpc") == StartRpc).ToList();
         for (var index = 0; index < starts.Count; index++)
         {
             var arrival = starts[index];
             var next = index + 1 < starts.Count ? starts[index + 1].Timestamp : DateTimeOffset.MaxValue;
-            var exit = ordered.FirstOrDefault(item => item.Timestamp >= arrival.Timestamp && item.Timestamp < next &&
-                item.EventId is 1302 or 1304 or 1305 && Field(item, "Rpc") == StartRpc);
+            var exit = Exit(ordered, StartRpc, arrival.Timestamp, next);
             var until = exit?.Timestamp ?? next;
+            var overlapping = arrivals.Any(item => !ReferenceEquals(item, arrival) && item.Timestamp >= arrival.Timestamp && item.Timestamp < until);
             var phases = ordered
                 .Where(item => item.EventId == 1203 && item.Timestamp >= arrival.Timestamp && item.Timestamp <= until && Field(item, "Phase") is not null)
                 .Select(static item => (Phase: Field(item, "Phase")!, Elapsed: Long(item, "ElapsedMilliseconds"), Generation: Long(item, "Generation")))
                 .Where(static item => item.Elapsed is >= 0)
                 .ToList();
-            var connect = ordered.FirstOrDefault(item => item.Timestamp >= until && item.Timestamp < next &&
-                item.EventId is 1302 or 1304 or 1305 && Field(item, "Rpc") == ConnectRpc);
-            attempts.Add(new StartAttempt(
-                index + 1,
-                phases.Select(static item => item.Generation).FirstOrDefault(static generation => generation is not null) is { } generation ? (int)generation : null,
-                Exit(exit),
-                [.. phases.Select(static item => new PhaseTiming(item.Phase, item.Elapsed!.Value))],
-                connect is null ? null : Exit(connect)));
+            var generations = phases.Select(static item => item.Generation).Distinct().ToList();
+            var correlation = exit is null ? NoExitRecorded :
+                overlapping ? OverlappingRequests :
+                generations.Count > 1 || generations.Contains(null) ? SeveralGenerations :
+                Unambiguous;
+            int? generation = correlation == Unambiguous && generations.Count == 1 ? (int?)generations[0] : null;
+
+            // The measured condition needs proof that this is the server's very first start: the
+            // server's own listening record before it, nothing lifecycle-related earlier, and the
+            // first worker generation.
+            var first = index == 0 && correlation == Unambiguous && listeningEvent is not null &&
+                listeningEvent.Timestamp <= arrival.Timestamp && generation == 1 &&
+                !ordered.Any(item => item.Timestamp < arrival.Timestamp && item.EventId is 1203 or 1303 or 1304 or 1302 or 1305);
+            var label = index == 0
+                ? first ? ConditionName(condition) : "first-attempt-unproven"
+                : correlation == Unambiguous ? "repeat" : "ambiguous";
+
+            RpcTiming? connect = null;
+            if (exit is not null)
+            {
+                var connectArrival = arrivals.FirstOrDefault(item => Field(item, "Rpc") == ConnectRpc && item.Timestamp >= exit.Timestamp && item.Timestamp < next);
+                if (connectArrival is not null && Exit(ordered, ConnectRpc, connectArrival.Timestamp, next) is { } connectExit &&
+                    !arrivals.Any(item => !ReferenceEquals(item, connectArrival) && item.Timestamp >= connectArrival.Timestamp && item.Timestamp <= connectExit.Timestamp))
+                {
+                    connect = Timing(connectExit);
+                }
+            }
+
+            attempts.Add(new StartAttempt(index + 1, label, correlation, generation, exit is null ? new RpcTiming(NoExitRecorded, null, null, null) : Timing(exit),
+                correlation == Unambiguous ? [.. phases.Select(static item => new PhaseTiming(item.Phase, item.Elapsed!.Value))] : [],
+                connect));
         }
 
-        return new Report(condition, listening, attempts, unreadableLines, harnessRevision);
+        return new Report(condition, configuredStartupTimeout, listening, attempts, unreadableLines, harnessRevision);
     }
 
-    private static RpcTiming Exit(LogEvent? exit) => exit switch
-    {
-        null => new RpcTiming("no-exit-recorded", null, null, null),
-        _ => new RpcTiming(
-            exit.EventId switch { 1304 => "completed", 1302 => "rejected", _ => "faulted" },
-            Field(exit, "GrpcStatus"), Field(exit, "DiagnosticCode"),
-            Long(exit, "ElapsedMilliseconds") is { } elapsed && elapsed >= 0 ? elapsed : null)
-    };
+    private static LogEvent? Exit(IReadOnlyList<LogEvent> ordered, string rpc, DateTimeOffset from, DateTimeOffset before) =>
+        ordered.FirstOrDefault(item => item.Timestamp >= from && item.Timestamp < before &&
+            item.EventId is 1302 or 1304 or 1305 && Field(item, "Rpc") == rpc);
+
+    private static RpcTiming Timing(LogEvent exit) => new(
+        exit.EventId switch { 1304 => "completed", 1302 => "rejected", _ => "faulted" },
+        Field(exit, "GrpcStatus"), Field(exit, "DiagnosticCode"),
+        Long(exit, "ElapsedMilliseconds") is { } elapsed && elapsed >= 0 ? elapsed : null);
 
     private static string? Field(LogEvent item, string name) => item.Fields.TryGetValue(name, out var value) ? value : null;
 
@@ -184,11 +247,13 @@ internal static class StartupTiming
         using (var json = new Utf8JsonWriter(buffer, new JsonWriterOptions { Indented = true }))
         {
             json.WriteStartObject();
-            json.WriteNumber("schema_version", 1);
+            json.WriteNumber("schema_version", 2);
             json.WriteString("issue", ProbeTarget.Session4Issue);
             json.WriteString("spatial_analyzer_target", ProbeTarget.SpatialAnalyzerTarget);
             json.WriteString("condition", ConditionName(report.Condition));
-            json.WriteString("first_attempt_is", ConditionName(report.Condition));
+            json.WriteString("configuration", report.ConfigurationLabel);
+            json.WriteBoolean("stock_configuration", report.StockConfiguration);
+            json.WriteNumber("configured_worker_startup_timeout_ms", (long)report.ConfiguredStartupTimeout.TotalMilliseconds);
             json.WriteNumber("default_worker_startup_timeout_ms", (long)WorkerProcessOptions.DefaultStartupTimeout.TotalMilliseconds);
             if (report.EndpointListeningMilliseconds is { } listening)
                 json.WriteNumber("endpoint_listening_ms", listening);
@@ -204,7 +269,8 @@ internal static class StartupTiming
             {
                 json.WriteStartObject();
                 json.WriteNumber("ordinal", attempt.Ordinal);
-                json.WriteString("label", attempt.Ordinal == 1 ? ConditionName(report.Condition) : "repeat");
+                json.WriteString("label", attempt.Label);
+                json.WriteString("correlation", attempt.Correlation);
                 if (attempt.Generation is { } generation)
                     json.WriteNumber("sdk_generation", generation);
                 else
@@ -237,20 +303,21 @@ internal static class StartupTiming
         var text = new StringBuilder();
         text.Append(CultureInfo.InvariantCulture,
             $"# SA {ProbeTarget.SpatialAnalyzerTarget} worker start timing: {ConditionName(report.Condition)} ({ProbeTarget.Session4Issue})\n\n");
-        text.Append(CultureInfo.InvariantCulture,
-            $"From the server's own log events (EndpointListening, WorkerStartPhase, lifecycle RPC records). Endpoint listening: {Ms(report.EndpointListeningMilliseconds)} after process start. ")
+        text.Append(CultureInfo.InvariantCulture, $"**Configuration: {report.ConfigurationLabel}.** ")
             .Append(CultureInfo.InvariantCulture,
-                $"The product's default worker startup bound is {(long)WorkerProcessOptions.DefaultStartupTimeout.TotalMilliseconds} ms. ")
-            .Append(CultureInfo.InvariantCulture, $"Unreadable log lines skipped: {report.UnreadableLines}.\n\n");
-        text.Append("| Attempt | Label | Start RPC | Start ms | process-created | control-pipe-connected | ready-received | Connect RPC | Connect ms |\n")
-            .Append("| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n");
+                $"The product's default worker startup bound is {(long)WorkerProcessOptions.DefaultStartupTimeout.TotalMilliseconds} ms.\n\n")
+            .Append(CultureInfo.InvariantCulture,
+                $"From the server's own log events (EndpointListening, WorkerStartPhase, lifecycle RPC records). Endpoint listening: {Ms(report.EndpointListeningMilliseconds)} after process start. ")
+            .Append(CultureInfo.InvariantCulture, $"Lines that were not usable records of this target: {report.UnreadableLines}.\n\n");
+        text.Append("| Attempt | Label | Correlation | Start RPC | Start ms | process-created | control-pipe-connected | ready-received | Connect RPC | Connect ms |\n")
+            .Append("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n");
         foreach (var attempt in report.Attempts)
         {
             string PhaseMs(string phase) =>
                 attempt.Phases.FirstOrDefault(item => item.Phase == phase) is { } found ? found.ElapsedMilliseconds.ToString(CultureInfo.InvariantCulture) : "-";
             var failed = attempt.Phases.FirstOrDefault(static item => item.Phase is "startup-bound-expired" or "start-failed");
             text.Append(CultureInfo.InvariantCulture,
-                $"| {attempt.Ordinal} | {(attempt.Ordinal == 1 ? ConditionName(report.Condition) : "repeat")} | {RpcText(attempt.Start)} | {Ms(attempt.Start.ElapsedMilliseconds)} | ")
+                $"| {attempt.Ordinal} | {attempt.Label} | {attempt.Correlation} | {RpcText(attempt.Start)} | {Ms(attempt.Start.ElapsedMilliseconds)} | ")
                 .Append(CultureInfo.InvariantCulture,
                     $"{PhaseMs("process-created")} | {PhaseMs("control-pipe-connected")} | {(failed is null ? PhaseMs("ready-received") : $"{failed.Phase} at {failed.ElapsedMilliseconds}")} | ")
                 .Append(CultureInfo.InvariantCulture,
@@ -263,6 +330,8 @@ internal static class StartupTiming
         }
 
         text.Append("\nPhase times are milliseconds since the worker start began; RPC times are from the server's acceptance to its exit record. ")
+            .Append("An attempt whose label is not the condition did not prove it was the server's first start, and an attempt that is not ")
+            .Append("`unambiguous` has no phases attributed to it. ")
             .Append("These are observations of one bounded run on one machine, not vendor guarantees.\n");
         return text.ToString();
     }
@@ -294,6 +363,7 @@ internal static class StartupTiming
     public const string Usage = """
         Usage (offline; reads one server's log folder and connects to nothing):
           Briosa.LicensedProbes --startup-timing --condition fresh-install|after-reboot|warm
+              --startup-timeout-seconds <the server's Briosa:Worker:StartupTimeout, 1-300>
               --server-log-directory <the server's Briosa:Logging:File:Directory> --output-directory <empty dir>
               [--harness-revision <sha>]
         """;
@@ -304,11 +374,13 @@ internal static class StartupTiming
         ArgumentNullException.ThrowIfNull(output);
         ArgumentNullException.ThrowIfNull(error);
         StartupCondition condition;
+        TimeSpan startupTimeout;
         string logDirectory;
         string outputDirectory;
         string? revision;
         List<LogEvent> events = [];
         var unreadable = 0;
+        var otherTarget = 0;
         try
         {
             var values = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -323,7 +395,7 @@ internal static class StartupTiming
                     continue;
                 }
 
-                if (argument is not ("--condition" or "--server-log-directory" or "--output-directory" or "--harness-revision"))
+                if (argument is not ("--condition" or "--server-log-directory" or "--output-directory" or "--harness-revision" or "--startup-timeout-seconds"))
                     throw new ProbeUsageException("An unknown option was supplied.");
                 if (index + 1 >= arguments.Count)
                     throw new ProbeUsageException($"Option '{argument}' needs a value.");
@@ -338,6 +410,10 @@ internal static class StartupTiming
                 "warm" => StartupCondition.Warm,
                 _ => throw new ProbeUsageException("--condition must be fresh-install, after-reboot or warm.")
             };
+            startupTimeout = values.GetValueOrDefault("--startup-timeout-seconds") is { } seconds &&
+                int.TryParse(seconds, NumberStyles.None, CultureInfo.InvariantCulture, out var value) && value is >= 1 and <= 300
+                    ? TimeSpan.FromSeconds(value)
+                    : throw new ProbeUsageException("--startup-timeout-seconds must give the server's worker startup bound, 1 to 300.");
             logDirectory = values.GetValueOrDefault("--server-log-directory") ?? throw new ProbeUsageException("--server-log-directory is required.");
             outputDirectory = values.GetValueOrDefault("--output-directory") ?? throw new ProbeUsageException("--output-directory is required.");
             revision = values.GetValueOrDefault("--harness-revision");
@@ -355,13 +431,30 @@ internal static class StartupTiming
                 using var reader = new StreamReader(stream, Encoding.UTF8);
                 while (await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false) is { } line)
                 {
-                    if (ParseLine(line) is { } item)
-                        events.Add(item);
-                    else if (line.Length > 0)
-                        unreadable++;
+                    if (line.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    var (kind, item) = ParseLine(line);
+                    switch (kind)
+                    {
+                        case LineKind.Event:
+                            events.Add(item!);
+                            break;
+                        case LineKind.OtherTarget:
+                            otherTarget++;
+                            break;
+                        default:
+                            unreadable++;
+                            break;
+                    }
                 }
             }
 
+            if (otherTarget > 0)
+                throw new ProbeUsageException(string.Create(CultureInfo.InvariantCulture,
+                    $"The log folder holds {otherTarget} records of another SpatialAnalyzer target; measure each target with its own harness and its own log folder."));
             var instances = events.Select(static item => item.Instance).Distinct(StringComparer.Ordinal).Count();
             if (instances != 1)
                 throw new ProbeUsageException(string.Create(CultureInfo.InvariantCulture,
@@ -379,7 +472,7 @@ internal static class StartupTiming
             return 2;
         }
 
-        var report = Analyze(condition, events, unreadable, revision);
+        var report = Analyze(condition, startupTimeout, events, unreadable, revision);
         Directory.CreateDirectory(outputDirectory);
         var stem = Path.Combine(outputDirectory, $"startup-timing-{ConditionName(condition)}-{ProbeTarget.SpatialAnalyzerTarget}");
         foreach (var (path, content) in new[] { (stem + ".json", ToJson(report)), (stem + ".md", ToMarkdown(report)) })
@@ -387,13 +480,14 @@ internal static class StartupTiming
             var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write);
             await using (stream.ConfigureAwait(false))
             {
-                await stream.WriteAsync(new UTF8Encoding(false).GetBytes(content), cancellationToken).ConfigureAwait(false);
+                await stream.WriteAsync(new UTF8Encoding(false).GetBytes(content), CancellationToken.None).ConfigureAwait(false);
             }
         }
 
         var firstStart = report.Attempts.Count > 0 ? report.Attempts[0] : null;
         await output.WriteLineAsync(string.Create(CultureInfo.InvariantCulture,
-            $"Startup timing {ConditionName(condition)}: {report.Attempts.Count} start attempts; first start {Ms(firstStart?.Start.ElapsedMilliseconds)} ({firstStart?.Start.Exit ?? "none"}).")).ConfigureAwait(false);
+            $"Startup timing {ConditionName(condition)} ({report.ConfigurationLabel}): {report.Attempts.Count} start attempts; " +
+            $"first {firstStart?.Label ?? "none"}, {Ms(firstStart?.Start.ElapsedMilliseconds)} ({firstStart?.Start.Exit ?? "none"}).")).ConfigureAwait(false);
         await output.WriteLineAsync($"Records: {Path.GetFileName(stem)}.json, {Path.GetFileName(stem)}.md").ConfigureAwait(false);
         return report.Attempts.Count > 0 ? 0 : 1;
     }

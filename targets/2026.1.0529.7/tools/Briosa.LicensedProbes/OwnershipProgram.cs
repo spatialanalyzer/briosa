@@ -25,7 +25,7 @@ internal static class OwnershipProgram
         return new OwnershipEnvironment(
             WindowsProcessTable.Instance,
             options.Scenario == OwnershipScenario.Observe ? null : new OwnershipServer(options.Address, options.StepTimeout),
-            ProcessTerminator.Instance,
+            ProcessControl.Instance,
             options.WorkerPath is { } path ? () => new SecondWorker(path) : null,
             new FileOperatorConsole(Path.Combine(options.OutputDirectory!, FileOperatorConsole.DirectoryName), output,
                 options.OperatorTimeout, TimeProvider.System),
@@ -80,17 +80,22 @@ internal static class OwnershipProgram
             }
         }
 
+        // The record is written even after a cancellation, on a token of its own: the run
+        // already ended its cleanup, and losing the record would lose what it left behind.
         var stem = Path.Combine(options.OutputDirectory!,
             $"ownership-{OwnershipOptions.ScenarioName(options.Scenario)}-{ProbeTarget.SpatialAnalyzerTarget}");
-        await WriteNewAsync(stem + ".json", OwnershipRecorder.ToJson(record), cancellationToken).ConfigureAwait(false);
-        await WriteNewAsync(stem + ".md", OwnershipRecorder.ToMarkdown(record), cancellationToken).ConfigureAwait(false);
+        await WriteNewAsync(stem + ".json", OwnershipRecorder.ToJson(record), CancellationToken.None).ConfigureAwait(false);
+        await WriteNewAsync(stem + ".md", OwnershipRecorder.ToMarkdown(record), CancellationToken.None).ConfigureAwait(false);
+        var residual = !record.ResidualKnown
+            ? "unknown (the last process census was incomplete)"
+            : record.Residual.Count == 0 ? "none" : string.Join(",", record.Residual.Select(static process => process.Label));
         await output.WriteLineAsync(string.Create(CultureInfo.InvariantCulture,
             $"Ownership {OwnershipOptions.ScenarioName(record.Scenario)}: completed={record.Completed}; stop_reason={record.StopReason ?? "none"}; " +
-            $"residual={(record.Residual.Count == 0 ? "none" : string.Join(",", record.Residual.Select(static process => process.Label)))}.")).ConfigureAwait(false);
-        if (record.Residual.Count > 0)
+            $"residual={residual}.")).ConfigureAwait(false);
+        if (!record.ResidualKnown || record.Residual.Count > 0)
         {
             await output.WriteLineAsync(
-                "Residual processes remain. Do not stop an SDK process without the agreed rule in the runbook; record what the operator stopped.")
+                "Postflight has not passed. Record each residual as unresolved; stopping one is the operator's decision at the time, recorded.")
                 .ConfigureAwait(false);
         }
 
@@ -111,24 +116,36 @@ internal static class OwnershipProgram
             .Append("a window ends early once the processes it watches are gone.\n");
         if (options.Scenario != OwnershipScenario.Observe)
         {
-            text.Append("Preconditions: exactly one Spatial Analyzer, one Briosa server with no SDK started, no worker and no SDK process.\n");
-            text.Append("Script: census; describe; get SDK state; start SDK; census; connect; census; then\n");
+            text.Append("Preconditions: a complete process census with exactly one Spatial Analyzer, one Briosa server with no SDK started, ")
+                .Append("and no worker or SDK process.\n");
+            text.Append("Binding: the server must be in the operator's session and own the endpoint's listener; it is bound through a held ")
+                .Append("handle. After start, the one new worker whose parent is that server is bound the same way, and so is the SDK ")
+                .Append("generation the start created. The run acts only on what it bound; when a bound process has gone or the generation ")
+                .Append("changed, it records that and stops without acting.\n");
+            text.Append("Script: census; bind the server; describe; get SDK state; start SDK; census; bind the worker; connect; census; ")
+                .Append("worker descendant census; then\n");
         }
 
         text.Append(options.Scenario switch
         {
-            OwnershipScenario.Release => "  stop SDK; watch until the worker and the SDK process are gone.\n",
-            OwnershipScenario.WorkerCrash => "  terminate the worker (that process only); wait up to 30 s for the server to report Faulted; watch; then stop the SDK generation and watch.\n",
-            OwnershipScenario.ParentDeath => "  terminate the server (that process only); watch until the worker and the SDK process are gone.\n",
+            OwnershipScenario.Release => "  stop the bound generation; watch until the worker and the SDK process are gone.\n",
+            OwnershipScenario.WorkerCrash =>
+                "  terminate the bound worker through its handle (that process only, not its children); wait up to 30 s for the server to\n" +
+                "  report Faulted; watch; then stop the bound generation and watch.\n",
+            OwnershipScenario.ParentDeath =>
+                "  terminate the bound server through its handle (that process only, not its children); watch until the worker and the SDK\n" +
+                "  process are gone.\n",
             OwnershipScenario.WatchdogKill =>
-                "  set SA Interaction Mode Manual; operator checkpoint (no dialog open); a wildcard selection that matches nothing, which stalls on its\n" +
-                "  dialog until the server's watchdog terminates the worker; watch with the dialog open; operator checkpoint (record and dismiss the\n" +
-                "  dialog); watch; then stop the SDK generation and watch.\n",
+                "  set SA Interaction Mode Manual (it stays Manual; nothing restores another mode); a descendant census of the bound worker;\n" +
+                "  operator checkpoint (no dialog open); a wildcard selection that matches nothing, which stalls on its dialog until the\n" +
+                "  product's watchdog terminates the worker AND ITS WHOLE PROCESS TREE; watch with the dialog open; operator checkpoint\n" +
+                "  (dismiss the dialog); watch; then stop the bound generation and watch.\n",
             OwnershipScenario.CompetingClient =>
-                "  one read-only MP through the first client; start a second worker (SDK activation); census; its ConnectEx; census;\n" +
-                "  a read-only MP through the first client; stop the second worker; watch; a read-only MP; then stop the SDK and watch.\n" +
-                "  The second worker never runs an MP.\n",
-            _ => "Script: census, then watch until no SDK, worker or server process remains.\n"
+                "  one read-only MP through the first client, which must succeed; the second worker must be in the bound server's own\n" +
+                "  folder; start it (SDK activation), which must report this exact target's SDK; its one ConnectEx, which must attach;\n" +
+                "  a read-only MP through the first client; stop the second worker; watch; a read-only MP; then stop the bound generation\n" +
+                "  and watch. A failed gate skips every later step but the stops. The second worker never runs an MP.\n",
+            _ => "Script: census, then watch until a complete census shows no SDK, worker or server process.\n"
         });
 
         var steps = OwnershipRunner.MpSteps(options.Scenario, options.InteractionMode);
@@ -189,6 +206,20 @@ internal static class OwnershipRecorder
             json.WriteNumber("observe_window_seconds", (long)record.ObserveWindow.TotalSeconds);
             json.WriteNumber("poll_interval_ms", (long)OwnershipRunner.PollInterval.TotalMilliseconds);
             Nullable(json, "harness_revision", record.HarnessRevision);
+            json.WriteStartObject("bound");
+            Nullable(json, "server", record.BoundServer);
+            Nullable(json, "worker", record.BoundWorker);
+            if (record.BoundGeneration is { } boundGeneration)
+                json.WriteNumber("sdk_generation", boundGeneration);
+            else
+                json.WriteNull("sdk_generation");
+            json.WriteEndObject();
+            json.WriteStartObject("snapshots");
+            json.WriteNumber("complete", record.CompleteSnapshots);
+            json.WriteNumber("incomplete", record.IncompleteSnapshots);
+            json.WriteNumber("failed", record.FailedSnapshots);
+            Nullable(json, "final", record.FinalSnapshot is { } final ? SnapshotName(final) : null);
+            json.WriteEndObject();
             if (record.Server is { } server)
             {
                 json.WriteStartObject("server");
@@ -221,6 +252,9 @@ internal static class OwnershipRecorder
                 json.WriteString("result", step.Result);
                 Nullable(json, "target", step.Target);
                 Nullable(json, "operator_answer", step.OperatorAnswer);
+                Nullable(json, "snapshot", step.Snapshot is { } snapshot ? SnapshotName(snapshot) : null);
+                if (step.DescendantCount is { } descendants)
+                    json.WriteNumber("descendant_count", descendants);
                 if (step.Lifecycle is { } lifecycle)
                 {
                     json.WriteStartObject("lifecycle");
@@ -285,16 +319,23 @@ internal static class OwnershipRecorder
                 json.WriteString("role", process.Role);
                 json.WriteString("parent_role", process.ParentRole);
                 Nullable(json, "started_at", process.StartedAt?.ToString("O", CultureInfo.InvariantCulture));
+                Nullable(json, "attribution", process.Attribution);
                 json.WriteBoolean("present_at_start", process.PresentAtStart);
                 json.WriteNumber("first_seen_ms", process.FirstSeenMilliseconds);
-                if (process.ExitedMilliseconds is { } exited)
-                    json.WriteNumber("exited_ms", exited);
+
+                // No exit time is claimed: the process exited after last_seen_ms and no later than
+                // first_absent_ms, the first complete snapshot without it.
+                json.WriteNumber("last_seen_ms", process.LastSeenMilliseconds);
+                if (process.FirstAbsentMilliseconds is { } absent)
+                    json.WriteNumber("first_absent_ms", absent);
                 else
-                    json.WriteNull("exited_ms");
+                    json.WriteNull("first_absent_ms");
+                json.WriteNumber("reappearances", process.Reappearances);
                 json.WriteEndObject();
             }
 
             json.WriteEndArray();
+            json.WriteBoolean("residual_known", record.ResidualKnown);
             json.WriteStartArray("residual");
             foreach (var process in record.Residual)
             {
@@ -326,17 +367,28 @@ internal static class OwnershipRecorder
                 $"| `{step.Id}` | {step.Action} | {step.StartedMilliseconds} | {step.ElapsedMilliseconds} | `{step.Result}` | {Detail(step)} | {string.Join(", ", step.Alive)} |\n");
         }
 
-        text.Append("\n| Process | Role | Parent | Present at start | First seen (ms) | Exited (ms) |\n| --- | --- | --- | --- | --- | --- |\n");
+        text.Append(CultureInfo.InvariantCulture,
+            $"\nBound: server `{record.BoundServer ?? "none"}`, worker `{record.BoundWorker ?? "none"}`, SDK generation {record.BoundGeneration?.ToString(CultureInfo.InvariantCulture) ?? "none"}. ")
+            .Append(CultureInfo.InvariantCulture,
+                $"Snapshots: {record.CompleteSnapshots} complete, {record.IncompleteSnapshots} incomplete, {record.FailedSnapshots} failed.\n");
+        text.Append("\n| Process | Role | Parent | Attribution | Present at start | First seen (ms) | Last seen (ms) | First absent (ms) |\n")
+            .Append("| --- | --- | --- | --- | --- | --- | --- | --- |\n");
         foreach (var process in record.Processes)
         {
             text.Append(CultureInfo.InvariantCulture,
-                $"| `{process.Label}` | {process.Role} | {process.ParentRole} | {(process.PresentAtStart ? "yes" : "no")} | {process.FirstSeenMilliseconds} | {process.ExitedMilliseconds?.ToString(CultureInfo.InvariantCulture) ?? "alive at end"} |\n");
+                $"| `{process.Label}` | {process.Role} | {process.ParentRole} | {process.Attribution ?? "unattributed"} | {(process.PresentAtStart ? "yes" : "no")} | ")
+                .Append(CultureInfo.InvariantCulture,
+                    $"{process.FirstSeenMilliseconds} | {process.LastSeenMilliseconds} | {process.FirstAbsentMilliseconds?.ToString(CultureInfo.InvariantCulture) ?? "alive at end"} |\n");
         }
 
-        text.Append(record.Residual.Count == 0
-            ? "\nResidual: none. No SDK or worker process from this run was alive when it ended.\n"
-            : $"\nResidual: {string.Join(", ", record.Residual.Select(static process => $"`{process.Label}`"))} alive when the run ended. " +
-              "Record whether each exited on its own later or which the operator stopped, with the maintainer's agreement.\n");
+        text.Append("\nAn exit happened after the last-seen time and no later than the first-absent time; no exit time is measured. ")
+            .Append("Only a complete snapshot can show a process absent.\n");
+        text.Append(!record.ResidualKnown
+            ? "\nResidual: unknown. The run ended without a complete process census, so postflight cannot pass on this record.\n"
+            : record.Residual.Count == 0
+                ? "\nResidual: none. No SDK or worker process from this run was alive when it ended.\n"
+                : $"\nResidual: {string.Join(", ", record.Residual.Select(static process => $"`{process.Label}`"))} alive when the run ended. " +
+                  "Each is unresolved until it exits on its own; stopping one is the operator's decision at the time, recorded with its label.\n");
         text.Append("\nThese are observations of one bounded run, not vendor guarantees.\n");
         return text.ToString();
     }
@@ -380,10 +432,21 @@ internal static class OwnershipRecorder
                 parts.Add(matches ? "activated SDK is the target" : "activated SDK not verified as the target");
         }
 
+        if (step.DescendantCount is { } descendants)
+            parts.Add(string.Create(CultureInfo.InvariantCulture, $"{descendants} descendants"));
+        if (step.Snapshot is { } snapshot && snapshot != SnapshotStatus.Complete)
+            parts.Add($"snapshot {SnapshotName(snapshot)}");
         if (step.OperatorAnswer is { } answer)
             parts.Add($"operator: `{answer}`");
         return string.Join("; ", parts);
     }
+
+    private static string SnapshotName(SnapshotStatus status) => status switch
+    {
+        SnapshotStatus.Complete => "complete",
+        SnapshotStatus.Incomplete => "incomplete",
+        _ => "failed"
+    };
 
     private static void Nullable(Utf8JsonWriter json, string name, string? value)
     {

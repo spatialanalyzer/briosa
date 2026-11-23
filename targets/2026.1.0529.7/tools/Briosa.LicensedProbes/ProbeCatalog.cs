@@ -62,8 +62,9 @@ internal static class ProbeCatalog
 
     // Probe 34: the point counts of the harness's result-size ladder, ascending, so that a
     // stop loses only the larger rungs. At about 70 bytes of private frame per point name,
-    // 500 fits both the 64 KiB and the 1 MiB response budget, 2,000 fits only the larger,
-    // and 20,000 fits neither; the protobuf message is roughly a third of the frame.
+    // 100 to 10,000 fit the 1 MiB worker response budget (#411) and 20,000 does not; 2,000 is
+    // the first rung beyond the former 64 KiB frame limit. The protobuf message is roughly a
+    // third of the frame, so no rung can reach the published clients' 4 MiB receive limit.
     public static IReadOnlyList<int> ResultSizeLadder { get; } = [100, 500, 2000, 10000, 20000];
 
     // Probe 35: two lines of harness text, sent through each callout's text or notes setter.

@@ -8,8 +8,8 @@ namespace Briosa.LicensedProbes;
 /// background shell while the operator watches SpatialAnalyzer. At each
 /// checkpoint the harness writes a request file into the checkpoint directory,
 /// prints its name, and sends nothing until the operator writes the matching
-/// response file. The response is one line: <c>none</c>, or <c>dialog:</c>
-/// followed by the dialog's exact title and text and what the operator did.
+/// response file. The response is one line from the closed vocabulary of
+/// <see cref="OperatorObservationText"/>; no dialog text is ever written.
 /// Console lines name files only, never their directory.
 /// </summary>
 internal sealed class FileOperatorConsole : IOperatorConsole
@@ -73,7 +73,7 @@ internal sealed class FileOperatorConsole : IOperatorConsole
         }
 
         Write($"OPERATOR CHECKPOINT {name}: {(timing == OperatorCheckpoint.Before ? "before dispatch of" : "after the result of")} {step.Id}. " +
-            $"Write one line to {name}{ResponseSuffix}: none, or dialog: <exact title and text>.");
+            $"Write one line to {name}{ResponseSuffix}: none, dialog-seen, dialog-dismissed or license-prompt-abort.");
         var deadline = _clock.GetUtcNow() + _timeout;
         var refused = 0;
         while (true)
@@ -123,17 +123,20 @@ internal sealed class FileOperatorConsole : IOperatorConsole
         text.Append((timing, step.ExpectedStall is not null) switch
         {
             (OperatorCheckpoint.Before, false) =>
-                "Before this step is sent: confirm that no SpatialAnalyzer dialog is open. If one is, note its exact title and text and dismiss it with OK.\n",
+                "Before this step is sent: confirm that no SpatialAnalyzer dialog is open. If one is, dismiss it with OK and answer dialog-dismissed.\n",
             (OperatorCheckpoint.Before, true) =>
-                "Before this step is sent: confirm that no SpatialAnalyzer dialog is open. If one is, note its exact title and text and dismiss it with OK. " +
+                "Before this step is sent: confirm that no SpatialAnalyzer dialog is open. If one is, dismiss it with OK and answer dialog-dismissed. " +
                 "This step should open a dialog: do not dismiss that one until the step has returned.\n",
             (_, false) =>
-                "This step has returned. Note any SpatialAnalyzer dialog it raised, including one you dismissed while it ran, with its exact title and text. Dismiss any open dialog with OK.\n",
+                "This step has returned. If it raised a SpatialAnalyzer dialog, dismiss it with OK and answer dialog-dismissed, or dialog-seen " +
+                "if it was already gone; otherwise answer none.\n",
             (_, true) =>
-                "This planned stall has returned. The dialog it opened should still be open: note its exact title and text, then dismiss it with OK. " +
-                "Note it too if you dismissed it earlier, or if no dialog opened.\n"
+                "This planned stall has returned. The dialog it opened should still be open: dismiss it with OK and answer dialog-dismissed, " +
+                "or none if no dialog opened.\n"
         });
-        text.Append(CultureInfo.InvariantCulture, $"Then write one line to the matching {ResponseSuffix} file: none, or dialog: <title and text>. {OperatorObservationText.Rule}\n");
+        text.Append("Never copy any text from a dialog. If SpatialAnalyzer shows a license prompt, do not dismiss it: answer ")
+            .Append("license-prompt-abort, and nothing more is sent.\n");
+        text.Append(CultureInfo.InvariantCulture, $"Then write one line to the matching {ResponseSuffix} file. {OperatorObservationText.Rule}\n");
         return text.ToString();
     }
 
@@ -188,16 +191,32 @@ internal sealed class FileOperatorConsole : IOperatorConsole
 }
 
 /// <summary>
-/// Validates operator checkpoint text before it can reach a record: one short
-/// line of printable ASCII that starts with <c>none</c> or <c>dialog:</c>, and
-/// no backslash, so no Windows path can be recorded by mistake.
+/// The closed vocabulary of operator checkpoint answers (#402). An answer is one of four words,
+/// optionally followed by up to two detail words, separated by single spaces. Nothing else is
+/// accepted, so no dialog text, name, path, process id or license text can reach a record.
 /// </summary>
 internal static class OperatorObservationText
 {
-    public const int MaximumLength = 300;
+    public const string None = "none";
+    public const string DialogSeen = "dialog-seen";
+    public const string DialogDismissed = "dialog-dismissed";
+
+    // A license prompt appeared. The operator does not copy or dismiss it, and the run sends
+    // nothing more.
+    public const string LicensePromptAbort = "license-prompt-abort";
+
+    public const string LinesShown = "lines-shown";
+    public const string LinesNotShown = "lines-not-shown";
+
+    public static IReadOnlyList<string> Answers { get; } = [None, DialogSeen, DialogDismissed, LicensePromptAbort];
+
+    // The callout lines of probe 35, and the InteractionMode registry digit of probe 25.
+    public static IReadOnlyList<string> Details { get; } =
+        [LinesShown, LinesNotShown, .. Enumerable.Range(0, 10).Select(static digit => "registry-" + digit.ToString(CultureInfo.InvariantCulture))];
 
     public const string Rule =
-        "Use one line of at most 300 printable ASCII characters, starting with 'none' or 'dialog:', with no backslash, backtick, or pipe.";
+        "Write one of none, dialog-seen, dialog-dismissed or license-prompt-abort, optionally followed by one or two of " +
+        "lines-shown, lines-not-shown or registry-<digit>, separated by single spaces. Nothing else is accepted.";
 
     public static bool TryNormalize(string raw, out string observation)
     {
@@ -209,25 +228,22 @@ internal static class OperatorObservationText
             return false;
         }
 
-        var text = string.Join(' ', lines[0].Split(' ', StringSplitOptions.RemoveEmptyEntries));
-        if (text.Length is 0 or > MaximumLength || !text.All(static c => c is >= ' ' and <= '~' and not '\\' and not '`' and not '|'))
+        // Each word is matched case-insensitively and recorded in its canonical form.
+        var words = lines[0].Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Select(static word => Answers.Concat(Details).FirstOrDefault(known => string.Equals(known, word, StringComparison.OrdinalIgnoreCase)) ?? word)
+            .ToList();
+        if (words.Count is 0 or > 3 || !Answers.Contains(words[0], StringComparer.Ordinal) ||
+            !words.Skip(1).All(word => Details.Contains(word, StringComparer.Ordinal)) ||
+            words.Skip(1).Distinct(StringComparer.Ordinal).Count() != words.Count - 1 ||
+            (words[0] == LicensePromptAbort && words.Count > 1))
         {
             return false;
         }
 
-        // "none", optionally followed by a separator and a note ("nonexistent" is not "none").
-        if (text.StartsWith("none", StringComparison.OrdinalIgnoreCase) && (text.Length == 4 || text[4] is ';' or ',' or ' ' or '.'))
-        {
-            observation = "none" + text[4..];
-            return true;
-        }
-
-        if (text.StartsWith("dialog:", StringComparison.OrdinalIgnoreCase) && text[7..].Trim().Length > 0)
-        {
-            observation = "dialog: " + text[7..].Trim();
-            return true;
-        }
-
-        return false;
+        observation = string.Join(' ', words);
+        return true;
     }
+
+    /// <summary>The operator reported a license prompt: nothing more may be sent.</summary>
+    public static bool IsLicensePromptAbort(string? observation) => string.Equals(observation, LicensePromptAbort, StringComparison.Ordinal);
 }

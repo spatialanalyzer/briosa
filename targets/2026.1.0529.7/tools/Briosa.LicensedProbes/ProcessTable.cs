@@ -4,57 +4,104 @@ using Microsoft.Win32.SafeHandles;
 
 namespace Briosa.LicensedProbes;
 
-/// <summary>One process as a snapshot lists it: its image name without extension, never a path or arguments.</summary>
-internal sealed record ProcessEntry(int Id, int ParentId, string Name, DateTimeOffset? StartedAt);
+/// <summary>
+/// One process as a snapshot lists it: its image name without extension, never a path or
+/// arguments. The start time and session are read only for the tracked roles.
+/// </summary>
+internal sealed record ProcessEntry(int Id, int ParentId, string Name, DateTimeOffset? StartedAt, int? SessionId = null);
 
-/// <summary>Lists processes for the SDK-ownership probes (#252, #402). It reads names, parents and start times only.</summary>
+/// <summary>Whether a snapshot listed every process with the identity the tracker needs.</summary>
+internal enum SnapshotStatus
+{
+    // Every process was listed, and every tracked one with its start time.
+    Complete,
+
+    // The enumeration ended early, or a tracked process's start time could not be read.
+    Incomplete,
+
+    // No list could be taken at all.
+    Failed
+}
+
+internal sealed record ProcessSnapshot(SnapshotStatus Status, IReadOnlyList<ProcessEntry> Entries)
+{
+    public static ProcessSnapshot Failed { get; } = new(SnapshotStatus.Failed, []);
+
+    public static ProcessSnapshot Of(params ProcessEntry[] entries) => new(SnapshotStatus.Complete, entries);
+}
+
+/// <summary>Lists processes for the SDK-ownership probes (#252, #402). It reads names, parents, start times and sessions only.</summary>
 internal interface IProcessTable
 {
-    IReadOnlyList<ProcessEntry> Snapshot();
+    ProcessSnapshot Snapshot();
 }
 
 /// <summary>
-/// The Windows process list from one Toolhelp snapshot. Start times are read only for the
-/// processes the ownership probes track, through <see cref="Process.StartTime"/>; a process
-/// that exits or denies access in between keeps a null start time.
+/// The Windows process list from one Toolhelp snapshot. A snapshot that cannot be taken is
+/// <see cref="SnapshotStatus.Failed"/>; one whose enumeration ends with an error other than
+/// "no more entries", or in which a tracked process's start time or session cannot be read,
+/// is <see cref="SnapshotStatus.Incomplete"/>. Neither is ever read as an absence.
 /// </summary>
 internal sealed class WindowsProcessTable : IProcessTable
 {
     private const uint SnapProcesses = 0x00000002;
+    private const int NoMoreFiles = 18;
 
     public static WindowsProcessTable Instance { get; } = new();
 
-    public IReadOnlyList<ProcessEntry> Snapshot()
+    public ProcessSnapshot Snapshot()
     {
         using var snapshot = NativeMethods.CreateToolhelp32Snapshot(SnapProcesses, 0);
         if (snapshot.IsInvalid)
         {
-            return [];
+            return ProcessSnapshot.Failed;
         }
 
         var entries = new List<ProcessEntry>();
+        var status = SnapshotStatus.Complete;
         var entry = new NativeMethods.ProcessEntry32 { Size = (uint)Marshal.SizeOf<NativeMethods.ProcessEntry32>() };
-        for (var more = NativeMethods.Process32FirstW(snapshot, ref entry); more; more = NativeMethods.Process32NextW(snapshot, ref entry))
+        if (!NativeMethods.Process32FirstW(snapshot, ref entry))
+        {
+            return ProcessSnapshot.Failed;
+        }
+
+        do
         {
             var name = Path.GetFileNameWithoutExtension(entry.ExeFile ?? string.Empty);
             var id = unchecked((int)entry.ProcessId);
-            entries.Add(new ProcessEntry(id, unchecked((int)entry.ParentProcessId), name,
-                ProcessRoles.IsTracked(name) ? StartTime(id) : null));
+            DateTimeOffset? started = null;
+            int? session = null;
+            if (ProcessRoles.IsTracked(name) && !TryIdentity(id, out started, out session))
+            {
+                status = SnapshotStatus.Incomplete;
+            }
+
+            entries.Add(new ProcessEntry(id, unchecked((int)entry.ParentProcessId), name, started, session));
+        }
+        while (NativeMethods.Process32NextW(snapshot, ref entry));
+
+        if (Marshal.GetLastWin32Error() != NoMoreFiles)
+        {
+            status = SnapshotStatus.Incomplete;
         }
 
-        return entries;
+        return new ProcessSnapshot(status, entries);
     }
 
-    private static DateTimeOffset? StartTime(int id)
+    private static bool TryIdentity(int id, out DateTimeOffset? started, out int? session)
     {
+        started = null;
+        session = null;
         try
         {
             using var process = Process.GetProcessById(id);
-            return new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero);
+            started = new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero);
+            session = process.SessionId;
+            return true;
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or System.ComponentModel.Win32Exception or NotSupportedException)
         {
-            return null;
+            return false;
         }
     }
 
@@ -130,82 +177,181 @@ internal static class ProcessRoles
     };
 }
 
-/// <summary>One tracked process over a probe: its label, never its id, and when it was seen.</summary>
+/// <summary>
+/// One tracked process over a probe: its label, never its id. Exit is never stated as a time:
+/// it happened after <see cref="LastSeenMilliseconds"/> and no later than
+/// <see cref="FirstAbsentMilliseconds"/>, the first complete snapshot without it.
+/// </summary>
 internal sealed record TrackedProcess(string Label, string Role, DateTimeOffset? StartedAt, string ParentRole, long FirstSeenMilliseconds, bool PresentAtStart)
 {
-    public long? ExitedMilliseconds { get; init; }
+    public long LastSeenMilliseconds { get; init; }
 
-    public bool Alive => ExitedMilliseconds is null;
+    public long? FirstAbsentMilliseconds { get; init; }
+
+    // A process that a complete snapshot missed and a later one listed again: the earlier
+    // absence was not an exit.
+    public int Reappearances { get; init; }
+
+    // How the run knows this process is its own: "bound-server", "child-of-bound-server", or
+    // "appeared-during-start" (an SDK process first seen while the run's own start was in
+    // flight). Null when the run cannot attribute it.
+    public string? Attribution { get; init; }
+
+    public bool Alive => FirstAbsentMilliseconds is null;
 }
 
 /// <summary>
 /// Labels each Spatial Analyzer, SDK, server and worker process the first time a snapshot
-/// shows it (for example <c>sdk-1</c>) and records when it disappears. A process is known by
-/// its id and start time, so a reused id is a new process. Ids are kept in memory only.
+/// shows it with its start time (for example <c>sdk-1</c>). A process is known by its id and
+/// start time, so a reused id is a new process. Only a complete snapshot can mark a process
+/// absent; an incomplete or failed one is counted as a gap. Ids are kept in memory only.
 /// </summary>
 internal sealed class ProcessTracker(int harnessProcessId)
 {
-    private readonly Dictionary<(int Id, DateTimeOffset? StartedAt), TrackedProcess> _processes = [];
-    private readonly Dictionary<(int Id, DateTimeOffset? StartedAt), int> _ids = [];
+    private readonly Dictionary<(int Id, DateTimeOffset StartedAt), TrackedProcess> _processes = [];
+    private readonly Dictionary<string, (int Id, DateTimeOffset StartedAt, int ParentId, int? SessionId)> _identities = new(StringComparer.Ordinal);
     private readonly Dictionary<string, int> _ordinals = new(StringComparer.Ordinal);
     private bool _observed;
 
-    public IReadOnlyList<TrackedProcess> Processes => [.. _processes.Values.OrderBy(static process => process.FirstSeenMilliseconds).ThenBy(static process => process.Label, StringComparer.Ordinal)];
+    public int CompleteSnapshots { get; private set; }
+
+    public int IncompleteSnapshots { get; private set; }
+
+    public int FailedSnapshots { get; private set; }
+
+    /// <summary>The status of the most recent snapshot; null before the first.</summary>
+    public SnapshotStatus? LastStatus { get; private set; }
+
+    public ProcessSnapshot? LastSnapshot { get; private set; }
+
+    public IReadOnlyList<TrackedProcess> Processes => [.. _processes.Values
+        .OrderBy(static process => process.FirstSeenMilliseconds).ThenBy(static process => process.Label, StringComparer.Ordinal)];
 
     public IReadOnlyList<TrackedProcess> Alive(string role) =>
         [.. Processes.Where(process => process.Alive && string.Equals(process.Role, role, StringComparison.Ordinal))];
 
-    /// <summary>The live process with this label, for a termination that must hit exactly it.</summary>
-    public (int Id, DateTimeOffset? StartedAt)? Identity(string label)
+    /// <summary>True only when the last snapshot was complete and showed none of these roles.</summary>
+    public bool NoneConfirmed(params string[] roles) =>
+        LastStatus == SnapshotStatus.Complete && roles.All(role => Alive(role).Count == 0);
+
+    /// <summary>The id, start time, parent and session behind a label, for binding; never recorded.</summary>
+    public (int Id, DateTimeOffset StartedAt, int ParentId, int? SessionId)? Identity(string label) =>
+        _identities.TryGetValue(label, out var identity) ? identity : null;
+
+    public void Attribute(string label, string attribution)
     {
         foreach (var (key, process) in _processes)
         {
-            if (process.Alive && string.Equals(process.Label, label, StringComparison.Ordinal))
+            if (string.Equals(process.Label, label, StringComparison.Ordinal))
             {
-                return (_ids[key], key.StartedAt);
+                _processes[key] = process with { Attribution = attribution };
+            }
+        }
+    }
+
+    /// <summary>
+    /// Labels and counts of every process descended from <paramref name="rootId"/> in the last
+    /// snapshot, through parent ids. Only tracked descendants have labels.
+    /// </summary>
+    public (IReadOnlyList<string> Labels, int Count) Descendants(int rootId)
+    {
+        if (LastSnapshot is not { } snapshot)
+        {
+            return ([], 0);
+        }
+
+        var children = snapshot.Entries.Where(static entry => entry.Id != entry.ParentId)
+            .GroupBy(static entry => entry.ParentId).ToDictionary(static group => group.Key, static group => group.ToList());
+        var seen = new HashSet<int> { rootId };
+        var queue = new Queue<int>([rootId]);
+        var labels = new List<string>();
+        var count = 0;
+        while (queue.Count > 0)
+        {
+            foreach (var child in children.GetValueOrDefault(queue.Dequeue(), []))
+            {
+                if (!seen.Add(child.Id))
+                {
+                    continue;
+                }
+
+                count++;
+                queue.Enqueue(child.Id);
+                if (child.StartedAt is { } started && _processes.TryGetValue((child.Id, started), out var tracked))
+                {
+                    labels.Add(tracked.Label);
+                }
             }
         }
 
-        return null;
+        return ([.. labels.Order(StringComparer.Ordinal)], count);
     }
 
-    public void Observe(IReadOnlyList<ProcessEntry> snapshot, long offsetMilliseconds)
+    public void Observe(ProcessSnapshot snapshot, long offsetMilliseconds)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
+        LastStatus = snapshot.Status;
+        switch (snapshot.Status)
+        {
+            case SnapshotStatus.Failed:
+                FailedSnapshots++;
+                return;
+            case SnapshotStatus.Incomplete:
+                IncompleteSnapshots++;
+                break;
+            default:
+                CompleteSnapshots++;
+                break;
+        }
+
+        LastSnapshot = snapshot;
         var byId = new Dictionary<int, ProcessEntry>();
-        foreach (var entry in snapshot)
+        foreach (var entry in snapshot.Entries)
         {
             byId.TryAdd(entry.Id, entry);
         }
 
-        var present = new HashSet<(int, DateTimeOffset?)>();
-        foreach (var entry in snapshot)
+        var present = new HashSet<(int, DateTimeOffset)>();
+        foreach (var entry in snapshot.Entries)
         {
-            if (ProcessRoles.RoleOf(entry.Name) is not { } role)
+            // A tracked process without its start time cannot be told from a reused id.
+            if (ProcessRoles.RoleOf(entry.Name) is not { } role || entry.StartedAt is not { } started)
             {
                 continue;
             }
 
-            var key = (entry.Id, entry.StartedAt);
+            var key = (entry.Id, started);
             present.Add(key);
-            if (_processes.ContainsKey(key))
+            if (_processes.TryGetValue(key, out var known))
             {
+                _processes[key] = known with
+                {
+                    LastSeenMilliseconds = offsetMilliseconds,
+                    FirstAbsentMilliseconds = null,
+                    Reappearances = known.Alive ? known.Reappearances : known.Reappearances + 1
+                };
                 continue;
             }
 
             var ordinal = _ordinals[role] = _ordinals.GetValueOrDefault(role) + 1;
-            var parent = byId.GetValueOrDefault(entry.ParentId);
-            _processes[key] = new TrackedProcess(
-                $"{role}-{ordinal.ToString(System.Globalization.CultureInfo.InvariantCulture)}", role, entry.StartedAt,
-                ProcessRoles.ParentRoleOf(entry.ParentId, parent, harnessProcessId), offsetMilliseconds, PresentAtStart: !_observed);
-            _ids[key] = entry.Id;
+            var label = $"{role}-{ordinal.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+            _processes[key] = new TrackedProcess(label, role, started,
+                ProcessRoles.ParentRoleOf(entry.ParentId, byId.GetValueOrDefault(entry.ParentId), harnessProcessId), offsetMilliseconds, PresentAtStart: !_observed)
+            {
+                LastSeenMilliseconds = offsetMilliseconds
+            };
+            _identities[label] = (entry.Id, started, entry.ParentId, entry.SessionId);
         }
 
-        foreach (var key in _processes.Keys.ToList())
+        // Only a complete snapshot can show that a process is gone.
+        if (snapshot.Status == SnapshotStatus.Complete)
         {
-            if (_processes[key].Alive && !present.Contains(key))
+            foreach (var key in _processes.Keys.ToList())
             {
-                _processes[key] = _processes[key] with { ExitedMilliseconds = offsetMilliseconds };
+                if (_processes[key].Alive && !present.Contains(key))
+                {
+                    _processes[key] = _processes[key] with { FirstAbsentMilliseconds = offsetMilliseconds };
+                }
             }
         }
 

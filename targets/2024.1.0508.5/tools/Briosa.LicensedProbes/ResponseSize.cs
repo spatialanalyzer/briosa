@@ -1,30 +1,31 @@
-using System.Reflection;
 using Briosa.Worker.Control;
+using Api = global::Briosa;
 
 namespace Briosa.LicensedProbes;
 
 /// <summary>
-/// The size of one response as the harness received it (licensed session 4, #402). It
-/// holds byte counts and one flag, never a value. In the worker phase the harness is the
-/// worker's host, so it counts the bytes of the private frame it reads; in the public phase
-/// it measures the protobuf message the generated client received.
+/// The size of one response as the harness received it (licensed session 4, #402). It holds
+/// byte counts and one flag, never a value. In the worker phase the harness is the worker's
+/// host, so it counts the bytes of the private frame it reads; in the public phase it measures
+/// the protobuf message the generated client received.
 /// </summary>
-/// <param name="WorkerFrameBytes">
+/// <param name="ReceivedFrameBytes">
 /// Payload bytes of the private worker frame the harness received, without the 4-byte length
-/// header. This is the quantity the worker response budget bounds. When
-/// <paramref name="BudgetExceeded"/> is true it is the size of the worker's bounded
-/// replacement, not of the result that did not fit. Null in the public phase.
+/// header. When <paramref name="EncodingRejected"/> is true this is the size of the worker's
+/// bounded replacement, never of the result it replaced. Null in the public phase.
 /// </param>
 /// <param name="PublicMessageBytes">
 /// Serialized size of the protobuf response message the generated client received. Null in
 /// the worker phase and when the RPC returned an error instead of a message.
 /// </param>
-/// <param name="BudgetExceeded">
-/// The worker could not encode the result within its response budget, so the outputs were
-/// replaced by the existing completed outputs-unavailable outcome (<c>worker-output-encoding-rejected</c>).
-/// The result's own size is then unknown; it is larger than the budget.
+/// <param name="EncodingRejected">
+/// The worker could not encode at least one output, so it sent its bounded replacement: the
+/// completed outputs-unavailable outcome, or an SDK call fault with that output withheld
+/// (<c>worker-output-encoding-rejected</c>). The product gives that code both to a result over
+/// the response budget and to a value it cannot encode at all (for example a non-finite
+/// number), so the original size is unknown and is never reported as an overflow.
 /// </param>
-internal sealed record ResponseSize(int? WorkerFrameBytes, int? PublicMessageBytes, bool BudgetExceeded)
+internal sealed record ResponseSize(int? ReceivedFrameBytes, int? PublicMessageBytes, bool EncodingRejected)
 {
     // The 4-byte little-endian length prefix of every private frame.
     public const int FrameHeaderBytes = sizeof(int);
@@ -32,62 +33,52 @@ internal sealed record ResponseSize(int? WorkerFrameBytes, int? PublicMessageByt
     // grpc-dotnet's default MaxReceiveMessageSize, which the published clients keep.
     public const int PublishedClientReceiveLimitBytes = 4 * 1024 * 1024;
 
-    /// <summary>The value-free code the worker reports when a result did not fit its response budget.</summary>
-    public const string BudgetExceededDiagnosticCode = WorkerExecutionDelivery.OutputEncodingRejected;
+    /// <summary>The value-free code the worker reports for an output it could not encode.</summary>
+    public const string EncodingRejectedDiagnosticCode = WorkerExecutionDelivery.OutputEncodingRejected;
 
     /// <summary>The protobuf message is larger than the published clients can receive.</summary>
     public bool? ExceedsPublishedClientLimit => PublicMessageBytes is { } bytes ? bytes > PublishedClientReceiveLimitBytes : null;
 
-    public static ResponseSize FromWorkerFrame(int frameBytes, string? diagnosticCode) =>
-        new(frameBytes, null, string.Equals(diagnosticCode, BudgetExceededDiagnosticCode, StringComparison.Ordinal));
-
     /// <summary>
-    /// The size of one received execution result. The budget was exceeded when the result is
-    /// the outputs-unavailable replacement, or when an SDK call fault arrived with an output
-    /// withheld because it did not fit.
+    /// The size of one received execution result. Encoding was rejected when the result is the
+    /// outputs-unavailable replacement, or when any output arrived withheld for its encoding.
     /// </summary>
     public static ResponseSize FromWorkerResponse(int frameBytes, WorkerExecutionResponse response)
     {
         ArgumentNullException.ThrowIfNull(response);
         var execution = response.Execution;
-        var exceeded =
-            string.Equals(execution?.DiagnosticCode ?? response.DiagnosticCode, BudgetExceededDiagnosticCode, StringComparison.Ordinal) ||
+        var rejected =
+            string.Equals(execution?.DiagnosticCode ?? response.DiagnosticCode, EncodingRejectedDiagnosticCode, StringComparison.Ordinal) ||
             (execution?.OutputValues.Any(static output =>
-                output is WorkerUnavailableOutput { Reason: WorkerUnavailableOutputReason.EncodingRejected }) ?? false);
-        return new(frameBytes, null, exceeded);
+                output is WorkerUnavailableOutput { Reason: WorkerUnavailableOutputReason.EncodingRejected } ||
+                string.Equals(output.DiagnosticCode, EncodingRejectedDiagnosticCode, StringComparison.Ordinal)) ?? false);
+        return new(frameBytes, null, rejected);
     }
 
     public static ResponseSize FromPublicMessage(int messageBytes) => new(null, messageBytes, false);
 
-    public static ResponseSize PublicBudgetExceeded { get; } = new(null, null, true);
+    /// <summary>
+    /// A public error whose result, or any one of its outputs, carries the worker's encoding
+    /// rejection; null when nothing was rejected for its encoding.
+    /// </summary>
+    public static ResponseSize? FromPublicError(Api.OperationError error)
+    {
+        ArgumentNullException.ThrowIfNull(error);
+        var rejected = string.Equals(error.DiagnosticCode, EncodingRejectedDiagnosticCode, StringComparison.Ordinal) ||
+            (error.MpExecution?.OutputRetrievals.Any(static output =>
+                string.Equals(output.DiagnosticCode, EncodingRejectedDiagnosticCode, StringComparison.Ordinal)) ?? false);
+        return rejected ? new ResponseSize(null, null, EncodingRejected: true) : null;
+    }
 }
 
 /// <summary>
-/// The private worker response budget of the build the harness runs with. The harness and
-/// the worker always come from the same commit, so this is the budget the worker enforces.
-/// It is read by name so that the harness works unchanged at either budget: the single 64 KiB
-/// frame limit (<c>MaximumMessageBytes</c>), or the separate 1 MiB response budget
-/// (<c>MaximumResponseBytes</c>) proposed by #411, whichever is merged first.
+/// The private worker response budget of the build the harness runs with. The harness and the
+/// worker always come from the same commit, so this is the budget the worker enforces: 1 MiB
+/// since #411, separate from the 64 KiB request budget and the public inbound limit.
 /// </summary>
 internal static class WorkerResponseBudget
 {
-    private static readonly Lazy<int> Value = new(Resolve);
-
-    public static int Bytes => Value.Value;
-
-    internal static int Resolve()
-    {
-        foreach (var name in new[] { "MaximumResponseBytes", "MaximumMessageBytes" })
-        {
-            if (typeof(WorkerControlProtocol).GetField(name, BindingFlags.Public | BindingFlags.Static) is { IsLiteral: true } field &&
-                field.GetRawConstantValue() is int bytes && bytes > 0)
-            {
-                return bytes;
-            }
-        }
-
-        throw new InvalidOperationException("The worker control protocol declares no response budget.");
-    }
+    public static int Bytes => WorkerControlProtocol.MaximumResponseBytes;
 }
 
 /// <summary>

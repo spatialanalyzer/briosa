@@ -334,9 +334,12 @@ internal static class ProbeRecorder
         if (outcome.Size is { } size)
         {
             json.WriteStartObject("response_size");
-            WriteNullable(json, "worker_frame_bytes", size.WorkerFrameBytes);
+            WriteNullable(json, "received_frame_bytes", size.ReceivedFrameBytes);
             WriteNullable(json, "public_message_bytes", size.PublicMessageBytes);
-            json.WriteBoolean("budget_exceeded", size.BudgetExceeded);
+            json.WriteBoolean("encoding_rejected", size.EncodingRejected);
+
+            // A rejected result's own size is never measured: the frame is its replacement.
+            json.WriteString("original_size", size.EncodingRejected ? "unknown" : "as received");
             WriteNullable(json, "exceeds_published_client_limit", size.ExceedsPublishedClientLimit);
             json.WriteEndObject();
         }
@@ -465,7 +468,7 @@ internal static class ProbeRecorder
         text.Append(CultureInfo.InvariantCulture,
             $"\n**Result sizes (probe 34).** This build's worker response budget is {WorkerResponseBudget.Bytes} bytes; ")
             .Append(CultureInfo.InvariantCulture, $"the published clients receive at most {ResponseSize.PublishedClientReceiveLimitBytes} bytes.\n\n")
-            .Append("| Step | Elements | Worker frame bytes | Protobuf message bytes | Over the worker budget |\n")
+            .Append("| Step | Elements | Received frame bytes | Protobuf message bytes | Encoding |\n")
             .Append("| --- | --- | --- | --- | --- |\n");
         foreach (var step in sized)
         {
@@ -475,20 +478,20 @@ internal static class ProbeRecorder
                 : outcome?.Observations.TryGetValue("match_count", out var matches) == true ? matches : "-";
             var size = outcome?.Size;
             text.Append(CultureInfo.InvariantCulture,
-                $"| `{step.Step.Id}` | {elements} | {Bytes(size?.WorkerFrameBytes)} | {Bytes(size?.PublicMessageBytes)} | ")
+                $"| `{step.Step.Id}` | {elements} | {Bytes(size?.ReceivedFrameBytes)} | {Bytes(size?.PublicMessageBytes)} | ")
                 .Append(step.Classification switch
                 {
                     StepClassification.FixtureMissing => "not run (fixture missing)",
                     StepClassification.Excluded => "excluded",
                     StepClassification.NotRun => "not run",
                     _ when size is null => "not measured",
-                    _ => size.BudgetExceeded ? "yes: outputs not delivered" : "no"
+                    _ => size.EncodingRejected ? "rejected; original size unknown" : "delivered"
                 })
                 .Append(" |\n");
         }
 
-        text.Append("\nWhen a result exceeded the budget, the frame size is that of the worker's bounded replacement, ")
-            .Append("and the result's own size is only known to exceed the budget.\n");
+        text.Append("\nWhen the worker rejected a result's encoding, the frame size is that of its bounded replacement and the ")
+            .Append("original size is unknown: the same code covers a result over the budget and a value that cannot be encoded.\n");
     }
 
     private static string Bytes(int? value) => value?.ToString(CultureInfo.InvariantCulture) ?? "-";
@@ -593,8 +596,8 @@ internal static class ProbeRecorder
         {
             text.Append(size switch
             {
-                { BudgetExceeded: true } => " The result exceeded the worker response budget; its outputs were not delivered.",
-                { WorkerFrameBytes: { } frame } => string.Create(CultureInfo.InvariantCulture, $" Worker frame {frame} bytes."),
+                { EncodingRejected: true } => " The worker rejected the result's encoding; its outputs were not delivered and its size is unknown.",
+                { ReceivedFrameBytes: { } frame } => string.Create(CultureInfo.InvariantCulture, $" Worker frame {frame} bytes."),
                 { PublicMessageBytes: { } message } => string.Create(CultureInfo.InvariantCulture, $" Protobuf message {message} bytes."),
                 _ => string.Empty
             });

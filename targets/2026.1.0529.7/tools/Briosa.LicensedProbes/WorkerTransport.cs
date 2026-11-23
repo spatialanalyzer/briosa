@@ -149,7 +149,7 @@ internal sealed class WorkerTransport : IProbeTransport
             var frameBytes = FrameBytes(before, _counter.BytesRead);
             var outcome = response.ExecutionResponse is { } execution
                 ? WorkerOutcomes.FromResponse(execution, outputs => step.Operation.ObserveWorker(step.Request, outputs),
-                    step.Command.OperationId) with
+                    step.Command.OperationId, [.. step.Command.OutputArguments.Select(static output => output.Name)]) with
                 {
                     Size = ResponseSize.FromWorkerResponse(frameBytes, execution)
                 }
@@ -262,7 +262,8 @@ internal sealed class WorkerTransport : IProbeTransport
         {
             if (!_process.HasExited)
             {
-                _process.Kill(entireProcessTree: true);
+                // The worker only, never its process tree: the harness ends nothing it did not start.
+                _process.Kill(entireProcessTree: false);
             }
         }
         catch (InvalidOperationException) when (_process.HasExited)

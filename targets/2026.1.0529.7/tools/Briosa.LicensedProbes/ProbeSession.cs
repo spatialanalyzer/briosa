@@ -162,6 +162,10 @@ internal static class ProbeSession
     public const string DestructiveRefusalStop = "destructive-target-not-created-by-harness";
     public const string CheckpointStop = "operator-checkpoint-not-confirmed";
 
+    // The operator answered license-prompt-abort: a license prompt is open, and nothing more
+    // is sent (#402). The prompt is never copied or dismissed by the run.
+    public const string LicensePromptStop = "license-prompt-operator-abort";
+
     /// <summary>Records the plan without starting any transport.</summary>
     public static ProbeSessionRecord DryRun(ProbePlan plan, TimeProvider clock)
     {
@@ -250,11 +254,15 @@ internal static class ProbeSession
             if (step.Checkpoints.HasFlag(OperatorCheckpoint.Before))
             {
                 var before = await console.CheckpointAsync(step, OperatorCheckpoint.Before, cancellationToken).ConfigureAwait(false);
-                if (before is null)
+                if (before is null || OperatorObservationText.IsLicensePromptAbort(before))
                 {
-                    records.Add(new ProbeStepRecord(step, ProbeOutcome.Refused("operator-checkpoint-not-confirmed"),
-                        StepClassification.Refused, [], null));
-                    (stoppedAt, stopReason) = (step.Id, CheckpointStop);
+                    var license = OperatorObservationText.IsLicensePromptAbort(before);
+                    records.Add(new ProbeStepRecord(step, ProbeOutcome.Refused(license ? LicensePromptStop : "operator-checkpoint-not-confirmed"),
+                        StepClassification.Refused, [], null)
+                    {
+                        OperatorObservations = license ? [new OperatorObservation(OperatorCheckpoint.Before, before!)] : []
+                    });
+                    (stoppedAt, stopReason) = (step.Id, license ? LicensePromptStop : CheckpointStop);
                     continue;
                 }
 
@@ -281,6 +289,7 @@ internal static class ProbeSession
             // Whatever the outcome, the operator records and dismisses any dialog
             // before anything else is sent.
             var unanswered = false;
+            var licensePrompt = false;
             if (step.Checkpoints.HasFlag(OperatorCheckpoint.After))
             {
                 var after = await console.CheckpointAsync(step, OperatorCheckpoint.After, cancellationToken).ConfigureAwait(false);
@@ -291,6 +300,7 @@ internal static class ProbeSession
                 else
                 {
                     operatorObservations.Add(new OperatorObservation(OperatorCheckpoint.After, after));
+                    licensePrompt = OperatorObservationText.IsLicensePromptAbort(after);
                 }
             }
 
@@ -307,7 +317,11 @@ internal static class ProbeSession
                 }
 
                 // The step's own result stands; nothing later is sent without the operator.
-                if (unanswered)
+                if (licensePrompt)
+                {
+                    (stoppedAt, stopReason) = (step.Id, LicensePromptStop);
+                }
+                else if (unanswered)
                 {
                     (stoppedAt, stopReason) = (step.Id, CheckpointStop);
                 }
@@ -327,7 +341,7 @@ internal static class ProbeSession
             stoppedAt = step.Id;
             // ExecuteStep false, a missing MP result, or any other unknown completion:
             // the step is never replayed and no later step runs.
-            stopReason = outcome.CompletionUnknown
+            stopReason = licensePrompt ? LicensePromptStop : outcome.CompletionUnknown
                 ? UnknownOutcomeStop
                 : accepted ? RequirementStop : UnexpectedDispositionStop;
         }

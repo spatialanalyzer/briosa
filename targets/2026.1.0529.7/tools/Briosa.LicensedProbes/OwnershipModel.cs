@@ -187,7 +187,7 @@ internal sealed record OwnershipOptions
 
 /// <summary>
 /// The value-free result of one lifecycle or discovery call: transport status, enum names,
-/// the SDK generation number, readiness, and a stable diagnostic code.
+/// the SDK generation number, readiness, and a listed diagnostic code.
 /// </summary>
 internal sealed record LifecycleResult(
     string Transport,
@@ -198,10 +198,15 @@ internal sealed record LifecycleResult(
     string? DiagnosticCode,
     string? IncidentTermination)
 {
+    public const string ClientCancelledTransport = "grpc:client-cancelled";
+
     public bool Ok => string.Equals(Transport, "grpc:OK", StringComparison.Ordinal);
 
+    /// <summary>The call was sent and the caller stopped waiting: its outcome is unknown.</summary>
+    public bool Cancelled => string.Equals(Transport, ClientCancelledTransport, StringComparison.Ordinal);
+
     public static LifecycleResult Failed(string transport, string? diagnosticCode) =>
-        new(transport, null, null, false, null, SafeCode.OrNull(diagnosticCode), null);
+        new(transport, null, null, false, null, diagnosticCode, null);
 }
 
 /// <summary>What discovery says before a probe: target, readiness, and the published lifecycle bounds.</summary>
@@ -217,7 +222,11 @@ internal sealed record ServerDescription(
 }
 
 /// <summary>The value-free result of one step of the competing second worker.</summary>
-internal sealed record SecondWorkerResult(string Result, string? ConnectionState, string? DiagnosticCode, bool? ActivatedSdkMatchesTarget);
+internal sealed record SecondWorkerResult(string Result, string? ConnectionState, string? DiagnosticCode, bool? ActivatedSdkMatchesTarget)
+{
+    public const string Ready = "ready";
+    public const string Connected = "connected";
+}
 
 /// <summary>The packaged server, through generated clients on loopback only.</summary>
 internal interface IOwnershipServer : IAsyncDisposable
@@ -236,11 +245,49 @@ internal interface IOwnershipServer : IAsyncDisposable
     Task<ProbeOutcome> ExecuteAsync(ProbeStep step, CancellationToken cancellationToken);
 }
 
-/// <summary>Terminates exactly one process, after checking that it is still the one the tracker labelled.</summary>
-internal interface IProcessTerminator
+internal enum BindingCheck
 {
-    /// <summary>Returns terminated, not-found, identity-changed, or failed.</summary>
-    string Terminate(int processId, DateTimeOffset? startedAt, string expectedName);
+    // The held handle still names a running process: the one that was bound.
+    Running,
+
+    // The bound process has exited. Nothing else can take its place behind the handle.
+    Exited,
+
+    // Its state could not be read.
+    Unverifiable
+}
+
+/// <summary>
+/// One Briosa worker or server process bound to this run through a handle that was opened and
+/// checked once (name and start time read through the handle). While it is held, the handle
+/// names only that process, even if its id is reused, so a check or a termination can never
+/// reach a replacement.
+/// </summary>
+internal interface IBoundProcess : IDisposable
+{
+    BindingCheck Check();
+
+    /// <summary>Ends that one process, never its children: terminated, exited, or failed.</summary>
+    string Terminate();
+}
+
+/// <summary>What the ownership probes may read about, or do to, processes beyond the snapshot.</summary>
+internal interface IProcessControl
+{
+    /// <summary>The operator's Windows session: the harness's own.</summary>
+    int HarnessSessionId { get; }
+
+    /// <summary>
+    /// Binds one Briosa worker or server. Null when the process is gone, cannot be opened, or its
+    /// name or start time read through the handle is not the one the tracker saw.
+    /// </summary>
+    IBoundProcess? Bind(int processId, DateTimeOffset startedAt, string expectedName);
+
+    /// <summary>The owning process ids of every listener on the endpoint's port; null when the table cannot be read.</summary>
+    IReadOnlyList<int>? EndpointListeners(Uri address);
+
+    /// <summary>Whether the worker executable is in the bound server's own folder; null when that cannot be read.</summary>
+    bool? WorkerFromServerPackage(IBoundProcess server, string workerPath);
 }
 
 /// <summary>A second, unchanged Briosa worker hosted by the harness (competing-client only).</summary>
@@ -270,14 +317,14 @@ internal sealed class SystemPause : IPause
 internal sealed record OwnershipEnvironment(
     IProcessTable Processes,
     IOwnershipServer? Server,
-    IProcessTerminator Terminator,
+    IProcessControl Control,
     Func<ISecondWorker>? SecondWorker,
     IOperatorConsole Console,
     IPause Pause,
     TimeProvider Clock,
     int HarnessProcessId);
 
-/// <summary>One step of an ownership probe. It holds labels, enum names, codes and times only.</summary>
+/// <summary>One step of an ownership probe. It holds labels, enum names, listed codes and times only.</summary>
 internal sealed record OwnershipStepRecord(string Id, string Action, long StartedMilliseconds, long ElapsedMilliseconds, string Result)
 {
     public LifecycleResult? Lifecycle { get; init; }
@@ -286,13 +333,21 @@ internal sealed record OwnershipStepRecord(string Id, string Action, long Starte
 
     public SecondWorkerResult? SecondWorker { get; init; }
 
-    // The label of the process a terminate step ended, for example worker-1.
+    // The label of the process a step bound or terminated, for example worker-1, or the id of
+    // the step a cancellation interrupted.
     public string? Target { get; init; }
 
     public string? OperatorAnswer { get; init; }
 
-    // Labels of the SDK, worker and server processes alive when the step ended.
+    // Labels of the SDK, worker and server processes alive when the step ended, or for a
+    // descendant census the labelled descendants.
     public IReadOnlyList<string> Alive { get; init; } = [];
+
+    // A descendant census: how many processes of any kind descend from the bound worker.
+    public int? DescendantCount { get; init; }
+
+    // The status of the snapshot the step ended with.
+    public SnapshotStatus? Snapshot { get; init; }
 }
 
 internal sealed record OwnershipRecord(
@@ -306,12 +361,31 @@ internal sealed record OwnershipRecord(
     TimeSpan ObserveWindow,
     string? HarnessRevision)
 {
+    public string? BoundServer { get; init; }
+
+    public string? BoundWorker { get; init; }
+
+    public int? BoundGeneration { get; init; }
+
+    public int CompleteSnapshots { get; init; }
+
+    public int IncompleteSnapshots { get; init; }
+
+    public int FailedSnapshots { get; init; }
+
+    /// <summary>The last snapshot of the run; only a complete one can show that nothing remains.</summary>
+    public SnapshotStatus? FinalSnapshot { get; init; }
+
     /// <summary>Every planned step ran as the script says.</summary>
     public bool Completed => StopReason is null;
 
+    /// <summary>Whether the residual list is known: the run ended with a complete snapshot.</summary>
+    public bool ResidualKnown => FinalSnapshot == SnapshotStatus.Complete;
+
     /// <summary>
     /// SDK and worker processes alive when the run ended; for <see cref="OwnershipScenario.Observe"/>,
-    /// and after parent death, server processes too. Each is a residual for the runbook's postflight.
+    /// and after parent death, server processes too. When <see cref="ResidualKnown"/> is false the
+    /// list is only what the last complete snapshot showed, and postflight cannot pass.
     /// </summary>
     public IReadOnlyList<TrackedProcess> Residual => [.. Processes.Where(process => process.Alive &&
         (process.Role is ProcessRoles.Sdk or ProcessRoles.Worker ||

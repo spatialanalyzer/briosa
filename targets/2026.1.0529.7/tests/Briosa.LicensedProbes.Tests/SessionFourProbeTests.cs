@@ -232,9 +232,9 @@ public sealed class SessionFourProbeTests
     [Fact]
     public void TheWorkerResponseBudgetIsTheBuildsOwn()
     {
-        // 64 KiB on main today; 1 MiB once the response budget is separated (#411).
-        Assert.Contains(WorkerResponseBudget.Bytes, new[] { 64 * 1024, 1024 * 1024 });
-        Assert.Equal(WorkerResponseBudget.Resolve(), WorkerResponseBudget.Bytes);
+        // 1 MiB since #411, separate from the 64 KiB request budget.
+        Assert.Equal(1024 * 1024, WorkerResponseBudget.Bytes);
+        Assert.Equal(WorkerControlProtocol.MaximumResponseBytes, WorkerResponseBudget.Bytes);
     }
 
     [Fact]
@@ -245,8 +245,8 @@ public sealed class SessionFourProbeTests
         var size = ResponseSize.FromWorkerResponse(frame, received.ExecutionResponse!);
 
         Assert.Equal(bytesOnWire - ResponseSize.FrameHeaderBytes, frame);
-        Assert.Equal(frame, size.WorkerFrameBytes);
-        Assert.False(size.BudgetExceeded);
+        Assert.Equal(frame, size.ReceivedFrameBytes);
+        Assert.False(size.EncodingRejected);
         Assert.Null(size.PublicMessageBytes);
         var outcome = WorkerOutcomes.FromResponse(received.ExecutionResponse!, outputs =>
             ProbeOperations.MakePointNameRefListFromGroup.ObserveWorker(new Api.MakePointNameRefListFromGroupRequest(), outputs),
@@ -295,22 +295,56 @@ public sealed class SessionFourProbeTests
         var outcome = WorkerOutcomes.FromResponse(received.ExecutionResponse!, static _ => ProbeOutcome.EmptyObservations,
             "construction_operations.make_point_name_ref_list_from_group");
 
-        Assert.True(size.BudgetExceeded);
+        Assert.True(size.EncodingRejected);
         Assert.True(frame < WorkerResponseBudget.Bytes);
         Assert.Equal(ProbeOutcomeKind.OutputRetrievalFailed, outcome.Kind);
         Assert.True(ProbeOutcomes.AnyDeterminateSdkOutcome.Accepts(outcome));
     }
 
     [Fact]
-    public void AnOutputWithheldFromAnSdkFaultCountsAsOverTheBudget()
+    public async Task ANonFiniteValueFarBelowTheBudgetIsAnEncodingRejectionNotASize()
+    {
+        // One NaN: the worker rejects the encoding although the result is tiny. The record must
+        // say "rejected, size unknown", never that the budget was exceeded.
+        var response = Completed(new WorkerMpResultAvailable(2, 5,
+            [new WorkerRetrievedOutput("Total Count", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(double.NaN))], null));
+        var message = WorkerControlMessage.ExecutionResult(Guid.NewGuid(), response);
+        using (var rejected = new MemoryStream())
+        using (var channel = new WorkerControlChannel(rejected, leaveOpen: true))
+        {
+            await Assert.ThrowsAsync<WorkerMessageRejectedException>(async () => await channel.SendAsync(message));
+        }
+
+        var (frame, _, received) = await RoundTripAsync(WorkerExecutionDelivery.Undeliverable(message.CorrelationId, response));
+        var size = ResponseSize.FromWorkerResponse(frame, received.ExecutionResponse!);
+        var plan = Select(ProbePhase.Worker, FullManifest(), 34);
+        var record = await Run(plan, step => step.Id == "p34-list-100"
+            ? TestSupport.Outcome(ProbeOutcomeKind.OutputRetrievalFailed) with { Size = size }
+            : TestSupport.Succeeding(step));
+        using var document = JsonDocument.Parse(ProbeRecorder.ToJson(record));
+        var json = document.RootElement.GetProperty("steps").EnumerateArray().Single(static step => step.GetProperty("id").GetString() == "p34-list-100")
+            .GetProperty("outcome").GetProperty("response_size");
+        var markdown = ProbeRecorder.ToMarkdown(record);
+
+        Assert.True(size.EncodingRejected);
+        Assert.Equal(frame, size.ReceivedFrameBytes);
+        Assert.Equal("unknown", json.GetProperty("original_size").GetString());
+        Assert.True(json.GetProperty("encoding_rejected").GetBoolean());
+        Assert.False(json.TryGetProperty("budget_exceeded", out _));
+        Assert.Contains("rejected; original size unknown", markdown, StringComparison.Ordinal);
+        Assert.DoesNotContain("exceeded", markdown, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void AnOutputWithheldFromAnSdkFaultCountsAsAnEncodingRejection()
     {
         var fault = new WorkerSdkCallFaulted(WorkerSdkCallPhase.OutputGetter, 5,
             [new WorkerUnavailableOutput("Resultant Point Name List", WorkerMpValueKind.PointNameList, WorkerExecutionDelivery.OutputEncodingRejected,
                 WorkerUnavailableOutputReason.EncodingRejected)],
             "sdk-output-getter-faulted", 2);
 
-        Assert.True(ResponseSize.FromWorkerResponse(200, Completed(fault)).BudgetExceeded);
-        Assert.False(ResponseSize.FromWorkerResponse(200, Completed(new WorkerMpResultAvailable(2, 5, [PointNames(1)], null))).BudgetExceeded);
+        Assert.True(ResponseSize.FromWorkerResponse(200, Completed(fault)).EncodingRejected);
+        Assert.False(ResponseSize.FromWorkerResponse(200, Completed(new WorkerMpResultAvailable(2, 5, [PointNames(1)], null))).EncodingRejected);
     }
 
     [Fact]
@@ -347,7 +381,7 @@ public sealed class SessionFourProbeTests
         Assert.Equal("250", outcome.Observations["element_count"]);
         Assert.Equal(result.CalculateSize(), outcome.Size!.PublicMessageBytes);
         Assert.False(outcome.Size.ExceedsPublishedClientLimit);
-        Assert.Null(outcome.Size.WorkerFrameBytes);
+        Assert.Null(outcome.Size.ReceivedFrameBytes);
     }
 
     [Fact]
@@ -356,7 +390,7 @@ public sealed class SessionFourProbeTests
         var error = new Api.OperationError
         {
             Kind = Api.OperationFailureKind.OutputRetrievalFailure,
-            DiagnosticCode = ResponseSize.BudgetExceededDiagnosticCode,
+            DiagnosticCode = ResponseSize.EncodingRejectedDiagnosticCode,
             ExecutionDisposition = Api.ExecutionDisposition.Completed,
             MpExecution = new Api.MpExecutionDetails { State = Api.MpExecutionState.Succeeded, MpResultCode = 2 }
         };
@@ -370,9 +404,63 @@ public sealed class SessionFourProbeTests
 
         Assert.Equal(ProbeOutcomeKind.OutputRetrievalFailed, outcome.Kind);
         Assert.Equal("grpc:DataLoss", outcome.Transport);
-        Assert.True(outcome.Size!.BudgetExceeded);
+        Assert.True(outcome.Size!.EncodingRejected);
         Assert.Null(outcome.Size.PublicMessageBytes);
         Assert.Null(unrelated.Size);
+    }
+
+    [Fact]
+    public void AGetterFaultWithOneOutputRejectedForItsEncodingIsSeenPerOutput()
+    {
+        // On main, a getter fault can deliver every output that fits and mark only the rest.
+        var error = new Api.OperationError
+        {
+            Kind = Api.OperationFailureKind.SdkCallFaulted,
+            DiagnosticCode = "sdk-output-getter-faulted",
+            ExecutionDisposition = Api.ExecutionDisposition.Completed,
+            MpExecution = new Api.MpExecutionDetails { State = Api.MpExecutionState.Succeeded, MpResultCode = 2 }
+        };
+        error.MpExecution.OutputRetrievals.Add(new Api.OutputRetrievalDetails
+        {
+            FieldName = "resultant_point_name_list",
+            State = Api.OutputRetrievalState.Failed,
+            DiagnosticCode = ResponseSize.EncodingRejectedDiagnosticCode
+        });
+        var outcome = PublicOutcomes.FromRpcException(new RpcException(new Status(StatusCode.DataLoss, "x"),
+            new Metadata { { PublicOutcomes.ErrorTrailerName, error.ToByteArray() } }));
+
+        Assert.True(outcome.Size!.EncodingRejected);
+        Assert.Equal(ProbeOutcomeKind.OutputRetrievalFailed, outcome.Kind);
+        Assert.Equal("sdk-output-getter-faulted", outcome.DiagnosticCode);
+    }
+
+    [Fact]
+    public void ExternalCodesAndNamesReachARecordOnlyWhenListedOrInShape()
+    {
+        var error = new Api.OperationError
+        {
+            Kind = Api.OperationFailureKind.MpFailure,
+            DiagnosticCode = "desktop-sentinel-01",
+            ExecutionDisposition = Api.ExecutionDisposition.Completed,
+            MpExecution = new Api.MpExecutionDetails { State = Api.MpExecutionState.Failed, MpResultCode = 3 }
+        };
+        error.MpExecution.OutputRetrievals.Add(new Api.OutputRetrievalDetails { FieldName = "C:\\SENTINEL\\file", State = Api.OutputRetrievalState.NotAttempted });
+        var publicOutcome = PublicOutcomes.FromRpcException(new RpcException(new Status(StatusCode.FailedPrecondition, "x"),
+            new Metadata { { PublicOutcomes.ErrorTrailerName, error.ToByteArray() } }));
+        var workerOutcome = WorkerOutcomes.FromResponse(Completed(new WorkerMpResultAvailable(3, 5, [], "sentinel-account-name")),
+            static _ => ProbeOutcome.EmptyObservations, "construction_operations.make_point_name_ref_list_from_group");
+        var named = WorkerOutcomes.FromResponse(Completed(new WorkerMpResultAvailable(2, 5, [PointNames(1)], null)),
+            static _ => ProbeOutcome.EmptyObservations, "construction_operations.make_point_name_ref_list_from_group", ["Some Other Output"]);
+
+        Assert.Equal(ExternalValues.Withheld, publicOutcome.DiagnosticCode);
+        Assert.Equal(ExternalValues.Withheld, Assert.Single(publicOutcome.Outputs).Name);
+        Assert.Equal(ExternalValues.Withheld, workerOutcome.DiagnosticCode);
+        Assert.Equal(ExternalValues.Withheld, Assert.Single(named.Outputs).Name);
+        Assert.Equal("Resultant Point Name List", WorkerOutcomes.OutputName("Resultant Point Name List", null));
+        Assert.Equal(ExternalValues.Withheld, WorkerOutcomes.OutputName("C:\\SENTINEL", null));
+        Assert.Contains("worker-output-encoding-rejected", ExternalValues.DiagnosticCodes);
+        Assert.Contains("sa-modal-dialog-open", ExternalValues.DiagnosticCodes);
+        Assert.Equal((ExternalValues.Withheld, ExternalValues.Withheld), (ExternalValues.Version("SENTINEL"), ExternalValues.Revision("abc")));
     }
 
     [Fact]
@@ -403,13 +491,14 @@ public sealed class SessionFourProbeTests
         Assert.Equal(ResponseSize.PublishedClientReceiveLimitBytes,
             document.RootElement.GetProperty("response_limits").GetProperty("published_client_receive_limit_bytes").GetInt32());
         var small = steps["p34-list-100"].GetProperty("outcome").GetProperty("response_size");
-        Assert.Equal(7321, small.GetProperty("worker_frame_bytes").GetInt32());
-        Assert.False(small.GetProperty("budget_exceeded").GetBoolean());
-        Assert.True(steps["p34-list-20000"].GetProperty("outcome").GetProperty("response_size").GetProperty("budget_exceeded").GetBoolean());
+        Assert.Equal(7321, small.GetProperty("received_frame_bytes").GetInt32());
+        Assert.False(small.GetProperty("encoding_rejected").GetBoolean());
+        Assert.Equal("as received", small.GetProperty("original_size").GetString());
+        Assert.True(steps["p34-list-20000"].GetProperty("outcome").GetProperty("response_size").GetProperty("encoding_rejected").GetBoolean());
         Assert.True(steps["p34-list-100"].GetProperty("measures_response_size").GetBoolean());
         Assert.Contains("**Result sizes (probe 34).**", markdown, StringComparison.Ordinal);
-        Assert.Contains("| `p34-list-100` | 100 | 7321 | - | no |", markdown, StringComparison.Ordinal);
-        Assert.Contains("| `p34-list-20000` | - | 412 | - | yes: outputs not delivered |", markdown, StringComparison.Ordinal);
+        Assert.Contains("| `p34-list-100` | 100 | 7321 | - | delivered |", markdown, StringComparison.Ordinal);
+        Assert.Contains("| `p34-list-20000` | - | 412 | - | rejected; original size unknown |", markdown, StringComparison.Ordinal);
         Assert.DoesNotContain(TestSupport.Sentinel, markdown, StringComparison.Ordinal);
     }
 

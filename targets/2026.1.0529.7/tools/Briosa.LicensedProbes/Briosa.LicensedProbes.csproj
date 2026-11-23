@@ -14,6 +14,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- The conformance digest's reviewed closed list of server and worker diagnostic codes.
+         Records keep only listed codes; any other externally supplied value is withheld. -->
+    <EmbeddedResource Include="..\..\conformance\client\v1\digest-vocabulary.json"
+                      LogicalName="Briosa.LicensedProbes.digest-vocabulary.json"
+                      Link="digest-vocabulary.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Grpc.Net.Client" />
     <!-- Reuses the shipped handwritten command builders so the worker path sends
          the exact shipped sequence plus one reviewed, explicit variation. -->
