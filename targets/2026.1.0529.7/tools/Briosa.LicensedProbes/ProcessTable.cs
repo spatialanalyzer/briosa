@@ -226,13 +226,16 @@ internal static class ProcessRoles
 
 /// <summary>
 /// One tracked process over an observation: its label, never its id. A snapshot takes time,
-/// so every offset is bounded by the snapshot that saw it: the process existed no later than
+/// so every offset is bounded by the snapshot that listed it, and none says the process was
+/// running at a particular instant: it existed no later than
 /// <see cref="FirstSeenMilliseconds"/>, the end of the first snapshot that listed it; it was
-/// still running at some moment after <see cref="LastSeenMilliseconds"/>, the start of the last
+/// running at some moment at or after <see cref="LastSeenMilliseconds"/>, the start of the last
 /// snapshot that listed it; and it had exited no later than <see cref="FirstAbsentMilliseconds"/>,
-/// the end of the first complete snapshot without it. Exit is never stated as a time.
+/// the end of the first complete snapshot without it. <see cref="ListedInFirstSnapshot"/> says
+/// only whether the observation's first snapshot listed it. Exit is never stated as a time.
 /// </summary>
-internal sealed record TrackedProcess(string Label, string Role, DateTimeOffset? StartedAt, string ParentRole, long FirstSeenMilliseconds, bool PresentAtStart)
+internal sealed record TrackedProcess(string Label, string Role, DateTimeOffset? StartedAt, string ParentRole, long FirstSeenMilliseconds,
+    bool ListedInFirstSnapshot)
 {
     public long LastSeenMilliseconds { get; init; }
 
@@ -242,8 +245,16 @@ internal sealed record TrackedProcess(string Label, string Role, DateTimeOffset?
     // absence was not an exit.
     public int Reappearances { get; init; }
 
+    // Not shown absent by a complete snapshot since it was last listed. After a complete final
+    // snapshot, exactly the processes that snapshot listed; never a claim that one is running.
     public bool Alive => FirstAbsentMilliseconds is null;
 }
+
+/// <summary>
+/// One snapshot's bounds, in whole milliseconds from the observation's monotonic start: its
+/// start rounded down and its end rounded up, so the true interval lies within them.
+/// </summary>
+internal sealed record SnapshotBounds(long StartMilliseconds, long EndMilliseconds, SnapshotStatus Status);
 
 /// <summary>
 /// Labels each Spatial Analyzer, SDK, server and worker process the first time a snapshot
@@ -255,6 +266,7 @@ internal sealed class ProcessTracker(int harnessProcessId)
 {
     private readonly Dictionary<(int Id, DateTimeOffset StartedAt), TrackedProcess> _processes = [];
     private readonly Dictionary<string, int> _ordinals = new(StringComparer.Ordinal);
+    private readonly List<SnapshotBounds> _snapshots = [];
     private bool _observed;
 
     public int CompleteSnapshots { get; private set; }
@@ -265,6 +277,9 @@ internal sealed class ProcessTracker(int harnessProcessId)
 
     /// <summary>The status of the most recent snapshot; null before the first.</summary>
     public SnapshotStatus? LastStatus { get; private set; }
+
+    /// <summary>Every snapshot's bounds and status, in order, including empty, incomplete and failed ones.</summary>
+    public IReadOnlyList<SnapshotBounds> Snapshots => _snapshots;
 
     public IReadOnlyList<TrackedProcess> Processes => [.. _processes.Values
         .OrderBy(static process => process.FirstSeenMilliseconds).ThenBy(static process => process.Label, StringComparer.Ordinal)];
@@ -281,17 +296,20 @@ internal sealed class ProcessTracker(int harnessProcessId)
 
     /// <summary>
     /// One snapshot that started at <paramref name="startedMilliseconds"/> and returned at
-    /// <paramref name="endedMilliseconds"/>: a listed process was alive at some moment between
-    /// the two, and an absent one had exited by the end.
+    /// <paramref name="endedMilliseconds"/>: a listed process was running at some moment at or
+    /// after the start and no later than the end, and an absent one had exited by the end.
     /// </summary>
     public void Observe(ProcessSnapshot snapshot, long startedMilliseconds, long endedMilliseconds)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         LastStatus = snapshot.Status;
+        _snapshots.Add(new SnapshotBounds(startedMilliseconds, endedMilliseconds, snapshot.Status));
         switch (snapshot.Status)
         {
             case SnapshotStatus.Failed:
+                // A failed first snapshot listed nothing, so no process was listed in the first snapshot.
                 FailedSnapshots++;
+                _observed = true;
                 return;
             case SnapshotStatus.Incomplete:
                 IncompleteSnapshots++;
@@ -332,7 +350,7 @@ internal sealed class ProcessTracker(int harnessProcessId)
             var ordinal = _ordinals[role] = _ordinals.GetValueOrDefault(role) + 1;
             var label = $"{role}-{ordinal.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
             _processes[key] = new TrackedProcess(label, role, started,
-                ProcessRoles.ParentRoleOf(entry.ParentId, byId.GetValueOrDefault(entry.ParentId), harnessProcessId), endedMilliseconds, PresentAtStart: !_observed)
+                ProcessRoles.ParentRoleOf(entry.ParentId, byId.GetValueOrDefault(entry.ParentId), harnessProcessId), endedMilliseconds, ListedInFirstSnapshot: !_observed)
             {
                 LastSeenMilliseconds = startedMilliseconds
             };

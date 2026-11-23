@@ -37,18 +37,23 @@ public sealed class ProcessObservationTests
         Assert.Equal("settled", record.Result);
         Assert.True(record.ResidualKnown);
         Assert.Empty(record.Residual);
-        Assert.Equal(1, record.SpatialAnalyzerAlive);
+        Assert.Equal(1, record.SpatialAnalyzerListedInFinalSnapshot);
         var sdk = Assert.Single(record.Processes, static process => process.Role == ProcessRoles.Sdk);
-        Assert.Equal(("sdk-1", ProcessRoles.ServiceHost, true), (sdk.Label, sdk.ParentRole, sdk.PresentAtStart));
+        Assert.Equal(("sdk-1", ProcessRoles.ServiceHost, true), (sdk.Label, sdk.ParentRole, sdk.ListedInFirstSnapshot));
         Assert.Equal(2000, sdk.FirstAbsentMilliseconds);
         Assert.True(sdk.LastSeenMilliseconds < sdk.FirstAbsentMilliseconds);
+
+        // The inverse claim for an empty final snapshot names no instant either.
+        var markdown = ProcessObservation.ToMarkdown(record);
+        Assert.Contains("Residual: none. No SDK, worker or server process was listed in the final complete snapshot.", markdown, StringComparison.Ordinal);
+        Assert.DoesNotContain("alive", markdown, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
     public async Task ASnapshotThatTakesTimeBoundsTheExitByItsStartAndItsEnd()
     {
         // The review's case: a snapshot that captures at 0 ms and returns at 100 ms. The process
-        // was listed by it, so it was alive at some moment after 0 ms, not after 100 ms.
+        // was listed by it, so it was running at some moment at or after 0 ms, not after 100 ms.
         var clock = new ManualClock(Epoch);
         var table = new Table(Tracked(SdkId, ServiceHostId, ProcessCensus.SpatialAnalyzerSdk))
         {
@@ -67,7 +72,109 @@ public sealed class ProcessObservationTests
         Assert.Equal((100L, 0L, (long?)700), (sdk.FirstSeenMilliseconds, sdk.LastSeenMilliseconds, sdk.FirstAbsentMilliseconds));
         Assert.Equal((100, 0, 700), (written.GetProperty("first_seen_snapshot_end_ms").GetInt32(),
             written.GetProperty("last_seen_snapshot_start_ms").GetInt32(), written.GetProperty("first_absent_snapshot_end_ms").GetInt32()));
-        Assert.Contains("after the start of the last snapshot that listed it", ProcessObservation.ToMarkdown(record), StringComparison.Ordinal);
+        Assert.Contains("at or after the start of the last snapshot that listed it", ProcessObservation.ToMarkdown(record), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task AProcessListedByTheFinalSnapshotIsNeverSaidToBeRunningAtAnInstant()
+    {
+        // The review's case: the only snapshot captured the SDK at 0 ms, and the SDK may have
+        // exited before the snapshot returned at 100 ms. The records say it was listed, not
+        // that it was alive at the end; and a failed first snapshot listed nobody.
+        var clock = new ManualClock(Epoch);
+        var table = new Table(Tracked(SaId, 1, ProcessCensus.SpatialAnalyzer), Tracked(SdkId, ServiceHostId, ProcessCensus.SpatialAnalyzerSdk))
+        {
+            Clock = clock,
+            SnapshotTakes = TimeSpan.FromMilliseconds(100)
+        };
+        var record = await ProcessObservation.ObserveAsync(new ProcessObservation.Options("unused", TimeSpan.Zero, null), table,
+            new Pause(clock, table), clock, HarnessId, CancellationToken.None);
+        var markdown = ProcessObservation.ToMarkdown(record);
+        using var document = JsonDocument.Parse(ProcessObservation.ToJson(record));
+        var sdk = document.RootElement.GetProperty("processes").EnumerateArray().Single(static process => process.GetProperty("role").GetString() == ProcessRoles.Sdk);
+
+        Assert.Equal(["sdk-1"], record.Residual.Select(static process => process.Label));
+        Assert.Contains("Residual: `sdk-1` listed in the final complete snapshot.", markdown, StringComparison.Ordinal);
+        Assert.Contains("| `sdk-1` | sdk | exited | yes | 100 | 0 | listed in the final complete snapshot |", markdown, StringComparison.Ordinal);
+        Assert.DoesNotContain("alive", markdown, StringComparison.OrdinalIgnoreCase);
+        Assert.True(sdk.GetProperty("listed_in_first_snapshot").GetBoolean());
+        Assert.False(sdk.TryGetProperty("present_at_start", out _));
+        Assert.Equal(1, document.RootElement.GetProperty("spatial_analyzer_listed_in_final_snapshot").GetInt32());
+        Assert.False(document.RootElement.TryGetProperty("spatial_analyzer_alive", out _));
+
+        var lateClock = new ManualClock(Epoch);
+        var afterFailure = new Table { Clock = lateClock, Sequence = [ProcessSnapshot.Failed, ProcessSnapshot.Of(Tracked(SdkId, ServiceHostId, ProcessCensus.SpatialAnalyzerSdk))] };
+        var late = await ProcessObservation.ObserveAsync(new ProcessObservation.Options("unused", TimeSpan.FromSeconds(1), null), afterFailure,
+            new Pause(lateClock, afterFailure), lateClock, HarnessId, CancellationToken.None);
+        Assert.False(Assert.Single(late.Processes).ListedInFirstSnapshot);
+    }
+
+    [Fact]
+    public async Task AWallClockSteppingBackwardsMovesNoOffsetAndZeroSecondsStillTakesOneSnapshot()
+    {
+        // The review's case: the wall clock steps back 100 ms during the snapshot. Offsets and
+        // the window use the monotonic clock, so nothing is negative and the zero-second
+        // observation takes one snapshot; only started_at and completed_at show the step.
+        var clock = new ManualClock(Epoch);
+        var table = new Table(Tracked(SdkId, ServiceHostId, ProcessCensus.SpatialAnalyzerSdk)) { Clock = clock, WallClockStep = TimeSpan.FromMilliseconds(-100) };
+
+        var record = await ProcessObservation.ObserveAsync(new ProcessObservation.Options("unused", TimeSpan.Zero, null), table,
+            new Pause(clock, table), clock, HarnessId, CancellationToken.None);
+        var sdk = Assert.Single(record.Processes);
+
+        Assert.Equal([new SnapshotBounds(0, 0, SnapshotStatus.Complete)], record.Snapshots);
+        Assert.Equal((0L, 0L), (sdk.FirstSeenMilliseconds, sdk.LastSeenMilliseconds));
+        Assert.True(record.CompletedAt < record.StartedAt);
+        Assert.DoesNotContain("-100", ProcessObservation.ToJson(record), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task AStartIsRoundedDownAndAnEndUpSoA701Point8MsEndIsRecordedAs702()
+    {
+        // The review's case: a true end at 701.8 ms is an upper bound only as 702.
+        var clock = new ManualClock(Epoch);
+        var table = new Table(Tracked(SdkId, ServiceHostId, ProcessCensus.SpatialAnalyzerSdk)) { Clock = clock, SnapshotTakes = TimeSpan.FromTicks(7_018_000) };
+
+        var record = await ProcessObservation.ObserveAsync(new ProcessObservation.Options("unused", TimeSpan.FromSeconds(1), null), table,
+            new Pause(clock, table), clock, HarnessId, CancellationToken.None);
+        var sdk = Assert.Single(record.Processes);
+        using var document = JsonDocument.Parse(ProcessObservation.ToJson(record));
+
+        // 0 to 701.8 ms, then a 500 ms pause, then 1,201.8 to 1,903.6 ms.
+        Assert.Equal([new SnapshotBounds(0, 702, SnapshotStatus.Complete), new SnapshotBounds(1201, 1904, SnapshotStatus.Complete)], record.Snapshots);
+        Assert.Equal((702L, 1201L), (sdk.FirstSeenMilliseconds, sdk.LastSeenMilliseconds));
+        Assert.Equal([(0, 702), (1201, 1904)], document.RootElement.GetProperty("snapshots").GetProperty("bounds").EnumerateArray()
+            .Select(static bounds => (bounds.GetProperty("start_ms").GetInt32(), bounds.GetProperty("end_ms").GetInt32())));
+    }
+
+    [Fact]
+    public async Task EverySnapshotIsRecordedIncludingAnIncompleteAFailedAndAnEmptyOne()
+    {
+        var clock = new ManualClock(Epoch);
+        var table = new Table
+        {
+            Clock = clock,
+            SnapshotTakes = TimeSpan.FromMilliseconds(10),
+            Sequence =
+            [
+                new ProcessSnapshot(SnapshotStatus.Incomplete, [Tracked(SdkId, ServiceHostId, ProcessCensus.SpatialAnalyzerSdk)]),
+                ProcessSnapshot.Failed,
+                ProcessSnapshot.Of()
+            ]
+        };
+
+        var record = await ProcessObservation.ObserveAsync(new ProcessObservation.Options("unused", TimeSpan.FromSeconds(30), null), table,
+            new Pause(clock, table), clock, HarnessId, CancellationToken.None);
+        using var document = JsonDocument.Parse(ProcessObservation.ToJson(record));
+
+        Assert.Equal("settled", record.Result);
+        Assert.Equal(
+            [new SnapshotBounds(0, 10, SnapshotStatus.Incomplete), new SnapshotBounds(510, 520, SnapshotStatus.Failed), new SnapshotBounds(1020, 1030, SnapshotStatus.Complete)],
+            record.Snapshots);
+        Assert.Equal(["incomplete", "failed", "complete"], document.RootElement.GetProperty("snapshots").GetProperty("bounds").EnumerateArray()
+            .Select(static bounds => bounds.GetProperty("status").GetString()));
+        Assert.Contains("0–10 incomplete; 510–520 failed; 1020–1030 complete", ProcessObservation.ToMarkdown(record), StringComparison.Ordinal);
+        Assert.Equal(1030, Assert.Single(record.Processes).FirstAbsentMilliseconds);
     }
 
     [Fact]
@@ -98,8 +205,11 @@ public sealed class ProcessObservationTests
         Assert.True(record.IncompleteSnapshots > 0);
         var markdown = ProcessObservation.ToMarkdown(record);
         Assert.Contains("Residual: unknown.", markdown, StringComparison.Ordinal);
-        Assert.Contains("unknown: final census incomplete; see last seen", markdown, StringComparison.Ordinal);
-        Assert.DoesNotContain("alive at end", markdown, StringComparison.Ordinal);
+        Assert.Contains("unknown: the final snapshot was not complete; see last listed", markdown, StringComparison.Ordinal);
+        Assert.DoesNotContain("alive", markdown, StringComparison.OrdinalIgnoreCase);
+        Assert.Null(record.SpatialAnalyzerListedInFinalSnapshot);
+        using var document = JsonDocument.Parse(ProcessObservation.ToJson(record));
+        Assert.Equal(JsonValueKind.Null, document.RootElement.GetProperty("spatial_analyzer_listed_in_final_snapshot").ValueKind);
     }
 
     [Fact]
@@ -217,7 +327,7 @@ public sealed class ProcessObservationTests
             Assert.Equal(0, code);
             Assert.True(File.Exists(Path.Combine(fresh, $"process-observation-{ProbeTarget.SpatialAnalyzerTarget}.json")));
             Assert.True(File.Exists(Path.Combine(fresh, $"process-observation-{ProbeTarget.SpatialAnalyzerTarget}.md")));
-            Assert.Contains("residual=none", output.ToString(), StringComparison.Ordinal);
+            Assert.Contains("spatial_analyzer_listed_in_final_snapshot=1; residual=none", output.ToString(), StringComparison.Ordinal);
 
             var file = Path.Combine(root.FullName, "a-file");
             await File.WriteAllTextAsync(file, "x");
@@ -282,13 +392,26 @@ public sealed class ProcessObservationTests
         return folder;
     }
 
+    // A wall clock and a monotonic clock that move together, unless the wall clock is stepped.
     private sealed class ManualClock(DateTimeOffset start) : TimeProvider
     {
         private DateTimeOffset _now = start;
+        private long _ticks;
 
         public override DateTimeOffset GetUtcNow() => _now;
 
-        public void Advance(TimeSpan by) => _now += by;
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+
+        public override long GetTimestamp() => _ticks;
+
+        public void Advance(TimeSpan by)
+        {
+            _now += by;
+            _ticks += by.Ticks;
+        }
+
+        // The wall clock is set, for example backwards; no time passes.
+        public void StepWallClock(TimeSpan by) => _now += by;
     }
 
     // A scripted process list: entries, an optional removal after some pauses, and a degraded mode.
@@ -312,11 +435,21 @@ public sealed class ProcessObservationTests
 
         public TimeSpan SnapshotTakes { get; init; }
 
+        // The wall clock is stepped by this much while each snapshot is taken.
+        public TimeSpan WallClockStep { get; init; }
+
+        // When set, the snapshots returned in order (the last one repeats), instead of the entries.
+        public IReadOnlyList<ProcessSnapshot>? Sequence { get; init; }
+
         public ProcessSnapshot Snapshot()
         {
-            var snapshot = DegradeAfter is { } after && ++_snapshots > after
-                ? new ProcessSnapshot(SnapshotStatus.Incomplete, [.. _entries.Where(entry => !Hidden.Contains(entry.Id))])
-                : ProcessSnapshot.Of([.. _entries]);
+            var index = _snapshots++;
+            var snapshot = Sequence is { } sequence
+                ? sequence[Math.Min(index, sequence.Count - 1)]
+                : DegradeAfter is { } after && index >= after
+                    ? new ProcessSnapshot(SnapshotStatus.Incomplete, [.. _entries.Where(entry => !Hidden.Contains(entry.Id))])
+                    : ProcessSnapshot.Of([.. _entries]);
+            Clock?.StepWallClock(WallClockStep);
             Clock?.Advance(SnapshotTakes);
             return snapshot;
         }

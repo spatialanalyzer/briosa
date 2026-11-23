@@ -553,7 +553,9 @@ dry runs. Those records are not evidence.
 `--exclude-probe <n>` removes probe `n` from the selected phase. `n` is one probe
 number from the approved list (the `#` column above), for example `24`. Repeat
 the option to exclude several probes. It is accepted in dry runs and licensed
-runs of both phases. Use it to collect the remaining probes when one probe
+runs of both phases. Earlier sessions only. For session 4, follow
+[F1](#fallback-rules-proposed); nothing from a stopped run is rerun under its
+authorization. Use it to collect the remaining probes when one probe
 cannot run, for example after it stopped a session. Rerun the whole phase on a
 clean SA as described in [When a session stops](#when-a-session-stops).
 
@@ -907,8 +909,9 @@ recorded as `fixture-missing`: it is never sent, and it is never a pass.
   `list_result` says `delivered` (the step succeeded with its list), `rejected` (the
   worker rejected the result's encoding) or `unavailable` (no list came back, for
   example after an MP failure); the markdown table says the same. For a rejected or
-  unavailable list, the sizes recorded are those of the error frame or message that
-  came instead, never the list's. The element count comes from the list itself, or
+  unavailable list: Worker: record the received replacement or error frame's bytes.
+  Public RPC error: no result message was delivered; leave public message bytes blank.
+  Trailer size was not measured. The element count comes from the list itself, or
   else from a successful count of the same group just before it (`c34-count-N`,
   `c34-count-job-group`), marked "from its count". Whenever neither a successful list
   nor a successful corresponding count supplies one, the element count is recorded as
@@ -950,78 +953,194 @@ terminates or signals anything.
 Each snapshot is **complete**, **incomplete** (the list ended early, or a tracked
 process's start time could not be read) or **failed**. Only a complete snapshot can
 show a process absent; the others are counted as gaps. Reading the list takes time,
-so the observation records, as monotonic offsets from its start, when each snapshot
-began and when it returned, and states every bound conservatively: a process listed
-by a snapshot was alive at some moment after that snapshot began, and a process
-missing from a complete snapshot had exited by the time that snapshot returned. The
-record never claims an exit time: a process exited after its
+so the observation records every snapshot, an empty, incomplete or failed one
+included, with its `start_ms`, `end_ms` and `status` under `snapshots.bounds`. The
+offsets are whole milliseconds from a monotonic clock, each start rounded down and
+each end rounded up, so every recorded interval contains the true one; only
+`started_at` and `completed_at` are wall-clock readings. Every bound is stated
+conservatively, and none says a process was running at a particular instant: a
+process listed by a snapshot was running at some moment at or after that snapshot's
+start and no later than its end, and a process missing from a complete snapshot had
+exited by that snapshot's end. So a process exited at or after its
 `last_seen_snapshot_start_ms` (the start of the last snapshot that listed it) and no
 later than its `first_absent_snapshot_end_ms` (the end of the first complete snapshot
 without it); `first_seen_snapshot_end_ms` is the end of the first snapshot that
-listed it. A process that a complete snapshot missed and a later one listed again is
-counted under `reappearances`. Each process is labelled the first time it is seen
-(`sdk-1`, `worker-1`) with its role, its parent's role (`server`, `harness`,
+listed it, and `listed_in_first_snapshot` says whether the observation's first
+snapshot listed it. A process that a complete snapshot missed and a later one listed
+again is counted under `reappearances`. Each process is labelled the first time it is
+seen (`sdk-1`, `worker-1`) with its role, its parent's role (`server`, `harness`,
 `svchost` for a Windows service host, `other`, or `exited`) and its start time.
 Process names are matched without case, as Windows matches them. The record keeps no
 process id, path or argument.
 
-The **residual** is every SDK, worker or server process alive at the end. When the
-observation ended without a complete snapshot, `residual_known` is false and
-postflight cannot pass on that record. The command exits `0` only for a known, empty
-residual.
+The **residual** is every SDK, worker or server process listed in the final complete
+snapshot; a listed process may have exited before that snapshot returned.
+`spatial_analyzer_listed_in_final_snapshot` counts the SpatialAnalyzer processes that
+snapshot listed. When the observation ended without a complete snapshot,
+`residual_known` is false, that count is null, and postflight cannot pass on that
+record. The command exits `0` only for a known, empty residual.
 
 ### Running the state check
 
-`eng/Test-LicensedRunnerState.ps1` prints one JSON line and, when it finds an issue,
-throws; PowerShell's error display for that throw would include the script's path.
-So in session 4 run it only through this wrapper, from the target directory, and
-keep only the two lines the wrapper prints: the script's JSON line, if it printed
-one, and the fixed status line.
+`eng/Test-LicensedRunnerState.ps1` reports in one `Write-Host` JSON line and, when it
+finds an issue, throws; PowerShell's display of that throw, or of an error record a
+process query writes, can include a path. So in session 4 run it only through the
+wrapper below, from the target directory, and only in **64-bit PowerShell 7**
+(`pwsh`). In Windows PowerShell 5.1 the script cannot run (it reads `$IsWindows`
+under strict mode), and the wrapper prints only
+`State check (<phase>): failed (needs 64-bit PowerShell 7)`.
+
+The wrapper keeps the streams apart. It accepts only the script's own `Write-Host`
+report, parses it, and checks its fields, their types and the issue codes the script
+can report; it prints JSON rebuilt from those checked values, never the text it
+received. Any error record or exception makes the status `failed`, even after a valid
+report. With no valid report it prints only the status line. The harness tests run
+both blocks, as committed here, against the real script with its two process queries
+mocked.
 
 Preflight:
 
 ```powershell
-$lines = [System.Collections.Generic.List[string]]::new()
-try {
-    & ./eng/Test-LicensedRunnerState.ps1 -Phase Preflight *>&1 | ForEach-Object { $lines.Add([string]$_) }
-    $status = 'passed'
+& {
+    $phase = 'Preflight'
+    if ($PSVersionTable.PSVersion.Major -lt 7 -or -not [Environment]::Is64BitProcess) {
+        "State check (${phase}): failed (needs 64-bit PowerShell 7)"
+        return
+    }
+
+    # The streams stay apart: only the script's own Write-Host line can be a report, and any
+    # error record or exception fails the check. Nothing the script printed is shown as it was.
+    $hostLines = [System.Collections.Generic.List[string]]::new()
+    $errors = 0
+    try {
+        & ./eng/Test-LicensedRunnerState.ps1 -Phase $phase *>&1 | ForEach-Object {
+            if ($_ -is [System.Management.Automation.ErrorRecord]) { $errors++ }
+            elseif ($_ -is [System.Management.Automation.InformationRecord] -and $_.Tags -contains 'PSHOST') { $hostLines.Add([string]$_.MessageData) }
+        }
+    }
+    catch {
+        $errors++
+    }
+
+    # The one report is parsed and checked; the JSON printed is rebuilt from the checked values.
+    $report = $null
+    try {
+        $codes = 'WINDOWS_X64_REQUIRED', 'GITHUB_RUNNER_IDENTITY_INVALID', 'EXACT_SA_INSTANCE_COUNT_INVALID', 'RESIDUAL_BRIOSA_PROCESS', 'RESIDUAL_SDK_PROCESS'
+        $fields = 'phase,success,exact_sa_instance_count,briosa_process_count,sdk_process_count,issue_codes'
+        if ($hostLines.Count -eq 1) {
+            $parsed = ConvertFrom-Json -InputObject $hostLines[0] -ErrorAction Stop
+            $issues = @($parsed.issue_codes)
+            $counts = @($parsed.exact_sa_instance_count, $parsed.briosa_process_count, $parsed.sdk_process_count)
+            if ($parsed -is [System.Management.Automation.PSCustomObject] -and
+                (@($parsed.PSObject.Properties.Name) -join ',') -ceq $fields -and
+                $parsed.phase -ceq $phase.ToLowerInvariant() -and
+                $parsed.success -is [bool] -and
+                $parsed.issue_codes -is [array] -and
+                @($counts | Where-Object { $_ -is [long] -and $_ -ge 0 }).Count -eq 3 -and
+                @($issues | Where-Object { $_ -is [string] -and $codes -ccontains $_ }).Count -eq $issues.Count -and
+                $parsed.success -eq ($issues.Count -eq 0)) {
+                $report = [ordered]@{
+                    phase = $phase.ToLowerInvariant()
+                    success = [bool]$parsed.success
+                    exact_sa_instance_count = [long]$counts[0]
+                    briosa_process_count = [long]$counts[1]
+                    sdk_process_count = [long]$counts[2]
+                    issue_codes = [string[]]$issues
+                }
+            }
+        }
+    }
+    catch {
+        $report = $null
+    }
+
+    if ($null -ne $report) { ConvertTo-Json -InputObject $report -Compress }
+    $status = if ($errors -eq 0 -and $null -ne $report -and $report.success) { 'passed' } else { 'failed' }
+    "State check (${phase}): $status"
 }
-catch {
-    $status = 'failed'
-}
-$lines | Where-Object { $_.StartsWith('{') } | Select-Object -Last 1
-"State check (Preflight): $status"
 ```
 
 Postflight:
 
 ```powershell
-$lines = [System.Collections.Generic.List[string]]::new()
-try {
-    & ./eng/Test-LicensedRunnerState.ps1 -Phase Postflight *>&1 | ForEach-Object { $lines.Add([string]$_) }
-    $status = 'passed'
+& {
+    $phase = 'Postflight'
+    if ($PSVersionTable.PSVersion.Major -lt 7 -or -not [Environment]::Is64BitProcess) {
+        "State check (${phase}): failed (needs 64-bit PowerShell 7)"
+        return
+    }
+
+    # The streams stay apart: only the script's own Write-Host line can be a report, and any
+    # error record or exception fails the check. Nothing the script printed is shown as it was.
+    $hostLines = [System.Collections.Generic.List[string]]::new()
+    $errors = 0
+    try {
+        & ./eng/Test-LicensedRunnerState.ps1 -Phase $phase *>&1 | ForEach-Object {
+            if ($_ -is [System.Management.Automation.ErrorRecord]) { $errors++ }
+            elseif ($_ -is [System.Management.Automation.InformationRecord] -and $_.Tags -contains 'PSHOST') { $hostLines.Add([string]$_.MessageData) }
+        }
+    }
+    catch {
+        $errors++
+    }
+
+    # The one report is parsed and checked; the JSON printed is rebuilt from the checked values.
+    $report = $null
+    try {
+        $codes = 'WINDOWS_X64_REQUIRED', 'GITHUB_RUNNER_IDENTITY_INVALID', 'EXACT_SA_INSTANCE_COUNT_INVALID', 'RESIDUAL_BRIOSA_PROCESS', 'RESIDUAL_SDK_PROCESS'
+        $fields = 'phase,success,exact_sa_instance_count,briosa_process_count,sdk_process_count,issue_codes'
+        if ($hostLines.Count -eq 1) {
+            $parsed = ConvertFrom-Json -InputObject $hostLines[0] -ErrorAction Stop
+            $issues = @($parsed.issue_codes)
+            $counts = @($parsed.exact_sa_instance_count, $parsed.briosa_process_count, $parsed.sdk_process_count)
+            if ($parsed -is [System.Management.Automation.PSCustomObject] -and
+                (@($parsed.PSObject.Properties.Name) -join ',') -ceq $fields -and
+                $parsed.phase -ceq $phase.ToLowerInvariant() -and
+                $parsed.success -is [bool] -and
+                $parsed.issue_codes -is [array] -and
+                @($counts | Where-Object { $_ -is [long] -and $_ -ge 0 }).Count -eq 3 -and
+                @($issues | Where-Object { $_ -is [string] -and $codes -ccontains $_ }).Count -eq $issues.Count -and
+                $parsed.success -eq ($issues.Count -eq 0)) {
+                $report = [ordered]@{
+                    phase = $phase.ToLowerInvariant()
+                    success = [bool]$parsed.success
+                    exact_sa_instance_count = [long]$counts[0]
+                    briosa_process_count = [long]$counts[1]
+                    sdk_process_count = [long]$counts[2]
+                    issue_codes = [string[]]$issues
+                }
+            }
+        }
+    }
+    catch {
+        $report = $null
+    }
+
+    if ($null -ne $report) { ConvertTo-Json -InputObject $report -Compress }
+    $status = if ($errors -eq 0 -and $null -ne $report -and $report.success) { 'passed' } else { 'failed' }
+    "State check (${phase}): $status"
 }
-catch {
-    $status = 'failed'
-}
-$lines | Where-Object { $_.StartsWith('{') } | Select-Object -Last 1
-"State check (Postflight): $status"
 ```
 
-The wrapper prints nothing of the exception, so a failure shows only its JSON line
-(whose `issue_codes` say why) or, if the script failed before printing it, the status
-line alone. After a `failed` status, take
-`--observe-processes --observe-seconds 0` with a new output folder at once, and
-record exactly one of these for the process the check counted:
+Keep the one or two lines the wrapper prints. After a `failed` status, take
+`--observe-processes --observe-seconds 0` with a new output folder at once. The check
+reports counts only, and its `briosa_process_count` combines servers and workers, so
+nothing in it identifies a process to match on recheck; its `issue_codes` say why it
+failed. Record the first of these that applies, and stop nothing:
 
-- **observed: `<label>`**: the follow-up snapshot is complete and lists it; write its
-  label (`sdk-1`, `worker-1`, `server-1`);
-- **absent when rechecked**: the follow-up snapshot is complete and lists no SDK,
-  worker or server process;
-- **observation inconclusive**: the follow-up snapshot is incomplete or failed, or the
-  check printed no JSON line, so the label cannot be established.
+1. **observation inconclusive**: the wrapper printed no JSON line, or the follow-up
+   snapshot is incomplete or failed;
+2. **absent when rechecked**: the wrapper printed a JSON line, and the follow-up
+   snapshot is complete and lists no SDK, worker or server process;
+3. otherwise **listed on recheck: `<labels>`**: only the labels the follow-up
+   snapshot lists in a category the check counted (`sdk-*` for `sdk_process_count`;
+   `server-*` and `worker-*` for `briosa_process_count`), without asserting that they
+   are the processes the check counted. If a category the check counted has no label
+   in the snapshot (for example the check counted an SDK process and the snapshot
+   lists only a worker), record **observation inconclusive** instead.
 
-None of the three is closed or stopped.
+What happens next is [F5](#fallback-rules-proposed): before a run, the run does not
+start; in postflight, postflight goes on.
 
 ### Session 4 fixtures
 
@@ -1074,14 +1193,16 @@ process:
 - the [state check](#running-the-state-check) with `-Phase Preflight` prints
   `State check (Preflight): passed`;
 - `--observe-processes --observe-seconds 0` with a new output folder ends with a
-  complete snapshot, `spatial_analyzer_alive` `1` and `residual: none`: at that
+  complete snapshot, `spatial_analyzer_listed_in_final_snapshot` `1` and
+  `residual: none`: at that
   moment no known Briosa or SDK process runs (the run's own server is not started
   yet);
 - that one SA is of this target, started normally, with the fixture job copied
   over from the pristine copy, and no SA job was ever saved.
 
 A process that breaks the clean state is a residual (D4): the run does not start,
-and the process is recorded, not closed to make the state clean.
+there is no postflight or cleanup, and the process is recorded, not closed to make the
+state clean (F5).
 
 ### Run order and authorization points
 
@@ -1150,21 +1271,43 @@ and postflight:
    about 90 s after it started). Then take read-only observations only
    (`--observe-processes --observe-seconds 0` with a new output folder), and go to the
    license exception of [Session 4 postflight](#session-4-postflight). R1's probes
-   are recorded as not run (license prompt). Plainly, what still happens without
-   anyone acting: the client may still send Start and Connect after the prompt
-   appears; a Connect the server has accepted runs to the server's own bound, not the
-   client's (up to 60 s to a typed failure at the defaults, including the server's
-   one readiness probe, a trivial MP read, after a successful `ConnectEx`); and when
-   that bound passes, the server may terminate its own worker and that worker's
-   process tree. The operator cannot prevent this without changing the lifecycle
-   client; the maintainer accepts it by authorizing R1 (D12).
+   are recorded as not run (license prompt). Plainly, what can still happen without
+   anyone acting: Start or Connect may still run after the prompt appears, and a
+   successful `ConnectEx` can be followed by one `Get Working Directory` readiness
+   read. A fault, or a stage that reaches its own timeout (for example a hanging
+   `ConnectEx` at the default 10 s worker startup timeout, or the readiness read at its
+   default 30 s), can make the server terminate its worker and that worker's process
+   tree immediately, not only after 60 s: 60 s is the default total allowance from
+   Connect to its typed outcome, cleanup included, not a grace period. The server,
+   which this branch leaves running, keeps supervising its worker and may retire it
+   later, after the client has exited. The operator cannot prevent this without
+   changing the lifecycle client; the maintainer accepts it by authorizing R1 (D12).
 3. **During a harness run** (`--phase`): at a checkpoint, answer
    `license-prompt-abort`; at any other time, including during probe 34, which has
    no checkpoints, create the signal file `checkpoints\license-prompt-abort.signal`
-   inside that run's `--output-directory` folder, for example
-   `New-Item -ItemType File <output-directory>\checkpoints\license-prompt-abort.signal`.
+   inside that run's `--output-directory` folder with this command, `<output-directory>`
+   replaced by that folder. It creates the empty file and prints one fixed line, never
+   a path:
+
+   ```powershell
+   & {
+       $signal = '<output-directory>\checkpoints\license-prompt-abort.signal'
+       try {
+           if (-not (Test-Path -LiteralPath $signal -PathType Leaf)) {
+               $null = New-Item -ItemType File -Path $signal -ErrorAction Stop
+           }
+           'License signal: created.'
+       }
+       catch {
+           'License signal: not confirmed.'
+       }
+   }
+   ```
+
    The harness prints this location when it starts and creates the folder. Only the
-   file's existence is read. Start nothing else.
+   file's existence is read. Start nothing else. If the command prints
+   `License signal: not confirmed.`, the signal is not confirmed: leave the prompt
+   open, start nothing else, and take read-only observations only.
 4. **At any other time**, including postflight: start nothing, and take read-only
    observations only.
 5. Follow the license exception of [Session 4 postflight](#session-4-postflight).
@@ -1222,11 +1365,14 @@ Each rule is decided before the session, so no timed step waits on a question. T
 | F2 | A probe 34 to 37 **probe** step ends with a determinate failure (an MP failure, a refused setter, a failed getter) | Nothing to do: that outcome is the answer, and the run continues. A **count check** (`c34-*`, `c35-*`) accepts only success or an MP failure, so a refused setter or a failed getter there stops the run as an unexpected disposition, which is recorded; F1 then applies. |
 | F3 | A dialog opens during a probe 34 to 37 step | Dismiss it at once with OK, so that no quick budget expires, and answer `dialog-dismissed` at the step's checkpoint (probes 35 to 37), or note the step id in the session notes (probe 34). Never record the dialog's text. A license prompt is never dismissed: [License prompt first](#license-prompt-first) applies. |
 | F4 | A manual fixture is missing | Do not create it during the session. The harness records the steps as `fixture-missing`. |
-| F5 | A state check fails, a postflight observation lists a residual process, or `residual_known` is false | Record it as [Running the state check](#running-the-state-check) says, and follow [Session 4 postflight](#session-4-postflight). |
+| F5 | A state check fails, or a process observation does not show the clean state (in preflight) or ends with a residual or with `residual_known` false (in postflight) | **In preflight** (the run has not started): take the read-only follow-up and record it as [Running the state check](#running-the-state-check) says; do not start the run, do not enter [Session 4 postflight](#session-4-postflight) or any cleanup, and return to the maintainer, who decides between runs. **In postflight** (only after a run that started): record it the same way, stop nothing, and go on with postflight. |
 | F6 | An operator checkpoint is not answered within 300 s, or its request file cannot be written | The harness stops, as it does today, and keeps the step's own outcome in the record; F1 applies. |
 | F7 | SA crashes or hangs | Stop this target's session at that point and record what ran. The other target starts only at its own authorization point, after the maintainer has seen the record. |
 
 ### Session 4 postflight
+
+Postflight follows only a run that started: R1 from its Phase 1 step 3 (the server
+start) on, R2 from its harness command on. A failed preflight has no postflight (F5).
 
 **License exception, first.** If a license prompt was reported or appears during
 postflight, leave SA, the server, and workers untouched. Take read-only observations
@@ -1237,12 +1383,14 @@ maintainer has decided.
 Never run a generic `Briosa.LifecycleClient ... --scenario stop-sdk` in session 4: it
 stops whatever generation the server reports. Otherwise, after each run:
 
-1. **Stop what this run started, and nothing else.** This is the only step that
-   stops anything, and it stops one thing: after R1, the server that R1's Phase 1
-   step 3 started, with Ctrl+C in that server's own console window. The server's own
-   shutdown stops its worker and the SDK generation that Phase 1's step 4 started.
-   After R2 there is nothing to stop: the harness hosted its worker and ended it, or
-   after a license prompt left it (see [License prompt first](#license-prompt-first)).
+1. **Stop the server this run started, and nothing else.** This is the only step
+   that asks the operator to stop a Briosa server, and only after R1: press Ctrl+C in
+   R1's own server console window (the server Phase 1's step 3 started), and in no
+   other window. The server's own shutdown stops its worker and the SDK generation that
+   Phase 1's step 4 started. After R2 there is no server to stop: the harness hosted
+   its worker and ended it, or after a license prompt left it (see
+   [License prompt first](#license-prompt-first)). Step 3 exits SpatialAnalyzer; it
+   stops no Briosa server.
 2. Run the [state check](#running-the-state-check) with `-Phase Postflight` while SA
    is still open, and keep its two lines. After a `failed` status, record the
    follow-up snapshot as that section says, stop nothing, and go on to step 3.
@@ -1266,7 +1414,7 @@ stopped by the maintainer's decision, is listed in the evidence.
 
 Each command writes a JSON record and a markdown draft into its own output folder:
 `probe-277-<phase>-2024.1.0508.5.*` (schema 5) and `process-observation-2024.1.0508.5.*`
-(schema 2). None holds a returned value, a path, a process id, license data, or free
+(schema 3). None holds a returned value, a path, a process id, license data, or free
 text: checkpoint answers are a closed vocabulary, and any diagnostic code, version,
 revision, field name or enum value from the server, the worker or a log that is not
 on the reviewed list, in its strict shape, or defined by this build is recorded as
@@ -1287,8 +1435,8 @@ Post afterwards, per target, each observation stated as this target's own:
   not run (refused by admission: exclusive workflow), and the tutorials as not run in
   session 4 (D9).
 - **#252:** only what postflight observed, read-only: which SDK or Briosa processes
-  were still alive after SA closed, with their last-seen and first-absent snapshot
-  bounds. The ownership scenarios are in
+  snapshots still listed after SA closed, with their last-listed and first-absent
+  snapshot bounds. The ownership scenarios are in
   https://github.com/spatialanalyzer/briosa/pull/428.
 
 ### Decisions for the maintainer (proposed until agreed)
@@ -1306,7 +1454,7 @@ Post afterwards, per target, each observation stated as this target's own:
 | D9 | The tutorials | Not run in session 4. Each language example starts its own Briosa server, and this session has no residual check between programs, no empty-job preflight, and no timeout or license-prompt rule for a running example; the tutorials also target SA 2026 only. |
 | D10 | The probe build | `0.10.1-probe-s4` from this pull request's merge commit. |
 | D11 | Who operates | As in session 3: Claude through computer use while the maintainer watches, never asking a question or making a judgement while a step's clock runs; every timed action is one of the agreed rules. This is not itself permission to operate a desktop: each run still needs its own go-ahead, as AGENTS.md requires. |
-| D12 | A license prompt during R1's setup | Accepted by authorizing R1. If a license prompt appears during Phase 1's step 4, the lifecycle client is left to end at its own bound, and Start, Connect and the server's readiness probe may still be sent; an accepted Connect runs to the server's own bound, after which the server may terminate its own worker and that worker's process tree (see [License prompt first](#license-prompt-first)). If the maintainer does not accept this, R1 is not run and only R2 is: that leaves probe 34's worker phase (element counts and private frame bytes), and records probe 34's public phase (protobuf message bytes) and probes 35 to 37 as not run. |
+| D12 | A license prompt during R1's setup | Accepted by authorizing R1. If a license prompt appears during Phase 1's step 4, the lifecycle client is left to end at its own bound. Start or Connect may still run, and a successful `ConnectEx` can be followed by one `Get Working Directory` readiness read. A fault or a stage timeout can make the server terminate its worker and that worker's process tree immediately, not only after 60 s: 60 s is the default total allowance from Connect to its outcome, not a grace period. The server, left running, keeps supervising its worker and may retire it later (see [License prompt first](#license-prompt-first)). If the maintainer does not accept this, R1 is not run and only R2 is: that leaves probe 34's worker phase (element counts and private frame bytes), and records probe 34's public phase (protobuf message bytes) and probes 35 to 37 as not run. |
 
 ## Recording
 

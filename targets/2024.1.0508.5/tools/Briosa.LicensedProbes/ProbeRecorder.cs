@@ -520,7 +520,8 @@ internal static class ProbeRecorder
 
         text.Append("\nWhen the worker rejected a result's encoding, the frame size is that of its bounded replacement and the ")
             .Append("original size is unknown: the same code covers a result over the budget and a value that cannot be encoded. ")
-            .Append("When no list came back, the sizes are those of the error that came instead. The element count comes from the ")
+            .Append("Worker: record the received replacement or error frame's bytes. Public RPC error: no result message was delivered; ")
+            .Append("leave public message bytes blank. Trailer size was not measured. The element count comes from the ")
             .Append("list, or else from a successful count of the same group just before it; with neither, it is unknown.\n");
     }
 

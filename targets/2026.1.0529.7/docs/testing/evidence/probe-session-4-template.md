@@ -62,7 +62,9 @@ Fixtures: the large point group's and the cloud's presence (counts below), or
 
 Elements: the list's own count, the count step's "N (from its count)", or "unknown"
 when neither a successful list nor a successful corresponding count supplies one. For
-a rejected or unavailable list, the bytes are those of the error that came instead.
+a rejected or unavailable list: Worker: record the received replacement or error
+frame's bytes. Public RPC error: no result message was delivered; leave public message
+bytes blank. Trailer size was not measured.
 
 - Bytes per point name in the frame and in the message (from the rungs that were
   delivered):
@@ -105,14 +107,21 @@ timeout or license-prompt rule for a running example.
 ## Postflight and process observations
 
 Per run: what postflight step 1 stopped (after R1, the server R1's Phase 1 step 3
-started; after R2, nothing), and each state check's two lines
-(`Test-LicensedRunnerState.ps1` through the runbook's wrapper, preflight and
-postflight). After a `failed` state check, the follow-up snapshot's one recording:
-**observed: `<label>`**, **absent when rechecked**, or **observation inconclusive**.
-Then the `process-observation` record's final snapshot status,
-`spatial_analyzer_alive` and residual (labels, each with its last-listed snapshot
-start and first-absent snapshot end). No generic `stop-sdk` was run. A record whose
-last snapshot was incomplete has not passed postflight.
+started, by Ctrl+C in its own console; after R2, nothing), and each state check's
+lines (`Test-LicensedRunnerState.ps1` through the runbook's 64-bit PowerShell 7
+wrapper, preflight and postflight: the rebuilt JSON line, if any, and the status
+line). A run whose preflight failed was not started and had no postflight (F5); say
+so. After a `failed` state check, the follow-up snapshot's one recording, the first
+that applies: **observation inconclusive** (no JSON line; an incomplete or failed
+snapshot; or a category the check counted with no label in the snapshot); **absent
+when rechecked** (a JSON line, and a complete snapshot listing no SDK, worker or
+server process); otherwise **listed on recheck: `<labels>`** (only labels in a
+category the check counted, not asserted to be the processes it counted). Then the
+`process-observation` record's final snapshot status,
+`spatial_analyzer_listed_in_final_snapshot` and residual (the labels listed in the
+final complete snapshot, each with its last-listed snapshot start and first-absent
+snapshot end). No generic `stop-sdk` was run. A record whose last snapshot was
+incomplete has not passed postflight.
 
 - Whether a license prompt appeared, in which run and step (R1's Phase 1 step 4, a
   harness step, or postflight), whether the signal or a checkpoint answer raised it,

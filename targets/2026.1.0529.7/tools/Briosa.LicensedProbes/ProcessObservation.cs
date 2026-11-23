@@ -24,14 +24,18 @@ internal sealed class SystemPause : IPause
 /// opens no process except to read a tracked one's start time and session with a query-only
 /// handle, and has no code path that stops, terminates or signals anything. Its records hold
 /// labels, roles, parent roles, start times, offsets and counts; never a process id, path or
-/// argument.
+/// argument. Offsets come from a monotonic clock; only started_at and completed_at are
+/// wall-clock readings.
 /// </summary>
 internal static class ProcessObservation
 {
     public const string Option = "--observe-processes";
 
     // 2: every process offset is bounded by the snapshot that saw it (snapshot start or end).
-    public const int SchemaVersion = 2;
+    // 3: offsets from a monotonic clock, starts rounded down and ends rounded up; every snapshot's
+    // bounds and status; "listed_in_first_snapshot" and
+    // "spatial_analyzer_listed_in_final_snapshot", which claim no instant.
+    public const int SchemaVersion = 3;
 
     public static TimeSpan PollInterval { get; } = TimeSpan.FromMilliseconds(500);
 
@@ -55,14 +59,23 @@ internal static class ProcessObservation
         SnapshotStatus? FinalSnapshot,
         string? HarnessRevision)
     {
+        /// <summary>Every snapshot's bounds and status, in order.</summary>
+        public IReadOnlyList<SnapshotBounds> Snapshots { get; init; } = [];
+
         /// <summary>Whether the residual list is known: the observation ended with a complete snapshot.</summary>
         public bool ResidualKnown => FinalSnapshot == SnapshotStatus.Complete;
 
-        /// <summary>SDK, worker and server processes alive at the end.</summary>
+        /// <summary>
+        /// The SDK, worker and server processes listed in the final complete snapshot. Each was
+        /// running at some moment during that snapshot; it may have exited before it returned.
+        /// </summary>
         public IReadOnlyList<TrackedProcess> Residual => [.. Processes.Where(static process => process.Alive &&
             process.Role is ProcessRoles.Sdk or ProcessRoles.Worker or ProcessRoles.Server)];
 
-        public int SpatialAnalyzerAlive => Processes.Count(static process => process.Alive && process.Role == ProcessRoles.SpatialAnalyzer);
+        /// <summary>Spatial Analyzer processes listed in the final snapshot when it is complete; otherwise null.</summary>
+        public int? SpatialAnalyzerListedInFinalSnapshot => ResidualKnown
+            ? Processes.Count(static process => process.Alive && process.Role == ProcessRoles.SpatialAnalyzer)
+            : null;
     }
 
     public static bool IsObservation(IReadOnlyList<string> arguments)
@@ -119,22 +132,26 @@ internal static class ProcessObservation
         ArgumentNullException.ThrowIfNull(clock);
         var tracker = new ProcessTracker(harnessProcessId);
         var started = clock.GetUtcNow();
-        long Offset() => (long)(clock.GetUtcNow() - started).TotalMilliseconds;
-        var window = (long)options.Window.TotalMilliseconds;
+
+        // Elapsed time and the window come from the monotonic clock, never from wall-clock
+        // readings, which can step backwards. Offsets are whole milliseconds: a start is rounded
+        // down and an end up, so each recorded interval contains the true one.
+        var origin = clock.GetTimestamp();
+        double Elapsed() => clock.GetElapsedTime(origin).TotalMilliseconds;
         string result;
         while (true)
         {
-            // A snapshot takes time: the offsets before and after bound what it saw.
-            var snapshotStarted = Offset();
+            // A snapshot takes time: its start and end bound what it saw.
+            var snapshotStarted = (long)Math.Floor(Elapsed());
             var snapshot = table.Snapshot();
-            tracker.Observe(snapshot, snapshotStarted, Offset());
+            tracker.Observe(snapshot, snapshotStarted, (long)Math.Ceiling(Elapsed()));
             if (tracker.NoneConfirmed(ProcessRoles.Sdk, ProcessRoles.Worker, ProcessRoles.Server))
             {
                 result = "settled";
                 break;
             }
 
-            if (Offset() >= window)
+            if (Elapsed() >= options.Window.TotalMilliseconds)
             {
                 result = "window-elapsed";
                 break;
@@ -153,7 +170,10 @@ internal static class ProcessObservation
         }
 
         return new Record(started, clock.GetUtcNow(), options.Window, result, tracker.Processes, tracker.CompleteSnapshots,
-            tracker.IncompleteSnapshots, tracker.FailedSnapshots, tracker.LastStatus, options.HarnessRevision);
+            tracker.IncompleteSnapshots, tracker.FailedSnapshots, tracker.LastStatus, options.HarnessRevision)
+        {
+            Snapshots = [.. tracker.Snapshots]
+        };
     }
 
     public static async Task<int> RunAsync(IReadOnlyList<string> arguments, TextWriter output, TextWriter error, IProcessTable table, IPause pause,
@@ -185,7 +205,7 @@ internal static class ProcessObservation
 
         await output.WriteLineAsync(string.Create(CultureInfo.InvariantCulture,
             $"Process observation: {record.Result}; final snapshot {SnapshotName(record.FinalSnapshot)}; " +
-            $"spatial_analyzer_alive={record.SpatialAnalyzerAlive}; residual={ResidualText(record)}.")).ConfigureAwait(false);
+            $"spatial_analyzer_listed_in_final_snapshot={SpatialAnalyzerText(record)}; residual={ResidualText(record)}.")).ConfigureAwait(false);
         await output.WriteLineAsync($"Records: {Path.GetFileName(stem)}.json, {Path.GetFileName(stem)}.md").ConfigureAwait(false);
         return record.ResidualKnown && record.Residual.Count == 0 ? 0 : 1;
     }
@@ -214,6 +234,20 @@ internal static class ProcessObservation
             json.WriteNumber("incomplete", record.IncompleteSnapshots);
             json.WriteNumber("failed", record.FailedSnapshots);
             json.WriteString("final", SnapshotName(record.FinalSnapshot));
+
+            // Every snapshot, including empty, incomplete and failed ones: monotonic offsets, the
+            // start rounded down and the end rounded up.
+            json.WriteStartArray("bounds");
+            foreach (var bounds in record.Snapshots)
+            {
+                json.WriteStartObject();
+                json.WriteNumber("start_ms", bounds.StartMilliseconds);
+                json.WriteNumber("end_ms", bounds.EndMilliseconds);
+                json.WriteString("status", SnapshotName(bounds.Status));
+                json.WriteEndObject();
+            }
+
+            json.WriteEndArray();
             json.WriteEndObject();
             json.WriteStartArray("processes");
             foreach (var process in record.Processes)
@@ -226,11 +260,12 @@ internal static class ProcessObservation
                     json.WriteString("started_at", at.ToString("O", CultureInfo.InvariantCulture));
                 else
                     json.WriteNull("started_at");
-                json.WriteBoolean("present_at_start", process.PresentAtStart);
+                json.WriteBoolean("listed_in_first_snapshot", process.ListedInFirstSnapshot);
 
-                // No exit time is claimed. The process existed by the end of the first snapshot
-                // that listed it, was still running at some moment after the start of the last
-                // one, and had exited by the end of the first complete snapshot without it.
+                // No exit time, and no instant at which it ran, is claimed. The process existed by
+                // the end of the first snapshot that listed it, was running at some moment at or
+                // after the start of the last one, and had exited by the end of the first complete
+                // snapshot without it.
                 json.WriteNumber("first_seen_snapshot_end_ms", process.FirstSeenMilliseconds);
                 json.WriteNumber("last_seen_snapshot_start_ms", process.LastSeenMilliseconds);
                 if (process.FirstAbsentMilliseconds is { } absent)
@@ -242,7 +277,10 @@ internal static class ProcessObservation
             }
 
             json.WriteEndArray();
-            json.WriteNumber("spatial_analyzer_alive", record.SpatialAnalyzerAlive);
+            if (record.SpatialAnalyzerListedInFinalSnapshot is { } listed)
+                json.WriteNumber("spatial_analyzer_listed_in_final_snapshot", listed);
+            else
+                json.WriteNull("spatial_analyzer_listed_in_final_snapshot");
             json.WriteBoolean("residual_known", record.ResidualKnown);
             json.WriteStartArray("residual");
             foreach (var process in record.Residual)
@@ -267,28 +305,36 @@ internal static class ProcessObservation
             $"Read-only: the list of processes only, every {PollInterval.TotalMilliseconds:0} ms for up to {record.Window.TotalSeconds:0} s. Result: `{record.Result}`. ")
             .Append(CultureInfo.InvariantCulture,
                 $"Snapshots: {record.CompleteSnapshots} complete, {record.IncompleteSnapshots} incomplete, {record.FailedSnapshots} failed; the last was {SnapshotName(record.FinalSnapshot)}.\n\n");
-        text.Append("| Process | Role | Parent | Present at start | First listed by (snapshot end, ms) | Last listed after (snapshot start, ms) | First absent by (snapshot end, ms) |\n")
+        text.Append("Snapshot bounds (ms from the observation's monotonic start; start rounded down, end rounded up): ")
+            .AppendJoin("; ", record.Snapshots.Select(static bounds => string.Create(CultureInfo.InvariantCulture,
+                $"{bounds.StartMilliseconds}–{bounds.EndMilliseconds} {SnapshotName(bounds.Status)}")))
+            .Append(".\n\n");
+        text.Append("| Process | Role | Parent | Listed in first snapshot | First listed by (snapshot end, ms) | Last listed at or after (snapshot start, ms) | First absent by (snapshot end, ms) |\n")
             .Append("| --- | --- | --- | --- | --- | --- | --- |\n");
         foreach (var process in record.Processes)
         {
             var absent = process.FirstAbsentMilliseconds?.ToString(CultureInfo.InvariantCulture) ??
-                (record.ResidualKnown ? "alive at end" : "unknown: final census incomplete; see last seen");
+                (record.ResidualKnown ? "listed in the final complete snapshot" : "unknown: the final snapshot was not complete; see last listed");
             text.Append(CultureInfo.InvariantCulture,
-                $"| `{process.Label}` | {process.Role} | {process.ParentRole} | {(process.PresentAtStart ? "yes" : "no")} | {process.FirstSeenMilliseconds} | {process.LastSeenMilliseconds} | {absent} |\n");
+                $"| `{process.Label}` | {process.Role} | {process.ParentRole} | {(process.ListedInFirstSnapshot ? "yes" : "no")} | {process.FirstSeenMilliseconds} | {process.LastSeenMilliseconds} | {absent} |\n");
         }
 
-        text.Append("\nA snapshot takes time, so each offset is that of a snapshot's start or end. A process was still running at some ")
-            .Append("moment after the start of the last snapshot that listed it, and had exited no later than the end of the first ")
-            .Append("complete snapshot without it; no exit time is measured. Only a complete snapshot can show a process absent.\n");
+        text.Append("\nA snapshot takes time, so each offset is that of a snapshot's start or end, and no offset says a process was ")
+            .Append("running at a particular instant. A process was running at some moment at or after the start of the last snapshot ")
+            .Append("that listed it, and had exited no later than the end of the first complete snapshot without it; no exit time is ")
+            .Append("measured. Only a complete snapshot can show a process absent.\n");
         text.Append(!record.ResidualKnown
             ? "\nResidual: unknown. The observation ended without a complete snapshot, so postflight cannot pass on this record.\n"
             : record.Residual.Count == 0
-                ? "\nResidual: none. No SDK, worker or server process was alive at the end.\n"
-                : $"\nResidual: {string.Join(", ", record.Residual.Select(static process => $"`{process.Label}`"))} alive at the end. " +
+                ? "\nResidual: none. No SDK, worker or server process was listed in the final complete snapshot.\n"
+                : $"\nResidual: {string.Join(", ", record.Residual.Select(static process => $"`{process.Label}`"))} listed in the final complete snapshot. " +
                   "Each is unresolved; the session never stops one.\n");
         text.Append("\nThese are observations of one bounded run, not vendor guarantees.\n");
         return text.ToString();
     }
+
+    private static string SpatialAnalyzerText(Record record) =>
+        record.SpatialAnalyzerListedInFinalSnapshot?.ToString(CultureInfo.InvariantCulture) ?? "unknown";
 
     private static string ResidualText(Record record) =>
         !record.ResidualKnown ? "unknown (the last snapshot was not complete)" :

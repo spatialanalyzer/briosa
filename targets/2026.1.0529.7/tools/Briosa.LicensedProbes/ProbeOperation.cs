@@ -172,10 +172,23 @@ internal static class PublicOutcomes
     public static ProbeOutcome FromSuccess(MpExecutionDetails? execution, IReadOnlyDictionary<string, string> observations,
         IReadOnlySet<string>? declaredFields = null)
     {
-        // A partial success (MP code 4) is a completed success; its code is recorded.
-        if (execution is null || execution.State is not (MpExecutionState.Succeeded or MpExecutionState.PartialSuccess))
+        // A partial success (MP code 4) is a completed success; its code is recorded. Null is
+        // kept for a reply without execution details.
+        if (execution is null)
         {
             return ProbeOutcome.Unknown("grpc:OK", "success-without-succeeded-execution");
+        }
+
+        // Any other state on OK is a malformed success: indeterminate, so the run stops without
+        // replay. Its state is kept as a name this build defines (otherwise withheld) and its MP
+        // code as a number; nothing is observed from its outputs.
+        if (execution.State is not (MpExecutionState.Succeeded or MpExecutionState.PartialSuccess))
+        {
+            return ProbeOutcome.Unknown("grpc:OK", "success-without-succeeded-execution") with
+            {
+                MpResultCode = execution.HasMpResultCode ? execution.MpResultCode : null,
+                ExecutionState = ExternalValues.EnumName(execution.State)
+            };
         }
 
         return FromExecution(ProbeOutcomeKind.Succeeded, "grpc:OK", execution, null, null, null, observations, declaredFields);

@@ -857,6 +857,39 @@ public sealed class SessionFourProbeTests
     ];
 
     [Fact]
+    public async Task AnOkReplyWithAnUndefinedExecutionStateKeepsItsCodeWithholdsItsStateAndObservesNothing()
+    {
+        // The review's case: a generated-client reply, status OK, with execution state 966 and
+        // MP result code 714. Null stays reserved for a reply without execution details.
+        var result = new Api.GetNumberOfCollectionsResult
+        {
+            TotalCount = 3,
+            Execution = new Api.MpExecutionDetails { State = (Api.MpExecutionState)966, MpResultCode = 714 }
+        };
+        result.Execution.OutputRetrievals.Add(new Api.OutputRetrievalDetails { FieldName = "total_count", State = Api.OutputRetrievalState.Retrieved });
+        var outcome = await ProbeOperations.GetNumberOfCollections.InvokePublicAsync(new ReplyingInvoker(result),
+            new Api.GetNumberOfCollectionsRequest(), new CallOptions());
+        var missing = PublicOutcomes.FromSuccess(null, ProbeOutcome.EmptyObservations);
+
+        Assert.Equal((ProbeOutcomeKind.Indeterminate, true, ExternalValues.Withheld, (int?)714),
+            (outcome.Kind, outcome.CompletionUnknown, outcome.ExecutionState, outcome.MpResultCode));
+        Assert.Empty(outcome.Observations);
+        Assert.Empty(outcome.Outputs);
+        Assert.Equal((ProbeOutcomeKind.Indeterminate, (string?)null, (int?)null), (missing.Kind, missing.ExecutionState, missing.MpResultCode));
+
+        var plan = Select(ProbePhase.PublicApi, FullManifest(), 35);
+        var record = await Run(plan, step => step.Id == "p35-text" ? outcome : TestSupport.Succeeding(step));
+        using var document = JsonDocument.Parse(ProbeRecorder.ToJson(record));
+        var stopped = document.RootElement.GetProperty("steps").EnumerateArray()
+            .Single(static step => step.GetProperty("id").GetString() == "p35-text").GetProperty("outcome");
+
+        Assert.Equal((ProbeSession.UnknownOutcomeStop, "p35-text"), (record.StopReason, record.StoppedAt));
+        Assert.Equal((ExternalValues.Withheld, 714), (stopped.GetProperty("execution_state").GetString(), stopped.GetProperty("mp_result_code").GetInt32()));
+        Assert.Empty(stopped.GetProperty("observations").EnumerateObject());
+        Assert.DoesNotContain("966", ProbeRecorder.ToJson(record) + ProbeRecorder.ToMarkdown(record), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task UndefinedExternalEnumValuesAreWithheldAndNeverEstablishCompletion()
     {
         // The review's case: a public error trailer with four undefined enum numbers.
