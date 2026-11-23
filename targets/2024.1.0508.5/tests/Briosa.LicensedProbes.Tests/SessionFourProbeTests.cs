@@ -256,6 +256,27 @@ public sealed class SessionFourProbeTests
     }
 
     [Fact]
+    public async Task TheLadderSizeEstimateHoldsForThisBuildsEncoders()
+    {
+        // The runbook sizes the ladder at about 70 bytes of private frame per point name and the
+        // protobuf message at roughly a third of the frame. 500 names fit either budget.
+        const int Count = 500;
+        var names = Enumerable.Range(10001, Count).Select(static index => $"P{index}").ToList();
+        var frameValue = new WorkerPointNameListValue([.. names.Select(static name => new WorkerPointNameValue(FixtureNames.Collection, "SZ10000", name))]);
+        var (frame, _, _) = await RoundTripAsync(WorkerControlMessage.ExecutionResult(Guid.NewGuid(), Completed(
+            new WorkerMpResultAvailable(2, 5, [new WorkerRetrievedOutput("Resultant Point Name List", WorkerMpValueKind.PointNameList, frameValue)], null))));
+        var message = new Api.MakePointNameRefListFromGroupResult
+        {
+            Execution = new Api.MpExecutionDetails { State = Api.MpExecutionState.Succeeded, MpResultCode = 2 }
+        };
+        message.ResultantPointNameList.AddRange(names.Select(static name =>
+            new Api.PointName { CollectionName = FixtureNames.Collection, GroupName = "SZ10000", TargetName = name }));
+
+        Assert.InRange(frame / (double)Count, 55, 85);
+        Assert.InRange(message.CalculateSize() / (double)frame, 0.25, 0.45);
+    }
+
+    [Fact]
     public async Task AResultOverTheBudgetArrivesAsTheBoundedReplacementAndIsFlagged()
     {
         // Enough names that the frame exceeds this build's budget, whichever it is.
