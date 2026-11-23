@@ -11,8 +11,12 @@ internal interface IProbeTransport : IAsyncDisposable
 {
     ProbePhase Phase { get; }
 
-    /// <summary>Verifies identity and readiness. Throws <see cref="ProbeRefusedException"/> to refuse.</summary>
-    Task<SessionIdentity> StartAsync(ProbePlan plan, CancellationToken cancellationToken);
+    /// <summary>
+    /// Verifies identity and readiness. Throws <see cref="ProbeRefusedException"/> to refuse. The
+    /// transport consults <paramref name="licenseAbort"/> before it starts, sends or terminates
+    /// anything, including in disposal, for the rest of the run.
+    /// </summary>
+    Task<SessionIdentity> StartAsync(ProbePlan plan, LicenseAbortSignal licenseAbort, CancellationToken cancellationToken);
 
     /// <summary>
     /// Sends one step once. Transport failures become an indeterminate outcome.
@@ -20,6 +24,12 @@ internal interface IProbeTransport : IAsyncDisposable
     /// step, and a transport that owns a worker terminates it.
     /// </summary>
     Task<ProbeOutcome> ExecuteAsync(ProbeStep step, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// A license prompt is open (#402): from now on the transport sends nothing, not even a
+    /// graceful stop, and terminates nothing. Disposal then only releases the harness's own handles.
+    /// </summary>
+    void Abandon();
 }
 
 /// <summary>
@@ -38,6 +48,13 @@ internal interface IOperatorConsole
     /// the operator did not answer in time or the session was cancelled.
     /// </summary>
     Task<string?> CheckpointAsync(ProbeStep step, OperatorCheckpoint timing, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// The operator's license-abort signal (#402), raised by the signal file or by a checkpoint
+    /// answer. Distinct from Ctrl+C, which cancels and lets the run clean up: once it is raised
+    /// nothing more is sent, started or terminated, not even a graceful stop.
+    /// </summary>
+    LicenseAbortSignal LicenseAbort { get; }
 }
 
 /// <summary>A refusal before any MP work, carrying one stable diagnostic code.</summary>
@@ -79,7 +96,11 @@ internal enum StepClassification
 
     // Removed from the plan by an operator --exclude-probe; never sent. Distinct
     // from NotRun, which is a planned step that a stop or refusal prevented.
-    Excluded
+    Excluded,
+
+    // Its manual fixture is missing from the manifest (#402); never sent. It is not
+    // run, and never a pass.
+    FixtureMissing
 }
 
 internal sealed record HypothesisResult(string Label, string ObservationKey, string ExpectedValue, bool Matched);
@@ -123,12 +144,28 @@ internal sealed record ProbeSessionRecord(
     /// <summary>The server interaction-mode setting the public plan needed (#313); null in the worker phase.</summary>
     public string? ServerInteractionModeSetting { get; init; }
 
-    /// <summary>Every step that was not excluded was observed as planned.</summary>
+    /// <summary>
+    /// The stop reason a license prompt took precedence over (#402), for example a cancellation
+    /// or an unknown outcome that was still being cleaned up when the signal was raised.
+    /// </summary>
+    public string? SupersededStopReason { get; init; }
+
+    /// <summary>
+    /// Every step that could be sent was observed as planned. Excluded and fixture-missing
+    /// steps were never sent; the record lists them.
+    /// </summary>
     public bool Completed => StopReason is null && !DryRun &&
-        Steps.All(static step => step.Classification is StepClassification.Observed or StepClassification.Excluded);
+        Steps.All(static step => step.Classification is StepClassification.Observed or StepClassification.Excluded or
+            StepClassification.FixtureMissing);
+
+    /// <summary>The manifest keys whose absence kept steps from running, in step order.</summary>
+    public IReadOnlyList<string> MissingFixtures =>
+        [.. Steps.Where(static step => step.Classification == StepClassification.FixtureMissing)
+            .Select(static step => step.Step.RequiredFixture!).Distinct(StringComparer.Ordinal)];
 
     /// <summary>The run ended, as planned, in its stall step's stall: that step's completion is unknown.</summary>
-    public bool EndedInPlannedStall => Steps.LastOrDefault(static step => step.Classification != StepClassification.Excluded) is
+    public bool EndedInPlannedStall => Steps.LastOrDefault(static step =>
+        step.Classification is not (StepClassification.Excluded or StepClassification.FixtureMissing)) is
     {
         Classification: StepClassification.Observed, Step.ExpectedStall: not null
     };
@@ -148,6 +185,10 @@ internal static class ProbeSession
     public const string DestructiveRefusalStop = "destructive-target-not-created-by-harness";
     public const string CheckpointStop = "operator-checkpoint-not-confirmed";
 
+    // The operator answered license-prompt-abort: a license prompt is open, and nothing more
+    // is sent (#402). The prompt is never copied or dismissed by the run.
+    public const string LicensePromptStop = "license-prompt-operator-abort";
+
     /// <summary>Records the plan without starting any transport.</summary>
     public static ProbeSessionRecord DryRun(ProbePlan plan, TimeProvider clock)
     {
@@ -155,7 +196,7 @@ internal static class ProbeSession
         ArgumentNullException.ThrowIfNull(clock);
         var now = clock.GetUtcNow();
         return Describe(new ProbeSessionRecord(plan.Phase, DryRun: true, plan.PlaceholderFixtures, now, now, SessionIdentity.None,
-            [.. plan.CatalogSteps.Select(step => plan.IsExcluded(step) ? Excluded(step) : NotRun(step))], StoppedAt: null, StopReason: null), plan);
+            [.. plan.CatalogSteps.Select(step => Unsent(plan, step))], StoppedAt: null, StopReason: null), plan);
     }
 
     public static async Task<ProbeSessionRecord> RunAsync(
@@ -178,16 +219,27 @@ internal static class ProbeSession
 
         var started = clock.GetUtcNow();
         var records = new List<ProbeStepRecord>(plan.CatalogSteps.Count);
+        var licenseAbort = console.LicenseAbort;
+
+        // A license prompt already signalled: the transport is never started.
+        if (licenseAbort.Raised)
+        {
+            transport.Abandon();
+            records.AddRange(plan.CatalogSteps.Select(step => Unsent(plan, step)));
+            return Describe(new ProbeSessionRecord(plan.Phase, DryRun: false, plan.PlaceholderFixtures, started, clock.GetUtcNow(),
+                operatorIdentity, records, StoppedAt: null, LicensePromptStop), plan);
+        }
+
         SessionIdentity identity;
         try
         {
-            identity = Merge(await transport.StartAsync(plan, cancellationToken).ConfigureAwait(false), operatorIdentity);
+            identity = Merge(await transport.StartAsync(plan, licenseAbort, cancellationToken).ConfigureAwait(false), operatorIdentity);
         }
         catch (ProbeRefusedException refusal)
         {
-            records.AddRange(plan.CatalogSteps.Select(step => plan.IsExcluded(step) ? Excluded(step) : NotRun(step)));
-            return Describe(new ProbeSessionRecord(plan.Phase, DryRun: false, plan.PlaceholderFixtures, started, clock.GetUtcNow(),
-                operatorIdentity, records, StoppedAt: null, refusal.DiagnosticCode), plan);
+            records.AddRange(plan.CatalogSteps.Select(step => Unsent(plan, step)));
+            return WithLicensePrecedence(Describe(new ProbeSessionRecord(plan.Phase, DryRun: false, plan.PlaceholderFixtures, started,
+                clock.GetUtcNow(), operatorIdentity, records, StoppedAt: null, refusal.DiagnosticCode), plan), licenseAbort, transport);
         }
 
         var history = new Dictionary<string, ProbeOutcome>(StringComparer.Ordinal);
@@ -198,10 +250,11 @@ internal static class ProbeSession
         var ordinal = 0;
         foreach (var step in plan.CatalogSteps)
         {
-            // An operator-excluded step is recorded in its catalog position and never sent.
-            if (plan.IsExcluded(step))
+            // An operator-excluded step, or one whose manual fixture is missing, is recorded
+            // in its catalog position and never sent.
+            if (plan.IsExcluded(step) || plan.IsFixtureMissing(step))
             {
-                records.Add(Excluded(step));
+                records.Add(Unsent(plan, step));
                 continue;
             }
 
@@ -215,6 +268,15 @@ internal static class ProbeSession
             if (stopReason is not null)
             {
                 records.Add(NotRun(step));
+                continue;
+            }
+
+            // A license prompt signalled between checkpoints: this step and every later one is
+            // never sent.
+            if (licenseAbort.Raised)
+            {
+                records.Add(new ProbeStepRecord(step, ProbeOutcome.Refused(LicensePromptStop), StepClassification.Refused, [], null));
+                (stoppedAt, stopReason) = (step.Id, LicensePromptStop);
                 continue;
             }
 
@@ -235,15 +297,34 @@ internal static class ProbeSession
             if (step.Checkpoints.HasFlag(OperatorCheckpoint.Before))
             {
                 var before = await console.CheckpointAsync(step, OperatorCheckpoint.Before, cancellationToken).ConfigureAwait(false);
-                if (before is null)
+                if (before is null || OperatorObservationText.IsLicensePromptAbort(before))
                 {
-                    records.Add(new ProbeStepRecord(step, ProbeOutcome.Refused("operator-checkpoint-not-confirmed"),
-                        StepClassification.Refused, [], null));
-                    (stoppedAt, stopReason) = (step.Id, CheckpointStop);
+                    var license = OperatorObservationText.IsLicensePromptAbort(before);
+                    if (license)
+                    {
+                        licenseAbort.Raise();
+                    }
+
+                    records.Add(new ProbeStepRecord(step, ProbeOutcome.Refused(license ? LicensePromptStop : "operator-checkpoint-not-confirmed"),
+                        StepClassification.Refused, [], null)
+                    {
+                        OperatorObservations = license ? [new OperatorObservation(OperatorCheckpoint.Before, before!)] : []
+                    });
+                    (stoppedAt, stopReason) = (step.Id, license ? LicensePromptStop : CheckpointStop);
                     continue;
                 }
 
                 operatorObservations.Add(new OperatorObservation(OperatorCheckpoint.Before, before));
+            }
+
+            if (licenseAbort.Raised)
+            {
+                records.Add(new ProbeStepRecord(step, ProbeOutcome.Refused(LicensePromptStop), StepClassification.Refused, [], null)
+                {
+                    OperatorObservations = operatorObservations
+                });
+                (stoppedAt, stopReason) = (step.Id, LicensePromptStop);
+                continue;
             }
 
             console.Dispatching(step, ordinal, plan.Steps.Count);
@@ -265,8 +346,11 @@ internal static class ProbeSession
 
             // Whatever the outcome, the operator records and dismisses any dialog
             // before anything else is sent.
+            // A license prompt signalled while the step ran: its own result stands, and no
+            // checkpoint or later step follows.
             var unanswered = false;
-            if (step.Checkpoints.HasFlag(OperatorCheckpoint.After))
+            var licensePrompt = licenseAbort.Raised;
+            if (!licensePrompt && step.Checkpoints.HasFlag(OperatorCheckpoint.After))
             {
                 var after = await console.CheckpointAsync(step, OperatorCheckpoint.After, cancellationToken).ConfigureAwait(false);
                 if (after is null)
@@ -276,6 +360,12 @@ internal static class ProbeSession
                 else
                 {
                     operatorObservations.Add(new OperatorObservation(OperatorCheckpoint.After, after));
+                    licensePrompt = OperatorObservationText.IsLicensePromptAbort(after);
+                }
+
+                if (licensePrompt)
+                {
+                    licenseAbort.Raise();
                 }
             }
 
@@ -292,7 +382,11 @@ internal static class ProbeSession
                 }
 
                 // The step's own result stands; nothing later is sent without the operator.
-                if (unanswered)
+                if (licensePrompt)
+                {
+                    (stoppedAt, stopReason) = (step.Id, LicensePromptStop);
+                }
+                else if (unanswered)
                 {
                     (stoppedAt, stopReason) = (step.Id, CheckpointStop);
                 }
@@ -312,13 +406,34 @@ internal static class ProbeSession
             stoppedAt = step.Id;
             // ExecuteStep false, a missing MP result, or any other unknown completion:
             // the step is never replayed and no later step runs.
-            stopReason = outcome.CompletionUnknown
+            stopReason = licensePrompt ? LicensePromptStop : outcome.CompletionUnknown
                 ? UnknownOutcomeStop
                 : accepted ? RequirementStop : UnexpectedDispositionStop;
         }
 
-        return Describe(new ProbeSessionRecord(plan.Phase, DryRun: false, plan.PlaceholderFixtures, started, clock.GetUtcNow(),
-            identity, records, stoppedAt, stopReason), plan);
+        return WithLicensePrecedence(Describe(new ProbeSessionRecord(plan.Phase, DryRun: false, plan.PlaceholderFixtures, started,
+            clock.GetUtcNow(), identity, records, stoppedAt, stopReason), plan), licenseAbort, transport);
+    }
+
+    /// <summary>
+    /// A license prompt signalled at any time during the run, including while a stop or a
+    /// cancellation was being handled, is the run's stop reason, and the transport sends nothing
+    /// more, including on disposal. The reason it took precedence over is kept.
+    /// </summary>
+    internal static ProbeSessionRecord WithLicensePrecedence(ProbeSessionRecord record, LicenseAbortSignal licenseAbort, IProbeTransport? transport)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+        ArgumentNullException.ThrowIfNull(licenseAbort);
+        if (!licenseAbort.Raised && record.StopReason != LicensePromptStop)
+        {
+            return record;
+        }
+
+        licenseAbort.Raise();
+        transport?.Abandon();
+        return record.StopReason == LicensePromptStop
+            ? record
+            : record with { StopReason = LicensePromptStop, SupersededStopReason = record.StopReason };
     }
 
     // The plan-level facts every record states, whether or not anything ran.
@@ -333,6 +448,12 @@ internal static class ProbeSession
     private static ProbeStepRecord NotRun(ProbeStep step) => new(step, null, StepClassification.NotRun, [], null);
 
     private static ProbeStepRecord Excluded(ProbeStep step) => new(step, null, StepClassification.Excluded, [], null);
+
+    private static ProbeStepRecord FixtureMissing(ProbeStep step) => new(step, null, StepClassification.FixtureMissing, [], null);
+
+    // A step that is never sent by design, or else not run yet.
+    private static ProbeStepRecord Unsent(ProbePlan plan, ProbeStep step) =>
+        plan.IsExcluded(step) ? Excluded(step) : plan.IsFixtureMissing(step) ? FixtureMissing(step) : NotRun(step);
 
     private static SessionIdentity Merge(SessionIdentity runtime, SessionIdentity operatorIdentity) => runtime with
     {
