@@ -241,6 +241,14 @@ explicit semantic version; no workflow runs on tag pushes. To release:
 A dispatch on any other branch is an unsigned dry run. Do not dispatch a product
 version just to test authentication; use the signing probes below.
 
+### Release notes wording
+
+When reviewing and editing the draft release notes from Server 0.10.1 onward,
+state which server and client versions work together (for example, "works with
+clients 0.5.x") and link [`docs/versioning.md`](../versioning.md). Do not use
+"contract major", "contract 3.x", or "behavioral contract major" to tell users
+what is compatible.
+
 ### If the draft release is refused
 
 GitHub does not let the workflow token create a release whose commit has workflow
