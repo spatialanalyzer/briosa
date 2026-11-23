@@ -62,9 +62,8 @@ public sealed class WorkerControlBudgetTests
     }
 
     // Frames just under, at and just over both the Server 0.10.0 limit and the
-    // current response budget, split by whether they fit the budget. Today the
-    // two limits are equal; once the budget is raised, a result just over 64 KiB
-    // moves to the delivered set.
+    // current response budget, split by whether they fit the budget. A result
+    // just over 64 KiB, which Server 0.10.0 could not deliver, is now delivered.
     private static readonly int[] ResultFrameSizes =
     [
         .. new[]
@@ -173,9 +172,8 @@ public sealed class WorkerControlBudgetTests
     }
 
     // A receiver that does not name its direction reads frames up to the larger
-    // budget, and still rejects a request over the request budget. While the two
-    // budgets are equal the frame header bound rejects it first; the check after
-    // decoding is exercised only once the response budget is larger.
+    // budget, and still rejects a request over the request budget: the frame
+    // passes the header bound, and the check after decoding rejects it.
     [Fact]
     public void AnOverBudgetRequestIsRejectedEvenWithinTheFrameBound()
     {

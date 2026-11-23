@@ -73,6 +73,15 @@ internal static class TestWorkerProcess
                         scenario: options.Scenario)
             };
             var connectCount = 0;
+            if (options.ProtocolVersionOffset is { } offset and not 0)
+            {
+                // A worker built for another private protocol version: the host
+                // must reject its Ready before it sends any command.
+                SendOnProtocolVersion(pipe, WorkerControlMessage.Ready(Environment.ProcessId, connection),
+                    WorkerControlProtocol.CurrentVersion + offset);
+                Thread.Sleep(Timeout.Infinite);
+            }
+
             channel.Send(
                 WorkerControlMessage.Ready(
                     Environment.ProcessId,
@@ -410,6 +419,32 @@ internal static class TestWorkerProcess
                     Version: null,
                     WorkerRuntimeIdentityEvidenceSource.Unavailable)), Failure: failure);
 
+    // Encodes the message on the current version, then rewrites its version field,
+    // which the channel itself refuses to send.
+    private static void SendOnProtocolVersion(Stream pipe, WorkerControlMessage message, int version)
+    {
+        using var frame = new MemoryStream();
+        using (var encoder = new WorkerControlChannel(frame, leaveOpen: true))
+        {
+            encoder.Send(message);
+        }
+
+        var payload = System.Text.Encoding.UTF8.GetString(frame.GetBuffer(), sizeof(int), (int)frame.Length - sizeof(int));
+        var current = $"\"protocolVersion\":{WorkerControlProtocol.CurrentVersion}";
+        if (!payload.Contains(current, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("The encoded message has no protocol version field.");
+        }
+
+        var rewritten = System.Text.Encoding.UTF8.GetBytes(payload.Replace(current,
+            $"\"protocolVersion\":{version.ToString(System.Globalization.CultureInfo.InvariantCulture)}", StringComparison.Ordinal));
+        var header = new byte[sizeof(int)];
+        System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(header, rewritten.Length);
+        pipe.Write(header);
+        pipe.Write(rewritten);
+        pipe.Flush();
+    }
+
     private static void SendTruncatedFrameAndClose(Stream pipe, WorkerControlMessage message)
     {
         using var frame = new MemoryStream();
@@ -475,7 +510,8 @@ internal sealed record TestWorkerOptions(
     TestWorkerScenario Scenario,
     string? LifecycleRecordPath,
     string? PipeRecordPath,
-    int? OutputTextLength = null)
+    int? OutputTextLength = null,
+    int? ProtocolVersionOffset = null)
 {
     public static TestWorkerOptions Parse(string[] arguments)
     {
@@ -496,7 +532,11 @@ internal sealed record TestWorkerOptions(
         int? outputTextLength = TryGetArgument(arguments, "--output-text-length", out var length)
             ? int.Parse(length, System.Globalization.CultureInfo.InvariantCulture)
             : null;
-        return new TestWorkerOptions(pipeName, scenario, recordPath, pipeRecordPath, outputTextLength);
+        int? protocolVersionOffset = TryGetArgument(arguments, "--protocol-version-offset", out var offset)
+            ? int.Parse(offset, System.Globalization.CultureInfo.InvariantCulture)
+            : null;
+        return new TestWorkerOptions(pipeName, scenario, recordPath, pipeRecordPath, outputTextLength,
+            protocolVersionOffset);
     }
 
     private static TestWorkerScenario ParseScenario(string value) =>

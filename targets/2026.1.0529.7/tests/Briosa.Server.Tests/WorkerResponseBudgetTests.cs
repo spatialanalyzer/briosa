@@ -1,12 +1,19 @@
 using Briosa.Server.Operations.FileOperations;
+using Briosa.Server.Operations.InstrumentOperations;
+using Briosa.Server.Operations.RobotCalibrationApplianceNodeOperations;
+using Briosa.Server.Operations.RobotOperations;
 using Briosa.Server.Operations.Variables;
+using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
 using Grpc.AspNetCore.Server;
 using Grpc.Core;
+using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Xunit.Abstractions;
 using Api = global::Briosa;
 
 namespace Briosa.Server.Tests;
@@ -16,7 +23,7 @@ namespace Briosa.Server.Tests;
 // channel and the public gRPC endpoint. Every boundary follows the named
 // constants, so raising WorkerControlProtocol.MaximumResponseBytes is a one-line
 // change and these tests move with it.
-public sealed class WorkerResponseBudgetTests
+public sealed class WorkerResponseBudgetTests(ITestOutputHelper output)
 {
     // Server 0.10.0 accepted public requests and delivered private frames up to 64 KiB.
     private const int Server0100LimitBytes = 64 * 1024;
@@ -148,6 +155,131 @@ public sealed class WorkerResponseBudgetTests
             FirstPartyClientDefaultReceiveBytes);
     }
 
+    // Every operation that returns double lists, through its real mapper, with a
+    // private frame at the response budget whose first double list holds only
+    // zeros: the densest JSON. Its public response must stay within the published
+    // clients' 4 MiB receive limit. Other output kinds encode to less protobuf than
+    // JSON, so they cannot come closer.
+    public static TheoryData<string> DoubleListOperations() => new()
+    {
+        GetNamedDoubleListVariableOperation.Descriptor.OperationId,
+        GetRobotPoseForAFrameOperation.Descriptor.OperationId,
+        GetCalibrationApplianceDataOperation.Descriptor.OperationId,
+        GetCalibrationApplianceNodeDataOperation.Descriptor.OperationId,
+        GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldOperation.Descriptor.OperationId,
+        GetLastSolvedTcpFixtureUncertaintyCovarianceMatrixOperation.Descriptor.OperationId,
+        CalculateTcpFixtureUncertaintiesOperation.Descriptor.OperationId
+    };
+
+    [Theory]
+    [MemberData(nameof(DoubleListOperations))]
+    public async Task EveryDoubleListResponseAtTheBudgetFitsTheClientsDefaultReceiveLimit(string operationId)
+    {
+        var (frameBytes, responseBytes) = await DensestResponse(operationId).ConfigureAwait(true);
+        output.WriteLine(
+            $"{operationId}: frame {frameBytes} bytes, response {responseBytes} bytes, " +
+            $"{FirstPartyClientDefaultReceiveBytes - responseBytes} bytes under the client limit");
+
+        Assert.InRange(frameBytes, WorkerControlProtocol.MaximumResponseBytes - 1,
+            WorkerControlProtocol.MaximumResponseBytes);
+        Assert.InRange(responseBytes, 3 * WorkerControlProtocol.MaximumResponseBytes,
+            FirstPartyClientDefaultReceiveBytes);
+    }
+
+    private static Task<(int FrameBytes, int ResponseBytes)> DensestResponse(string operationId) => operationId switch
+    {
+        _ when operationId == GetNamedDoubleListVariableOperation.Descriptor.OperationId => Densest<Api.GetNamedDoubleListVariableRequest, Api.GetNamedDoubleListVariableResult>(
+            GetNamedDoubleListVariableOperation.Descriptor, GetNamedDoubleListVariableOperation.CreateCommand,
+            GetNamedDoubleListVariableOperation.OutputContracts, GetNamedDoubleListVariableOperation.CreateResult),
+        _ when operationId == GetRobotPoseForAFrameOperation.Descriptor.OperationId => Densest<Api.GetRobotPoseForAFrameRequest, Api.GetRobotPoseForAFrameResult>(
+            GetRobotPoseForAFrameOperation.Descriptor, GetRobotPoseForAFrameOperation.CreateCommand,
+            GetRobotPoseForAFrameOperation.OutputContracts, GetRobotPoseForAFrameOperation.CreateResult),
+        _ when operationId == GetCalibrationApplianceDataOperation.Descriptor.OperationId => Densest<Api.GetCalibrationApplianceDataRequest, Api.GetCalibrationApplianceDataResult>(
+            GetCalibrationApplianceDataOperation.Descriptor, GetCalibrationApplianceDataOperation.CreateCommand,
+            GetCalibrationApplianceDataOperation.OutputContracts, GetCalibrationApplianceDataOperation.CreateResult),
+        _ when operationId == GetCalibrationApplianceNodeDataOperation.Descriptor.OperationId => Densest<Api.GetCalibrationApplianceNodeDataRequest, Api.GetCalibrationApplianceNodeDataResult>(
+            GetCalibrationApplianceNodeDataOperation.Descriptor, GetCalibrationApplianceNodeDataOperation.CreateCommand,
+            GetCalibrationApplianceNodeDataOperation.OutputContracts, GetCalibrationApplianceNodeDataOperation.CreateResult),
+        _ when operationId == GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldOperation.Descriptor.OperationId => Densest<Api.GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldRequest, Api.GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldResult>(
+            GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldOperation.Descriptor,
+            GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldOperation.CreateCommand,
+            GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldOperation.OutputContracts,
+            GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldOperation.CreateResult),
+        _ when operationId == GetLastSolvedTcpFixtureUncertaintyCovarianceMatrixOperation.Descriptor.OperationId => Densest<Api.GetLastSolvedTcpFixtureUncertaintyCovarianceMatrixRequest, Api.GetLastSolvedTcpFixtureUncertaintyCovarianceMatrixResult>(
+            GetLastSolvedTcpFixtureUncertaintyCovarianceMatrixOperation.Descriptor,
+            GetLastSolvedTcpFixtureUncertaintyCovarianceMatrixOperation.CreateCommand,
+            GetLastSolvedTcpFixtureUncertaintyCovarianceMatrixOperation.OutputContracts,
+            GetLastSolvedTcpFixtureUncertaintyCovarianceMatrixOperation.CreateResult),
+        _ when operationId == CalculateTcpFixtureUncertaintiesOperation.Descriptor.OperationId => Densest<Api.CalculateTcpFixtureUncertaintiesRequest, Api.CalculateTcpFixtureUncertaintiesResult>(
+            CalculateTcpFixtureUncertaintiesOperation.Descriptor, CalculateTcpFixtureUncertaintiesOperation.CreateCommand,
+            CalculateTcpFixtureUncertaintiesOperation.OutputContracts, CalculateTcpFixtureUncertaintiesOperation.CreateResult),
+        _ => throw new ArgumentOutOfRangeException(nameof(operationId))
+    };
+
+    private static async Task<(int FrameBytes, int ResponseBytes)> Densest<TRequest, TResult>(
+        OperationDescriptor descriptor,
+        Func<TRequest, WorkerMpCommand> createCommand,
+        IReadOnlyList<OperationOutputContract> outputContracts,
+        Func<SuccessfulOperationExecution, TResult> createResult)
+        where TRequest : class, IMessage<TRequest>, new()
+        where TResult : class, IMessage
+    {
+        var worker = new PrivateChannelWorker(DensestDoubleLists);
+        var executor = new OperationExecutor(worker,
+            new OperationAuditLogger(NullLogger<OperationAuditLogger>.Instance), TimeProvider.System);
+        var request = OperationConditionalOptionTests.RequestPopulator.Create<TRequest>();
+        // The populated transform is not a 4x4 matrix; this operation requires one.
+        if (request is Api.CalculateTcpFixtureUncertaintiesRequest tcp)
+        {
+            tcp.TcpInWorking = new Api.Transform();
+            tcp.TcpInWorking.Values.AddRange(new double[16]);
+        }
+
+        var result = await executor.ExecuteAsync(
+            request, descriptor, createCommand, outputContracts, createResult, CancellationToken.None).ConfigureAwait(true);
+        Assert.False(worker.Rejected);
+        return (worker.DeliveredFrameBytes, result.CalculateSize());
+    }
+
+    // The first double list gets as many zeros as the frame allows; every other
+    // output gets the smallest value of its kind.
+    private static WorkerExecutionResponse DensestDoubleLists(WorkerMpCommand command)
+    {
+        WorkerExecutionResponse With(int count)
+        {
+            var outputs = new List<WorkerMpOutputValue>();
+            var remaining = count;
+            foreach (var output in command.OutputArguments)
+            {
+                WorkerMpValue value = output.Kind switch
+                {
+                    WorkerMpValueKind.DoubleArray => new WorkerDoubleArrayValue(new double[remaining]),
+                    WorkerMpValueKind.Logical => new WorkerBooleanValue(false),
+                    WorkerMpValueKind.FloatingPoint => new WorkerDoubleValue(0),
+                    WorkerMpValueKind.Transform => new WorkerTransformValue(new double[16]),
+                    WorkerMpValueKind.EditText => new WorkerStringListValue([]),
+                    _ => throw new InvalidOperationException("No densest value for this output kind.")
+                };
+                if (output.Kind == WorkerMpValueKind.DoubleArray) remaining = 0;
+                outputs.Add(new WorkerRetrievedOutput(output.Name, output.Kind, value));
+            }
+
+            return Completed(outputs);
+        }
+
+        int lower = 0, upper = WorkerControlProtocol.MaximumResponseBytes;
+        while (lower < upper)
+        {
+            var middle = (lower + upper + 1) / 2;
+            if (TryEncodedLength(With(middle)) is not null)
+                lower = middle;
+            else
+                upper = middle - 1;
+        }
+
+        return With(lower);
+    }
+
     private static Api.GetDoubleVariableRequest RequestOfSize(int bytes)
     {
         var request = new Api.GetDoubleVariableRequest { Name = string.Empty };
@@ -187,10 +319,12 @@ public sealed class WorkerResponseBudgetTests
         Completed(new WorkerRetrievedOutput(name, WorkerMpValueKind.DoubleArray,
             new WorkerDoubleArrayValue(new double[count])));
 
-    private static WorkerExecutionResponse Completed(WorkerMpOutputValue output) =>
+    private static WorkerExecutionResponse Completed(WorkerMpOutputValue output) => Completed([output]);
+
+    private static WorkerExecutionResponse Completed(IReadOnlyList<WorkerMpOutputValue> outputs) =>
         new(
             WorkerExecutionResponseStatus.Completed,
-            new WorkerMpResultAvailable(2, 5, [output], null),
+            new WorkerMpResultAvailable(2, 5, outputs, null),
             new WorkerConnectionSnapshot(
                 WorkerConnectionState.Connected,
                 WorkerExecutionReadinessState.ExecutionReady,
@@ -203,11 +337,22 @@ public sealed class WorkerResponseBudgetTests
 
     private static readonly Guid CorrelationId = new("6c1f9a3e-2d4b-4e8f-a1c7-5b9d0e2f4a6c");
 
-    private static int EncodedLength(WorkerExecutionResponse response)
+    private static int EncodedLength(WorkerExecutionResponse response) =>
+        TryEncodedLength(response) ?? throw new InvalidOperationException("The frame is over the response budget.");
+
+    private static int? TryEncodedLength(WorkerExecutionResponse response)
     {
         using var stream = new MemoryStream();
         using var channel = new WorkerControlChannel(stream, leaveOpen: true);
-        channel.Send(WorkerControlMessage.ExecutionResult(CorrelationId, response));
+        try
+        {
+            channel.Send(WorkerControlMessage.ExecutionResult(CorrelationId, response));
+        }
+        catch (WorkerMessageRejectedException)
+        {
+            return null;
+        }
+
         return checked((int)stream.Length - sizeof(int));
     }
 

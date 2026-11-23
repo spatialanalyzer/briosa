@@ -18,11 +18,9 @@ public sealed class WorkerResponseBudgetProcessTests
     private const int EnvelopeAllowanceBytes = 4 * 1024;
 
     // A result just under the response budget arrives whole, and the same worker
-    // generation serves the next call. While the request and response budgets are
-    // equal, this shows only that the real endpoints deliver a near-budget frame.
-    // Once the response budget is larger, the frame is also larger than the
-    // request budget, so this test fails if the host endpoint bounds worker
-    // frames by the request budget.
+    // generation serves the next call. The frame is larger than the request
+    // budget, so this test fails if the host endpoint bounds worker frames by the
+    // request budget.
     [Fact]
     public async Task AResultNearTheResponseBudgetCrossesTheRealWorkerPipeWhole()
     {

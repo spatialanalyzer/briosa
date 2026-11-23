@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace Briosa.Worker.Control;
 
@@ -23,11 +24,11 @@ public sealed class WorkerControlChannel(
     public void Send(WorkerControlMessage message)
     {
         ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposeState) != 0, this);
-        var payload = Serialize(message);
+        using var payload = Serialize(message);
         Span<byte> header = stackalloc byte[sizeof(int)];
         BinaryPrimitives.WriteInt32LittleEndian(header, payload.Length);
         _stream.Write(header);
-        _stream.Write(payload);
+        payload.WriteTo(_stream);
         _stream.Flush();
     }
 
@@ -46,11 +47,11 @@ public sealed class WorkerControlChannel(
         CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposeState) != 0, this);
-        var payload = Serialize(message);
+        using var payload = Serialize(message);
         var header = new byte[sizeof(int)];
         BinaryPrimitives.WriteInt32LittleEndian(header, payload.Length);
         await _stream.WriteAsync(header, cancellationToken).ConfigureAwait(false);
-        await _stream.WriteAsync(payload, cancellationToken).ConfigureAwait(false);
+        await payload.WriteToAsync(_stream, cancellationToken).ConfigureAwait(false);
         await _stream.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -73,24 +74,48 @@ public sealed class WorkerControlChannel(
         }
     }
 
-    private static byte[] Serialize(WorkerControlMessage message)
+    // Encodes into a buffer bounded by the budget of the message kind. The encoder
+    // stops as soon as the frame is over it, so an oversized message never costs
+    // more than the budget plus one chunk, whatever it contains.
+    private static BoundedFrameBuffer Serialize(WorkerControlMessage message)
     {
         ArgumentNullException.ThrowIfNull(message);
         try
         {
             Validate(message);
-            var payload = JsonSerializer.SerializeToUtf8Bytes(message, WorkerControlJsonContext.Default.WorkerControlMessage);
-            if (payload.Length > WorkerControlProtocol.MaximumBytesFor(message.Kind))
-            {
-                throw new InvalidDataException("The worker control message exceeds the size limit.");
-            }
-
-            return payload;
+            return Encode(message, WorkerControlJsonContext.Default.WorkerControlMessage,
+                WorkerControlProtocol.MaximumBytesFor(message.Kind));
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidDataException or JsonException)
         {
             // Preparation is complete before Send/SendAsync writes even the frame header.
             throw new WorkerMessageRejectedException("The worker message could not be encoded.", exception);
+        }
+    }
+
+    // Returns the encoded value, or throws InvalidDataException once it is over
+    // maximumBytes. The returned buffer belongs to the caller.
+    private static BoundedFrameBuffer Encode<T>(T value, JsonTypeInfo<T> typeInfo, int maximumBytes)
+    {
+        var buffer = new BoundedFrameBuffer(maximumBytes);
+        try
+        {
+            using (var writer = new Utf8JsonWriter(buffer))
+            {
+                JsonSerializer.Serialize(writer, value, typeInfo);
+            }
+
+            if (buffer.Exceeded)
+            {
+                throw new InvalidDataException("The worker control message exceeds the size limit.");
+            }
+
+            return buffer;
+        }
+        catch
+        {
+            buffer.Dispose();
+            throw;
         }
     }
 
@@ -100,7 +125,7 @@ public sealed class WorkerControlChannel(
     {
         try
         {
-            _ = Serialize(message);
+            using var encoded = Serialize(message);
             return true;
         }
         catch (WorkerMessageRejectedException)
@@ -120,9 +145,18 @@ public sealed class WorkerControlChannel(
             return false;
         }
 
+        // Bounded by the response budget: a value that alone is over it reports a
+        // length over it without being encoded in full.
         try
         {
-            length = JsonSerializer.SerializeToUtf8Bytes(output, WorkerControlJsonContext.Default.WorkerMpOutputValue).Length;
+            using var encoded = Encode(output, WorkerControlJsonContext.Default.WorkerMpOutputValue,
+                WorkerControlProtocol.MaximumResponseBytes);
+            length = encoded.Length;
+            return true;
+        }
+        catch (InvalidDataException)
+        {
+            length = WorkerControlProtocol.MaximumResponseBytes + 1;
             return true;
         }
         catch (Exception exception) when (exception is ArgumentException or JsonException or NotSupportedException)

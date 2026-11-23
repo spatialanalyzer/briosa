@@ -2,7 +2,9 @@ namespace Briosa.Worker.Control;
 
 public static class WorkerControlProtocol
 {
-    public const int CurrentVersion = 25;
+    // 26: the response budget is 1 MiB. A host and worker that disagree on the
+    // version fail at Ready, before any command runs.
+    public const int CurrentVersion = 26;
 
     /// <summary>
     /// The private request budget: the largest encoded frame the host may send
@@ -23,7 +25,7 @@ public static class WorkerControlProtocol
     /// <see cref="WorkerExecutionDelivery"/>. Changing it moves neither
     /// <see cref="MaximumRequestBytes"/> nor the public gRPC receive limit.
     /// </summary>
-    public const int MaximumResponseBytes = 64 * 1024;
+    public const int MaximumResponseBytes = 1024 * 1024;
 
     /// <summary>
     /// The largest frame either direction may carry. A receiver that does not
