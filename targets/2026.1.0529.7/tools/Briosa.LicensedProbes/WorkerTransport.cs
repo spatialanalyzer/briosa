@@ -34,13 +34,16 @@ internal sealed class WorkerTransport : IProbeTransport
     private readonly TimeSpan _stepTimeout;
     private readonly IProcessCensus _census;
     private readonly Func<bool>? _modalDialogOpen;
+    private readonly Func<bool>? _licenseAbortRaised;
     private NamedPipeServerStream? _pipe;
     private CountingStream? _counter;
     private WorkerControlChannel? _channel;
     private Process? _process;
     private bool _faulted;
+    private bool _abandoned;
 
-    public WorkerTransport(string workerPath, TimeSpan stepTimeout, IProcessCensus census, Func<bool>? modalDialogOpen = null)
+    public WorkerTransport(string workerPath, TimeSpan stepTimeout, IProcessCensus census, Func<bool>? modalDialogOpen = null,
+        Func<bool>? licenseAbortRaised = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(workerPath);
         ArgumentNullException.ThrowIfNull(census);
@@ -48,6 +51,7 @@ internal sealed class WorkerTransport : IProbeTransport
         _stepTimeout = stepTimeout;
         _census = census;
         _modalDialogOpen = modalDialogOpen;
+        _licenseAbortRaised = licenseAbortRaised;
     }
 
     /// <summary>A step timeout checks for an open SpatialAnalyzer dialog.</summary>
@@ -136,6 +140,11 @@ internal sealed class WorkerTransport : IProbeTransport
     public async Task<ProbeOutcome> ExecuteAsync(ProbeStep step, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(step);
+        if (_abandoned)
+        {
+            return ProbeOutcome.Refused(ProbeSession.LicensePromptStop);
+        }
+
         if (_faulted || _channel is null)
         {
             return ProbeOutcome.Unknown("worker:faulted", "worker-transport-faulted");
@@ -185,11 +194,24 @@ internal sealed class WorkerTransport : IProbeTransport
         }
     }
 
+    public void Abandon() => _abandoned = true;
+
+    // Whether disposal would send the worker a graceful stop: never after a license prompt.
+    internal bool WouldSendStopOnDispose => !_abandoned && _process is not null && !_process.HasExited && !_faulted && _channel is not null;
+
     [SuppressMessage("Design", "CA1031:Do not catch general exception types",
         Justification = "Best-effort graceful stop; termination below is the bounded fallback.")]
     public async ValueTask DisposeAsync()
     {
-        if (_process is not null && !_process.HasExited && !_faulted && _channel is not null)
+        if (_abandoned)
+        {
+            // After a license prompt nothing is sent and nothing is terminated: the harness only
+            // releases its own handles, and the worker is left for postflight (F11).
+            await ReleaseAsync().ConfigureAwait(false);
+            return;
+        }
+
+        if (WouldSendStopOnDispose && _process is not null)
         {
             try
             {
@@ -204,6 +226,11 @@ internal sealed class WorkerTransport : IProbeTransport
         }
 
         await TerminateAsync().ConfigureAwait(false);
+        await ReleaseAsync().ConfigureAwait(false);
+    }
+
+    private async Task ReleaseAsync()
+    {
         _channel?.Dispose();
         if (_counter is not null)
         {
@@ -246,6 +273,15 @@ internal sealed class WorkerTransport : IProbeTransport
     private async Task FaultAsync()
     {
         _faulted = true;
+
+        // A license prompt signalled while the step ran: the worker is left as it is, and
+        // nothing more is sent to it or done to it.
+        if (_licenseAbortRaised?.Invoke() == true)
+        {
+            _abandoned = true;
+            return;
+        }
+
         await TerminateAsync().ConfigureAwait(false);
     }
 

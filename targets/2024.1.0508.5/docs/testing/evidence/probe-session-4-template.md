@@ -23,7 +23,7 @@ record.
 | Merge SHA and harness revision | |
 | Package and SHA-256 | `briosa-0.10.1-probe-s4-sa-2024.1.0508.5-win-x64.zip`, |
 | Worker response budget | the bytes the records state (1 MiB since #411) |
-| Activated SDK and connected SA identity | runtime-verified version; operator attestation reference |
+| Activated SDK and connected SA identity | runtime-verified version; operator attestation alias (`sa-title-bar`, `sa-about-dialog`, `sa-installed-programs`, `sdk-file-version` or `installer-record`) |
 | `InteractionMode` registry value | before and after the session, and whether D19 applied |
 | Operator | |
 
@@ -37,9 +37,9 @@ record.
 | A4 O1 worker-crash | | | `ownership-worker-crash` |
 | A5 O2 parent-death | | | `ownership-parent-death` |
 | A6 O3 watchdog-kill | | | `ownership-watchdog-kill` |
-| A7 O4 competing-client | | | `ownership-competing-client` |
-| A8 C2 after-reboot | | | `ownership-release`, `startup-timing-after-reboot` |
-| A9 tutorials | | not on this target (SA 2026 only) | |
+| A7 C2 after-reboot | | | `ownership-release`, `startup-timing-after-reboot` |
+| A8 tutorials | | not on this target (SA 2026 only) | |
+| A9 O4 competing-client (last) | | | `ownership-competing-client` |
 
 Server settings per run: the admission arguments, the `InteractionMode` setting,
 the execution watchdog and the startup bound each server ran with.
@@ -84,7 +84,8 @@ Fixtures: the large point group's and the cloud's presence (counts below), or
 - How each condition was established: uptime, minutes since logon, SA idle time,
   and that the package folder was new (C1) or had run before the restart (C2):
 - An attempt labelled `first-attempt-unproven`, or not `unambiguous`, is not a cold
-  measurement; say so:
+  measurement; say so. An `overlapping-requests` attempt has no RPC time
+  (`withheld-overlapping`) and no phases:
 - The published `start_sdk_milliseconds` and `startup_without_launch_milliseconds`
   (from the `ownership-release` record):
 - Against the stock 10 s default: the margin, or the phase that would have exceeded
@@ -93,21 +94,23 @@ Fixtures: the large point group's and the cloud's presence (counts below), or
 ## 3. SDK ownership
 
 For each scenario: the bindings (`bound.server`, `bound.worker`,
-`bound.sdk_generation`); the SDK process's label, parent role and attribution; the
-worker's descendant census; whether the SDK process outlived the worker, the server
-and SA, given only as last-seen and first-absent bounds (never an exit time); the
-snapshot counts; and the residual.
+`bound.sdk_generation`, and `bind-generation`'s result); the connections verified and
+refused; the SDK process's label, parent role (as the snapshot showed it) and
+attribution; the worker's descendant census; whether the SDK process outlived the
+worker, the server and SA, given only as last-seen and first-absent bounds (never an
+exit time); the snapshot counts; and the residual.
 
 | Scenario | Bindings | SDK process: parent, attribution | Worker descendants | Event outcome | SDK process after the event (last seen / first absent) | After SA closed (`observe`) | Residual and what the operator did |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | identity and normal release (C1, C2) | | | | | | | |
 | worker crash (O1) | | | | `await-faulted`: | | | |
-| parent death (O2) | | | | worker last seen / first absent: | | | |
-| watchdog kill (O3) | | | before the stall: | stall result: | dialog open: / dismissed: | | |
-| competing client (O4) | | second client's SDK process: | | gates: baseline / package / identity / attach; first client MP before / during / after: | | | |
+| parent death (O2) | | | | re-check: ; worker last seen / first absent: | | | |
+| watchdog kill (O3) | | | after the checkpoint, before dispatch: count, not approved, complete or not | stall sent or not run (reason); result: | dialog open: / dismissed: | | |
+| competing client (O4) | | second client's SDK process: | | gates: baseline / package / identity / attach / MP during / exit confirmed; first client MP before / during / after: | | | |
 
 - Snapshots: complete, incomplete and failed counts per run, and the final status:
-- Operator checkpoint answers (O3), as their closed words:
+- Operator checkpoint answers (O3), as their closed words, and whether the license
+  signal was used (and in which run and step):
 - Every residual: unresolved, or stopped by the operator (label, time, the operator's
   decision at the time):
 
@@ -136,14 +139,18 @@ Not on this target: the `briosa-examples` tutorials target SA 2026 only.
 ## Postflight
 
 Per run: the `Test-LicensedRunnerState.ps1 -Phase Postflight` line, the `observe`
-record's final snapshot status and residual, and what the operator stopped. A run
-whose last census was incomplete has not passed postflight. At the end: no Briosa or
-SDK process, or the list of unresolved residuals and of what was stopped.
+record's final snapshot status and residual, and what the operator stopped. No
+generic `stop-sdk` was run; after a refusal or mismatch, say which server and
+generation were left as they were and recorded as unresolved. A run whose last
+census was incomplete has not passed postflight. At the end: no Briosa or SDK
+process, or the list of unresolved residuals and of what was stopped.
 
 ## Not run
 
 Every planned item that did not run, with its reason (fixture missing, declined,
-stopped, abandoned, refused by admission, precondition refused, license prompt).
+stopped, abandoned, refused by admission, precondition refused, peer unverified,
+worker descendants not approved, license prompt), and every probe not rerun under F1
+because one of its steps had been sent.
 
 ## Follow-up
 

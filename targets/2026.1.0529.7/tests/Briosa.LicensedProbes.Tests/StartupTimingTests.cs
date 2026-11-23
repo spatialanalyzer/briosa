@@ -127,6 +127,72 @@ public sealed class StartupTimingTests
         Assert.Equal((StartupTiming.OverlappingRequests, "first-attempt-unproven"), (attempt.Correlation, attempt.Label));
         Assert.Empty(attempt.Phases);
         Assert.Null(attempt.Generation);
+        Assert.Equal(new StartupTiming.RpcTiming(StartupTiming.WithheldExit, null, null, null), attempt.Start);
+    }
+
+    [Fact]
+    public void OverlappingStartsWithholdTheTimingsAndPhasesOfBoth()
+    {
+        // The second start arrives while the first is outstanding: the log cannot say which exit
+        // or which phases are whose, so neither attempt reports any.
+        var report = Analyze(
+        [
+            Line(0, 1001, "EndpointListening", "\"ElapsedMilliseconds\":5,"),
+            Started(1, StartupTiming.StartRpc),
+            Phase(1.1, 1, "process-created", 100),
+            Started(1.5, StartupTiming.StartRpc),
+            Phase(2.5, 1, "ready-received", 1400),
+            Completed(2.6, StartupTiming.StartRpc, 1600),
+            Line(2.7, 1302, "LifecycleRejected",
+                "\"Rpc\":\"StartSpatialAnalyzerSdk\",\"GrpcStatus\":\"FailedPrecondition\",\"DiagnosticCode\":\"sdk-already-active\",\"ElapsedMilliseconds\":1200,", "Warning"),
+            Started(3, StartupTiming.ConnectRpc),
+            Completed(4, StartupTiming.ConnectRpc, 1000)
+        ], StartupCondition.FreshInstall);
+
+        Assert.Equal(2, report.Attempts.Count);
+        Assert.All(report.Attempts, static attempt =>
+        {
+            Assert.Equal(StartupTiming.OverlappingRequests, attempt.Correlation);
+            Assert.Equal(new StartupTiming.RpcTiming(StartupTiming.WithheldExit, null, null, null), attempt.Start);
+            Assert.Empty(attempt.Phases);
+            Assert.Null(attempt.Connect);
+            Assert.Null(attempt.Generation);
+        });
+        Assert.Equal(("first-attempt-unproven", "ambiguous"), (report.Attempts[0].Label, report.Attempts[1].Label));
+        Assert.DoesNotContain("1600", StartupTiming.ToJson(report), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AStartAfterAnOutstandingRequestOfAnUnlistedRpcIsAmbiguous()
+    {
+        var report = Analyze(
+        [
+            Line(0, 1001, "EndpointListening", "\"ElapsedMilliseconds\":5,"),
+            Started(0.5, "SENTINEL"),
+            Started(1, StartupTiming.StartRpc),
+            Phase(1.2, 1, "ready-received", 100),
+            Completed(2, StartupTiming.StartRpc, 1000)
+        ]);
+
+        var attempt = Assert.Single(report.Attempts);
+        Assert.Equal(StartupTiming.OverlappingRequests, attempt.Correlation);
+        Assert.Null(attempt.Start.ElapsedMilliseconds);
+    }
+
+    [Theory]
+    [InlineData("\"Phase\":[],")]
+    [InlineData("\"Phase\":7,")]
+    [InlineData("\"Rpc\":{},")]
+    [InlineData("\"GrpcStatus\":null,")]
+    [InlineData("\"DiagnosticCode\":true,")]
+    [InlineData("\"ElapsedMilliseconds\":\"5\",")]
+    [InlineData("\"ElapsedMilliseconds\":1.5,")]
+    [InlineData("\"Generation\":[1],")]
+    public void AKnownFieldOfTheWrongKindMakesTheLineUnreadable(string field)
+    {
+        var line = Line(1, 1203, "WorkerStartPhase", field);
+
+        Assert.Equal(StartupTiming.LineKind.Unreadable, StartupTiming.ParseLine(line).Kind);
     }
 
     [Fact]

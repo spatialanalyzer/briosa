@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Globalization;
 using Briosa.Server.Services;
 using Briosa.Worker.Control;
@@ -34,8 +35,12 @@ internal abstract class ProbeOperation
 
 internal sealed class ProbeOperation<TRequest, TResult> : ProbeOperation
     where TRequest : class, IMessage<TRequest>
-    where TResult : class, IMessage<TResult>
+    where TResult : class, IMessage<TResult>, new()
 {
+    // Every field path the typed result declares ("angle", "alignment.rms_deviation"): the only
+    // output names the server may report for this operation (#402).
+    private static readonly FrozenSet<string> ResultFields = DeclaredFields.Of(new TResult().Descriptor);
+
     private readonly Func<TRequest, WorkerMpCommand> _build;
     private readonly Func<CallInvoker, TRequest, CallOptions, AsyncUnaryCall<TResult>> _call;
     private readonly Func<TResult, MpExecutionDetails?> _execution;
@@ -70,14 +75,14 @@ internal sealed class ProbeOperation<TRequest, TResult> : ProbeOperation
             using var call = _call(invoker, typed, options);
             var result = await call.ResponseAsync.ConfigureAwait(false);
             // The received message's own serialized size (#402); measuring it reads nothing else.
-            return PublicOutcomes.FromSuccess(_execution(result), ObservePublic(typed, result)) with
+            return PublicOutcomes.FromSuccess(_execution(result), ObservePublic(typed, result), ResultFields) with
             {
                 Size = ResponseSize.FromPublicMessage(result.CalculateSize())
             };
         }
         catch (RpcException exception)
         {
-            return PublicOutcomes.FromRpcException(exception);
+            return PublicOutcomes.FromRpcException(exception, ResultFields);
         }
     }
 
@@ -109,6 +114,33 @@ internal sealed class ProbeOperation<TRequest, TResult> : ProbeOperation
     }
 }
 
+/// <summary>The field paths a protobuf message declares, through its nested messages.</summary>
+internal static class DeclaredFields
+{
+    private const int MaximumDepth = 4;
+
+    public static FrozenSet<string> Of(Google.Protobuf.Reflection.MessageDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        var paths = new HashSet<string>(StringComparer.Ordinal);
+        Add(descriptor, string.Empty, 0, paths);
+        return paths.ToFrozenSet(StringComparer.Ordinal);
+    }
+
+    private static void Add(Google.Protobuf.Reflection.MessageDescriptor descriptor, string prefix, int depth, HashSet<string> paths)
+    {
+        foreach (var field in descriptor.Fields.InDeclarationOrder())
+        {
+            var path = prefix + field.Name;
+            paths.Add(path);
+            if (depth + 1 < MaximumDepth && field.FieldType == Google.Protobuf.Reflection.FieldType.Message && !field.IsMap)
+            {
+                Add(field.MessageType, path + ".", depth + 1, paths);
+            }
+        }
+    }
+}
+
 /// <summary>Builds deterministic structural observation maps.</summary>
 internal static class Observations
 {
@@ -133,7 +165,12 @@ internal static class PublicOutcomes
 {
     public const string ErrorTrailerName = "briosa-operation-error-bin";
 
-    public static ProbeOutcome FromSuccess(MpExecutionDetails? execution, IReadOnlyDictionary<string, string> observations)
+    /// <summary>
+    /// A successful public result. Output names are kept only when <paramref name="declaredFields"/>
+    /// declares them; without that list every name is withheld.
+    /// </summary>
+    public static ProbeOutcome FromSuccess(MpExecutionDetails? execution, IReadOnlyDictionary<string, string> observations,
+        IReadOnlySet<string>? declaredFields = null)
     {
         // A partial success (MP code 4) is a completed success; its code is recorded.
         if (execution is null || execution.State is not (MpExecutionState.Succeeded or MpExecutionState.PartialSuccess))
@@ -141,10 +178,10 @@ internal static class PublicOutcomes
             return ProbeOutcome.Unknown("grpc:OK", "success-without-succeeded-execution");
         }
 
-        return FromExecution(ProbeOutcomeKind.Succeeded, "grpc:OK", execution, null, null, null, observations);
+        return FromExecution(ProbeOutcomeKind.Succeeded, "grpc:OK", execution, null, null, null, observations, declaredFields);
     }
 
-    public static ProbeOutcome FromRpcException(RpcException exception)
+    public static ProbeOutcome FromRpcException(RpcException exception, IReadOnlySet<string>? declaredFields = null)
     {
         ArgumentNullException.ThrowIfNull(exception);
         var transport = "grpc:" + exception.StatusCode.ToString();
@@ -170,7 +207,7 @@ internal static class PublicOutcomes
         var kind = Classify(error);
         return FromExecution(
             kind, transport, error.MpExecution, error.DiagnosticCode, error.Kind.ToString(),
-            error.ExecutionDisposition.ToString(), ProbeOutcome.EmptyObservations) with
+            error.ExecutionDisposition.ToString(), ProbeOutcome.EmptyObservations, declaredFields) with
         {
             RecoveryGuidance = error.RecoveryGuidance.ToString(),
             // A result, or one of its outputs, that the worker could not encode (#399, #402):
@@ -219,7 +256,8 @@ internal static class PublicOutcomes
         string? diagnosticCode,
         string? failureKind,
         string? disposition,
-        IReadOnlyDictionary<string, string> observations)
+        IReadOnlyDictionary<string, string> observations,
+        IReadOnlySet<string>? declaredFields)
     {
         bool? executeStepReturned = execution?.State switch
         {
@@ -235,11 +273,14 @@ internal static class PublicOutcomes
             MpExecutionState.ResultUnavailable => false,
             _ => null
         };
-        // Field names come from the server: only the protobuf name shape reaches a record.
+        // Field names come from the server: only a field the operation's result declares reaches a
+        // record; any other name, however well formed, is withheld.
         var outputs = execution is null
             ? []
             : execution.OutputRetrievals
-                .Select(output => new OutputObservation(ExternalValues.FieldName(output.FieldName), output.State == OutputRetrievalState.Retrieved))
+                .Select(output => new OutputObservation(
+                    declaredFields is not null && declaredFields.Contains(output.FieldName) ? ExternalValues.FieldName(output.FieldName) : ExternalValues.Withheld,
+                    output.State == OutputRetrievalState.Retrieved))
                 .ToList();
         return new ProbeOutcome(
             kind,

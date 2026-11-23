@@ -464,6 +464,96 @@ public sealed class SessionFourProbeTests
     }
 
     [Fact]
+    public async Task APublicOutputNameIsKeptOnlyWhenTheOperationsResultDeclaresIt()
+    {
+        // A well-formed name the result does not declare is withheld, however harmless it looks.
+        var result = new Api.GetNumberOfCollectionsResult
+        {
+            TotalCount = 3,
+            Execution = new Api.MpExecutionDetails { State = Api.MpExecutionState.Succeeded, MpResultCode = 2 }
+        };
+        result.Execution.OutputRetrievals.Add(new Api.OutputRetrievalDetails { FieldName = "alice_smith", State = Api.OutputRetrievalState.Retrieved });
+        result.Execution.OutputRetrievals.Add(new Api.OutputRetrievalDetails { FieldName = "total_count", State = Api.OutputRetrievalState.Retrieved });
+
+        var outcome = await ProbeOperations.GetNumberOfCollections.InvokePublicAsync(new ReplyingInvoker(result),
+            new Api.GetNumberOfCollectionsRequest(), new CallOptions());
+        var error = new Api.OperationError
+        {
+            Kind = Api.OperationFailureKind.MpFailure,
+            ExecutionDisposition = Api.ExecutionDisposition.Completed,
+            MpExecution = new Api.MpExecutionDetails { State = Api.MpExecutionState.Failed, MpResultCode = 3 }
+        };
+        error.MpExecution.OutputRetrievals.Add(new Api.OutputRetrievalDetails { FieldName = "alice_smith", State = Api.OutputRetrievalState.NotAttempted });
+        var failed = await ProbeOperations.GetNumberOfCollections.InvokePublicAsync(
+            new ReplyingInvoker(new RpcException(new Status(StatusCode.FailedPrecondition, "x"), new Metadata { { PublicOutcomes.ErrorTrailerName, error.ToByteArray() } })),
+            new Api.GetNumberOfCollectionsRequest(), new CallOptions());
+
+        Assert.Equal([ExternalValues.Withheld, "total_count"], outcome.Outputs.Select(static output => output.Name));
+        Assert.Equal(ExternalValues.Withheld, Assert.Single(failed.Outputs).Name);
+        Assert.DoesNotContain("alice_smith", JsonSerializer.Serialize(outcome.Outputs), StringComparison.Ordinal);
+
+        // Nested result paths are declared too; without a declaration every name is withheld.
+        var nested = DeclaredFields.Of(Api.AlignCloudToCadResult.Descriptor);
+        Assert.Contains("alignment.rms_deviation", (IReadOnlySet<string>)nested);
+        Assert.Equal("alignment.rms_deviation", ExternalValues.FieldName("alignment.rms_deviation"));
+        Assert.Equal(ExternalValues.Withheld,
+            Assert.Single(PublicOutcomes.FromSuccess(result.Execution, ProbeOutcome.EmptyObservations).Outputs.Take(1)).Name);
+    }
+
+    [Fact]
+    public async Task ALicensePromptSignalledDuringAStepStopsTheSessionAndTheTransportSendsNothingMore()
+    {
+        // Probe 34 has no checkpoints: the operator's signal is the only way to stop it.
+        var plan = Select(ProbePhase.Worker, FullManifest(), 34);
+        var console = new FakeOperator();
+        var transport = new FakeTransport(plan.Phase, step =>
+        {
+            if (step.Id == "p34-list-500")
+            {
+                console.LicenseAbortRaised = true;
+            }
+
+            return TestSupport.Succeeding(step);
+        });
+
+        var record = await ProbeSession.RunAsync(plan, transport, Clock, new SessionIdentity(), console, CancellationToken.None);
+
+        Assert.Equal((ProbeSession.LicensePromptStop, "p34-list-500"), (record.StopReason, record.StoppedAt));
+        Assert.Equal("p34-list-500", transport.Executed[^1]);
+        Assert.True(transport.Abandoned);
+        Assert.Empty(console.Checkpoints);
+        Assert.DoesNotContain(record.Steps.SkipWhile(static step => step.Step.Id != "p34-list-500").Skip(1),
+            static step => step.Outcome is { } outcome && outcome.Kind != ProbeOutcomeKind.RefusedByHarness);
+
+        // Raised before the first step: nothing is sent at all.
+        var early = new FakeOperator { LicenseAbortRaised = true };
+        var untouched = new FakeTransport(plan.Phase, TestSupport.Succeeding);
+        var refused = await ProbeSession.RunAsync(plan, untouched, Clock, new SessionIdentity(), early, CancellationToken.None);
+        Assert.Empty(untouched.Executed);
+        Assert.True(untouched.Abandoned);
+        Assert.Equal(ProbeSession.LicensePromptStop, refused.StopReason);
+    }
+
+    [Fact]
+    public async Task AnAbandonedWorkerTransportSendsNoStepAndNoStop()
+    {
+        var transport = new WorkerTransport(@"C:\SENTINEL\Briosa.Worker.exe", TimeSpan.FromSeconds(5), new NoProcesses());
+        var plan = Select(ProbePhase.Worker, FullManifest(), 34);
+
+        transport.Abandon();
+        var outcome = await transport.ExecuteAsync(plan.Steps[0], CancellationToken.None);
+
+        Assert.Equal(ProbeOutcomeKind.RefusedByHarness, outcome.Kind);
+        Assert.False(transport.WouldSendStopOnDispose);
+        await transport.DisposeAsync();
+    }
+
+    private sealed class NoProcesses : IProcessCensus
+    {
+        public int Count(string processName) => 0;
+    }
+
+    [Fact]
     public void AMessageOverThePublishedClientLimitIsFlagged()
     {
         Assert.True(ResponseSize.FromPublicMessage(ResponseSize.PublishedClientReceiveLimitBytes + 1).ExceedsPublishedClientLimit);

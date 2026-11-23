@@ -1,6 +1,9 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Google.Protobuf;
 using Grpc.Core;
 using Api = global::Briosa;
@@ -56,8 +59,11 @@ public sealed class OwnershipProbeTests
         Assert.True(record.Completed);
         Assert.True(record.ResidualKnown);
         Assert.Empty(record.Residual);
-        Assert.Equal(["census-start", "bind-server", "describe", "sdk-state-before", "start-sdk", "census-started", "bind-worker", "connect",
-            "census-connected", "census-worker-descendants", "stop-sdk", "window-after-stop", "census-end"], record.Steps.Select(static step => step.Id));
+        Assert.Equal(["census-start", "bind-server", "describe", "sdk-state-before", "start-sdk", "census-started", "bind-generation", "bind-worker",
+            "connect", "census-connected", "census-worker-descendants", "stop-sdk", "window-after-stop", "census-end"], record.Steps.Select(static step => step.Id));
+        Assert.Equal("bound", StepOf(record, "bind-generation").Result);
+        Assert.Empty(world.Control.TerminableIds);
+        Assert.Equal((ServerId, 1, 0), (world.Server.Peer, record.VerifiedConnections, record.RefusedConnections));
         Assert.Equal(["start", "connect:1", "stop:1"], world.Server.Calls);
         Assert.Equal(("server-1", "worker-1", 1), (record.BoundServer, record.BoundWorker, record.BoundGeneration));
         var sdk = Assert.Single(record.Processes, static process => process.Role == ProcessRoles.Sdk);
@@ -139,6 +145,41 @@ public sealed class OwnershipProbeTests
         Assert.Equal(["start"], world.Server.Calls);
         Assert.Equal("no-bound-generation", StepOf(record, "cleanup").Result);
         Assert.Empty(world.Control.Terminated);
+    }
+
+    [Fact]
+    public async Task AGenerationInAFailedStartsErrorIsObservedAndNeverStopped()
+    {
+        // sdk-already-active carries the server's current generation, which this run did not create.
+        var (record, world) = await RunAsync(OwnershipScenario.Release, static world => world.Server.AlreadyActiveGeneration = 7);
+
+        Assert.Equal(OwnershipRunner.LifecycleStop, record.StopReason);
+        Assert.Null(record.BoundGeneration);
+        Assert.Equal(7, StepOf(record, "start-sdk").Lifecycle!.Generation);
+        Assert.Equal("observed-in-error-not-bound", StepOf(record, "bind-generation").Result);
+        Assert.Equal("no-bound-generation", StepOf(record, "cleanup").Result);
+        Assert.Equal(["start"], world.Server.Calls);
+        Assert.DoesNotContain(record.Steps, static step => step.Id == "bind-worker");
+    }
+
+    [Fact]
+    public async Task AWorkerIsBoundOnlyFromACompletePostStartCensus()
+    {
+        // The post-start census is incomplete and hides a second worker of the same server: the
+        // visible one is not provably the only one, so nothing is bound or terminated.
+        var (record, world) = await RunAsync(OwnershipScenario.WorkerCrash, static world =>
+        {
+            world.Server.AfterStart = () => world.Add(ReplacementWorkerId, ServerId, ProcessCensus.BriosaWorker);
+            world.Hidden.Add(ReplacementWorkerId);
+            world.DegradeAfterSnapshots = 3;
+        });
+
+        Assert.Equal(OwnershipRunner.IdentificationStop, record.StopReason);
+        Assert.Equal("census-incomplete", StepOf(record, "bind-worker").Result);
+        Assert.Null(record.BoundWorker);
+        Assert.Equal([ServerId], world.Control.BoundIds);
+        Assert.Empty(world.Control.Terminated);
+        Assert.Equal(["start", "stop:1"], world.Server.Calls);
     }
 
     [Fact]
@@ -235,6 +276,50 @@ public sealed class OwnershipProbeTests
         Assert.True(record.Completed);
     }
 
+    [Theory]
+    [InlineData("worker-replaced", "bound-worker-exited", OwnershipRunner.BoundProcessGoneStop)]
+    [InlineData("generation-changed", "generation-changed", OwnershipRunner.GenerationStop)]
+    [InlineData("not-ready", "sdk-not-ready", OwnershipRunner.LifecycleStop)]
+    public async Task ParentDeathReChecksTheBoundWorkerAndGenerationBeforeTerminatingTheServer(string condition, string result, string stop)
+    {
+        // The second state read is the re-check just before the server would be terminated.
+        var (record, world) = await RunAsync(OwnershipScenario.ParentDeath, world => world.Server.OnStateRead = read =>
+        {
+            if (read != 2)
+            {
+                return;
+            }
+
+            switch (condition)
+            {
+                case "worker-replaced":
+                    world.Remove(WorkerId);
+                    world.Add(ReplacementWorkerId, ServerId, ProcessCensus.BriosaWorker);
+                    break;
+                case "generation-changed": world.Server.ChangeGeneration(2); break;
+                case "not-ready": world.Server.ChangeState(Api.SpatialAnalyzerSdkState.Running); break;
+            }
+        });
+
+        Assert.Equal(stop, record.StopReason);
+        Assert.Equal(result, StepOf(record, "recheck-before-termination").Result);
+        Assert.Empty(world.Control.Terminated);
+        Assert.DoesNotContain(record.Steps, static step => step.Id == "terminate-server");
+        Assert.Equal(condition != "generation-changed", world.Server.Calls.Contains("stop:1"));
+    }
+
+    [Fact]
+    public async Task OnlyTheScenarioThatTerminatesAProcessHoldsTheRightTo()
+    {
+        var (_, parent) = await RunAsync(OwnershipScenario.ParentDeath);
+        var (_, crash) = await RunAsync(OwnershipScenario.WorkerCrash);
+        var (_, release) = await RunAsync(OwnershipScenario.Release);
+
+        Assert.Equal([ServerId], parent.Control.TerminableIds);
+        Assert.Equal([WorkerId], crash.Control.TerminableIds);
+        Assert.Empty(release.Control.TerminableIds);
+    }
+
     [Fact]
     public async Task AParentDeathThatLeavesTheWorkerRunningIsAResidual()
     {
@@ -260,7 +345,12 @@ public sealed class OwnershipProbeTests
         Assert.Equal(["p26-baseline", "o-watchdog-stall"], world.Server.Executed);
         Assert.Equal(["o-watchdog-stall:before", "o-watchdog-stall:after"], console.Checkpoints);
         var descendants = StepOf(record, "census-descendants-before-stall");
-        Assert.Equal((1, "worker-1"), (descendants.DescendantCount, descendants.Target));
+        Assert.Equal((1, 0, "worker-1", "observed"), (descendants.DescendantCount, descendants.UnapprovedDescendantCount, descendants.Target, descendants.Result));
+
+        // The census is the last thing before dispatch: after the operator's checkpoint.
+        var ids = record.Steps.Select(static step => step.Id).ToList();
+        Assert.True(ids.IndexOf("checkpoint-before-stall") < ids.IndexOf("census-descendants-before-stall"));
+        Assert.Equal(ids.IndexOf("census-descendants-before-stall") + 1, ids.IndexOf("stall"));
         Assert.Empty(descendants.Alive);
         Assert.Equal("planned-stall", StepOf(record, "stall").Result);
         Assert.Equal(OperatorObservationText.DialogDismissed, StepOf(record, "checkpoint-dismiss-dialog").OperatorAnswer);
@@ -269,6 +359,39 @@ public sealed class OwnershipProbeTests
         Assert.Equal(["sdk-1"], record.Residual.Select(static process => process.Label));
         var stall = ProbeCatalog.CreateOwnershipWatchdogSteps(new InteractionModeSettings(Api.SaInteractionMode.Manual, true))[^1];
         Assert.Equal("*", ((Api.MakeCollectionObjectNameRefListWildcardSelectionRequest)stall.Request).CollectionWildcardCriteria);
+    }
+
+    [Theory]
+    [InlineData("unapproved", "unapproved-descendants", OwnershipRunner.DescendantStop)]
+    [InlineData("sdk-descendant", "unapproved-descendants", OwnershipRunner.DescendantStop)]
+    [InlineData("incomplete", "census-incomplete", OwnershipRunner.DescendantStop)]
+    [InlineData("worker-gone", "observed", OwnershipRunner.BoundProcessGoneStop)]
+    public async Task TheStallIsSentOnlyOnACompleteCensusOfApprovedDescendants(string condition, string census, string stop)
+    {
+        var world = new World();
+        world.Console = new FakeOperator((_, timing) =>
+        {
+            if (timing == OperatorCheckpoint.Before)
+            {
+                switch (condition)
+                {
+                    case "unapproved": world.Add(WorkerChildId, WorkerId, "SENTINEL-UNRELATED"); break;
+                    case "sdk-descendant": world.Add(SecondSdkId, WorkerId, ProcessCensus.SpatialAnalyzerSdk); break;
+                    case "incomplete": world.Statuses.Enqueue(SnapshotStatus.Incomplete); break;
+                    case "worker-gone": world.Remove(WorkerId); break;
+                }
+            }
+
+            return OperatorObservationText.None;
+        });
+        var record = await OwnershipRunner.RunAsync(Options(OwnershipScenario.WatchdogKill), world.Environment(), world.Cancellation.Token);
+
+        Assert.Equal(stop, record.StopReason);
+        Assert.Equal(census, StepOf(record, "census-descendants-before-stall").Result);
+        Assert.Equal("not-run", StepOf(record, "stall").Result);
+        Assert.Equal(["p26-baseline"], world.Server.Executed);
+        Assert.Contains("stop:1", world.Server.Calls);
+        Assert.DoesNotContain(TestSupport.Sentinel, OwnershipRecorder.ToJson(record), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -370,6 +493,115 @@ public sealed class OwnershipProbeTests
         Assert.Contains("stop:1", world.Server.Calls);
     }
 
+    [Theory]
+    [InlineData("during-failed", ProbeSession.UnexpectedDispositionStop)]
+    [InlineData("during-unknown", ProbeSession.UnknownOutcomeStop)]
+    public async Task TheLastMpNeedsASuccessfulMpWhileTheSecondClientIsAttached(string condition, string stop)
+    {
+        var (record, world) = await RunAsync(OwnershipScenario.CompetingClient, world => world.Server.DuringAnswer = condition == "during-failed"
+            ? TestSupport.Outcome(ProbeOutcomeKind.MpFailed)
+            : ProbeOutcome.Unknown("grpc:DeadlineExceeded", "untyped-rpc-failure"));
+
+        Assert.Equal(stop, record.StopReason);
+        Assert.Equal(["mp-before", "mp-during"], world.Server.Executed);
+        Assert.Equal(["start", "connect", "stop"], world.Second.Calls);
+        Assert.Equal("not-run", StepOf(record, "mp-after").Result);
+        Assert.DoesNotContain(record.Steps, static step => step.Id == "window-second-stopped");
+        Assert.Contains("stop:1", world.Server.Calls);
+    }
+
+    [Theory]
+    [InlineData("termination-unconfirmed")]
+    [InlineData("stopped-but-listed")]
+    public async Task TheLastMpNeedsTheSecondWorkersExitConfirmed(string condition)
+    {
+        var (record, world) = await RunAsync(OwnershipScenario.CompetingClient, world => world.Second.StopAnswer =
+            new SecondWorkerResult(condition == "stopped-but-listed" ? "stopped" : condition, null, null, null), observeSeconds: 2);
+
+        Assert.Equal(OwnershipRunner.SecondWorkerExitStop, record.StopReason);
+        Assert.Equal(["mp-before", "mp-during"], world.Server.Executed);
+        Assert.Equal("not-run", StepOf(record, "mp-after").Result);
+        Assert.Equal(condition == "stopped-but-listed", record.Steps.Any(static step => step.Id == "window-second-stopped"));
+        Assert.Contains("stop:1", world.Server.Calls);
+    }
+
+    // The endpoint: nothing is sent before binding, and only to the bound server
+
+    [Fact]
+    public async Task AnEndpointWhosePeerIsAnotherProcessIsRefusedBeforeAnythingIsSent()
+    {
+        var (record, world) = await RunAsync(OwnershipScenario.Release, static world => world.Server.PeerOwner = SaId);
+
+        Assert.Equal(OwnershipRunner.PreconditionStop, record.StopReason);
+        Assert.Equal("endpoint-peer-not-the-bound-server", StepOf(record, "preconditions").Result);
+        Assert.Empty(world.Server.Calls);
+        Assert.Equal((0, 1), (record.VerifiedConnections, record.RefusedConnections));
+        Assert.False(record.Server!.PeerVerified);
+    }
+
+    [Fact]
+    public async Task AReplacedConnectionToAnotherProcessIsNeverUsedForAStop()
+    {
+        // Calls: describe, state, start, connect, then the stop over a replaced connection.
+        var (record, world) = await RunAsync(OwnershipScenario.Release, static world => world.Server.ReplaceConnectionAtCall = 5);
+
+        Assert.Equal(OwnershipRunner.PeerStop, record.StopReason);
+        Assert.Equal(("peer-unverified", LifecycleResult.PeerUnverifiedTransport), (StepOf(record, "stop-sdk").Result, StepOf(record, "stop-sdk").Lifecycle!.Transport));
+        Assert.Equal(["start", "connect:1"], world.Server.Calls);
+        Assert.Equal((1, 1), (record.VerifiedConnections, record.RefusedConnections));
+        Assert.Contains("1 verified, 1 refused unused", OwnershipRecorder.ToMarkdown(record), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task AnMpOverAnUnprovenConnectionIsRecordedAsNeverSent()
+    {
+        var (record, world) = await RunAsync(OwnershipScenario.CompetingClient, static world => world.Server.ReplaceConnectionAtCall = 5);
+
+        Assert.Equal(OwnershipRunner.PeerStop, record.StopReason);
+        var before = StepOf(record, "mp-before");
+        Assert.Equal(("peer-unverified", ProbeOutcomeKind.NotStarted), (before.Result, before.Outcome!.Kind));
+        Assert.Empty(world.Server.Executed);
+        Assert.Empty(world.Second.Calls);
+    }
+
+    // A license prompt outside a checkpoint
+
+    [Fact]
+    public async Task ALicensePromptSignalledBetweenStepsSendsNothingMoreNotEvenCleanup()
+    {
+        var console = new FakeOperator();
+        var (record, world) = await RunAsync(OwnershipScenario.Release, world =>
+        {
+            world.Console = console;
+            world.Server.AfterConnect = () => console.LicenseAbortRaised = true;
+        });
+
+        Assert.Equal(ProbeSession.LicensePromptStop, record.StopReason);
+        var abort = StepOf(record, "license-prompt-abort");
+        Assert.Equal(("interrupted-before-send", "stop-sdk"), (abort.Result, abort.Target));
+        Assert.Equal(["start", "connect:1"], world.Server.Calls);
+        Assert.DoesNotContain(record.Steps, static step => step.Id is "stop-sdk" or "window-after-stop" or "sdk-state-cleanup");
+        Assert.Equal("census-end", record.Steps[^1].Id);
+    }
+
+    [Fact]
+    public async Task ALicensePromptWhileTheSecondClientIsAttachedLeavesItAlone()
+    {
+        var console = new FakeOperator();
+        var (record, world) = await RunAsync(OwnershipScenario.CompetingClient, world =>
+        {
+            world.Console = console;
+            world.Second.AfterConnect = () => console.LicenseAbortRaised = true;
+        });
+
+        Assert.Equal(ProbeSession.LicensePromptStop, record.StopReason);
+        Assert.True(world.Second.Abandoned);
+        Assert.Equal(["start", "connect"], world.Second.Calls);
+        Assert.Equal(["mp-before"], world.Server.Executed);
+        Assert.DoesNotContain(world.Server.Calls, static call => call.StartsWith("stop:", StringComparison.Ordinal));
+        Assert.Equal("mp-during", StepOf(record, "license-prompt-abort").Target);
+    }
+
     // Observe and process census gaps
 
     [Fact]
@@ -407,8 +639,26 @@ public sealed class OwnershipProbeTests
         Assert.True(Assert.Single(record.Processes).Alive);
         Assert.False(record.ResidualKnown);
         Assert.True(record.IncompleteSnapshots > 0);
-        Assert.Contains("Residual: unknown.", OwnershipRecorder.ToMarkdown(record), StringComparison.Ordinal);
+        var markdown = OwnershipRecorder.ToMarkdown(record);
+        Assert.Contains("Residual: unknown.", markdown, StringComparison.Ordinal);
+        Assert.Contains("unknown: final census incomplete; see last seen", markdown, StringComparison.Ordinal);
+        Assert.DoesNotContain("alive at end", markdown, StringComparison.Ordinal);
         Assert.Empty(world.Server.Calls);
+    }
+
+    [Fact]
+    public void ProcessNamesAreMatchedAsWindowsMatchesThemWithoutCase()
+    {
+        Assert.Equal(ProcessRoles.Sdk, ProcessRoles.RoleOf("spatialanalyzersdk"));
+        Assert.Equal(ProcessRoles.Worker, ProcessRoles.RoleOf("BRIOSA.WORKER"));
+        Assert.Equal(ProcessRoles.SpatialAnalyzer, ProcessRoles.RoleOf("spatial analyzer64"));
+        Assert.Null(ProcessRoles.RoleOf("SpatialAnalyzerSDKx"));
+
+        // A lower-case SDK process is still tracked, so postflight cannot miss it.
+        var tracker = new ProcessTracker(HarnessId);
+        tracker.Observe(ProcessSnapshot.Of(new ProcessEntry(SdkId, DcomHostId, "spatialanalyzersdk", Epoch, Session)), 0);
+        Assert.Equal(["sdk-1"], tracker.Alive(ProcessRoles.Sdk).Select(static process => process.Label));
+        Assert.False(tracker.NoneConfirmed(ProcessRoles.Sdk));
     }
 
     [Fact]
@@ -459,6 +709,18 @@ public sealed class OwnershipProbeTests
         Assert.Equal(["start", "connect:1", "stop:1"], world.Server.Calls);
         Assert.False(world.Server.StopTokenWasCancelled);
         Assert.Equal("census-end", record.Steps[^1].Id);
+    }
+
+    [Fact]
+    public async Task CancellationDuringDiscoveryIsACancellationNeverAnUnreachableServer()
+    {
+        var (record, world) = await RunAsync(OwnershipScenario.Release, static world => world.Server.CancelDuringDescribe = true);
+
+        Assert.Equal(OwnershipRunner.CancelledStop, record.StopReason);
+        Assert.Equal(("sent-outcome-unknown", "describe"), (StepOf(record, "cancelled").Result, StepOf(record, "cancelled").Target));
+        Assert.DoesNotContain(record.Steps, static step => step.Id == "preconditions");
+        Assert.Equal("no-bound-generation", StepOf(record, "cleanup").Result);
+        Assert.Empty(world.Server.Calls);
     }
 
     [Fact]
@@ -571,7 +833,11 @@ public sealed class OwnershipProbeTests
         Assert.Contains("--Briosa:SpatialAnalyzer:InteractionMode=Unchanged", watchdog, StringComparison.Ordinal);
         Assert.Contains("AND ITS WHOLE PROCESS TREE", watchdog, StringComparison.Ordinal);
         Assert.Contains("it stays Manual", watchdog, StringComparison.Ordinal);
+        Assert.Contains("every descendant is approved (conhost)", watchdog, StringComparison.Ordinal);
         Assert.Contains("own the endpoint's listener", release, StringComparison.Ordinal);
+        Assert.Contains("every connection must reach it", release, StringComparison.Ordinal);
+        Assert.Contains(FileOperatorConsole.LicenseAbortFileName, release, StringComparison.Ordinal);
+        Assert.DoesNotContain("DCOM", watchdog + release, StringComparison.Ordinal);
         Assert.DoesNotContain("Server admission", release, StringComparison.Ordinal);
     }
 
@@ -613,26 +879,128 @@ public sealed class OwnershipProbeTests
         using var self = System.Diagnostics.Process.GetCurrentProcess();
         var started = new DateTimeOffset(self.StartTime.ToUniversalTime(), TimeSpan.Zero);
 
-        Assert.Throws<ArgumentException>(() => ProcessControl.Instance.Bind(SdkId, started, ProcessCensus.SpatialAnalyzerSdk));
-        Assert.Throws<ArgumentException>(() => ProcessControl.Instance.Bind(SaId, started, ProcessCensus.SpatialAnalyzer));
+        Assert.Throws<ArgumentException>(() => ProcessControl.Instance.Bind(SdkId, started, ProcessCensus.SpatialAnalyzerSdk, terminable: false));
+        Assert.Throws<ArgumentException>(() => ProcessControl.Instance.Bind(SaId, started, ProcessCensus.SpatialAnalyzer, terminable: false));
 
         // The test process is not a Briosa worker, so its name never binds, whatever its start time.
-        Assert.Null(ProcessControl.Instance.Bind(Environment.ProcessId, started, ProcessCensus.BriosaWorker));
+        Assert.Null(ProcessControl.Instance.Bind(Environment.ProcessId, started, ProcessCensus.BriosaWorker, terminable: false));
         Assert.Equal(self.SessionId, ProcessControl.Instance.HarnessSessionId);
     }
 
     [Fact]
-    public void TheRealEndpointTableNamesTheListenersOwner()
+    public void AnObservationBindingCanQueryAndWaitButNeverTerminate()
+    {
+        using var self = System.Diagnostics.Process.GetCurrentProcess();
+        var started = new DateTimeOffset(self.StartTime.ToUniversalTime(), TimeSpan.Zero);
+
+        // The test process itself, opened without the right to terminate: the binding reads it
+        // and refuses to end it. Nothing here can end the test process.
+        using var bound = ProcessControl.Open(Environment.ProcessId, started, self.ProcessName, terminable: false);
+        Assert.NotNull(bound);
+        Assert.Equal(BindingCheck.Running, bound.Check());
+        Assert.False(bound.Terminable);
+        Assert.Equal("not-authorized", bound.Terminate());
+        Assert.Equal(BindingCheck.Running, bound.Check());
+        Assert.Null(ProcessControl.Open(Environment.ProcessId, started.AddSeconds(1), self.ProcessName, terminable: false));
+    }
+
+    [Fact]
+    public void TheRealEndpointTableNamesTheListenersOwnerForItsOwnFamilyOnly()
     {
         using var listener = new TcpListener(IPAddress.Loopback, 0);
         listener.Start();
         var port = ((IPEndPoint)listener.LocalEndpoint).Port;
 
         var owners = ProcessControl.Instance.EndpointListeners(new Uri($"http://127.0.0.1:{port}"));
+        var named = ProcessControl.Instance.EndpointListeners(new Uri($"http://localhost:{port}"));
+
+        // An IPv4-only listener never answers for the IPv6 loopback address.
+        var ipv6 = ProcessControl.Instance.EndpointListeners(new Uri($"http://[::1]:{port}"));
 
         Assert.NotNull(owners);
         Assert.Equal([Environment.ProcessId], owners.Distinct());
+        Assert.Contains(Environment.ProcessId, named!);
+        Assert.NotNull(ipv6);
+        Assert.DoesNotContain(Environment.ProcessId, ipv6);
     }
+
+    [Fact]
+    public async Task TheRealConnectionTableNamesTheProcessAtTheOtherEnd()
+    {
+        using var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        using var client = new TcpClient(AddressFamily.InterNetwork);
+        await client.ConnectAsync(IPAddress.Loopback, ((IPEndPoint)listener.LocalEndpoint).Port);
+        using var accepted = await listener.AcceptTcpClientAsync();
+        var local = (IPEndPoint)client.Client.LocalEndPoint!;
+        var remote = (IPEndPoint)client.Client.RemoteEndPoint!;
+
+        Assert.True(await PeerConnection.IsOwnedByAsync(local, remote, Environment.ProcessId, CancellationToken.None));
+        Assert.False(await PeerConnection.IsOwnedByAsync(local, remote, 4, CancellationToken.None));
+        Assert.False(await PeerConnection.IsOwnedByAsync(local, new IPEndPoint(IPAddress.Parse("192.0.2.1"), remote.Port), Environment.ProcessId,
+            CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task TheRealServerClientSendsNothingBeforeBindingAndNothingToAnotherProcess()
+    {
+        using var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+        await using var server = new OwnershipServer(new Uri($"http://127.0.0.1:{port}"), TimeSpan.FromSeconds(5));
+        using var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+        // Before binding: no connection is even opened.
+        var unbound = await server.GetSdkStateAsync(CancellationToken.None);
+        Assert.Equal(LifecycleResult.PeerUnverifiedTransport, unbound.Transport);
+        Assert.False(listener.Pending());
+
+        // Bound to another process: the connection opens, is proven not to reach it, and closes
+        // before a byte is written.
+        server.BindPeer(4);
+        var other = await server.GetSdkStateAsync(CancellationToken.None);
+        Assert.Equal(LifecycleResult.PeerUnverifiedTransport, other.Transport);
+        using (var refused = await listener.AcceptTcpClientAsync(bounded.Token))
+        {
+            Assert.Equal(0, await refused.GetStream().ReadAsync(new byte[64], bounded.Token));
+        }
+
+        Assert.Equal((0, 2), (server.VerifiedConnections, server.RefusedConnections));
+
+        // Bound to the process that owns the other end: the HTTP/2 preface is the first thing sent.
+        server.BindPeer(Environment.ProcessId);
+        var call = server.GetSdkStateAsync(CancellationToken.None);
+        using (var verified = await listener.AcceptTcpClientAsync(bounded.Token))
+        {
+            var preface = new byte[3];
+            await verified.GetStream().ReadExactlyAsync(preface, bounded.Token);
+            Assert.Equal("PRI", Encoding.ASCII.GetString(preface));
+        }
+
+        Assert.False((await call).Ok);
+        Assert.True(server.VerifiedConnections >= 1);
+        Assert.Equal(2, server.RefusedConnections);
+    }
+
+    // Item 7: no harness-side termination ever names a whole process tree. Only the product's
+    // own watchdog does, and the harness observes it.
+    [Fact]
+    public void NoHarnessSourceTerminatesAProcessTree()
+    {
+        var folder = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(SourcePath())!, "..", "..", "tools", "Briosa.LicensedProbes"));
+        var sources = Directory.EnumerateFiles(folder, "*.cs", SearchOption.AllDirectories)
+            .Where(static file => !file.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) &&
+                !file.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        var forbidden = new Regex(@"entireProcessTree\s*:\s*true|\.Kill\(\s*true\s*\)|taskkill|TerminateJobObject|KillProcessTree",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        Assert.True(sources.Count > 10);
+        Assert.Contains(sources, static file => File.ReadAllText(file).Contains("entireProcessTree: false", StringComparison.Ordinal));
+        Assert.All(sources, file => Assert.False(forbidden.IsMatch(File.ReadAllText(file)), Path.GetFileName(file)));
+    }
+
+    private static string SourcePath([CallerFilePath] string path = "") => path;
 
     [Fact]
     public void TheWindowsProcessTableListsTheCurrentProcessReadOnly()
@@ -851,21 +1219,102 @@ public sealed class OwnershipProbeTests
 
         public ProbeOutcome? ReadOnlyAnswer { get; set; }
 
+        public ProbeOutcome? DuringAnswer { get; set; }
+
         public bool StopTokenWasCancelled { get; private set; }
 
         public bool Disposed { get; private set; }
 
-        public Task<ServerDescription> DescribeAsync(CancellationToken cancellationToken) =>
-            Task.FromResult(new ServerDescription(true, TargetMatches, "0.10.1-probe-s4", new string('a', 40),
-                new SortedDictionary<string, long>(StringComparer.Ordinal) { ["start_sdk_milliseconds"] = StartBound }));
+        // The process every connection must reach; null until the run binds the server.
+        public int? Peer { get; private set; }
+
+        // The process that actually owns the other end of the next connection.
+        public int PeerOwner { get; set; } = ServerId;
+
+        // The connection is replaced before this call (counted from 1), and the new one's other end
+        // is owned by ReplacementOwner.
+        public int? ReplaceConnectionAtCall { get; set; }
+
+        public int ReplacementOwner { get; set; } = SaId;
+
+        // The generation a refused start carries in its error, as sdk-already-active does.
+        public int? AlreadyActiveGeneration { get; set; }
+
+        public bool CancelDuringDescribe { get; set; }
+
+        public int VerifiedConnections { get; private set; }
+
+        public int RefusedConnections { get; private set; }
+
+        // Called with the ordinal of each state read, before the state is answered.
+        public Action<int>? OnStateRead { get; set; }
+
+        private bool _connected;
+        private int _calls;
+        private int _stateReads;
+
+        public void ChangeGeneration(int generation) => _generation = generation;
+
+        public void ChangeState(Api.SpatialAnalyzerSdkState state) => _state = state;
+
+        public void BindPeer(int serverProcessId) => Peer = serverProcessId;
+
+        // Every call opens or reuses a connection; one whose other end is not the bound server is
+        // refused and the call is never sent.
+        private bool Connection()
+        {
+            _calls++;
+            if (ReplaceConnectionAtCall == _calls)
+            {
+                (_connected, PeerOwner) = (false, ReplacementOwner);
+            }
+
+            if (_connected)
+            {
+                return true;
+            }
+
+            if (Peer is null || Peer != PeerOwner)
+            {
+                RefusedConnections++;
+                return false;
+            }
+
+            (_connected, VerifiedConnections) = (true, VerifiedConnections + 1);
+            return true;
+        }
+
+        public async Task<ServerDescription> DescribeAsync(CancellationToken cancellationToken)
+        {
+            if (!Connection())
+            {
+                return ServerDescription.PeerRefused;
+            }
+
+            if (CancelDuringDescribe)
+            {
+                await world.Cancellation.CancelAsync();
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+
+            return new ServerDescription(true, TargetMatches, "0.10.1-probe-s4", new string('a', 40),
+                new SortedDictionary<string, long>(StringComparer.Ordinal) { ["start_sdk_milliseconds"] = StartBound });
+        }
 
         public Task<LifecycleResult> GetSdkStateAsync(CancellationToken cancellationToken)
         {
+            if (!Connection())
+            {
+                return Task.FromResult(LifecycleResult.Failed(LifecycleResult.PeerUnverifiedTransport, null));
+            }
+
             if (!_initialized)
             {
                 _initialized = true;
                 _state = InitialState;
             }
+
+            OnStateRead?.Invoke(++_stateReads);
 
             // The server notices a lost worker on its own.
             if (_state == Api.SpatialAnalyzerSdkState.Ready && !world.Has(WorkerId) && !world.Has(ReplacementWorkerId))
@@ -879,10 +1328,21 @@ public sealed class OwnershipProbeTests
 
         public Task<LifecycleResult> StartSdkAsync(CancellationToken cancellationToken)
         {
+            if (!Connection())
+            {
+                return Task.FromResult(LifecycleResult.Failed(LifecycleResult.PeerUnverifiedTransport, null));
+            }
+
             Calls.Add("start");
             if (StartFails)
             {
                 return Task.FromResult(LifecycleResult.Failed("grpc:FailedPrecondition", "worker-startup-timeout"));
+            }
+
+            // Refused because an SDK is already active: the error carries the current generation.
+            if (AlreadyActiveGeneration is { } current)
+            {
+                return Task.FromResult(new LifecycleResult("grpc:FailedPrecondition", "Ready", current, true, "Connected", "sdk-already-active", null));
             }
 
             _generation = 1;
@@ -895,6 +1355,11 @@ public sealed class OwnershipProbeTests
 
         public async Task<LifecycleResult> ConnectAsync(int generation, CancellationToken cancellationToken)
         {
+            if (!Connection())
+            {
+                return LifecycleResult.Failed(LifecycleResult.PeerUnverifiedTransport, null);
+            }
+
             Calls.Add($"connect:{generation}");
             if (CancelDuringConnect)
             {
@@ -914,6 +1379,11 @@ public sealed class OwnershipProbeTests
 
         public Task<LifecycleResult> StopSdkAsync(int generation, CancellationToken cancellationToken)
         {
+            if (!Connection())
+            {
+                return Task.FromResult(LifecycleResult.Failed(LifecycleResult.PeerUnverifiedTransport, null));
+            }
+
             Calls.Add($"stop:{generation}");
             StopTokenWasCancelled = cancellationToken.IsCancellationRequested;
             _state = Api.SpatialAnalyzerSdkState.Stopped;
@@ -929,6 +1399,11 @@ public sealed class OwnershipProbeTests
 
         public Task<ProbeOutcome> ExecuteAsync(ProbeStep step, CancellationToken cancellationToken)
         {
+            if (!Connection())
+            {
+                return Task.FromResult(OwnershipServer.PeerUnverifiedOutcome);
+            }
+
             Executed.Add(step.Id);
             if (step.ExpectedStall is not null)
             {
@@ -942,6 +1417,11 @@ public sealed class OwnershipProbeTests
 
                 _state = Api.SpatialAnalyzerSdkState.Faulted;
                 return Task.FromResult(StallAnswer ?? ServerReportsModalDialog());
+            }
+
+            if (step.Id == "mp-during" && DuringAnswer is { } during)
+            {
+                return Task.FromResult(during);
             }
 
             return Task.FromResult(step.Id.StartsWith("mp-", StringComparison.Ordinal) && ReadOnlyAnswer is { } answer
@@ -987,7 +1467,10 @@ public sealed class OwnershipProbeTests
 
         public int HarnessSessionId => Session;
 
-        public IBoundProcess? Bind(int processId, DateTimeOffset startedAt, string expectedName)
+        // Which bindings were opened with the right to terminate.
+        public List<int> TerminableIds { get; } = [];
+
+        public IBoundProcess? Bind(int processId, DateTimeOffset startedAt, string expectedName, bool terminable)
         {
             if (Unbindable.Contains(processId) || world.Find(processId) is not { } entry ||
                 entry.StartedAt != startedAt || !string.Equals(entry.Name, expectedName, StringComparison.Ordinal))
@@ -996,20 +1479,30 @@ public sealed class OwnershipProbeTests
             }
 
             BoundIds.Add(processId);
-            return new Binding(world, this, processId, startedAt);
+            if (terminable)
+            {
+                TerminableIds.Add(processId);
+            }
+
+            return new Binding(world, this, processId, startedAt, terminable);
         }
 
         public IReadOnlyList<int>? EndpointListeners(Uri address) => EndpointOwners;
 
         public bool? WorkerFromServerPackage(IBoundProcess server, string workerPath) => PackageMatches;
 
-        private sealed class Binding(World world, ScriptedControl control, int id, DateTimeOffset startedAt) : IBoundProcess
+        private sealed class Binding(World world, ScriptedControl control, int id, DateTimeOffset startedAt, bool terminable) : IBoundProcess
         {
             // The held handle names this process only: a replacement with another id or start time is not it.
             public BindingCheck Check() => world.Find(id) is { } entry && entry.StartedAt == startedAt ? BindingCheck.Running : BindingCheck.Exited;
 
             public string Terminate()
             {
+                if (!terminable)
+                {
+                    return "not-authorized";
+                }
+
                 if (Check() != BindingCheck.Running)
                 {
                     return "exited";
@@ -1046,6 +1539,14 @@ public sealed class OwnershipProbeTests
 
         public SecondWorkerResult? ConnectAnswer { get; set; }
 
+        public SecondWorkerResult? StopAnswer { get; set; }
+
+        public bool Abandoned { get; private set; }
+
+        public Action? AfterConnect { get; set; }
+
+        public void Abandon() => Abandoned = true;
+
         public Task<SecondWorkerResult> StartAsync(CancellationToken cancellationToken)
         {
             Calls.Add("start");
@@ -1066,12 +1567,18 @@ public sealed class OwnershipProbeTests
         public Task<SecondWorkerResult> ConnectAsync(CancellationToken cancellationToken)
         {
             Calls.Add("connect");
+            AfterConnect?.Invoke();
             return Task.FromResult(ConnectAnswer ?? new SecondWorkerResult(SecondWorkerResult.Connected, "Connected", "connect-ex-connected", null));
         }
 
         public Task<SecondWorkerResult> StopAsync(CancellationToken cancellationToken)
         {
             Calls.Add("stop");
+            if (StopAnswer is { } answer)
+            {
+                return Task.FromResult(answer);
+            }
+
             world.Remove(SecondWorkerId);
             world.Remove(SecondSdkId);
             return Task.FromResult(new SecondWorkerResult("stopped", null, null, null));

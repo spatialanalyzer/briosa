@@ -35,14 +35,18 @@ internal static partial class ExternalValues
     public static string? Revision(string? revision) =>
         revision is null ? null : revision.Length == 40 && revision.All(char.IsAsciiHexDigitLower) ? revision : Withheld;
 
-    /// <summary>A protobuf field name such as <c>resultant_point_name_list</c>, or <see cref="Withheld"/>.</summary>
+    /// <summary>
+    /// A protobuf field name or field path such as <c>resultant_point_name_list</c> or
+    /// <c>alignment.rms_deviation</c>, or <see cref="Withheld"/>. Callers also require the name to
+    /// be one the operation's result declares.
+    /// </summary>
     public static string FieldName(string? name) =>
         name is not null && FieldShape().IsMatch(name) ? name : Withheld;
 
     [GeneratedRegex("^[0-9]{1,4}\\.[0-9]{1,4}\\.[0-9]{1,6}(-[0-9A-Za-z][0-9A-Za-z.-]{0,39})?$", RegexOptions.CultureInvariant)]
     private static partial Regex VersionShape();
 
-    [GeneratedRegex("^[a-z][a-z0-9_]{0,63}$", RegexOptions.CultureInvariant)]
+    [GeneratedRegex("^[a-z][a-z0-9_]{0,63}(\\.[a-z][a-z0-9_]{0,63}){0,3}$", RegexOptions.CultureInvariant)]
     private static partial Regex FieldShape();
 
     private static HashSet<string> LoadCodes()

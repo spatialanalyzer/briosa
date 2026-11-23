@@ -388,7 +388,7 @@ internal static class ProbeOperations
         Func<TRequest, TResult, IReadOnlyDictionary<string, string>>? observePublic = null,
         Func<TRequest, IReadOnlyList<WorkerMpOutputValue>, IReadOnlyDictionary<string, string>>? observeWorker = null)
         where TRequest : class, Google.Protobuf.IMessage<TRequest>
-        where TResult : class, Google.Protobuf.IMessage<TResult> =>
+        where TResult : class, Google.Protobuf.IMessage<TResult>, new() =>
         new(descriptor.FullyQualifiedMethod, descriptor.RiskFlags.Contains("destructive", StringComparer.Ordinal),
             build, call, execution, observePublic, observeWorker);
 

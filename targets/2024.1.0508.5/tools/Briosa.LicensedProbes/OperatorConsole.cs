@@ -18,6 +18,10 @@ internal sealed class FileOperatorConsole : IOperatorConsole
     public const string RequestSuffix = ".request.txt";
     public const string ResponseSuffix = ".response.txt";
 
+    // Created by the operator at any time, in the checkpoint directory, when SpatialAnalyzer
+    // shows a license prompt (#402). Only its existence is read, never its content.
+    public const string LicenseAbortFileName = "license-prompt-abort.signal";
+
     private readonly string _directory;
     private readonly TextWriter _output;
     private readonly TimeSpan _timeout;
@@ -35,7 +39,17 @@ internal sealed class FileOperatorConsole : IOperatorConsole
         _timeout = timeout;
         _clock = clock;
         _pollInterval = pollInterval ?? TimeSpan.FromSeconds(1);
+
+        // The directory exists from the start, so the license-abort signal can be created at once.
+        Directory.CreateDirectory(_directory);
+        Write($"LICENSE PROMPT: if SpatialAnalyzer shows one at any time, create {DirectoryName}\\{LicenseAbortFileName}; " +
+            "nothing more is sent, not even cleanup. Ctrl+C instead cancels and then cleans up.");
     }
+
+    public bool LicenseAbortRaised => File.Exists(Path.Combine(_directory, LicenseAbortFileName));
+
+    /// <summary>Where the operator creates the license-abort signal for a run writing to this output directory.</summary>
+    public static string LicenseAbortPath(string outputDirectory) => Path.Combine(outputDirectory, DirectoryName, LicenseAbortFileName);
 
     public void Dispatching(ProbeStep step, int ordinal, int count)
     {
@@ -78,6 +92,12 @@ internal sealed class FileOperatorConsole : IOperatorConsole
         var refused = 0;
         while (true)
         {
+            if (LicenseAbortRaised)
+            {
+                Write($"OPERATOR CHECKPOINT {name}: license prompt signalled; nothing more is sent.");
+                return OperatorObservationText.LicensePromptAbort;
+            }
+
             if (TryRead(response, out var text))
             {
                 if (OperatorObservationText.TryNormalize(text, out var observation))

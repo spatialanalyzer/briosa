@@ -20,6 +20,12 @@ internal interface IProbeTransport : IAsyncDisposable
     /// step, and a transport that owns a worker terminates it.
     /// </summary>
     Task<ProbeOutcome> ExecuteAsync(ProbeStep step, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// A license prompt is open (#402): from now on the transport sends nothing, not even a
+    /// graceful stop, and terminates nothing. Disposal then only releases the harness's own handles.
+    /// </summary>
+    void Abandon();
 }
 
 /// <summary>
@@ -38,6 +44,12 @@ internal interface IOperatorConsole
     /// the operator did not answer in time or the session was cancelled.
     /// </summary>
     Task<string?> CheckpointAsync(ProbeStep step, OperatorCheckpoint timing, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// The operator signalled a license prompt outside a checkpoint (#402). Distinct from Ctrl+C,
+    /// which cancels and then cleans up: after this nothing more is sent, not even cleanup.
+    /// </summary>
+    bool LicenseAbortRaised { get; }
 }
 
 /// <summary>A refusal before any MP work, carrying one stable diagnostic code.</summary>
@@ -237,6 +249,15 @@ internal static class ProbeSession
                 continue;
             }
 
+            // A license prompt signalled between checkpoints: this step and every later one is
+            // never sent.
+            if (console.LicenseAbortRaised)
+            {
+                records.Add(new ProbeStepRecord(step, ProbeOutcome.Refused(LicensePromptStop), StepClassification.Refused, [], null));
+                (stoppedAt, stopReason) = (step.Id, LicensePromptStop);
+                continue;
+            }
+
             ordinal++;
 
             // Defence in depth: the plan already proves this, and the session
@@ -269,6 +290,16 @@ internal static class ProbeSession
                 operatorObservations.Add(new OperatorObservation(OperatorCheckpoint.Before, before));
             }
 
+            if (console.LicenseAbortRaised)
+            {
+                records.Add(new ProbeStepRecord(step, ProbeOutcome.Refused(LicensePromptStop), StepClassification.Refused, [], null)
+                {
+                    OperatorObservations = operatorObservations
+                });
+                (stoppedAt, stopReason) = (step.Id, LicensePromptStop);
+                continue;
+            }
+
             console.Dispatching(step, ordinal, plan.Steps.Count);
             var dispatched = clock.GetUtcNow();
             var outcome = await transport.ExecuteAsync(step, cancellationToken).ConfigureAwait(false);
@@ -288,9 +319,11 @@ internal static class ProbeSession
 
             // Whatever the outcome, the operator records and dismisses any dialog
             // before anything else is sent.
+            // A license prompt signalled while the step ran: its own result stands, and no
+            // checkpoint or later step follows.
             var unanswered = false;
-            var licensePrompt = false;
-            if (step.Checkpoints.HasFlag(OperatorCheckpoint.After))
+            var licensePrompt = console.LicenseAbortRaised;
+            if (!licensePrompt && step.Checkpoints.HasFlag(OperatorCheckpoint.After))
             {
                 var after = await console.CheckpointAsync(step, OperatorCheckpoint.After, cancellationToken).ConfigureAwait(false);
                 if (after is null)
@@ -344,6 +377,12 @@ internal static class ProbeSession
             stopReason = licensePrompt ? LicensePromptStop : outcome.CompletionUnknown
                 ? UnknownOutcomeStop
                 : accepted ? RequirementStop : UnexpectedDispositionStop;
+        }
+
+        // After a license prompt the transport sends nothing more, including on disposal.
+        if (stopReason == LicensePromptStop)
+        {
+            transport.Abandon();
         }
 
         return Describe(new ProbeSessionRecord(plan.Phase, DryRun: false, plan.PlaceholderFixtures, started, clock.GetUtcNow(),

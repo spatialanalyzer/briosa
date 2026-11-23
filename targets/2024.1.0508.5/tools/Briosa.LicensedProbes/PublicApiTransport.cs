@@ -21,6 +21,7 @@ internal sealed class PublicApiTransport : IProbeTransport
     private readonly TimeSpan _stepTimeout;
     private readonly TimeSpan _operatorTimeout;
     private readonly IProcessCensus _census;
+    private bool _abandoned;
 
     public PublicApiTransport(Uri address, TimeSpan stepTimeout, TimeSpan operatorTimeout, IProcessCensus census)
     {
@@ -87,6 +88,11 @@ internal sealed class PublicApiTransport : IProbeTransport
     public async Task<ProbeOutcome> ExecuteAsync(ProbeStep step, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(step);
+        if (_abandoned)
+        {
+            return ProbeOutcome.Refused(ProbeSession.LicensePromptStop);
+        }
+
         var timeout = step.ClientTimeout ?? (step.RequiresOperator ? _operatorTimeout : _stepTimeout);
         var options = new CallOptions(deadline: DateTime.UtcNow.Add(timeout), cancellationToken: cancellationToken);
         try
@@ -98,6 +104,9 @@ internal sealed class PublicApiTransport : IProbeTransport
             return ProbeOutcome.Unknown("grpc:client-cancelled", "client-cancelled");
         }
     }
+
+    // The public path sends nothing on disposal; after a license prompt it sends nothing at all.
+    public void Abandon() => _abandoned = true;
 
     public ValueTask DisposeAsync()
     {

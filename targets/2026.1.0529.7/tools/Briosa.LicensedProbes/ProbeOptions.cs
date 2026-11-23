@@ -176,7 +176,8 @@ internal sealed record ProbeOptions
         foreach (var reference in new[] { options.ConnectedSaAttestationReference, options.ActivatedSdkAttestationReference })
         {
             if (reference is not null && !IsSafeReference(reference))
-                throw new ProbeUsageException("Attestation references must be short, non-sensitive identifiers.");
+                throw new ProbeUsageException(
+                    $"An attestation reference must be one of the predefined evidence aliases: {string.Join(", ", AttestationAliases)}.");
         }
 
         if (options.HarnessRevision is not null &&
@@ -231,9 +232,14 @@ internal sealed record ProbeOptions
         return number;
     }
 
-    internal static bool IsSafeReference(string value) =>
-        value.Length is > 0 and <= 128 &&
-        value.All(static c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_' or '.');
+    /// <summary>
+    /// The evidence an operator attestation may cite (#402): which kind of evidence the operator
+    /// read, never what it said, so no machine, account, license or path text can reach a record.
+    /// </summary>
+    public static IReadOnlyList<string> AttestationAliases { get; } =
+        ["sa-title-bar", "sa-about-dialog", "sa-installed-programs", "sdk-file-version", "installer-record"];
+
+    internal static bool IsSafeReference(string value) => AttestationAliases.Contains(value, StringComparer.Ordinal);
 
     private static string? Value(Dictionary<string, string> values, string key) =>
         values.TryGetValue(key, out var value) ? value : null;

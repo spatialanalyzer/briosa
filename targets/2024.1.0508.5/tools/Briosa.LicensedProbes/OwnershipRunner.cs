@@ -4,15 +4,17 @@ namespace Briosa.LicensedProbes;
 
 /// <summary>
 /// Runs one SDK-ownership probe (#252, #402) as a fixed script. The run binds, once, the
-/// endpoint's server process, the worker that server starts for it, and the SDK generation it
-/// starts; it acts only on those. A process it may terminate is held through a handle opened
-/// when it was bound, so neither a check nor a termination can reach a replacement. When
-/// ownership cannot be proven, the bound process has gone, or the generation has changed, the
-/// run records that and stops without acting. Every call is bounded, every MP step is sent at
-/// most once and never replayed, and the process list is only read. A failed or unexpected step
-/// ends the script's own steps, but cleanup of the bound generation still runs, except after a
-/// license prompt, when nothing more is sent. Cancellation stops dispatching, records whether
-/// the interrupted step had been sent, and cleans up on its own bounded token.
+/// endpoint's server process, the worker that server starts for it, and the SDK generation its
+/// own successful start created; it acts only on those. A bound process is held through a
+/// handle opened when it was bound, so neither a check nor a termination can reach a
+/// replacement, and only the scenario that terminates a process holds the right to. Every call
+/// to the server goes over a connection proven to reach the bound server. When ownership cannot
+/// be proven, the bound process has gone, or the generation has changed, the run records that
+/// and stops without acting. Every call is bounded, every MP step is sent at most once and never
+/// replayed, and the process list is only read. A failed or unexpected step ends the script's
+/// own steps, but cleanup of the bound generation still runs, except after a license prompt,
+/// when nothing more is sent. Cancellation stops dispatching, records whether the interrupted
+/// step had been sent, and cleans up on its own bounded token.
 /// </summary>
 internal static class OwnershipRunner
 {
@@ -23,7 +25,10 @@ internal static class OwnershipRunner
     public const string BoundProcessGoneStop = "bound-process-not-running";
     public const string GenerationStop = "generation-changed-not-stopped";
     public const string SecondWorkerStop = "second-worker-not-admitted";
+    public const string SecondWorkerExitStop = "second-worker-exit-unconfirmed";
     public const string CancelledStop = "cancelled-by-operator";
+    public const string PeerStop = "endpoint-peer-not-the-bound-server";
+    public const string DescendantStop = "worker-descendants-not-approved";
 
     public static TimeSpan PollInterval { get; } = TimeSpan.FromMilliseconds(500);
 
@@ -71,6 +76,7 @@ internal static class OwnershipRunner
         private ServerDescription? _server;
         private bool _mpAllowed = true;
         private bool _licenseAbort;
+        private ISecondWorker? _second;
 
         // What this run is bound to.
         private IBoundProcess? _serverBinding;
@@ -95,6 +101,8 @@ internal static class OwnershipRunner
             CompleteSnapshots = _tracker.CompleteSnapshots,
             IncompleteSnapshots = _tracker.IncompleteSnapshots,
             FailedSnapshots = _tracker.FailedSnapshots,
+            VerifiedConnections = environment.Server?.VerifiedConnections ?? 0,
+            RefusedConnections = environment.Server?.RefusedConnections ?? 0,
             FinalSnapshot = _tracker.LastStatus
         };
 
@@ -109,6 +117,19 @@ internal static class OwnershipRunner
             try
             {
                 await ScriptAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (LicensePromptAbortException)
+            {
+                // The operator signalled a license prompt between checkpoints. Nothing more is
+                // sent, not even cleanup, and nothing is terminated; the record says what was
+                // interrupted, which had not been sent.
+                _steps.Add(new OwnershipStepRecord("license-prompt-abort", _currentAction, Offset(), 0,
+                    _current is null ? "between-steps" : _currentSent ? "sent-outcome-unknown" : "interrupted-before-send")
+                {
+                    Target = _current
+                });
+                _current = null;
+                _stopReason = ProbeSession.LicensePromptStop;
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -133,6 +154,11 @@ internal static class OwnershipRunner
                     catch (OperationCanceledException) when (budget.IsCancellationRequested)
                     {
                         _steps.Add(new OwnershipStepRecord("cleanup-budget-elapsed", "cleanup", Offset(), 0, "interrupted") { Target = _current });
+                    }
+                    catch (LicensePromptAbortException)
+                    {
+                        // A license prompt during the cleanup: nothing more is sent.
+                        _steps.Add(new OwnershipStepRecord("license-prompt-abort", _currentAction, Offset(), 0, "interrupted-before-send") { Target = _current });
                     }
                 }
             }
@@ -160,14 +186,20 @@ internal static class OwnershipRunner
             var started = await LifecycleAsync("start-sdk", "start-sdk", server.StartSdkAsync, cancellationToken).ConfigureAwait(false);
             Census("census-started");
 
-            // The generation this run's start created, even when the start then failed.
-            _generation = started.Generation;
+            // Only a successful start creates the generation this run may act on. A generation in a
+            // failed start's error (for example sdk-already-active) is the server's current one: it
+            // is recorded with the step as observed, and is never authority to stop anything.
             if (!started.Ok || started.Generation is null)
             {
+                Add(new OwnershipStepRecord("bind-generation", "bind", Offset(), 0,
+                    started.Generation is null ? "start-failed" : "observed-in-error-not-bound"));
                 Stop(LifecycleStop);
                 await CleanupAsync(server, cancellationToken).ConfigureAwait(false);
                 return;
             }
+
+            _generation = started.Generation;
+            Add(new OwnershipStepRecord("bind-generation", "bind", Offset(), 0, "bound"));
 
             AttributeSdk();
             if (!BindWorker())
@@ -222,12 +254,16 @@ internal static class OwnershipRunner
                 servers.Count != 1 ? "exactly-one-briosa-server-required" :
                 _tracker.Alive(ProcessRoles.Worker).Count != 0 || _tracker.Alive(ProcessRoles.Sdk).Count != 0 ? "residual-worker-or-sdk-process" :
                 null;
-            refusal ??= BindServer(servers[0]);
+            refusal ??= BindServer(servers[0], server);
             if (refusal is null)
             {
+                // Discovery is sent once the server is bound, over a connection proven to reach it.
                 var offset = Begin("describe", "describe");
+                Guard(cancellationToken);
+                _currentSent = true;
                 _server = await server.DescribeAsync(cancellationToken).ConfigureAwait(false);
-                refusal = !_server.Reachable ? "server-discovery-unavailable" : !_server.TargetMatches ? "server-target-identity-mismatch" :
+                refusal = !_server.PeerVerified ? "endpoint-peer-not-the-bound-server" :
+                    !_server.Reachable ? "server-discovery-unavailable" : !_server.TargetMatches ? "server-target-identity-mismatch" :
                     // The client deadline must outlast the server's own bound, or a slow start or
                     // connect would end on the client side with its outcome unknown.
                     _server.LifecycleBoundsMilliseconds
@@ -254,9 +290,10 @@ internal static class OwnershipRunner
             return false;
         }
 
-        // The server must be in the operator's session, own the endpoint's listener, and open
-        // with the name and start time the census saw. Returns a refusal, or null once bound.
-        private string? BindServer(TrackedProcess server)
+        // The server must be in the operator's session, own every listener the endpoint can
+        // reach, and open with the name and start time the census saw. Once bound, every
+        // connection must reach it. Returns a refusal, or null once bound.
+        private string? BindServer(TrackedProcess server, IOwnershipServer client)
         {
             var offset = Offset();
             string? refusal;
@@ -276,7 +313,9 @@ internal static class OwnershipRunner
                     null;
                 if (refusal is null)
                 {
-                    _serverBinding = environment.Control.Bind(identity.Id, identity.StartedAt, ProcessCensus.BriosaServer);
+                    // Only parent-death may terminate the server, so only it holds that right.
+                    _serverBinding = environment.Control.Bind(identity.Id, identity.StartedAt, ProcessCensus.BriosaServer,
+                        terminable: options.Scenario == OwnershipScenario.ParentDeath);
                     refusal = _serverBinding is null ? "server-identity-unproven" : null;
                 }
 
@@ -284,6 +323,7 @@ internal static class OwnershipRunner
                 {
                     (_serverLabel, _serverId) = (server.Label, identity.Id);
                     _tracker.Attribute(server.Label, "bound-server");
+                    client.BindPeer(identity.Id);
                 }
             }
 
@@ -292,24 +332,34 @@ internal static class OwnershipRunner
         }
 
         // The worker must be new in this run, a child of the bound server, in the operator's
-        // session, and open with the name and start time the census saw.
+        // session, and open with the name and start time the census saw. Only a complete
+        // post-start census can show that it is the only such worker.
         private bool BindWorker()
         {
             var offset = Offset();
-            var candidates = _tracker.Processes
-                .Where(process => process is { Alive: true, PresentAtStart: false, Role: ProcessRoles.Worker } &&
-                    _tracker.Identity(process.Label) is { } identity && identity.ParentId == _serverId &&
-                    identity.SessionId == environment.Control.HarnessSessionId)
-                .ToList();
+            var complete = _tracker.LastStatus == SnapshotStatus.Complete;
+            var candidates = complete
+                ? _tracker.Processes
+                    .Where(process => process is { Alive: true, PresentAtStart: false, Role: ProcessRoles.Worker } &&
+                        _tracker.Identity(process.Label) is { } identity && identity.ParentId == _serverId &&
+                        identity.SessionId == environment.Control.HarnessSessionId)
+                    .ToList()
+                : [];
             string result;
-            if (candidates.Count != 1)
+            if (!complete)
+            {
+                result = "census-incomplete";
+            }
+            else if (candidates.Count != 1)
             {
                 result = candidates.Count == 0 ? "no-worker-of-the-bound-server" : "several-workers-of-the-bound-server";
             }
             else
             {
+                // Only worker-crash may terminate the worker, so only it holds that right.
                 var identity = _tracker.Identity(candidates[0].Label)!.Value;
-                _workerBinding = environment.Control.Bind(identity.Id, identity.StartedAt, ProcessCensus.BriosaWorker);
+                _workerBinding = environment.Control.Bind(identity.Id, identity.StartedAt, ProcessCensus.BriosaWorker,
+                    terminable: options.Scenario == OwnershipScenario.WorkerCrash);
                 result = _workerBinding is null ? "worker-identity-unproven" : "bound";
                 if (_workerBinding is not null)
                 {
@@ -325,8 +375,8 @@ internal static class OwnershipRunner
             return _workerBinding is not null;
         }
 
-        // An SDK process first seen while this run's own start was in flight. Its parent is DCOM's
-        // service host, so this is attribution by timing, not proof of ownership.
+        // An SDK process first seen while this run's own start was in flight. This is attribution
+        // by timing, not proof of ownership; its parent role is recorded as the snapshot showed it.
         private void AttributeSdk()
         {
             foreach (var sdk in _tracker.Processes.Where(static process => process is { Role: ProcessRoles.Sdk, PresentAtStart: false, Attribution: null }))
@@ -335,18 +385,23 @@ internal static class OwnershipRunner
             }
         }
 
-        private void DescendantCensus(string id)
+        // Returns true only for a complete census in which every descendant of the bound worker is
+        // on the approved list.
+        private bool DescendantCensus(string id)
         {
             var offset = Offset();
             _tracker.Observe(environment.Processes.Snapshot(), offset);
-            var (labels, count) = _workerId is { } worker ? _tracker.Descendants(worker) : ([], 0);
-            Add(new OwnershipStepRecord(id, "census", offset, 0, _tracker.LastStatus == SnapshotStatus.Complete ? "observed" : "census-incomplete")
+            var (labels, count, unapproved) = _workerId is { } worker ? _tracker.DescendantCensus(worker) : ([], 0, 0);
+            var complete = _tracker.LastStatus == SnapshotStatus.Complete;
+            Add(new OwnershipStepRecord(id, "census", offset, 0, !complete ? "census-incomplete" : unapproved > 0 ? "unapproved-descendants" : "observed")
             {
                 Target = _workerLabel,
                 Alive = labels,
                 DescendantCount = count,
+                UnapprovedDescendantCount = unapproved,
                 Snapshot = _tracker.LastStatus
             });
+            return complete && unapproved == 0;
         }
 
         private async Task WorkerCrashAsync(IOwnershipServer server, CancellationToken cancellationToken)
@@ -362,7 +417,7 @@ internal static class OwnershipRunner
             LifecycleResult state;
             while (true)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                Guard(cancellationToken);
                 _currentSent = true;
                 state = await server.GetSdkStateAsync(cancellationToken).ConfigureAwait(false);
                 if ((state.Ok && string.Equals(state.SdkState, Api.SpatialAnalyzerSdkState.Faulted.ToString(), StringComparison.Ordinal)) ||
@@ -387,6 +442,35 @@ internal static class OwnershipRunner
 
         private async Task ParentDeathAsync(IOwnershipServer server, CancellationToken cancellationToken)
         {
+            // The server is terminated only while it still reports the bound generation, ready,
+            // and the bound worker still runs: otherwise the run records why and only cleans up.
+            var state = await LifecycleAsync("sdk-state-before-termination", "get-sdk-state", server.GetSdkStateAsync, cancellationToken)
+                .ConfigureAwait(false);
+            var offset = Offset();
+            var worker = _workerBinding!.Check();
+            var refusal =
+                !state.Ok ? "sdk-state-unreadable" :
+                state.Generation != _generation ? "generation-changed" :
+                !state.ReadyForMp ? "sdk-not-ready" :
+                worker == BindingCheck.Exited ? "bound-worker-exited" :
+                worker != BindingCheck.Running ? "bound-worker-unverifiable" :
+                null;
+            Add(new OwnershipStepRecord("recheck-before-termination", "check", offset, Offset() - offset, refusal ?? "bound-worker-and-generation-current")
+            {
+                Target = _workerLabel
+            });
+            if (refusal is not null)
+            {
+                Stop(refusal switch
+                {
+                    "generation-changed" => GenerationStop,
+                    "bound-worker-exited" or "bound-worker-unverifiable" => BoundProcessGoneStop,
+                    _ => LifecycleStop
+                });
+                await CleanupAsync(server, cancellationToken).ConfigureAwait(false);
+                return;
+            }
+
             // The server is gone afterwards, so there is no lifecycle cleanup: only the window.
             if (!Terminate("terminate-server", _serverBinding!, _serverLabel!, cancellationToken))
             {
@@ -398,8 +482,11 @@ internal static class OwnershipRunner
                 cancellationToken).ConfigureAwait(false);
         }
 
-        // Observes the product's own watchdog, which terminates the worker's whole process tree;
-        // the descendant census before the stall records what that tree held.
+        // Observes the product's own watchdog, which terminates the worker's whole process tree.
+        // The stall is sent only when a census taken after the operator's checkpoint, just before
+        // dispatch, is complete, the bound worker still runs, and everything descended from it is
+        // on the approved list. That census is a pre-dispatch observation, not a record of what
+        // the watchdog later ended.
         private async Task WatchdogKillAsync(IOwnershipServer server, CancellationToken cancellationToken)
         {
             var steps = ProbeCatalog.CreateOwnershipWatchdogSteps(options.InteractionMode);
@@ -413,9 +500,18 @@ internal static class OwnershipRunner
                 return;
             }
 
-            DescendantCensus("census-descendants-before-stall");
             if (!await CheckpointAsync("checkpoint-before-stall", stall, OperatorCheckpoint.Before, cancellationToken).ConfigureAwait(false))
             {
+                await CleanupAsync(server, cancellationToken).ConfigureAwait(false);
+                return;
+            }
+
+            var approved = DescendantCensus("census-descendants-before-stall");
+            var worker = _workerBinding!.Check();
+            if (!approved || worker != BindingCheck.Running)
+            {
+                Add(new OwnershipStepRecord("stall", "mp", Offset(), 0, "not-run") { Target = _workerLabel });
+                Stop(worker != BindingCheck.Running ? BoundProcessGoneStop : DescendantStop);
                 await CleanupAsync(server, cancellationToken).ConfigureAwait(false);
                 return;
             }
@@ -439,8 +535,10 @@ internal static class OwnershipRunner
         }
 
         // Each step needs the one before it: a successful baseline, a worker from the bound server's
-        // own package, a ready worker with an exact activated-SDK match, and a successful attach.
-        // Otherwise only bounded cleanup runs, and the record says which gate failed.
+        // own package, a ready worker with an exact activated-SDK match, a successful attach, a
+        // successful MP through the first client while the second is attached, and a confirmed
+        // exit of the second worker before the last MP. The first failure ends the script; only
+        // bounded cleanup runs after it, and the record says which gate failed.
         private async Task CompetingClientAsync(IOwnershipServer server, CancellationToken cancellationToken)
         {
             var baseline = ReadOnlyStep("mp-before");
@@ -464,7 +562,10 @@ internal static class OwnershipRunner
             }
 
             var admitted = false;
+            var during = false;
+            var stopped = false;
             var second = factory();
+            _second = second;
             await using (second.ConfigureAwait(false))
             {
                 var start = await SecondAsync("second-start", second.StartAsync, cancellationToken).ConfigureAwait(false);
@@ -476,7 +577,9 @@ internal static class OwnershipRunner
                     admitted = string.Equals(attach.Result, SecondWorkerResult.Connected, StringComparison.Ordinal);
                     if (admitted)
                     {
-                        await MpAsync("mp-during", server, ReadOnlyStep("mp-during"), cancellationToken).ConfigureAwait(false);
+                        var step = ReadOnlyStep("mp-during");
+                        during = await MpAsync("mp-during", server, step, cancellationToken).ConfigureAwait(false) is { } outcome &&
+                            step.Acceptable.Accepts(outcome);
                     }
                 }
 
@@ -485,15 +588,32 @@ internal static class OwnershipRunner
                     Stop(SecondWorkerStop);
                 }
 
-                await SecondAsync("second-stop", second.StopAsync, cancellationToken).ConfigureAwait(false);
+                // The second worker is always stopped, or terminated (that process only).
+                var stop = await SecondAsync("second-stop", second.StopAsync, cancellationToken).ConfigureAwait(false);
+                stopped = stop.Result is "stopped" or "exited" or "terminated";
             }
 
-            await WindowAsync("window-second-stopped", () => _tracker.LastStatus == SnapshotStatus.Complete &&
-                _tracker.Processes.All(static process => !process.Alive || process.Role != ProcessRoles.Worker || process.ParentRole != ProcessRoles.Harness),
-                cancellationToken).ConfigureAwait(false);
-            if (admitted)
+            _second = null;
+            if (admitted && during)
             {
-                await MpAsync("mp-after", server, ReadOnlyStep("mp-after"), cancellationToken).ConfigureAwait(false);
+                // The last MP needs the second worker's exit confirmed twice: by its stop and by a
+                // complete census without it.
+                var gone = stopped && await WindowAsync("window-second-stopped", () => _tracker.LastStatus == SnapshotStatus.Complete &&
+                    _tracker.Processes.All(static process => !process.Alive || process.Role != ProcessRoles.Worker || process.ParentRole != ProcessRoles.Harness),
+                    cancellationToken).ConfigureAwait(false);
+                if (gone)
+                {
+                    await MpAsync("mp-after", server, ReadOnlyStep("mp-after"), cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    Add(new OwnershipStepRecord("mp-after", "mp", Offset(), 0, "not-run"));
+                    Stop(SecondWorkerExitStop);
+                }
+            }
+            else if (admitted)
+            {
+                Add(new OwnershipStepRecord("mp-after", "mp", Offset(), 0, "not-run"));
             }
 
             await CleanupAsync(server, cancellationToken).ConfigureAwait(false);
@@ -552,7 +672,7 @@ internal static class OwnershipRunner
         private bool Terminate(string id, IBoundProcess binding, string label, CancellationToken cancellationToken)
         {
             var offset = Begin(id, "terminate");
-            cancellationToken.ThrowIfCancellationRequested();
+            Guard(cancellationToken);
             _tracker.Observe(environment.Processes.Snapshot(), Offset());
             var check = binding.Check();
             if (check != BindingCheck.Running)
@@ -589,11 +709,19 @@ internal static class OwnershipRunner
             }
 
             var offset = Begin(id, "mp");
-            cancellationToken.ThrowIfCancellationRequested();
+            Guard(cancellationToken);
             _currentSent = true;
             var outcome = await server.ExecuteAsync(step, cancellationToken).ConfigureAwait(false);
             var stalled = step.ExpectedStall?.Matches(outcome) == true;
-            var result = stalled ? "planned-stall" : step.Acceptable.Accepts(outcome) ? "observed" : outcome.CompletionUnknown ? "completion-unknown" : "unexpected";
+            var peer = string.Equals(outcome.Transport, LifecycleResult.PeerUnverifiedTransport, StringComparison.Ordinal);
+            var result = peer ? "peer-unverified" : stalled ? "planned-stall" : step.Acceptable.Accepts(outcome) ? "observed" :
+                outcome.CompletionUnknown ? "completion-unknown" : "unexpected";
+
+            // Never sent: no connection to the bound server could be proven.
+            if (peer)
+            {
+                Stop(PeerStop);
+            }
 
             // Nothing more is sent through the server after an outcome whose completion is unknown.
             if (outcome.CompletionUnknown)
@@ -614,7 +742,7 @@ internal static class OwnershipRunner
         private async Task<SecondWorkerResult> SecondAsync(string id, Func<CancellationToken, Task<SecondWorkerResult>> call, CancellationToken cancellationToken)
         {
             var offset = Begin(id, "second-worker");
-            cancellationToken.ThrowIfCancellationRequested();
+            Guard(cancellationToken);
             _currentSent = true;
             var result = await call(cancellationToken).ConfigureAwait(false);
             _tracker.Observe(environment.Processes.Snapshot(), Offset());
@@ -629,6 +757,7 @@ internal static class OwnershipRunner
         private async Task<bool> CheckpointAsync(string id, ProbeStep step, OperatorCheckpoint timing, CancellationToken cancellationToken)
         {
             var offset = Begin(id, "checkpoint");
+            Guard(cancellationToken);
             var answer = await environment.Console.CheckpointAsync(step, timing, cancellationToken).ConfigureAwait(false);
             if (answer is null)
             {
@@ -644,6 +773,7 @@ internal static class OwnershipRunner
             {
                 // The prompt is never copied or dismissed by the run, and nothing more is sent.
                 _licenseAbort = true;
+                _second?.Abandon();
                 Stop(ProbeSession.LicensePromptStop);
                 return false;
             }
@@ -661,11 +791,19 @@ internal static class OwnershipRunner
             string id, string action, Func<CancellationToken, Task<LifecycleResult>> call, CancellationToken cancellationToken)
         {
             var offset = Begin(id, action);
-            cancellationToken.ThrowIfCancellationRequested();
+            Guard(cancellationToken);
             _currentSent = true;
             var result = await call(cancellationToken).ConfigureAwait(false);
             _tracker.Observe(environment.Processes.Snapshot(), Offset());
-            Add(new OwnershipStepRecord(id, action, offset, Offset() - offset, result.Ok ? "ok" : result.Cancelled ? "sent-outcome-unknown" : "failed")
+
+            // A call whose connection could not be proven to reach the bound server was never sent.
+            if (result.PeerUnverified)
+            {
+                Stop(PeerStop);
+            }
+
+            Add(new OwnershipStepRecord(id, action, offset, Offset() - offset,
+                result.Ok ? "ok" : result.PeerUnverified ? "peer-unverified" : result.Cancelled ? "sent-outcome-unknown" : "failed")
             {
                 Lifecycle = result,
                 Alive = AliveLabels()
@@ -685,14 +823,15 @@ internal static class OwnershipRunner
         }
 
         // Snapshots every PollInterval until the condition holds on a complete snapshot, or the
-        // observation window ends.
-        private async Task WindowAsync(string id, Func<bool> settled, CancellationToken cancellationToken)
+        // observation window ends. True when it settled.
+        private async Task<bool> WindowAsync(string id, Func<bool> settled, CancellationToken cancellationToken)
         {
             var offset = Begin(id, "window");
             var window = (long)options.ObserveWindow.TotalMilliseconds;
             string result;
             while (true)
             {
+                Guard(cancellationToken);
                 _tracker.Observe(environment.Processes.Snapshot(), Offset());
                 if (settled())
                 {
@@ -710,6 +849,21 @@ internal static class OwnershipRunner
             }
 
             Add(new OwnershipStepRecord(id, "window", offset, Offset() - offset, result) { Alive = AliveLabels(), Snapshot = _tracker.LastStatus });
+            return string.Equals(result, "settled", StringComparison.Ordinal);
+        }
+
+        // Before anything is sent, and on every window poll: the operator's cancellation, or a
+        // license prompt the operator signalled outside a checkpoint. After a license prompt
+        // nothing more is sent and the second worker is left as it is.
+        private void Guard(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (environment.Console.LicenseAbortRaised)
+            {
+                _licenseAbort = true;
+                _second?.Abandon();
+                throw new LicensePromptAbortException();
+            }
         }
 
         private long Begin(string id, string action)
@@ -734,4 +888,8 @@ internal static class OwnershipRunner
 
         private long Offset() => (long)(environment.Clock.GetUtcNow() - _started).TotalMilliseconds;
     }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1032:Implement standard exception constructors",
+        Justification = "Unwinds the script after a license prompt; never leaves the runner.")]
+    private sealed class LicensePromptAbortException() : Exception("A license prompt is open.");
 }

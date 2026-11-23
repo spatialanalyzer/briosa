@@ -88,21 +88,13 @@ internal sealed class WindowsProcessTable : IProcessTable
         return new ProcessSnapshot(status, entries);
     }
 
+    // Read through a query-only handle, as a binding reads them, so both compare the same values.
     private static bool TryIdentity(int id, out DateTimeOffset? started, out int? session)
     {
-        started = null;
-        session = null;
-        try
-        {
-            using var process = Process.GetProcessById(id);
-            started = new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero);
-            session = process.SessionId;
-            return true;
-        }
-        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or System.ComponentModel.Win32Exception or NotSupportedException)
-        {
-            return false;
-        }
+        session = ProcessHandles.SessionOf(id);
+        using var handle = ProcessHandles.Open(id, terminate: false);
+        started = handle is null ? null : ProcessHandles.StartTime(handle);
+        return started is not null && session is not null;
     }
 
     private static class NativeMethods
@@ -140,6 +132,96 @@ internal sealed class WindowsProcessTable : IProcessTable
     }
 }
 
+/// <summary>
+/// Opens processes with the least rights a read needs: query and wait, plus terminate only
+/// for a binding that a scenario's script terminates. It reads start times, sessions and image
+/// paths through the handle; a path is compared in memory only and never recorded.
+/// </summary>
+internal static class ProcessHandles
+{
+    private const uint QueryLimitedInformation = 0x1000;
+    private const uint Synchronize = 0x00100000;
+    private const uint TerminateRight = 0x0001;
+    private const uint WaitObject0 = 0;
+    private const uint WaitTimeout = 0x102;
+
+    /// <summary>A handle that can query and wait, and terminate only when asked; null when it cannot be opened.</summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope",
+        Justification = "The handle is returned to the caller, or disposed when it is invalid.")]
+    public static SafeProcessHandle? Open(int processId, bool terminate)
+    {
+        var handle = NativeMethods.OpenProcess(QueryLimitedInformation | Synchronize | (terminate ? TerminateRight : 0), 0, processId);
+        if (handle.IsInvalid)
+        {
+            handle.Dispose();
+            return null;
+        }
+
+        return handle;
+    }
+
+    /// <summary>The creation time, as <see cref="Process.StartTime"/> reports it, in UTC; null when unreadable.</summary>
+    public static DateTimeOffset? StartTime(SafeProcessHandle handle) =>
+        NativeMethods.GetProcessTimes(handle, out var creation, out _, out _, out _)
+            ? new DateTimeOffset(DateTime.FromFileTime(creation).ToUniversalTime(), TimeSpan.Zero)
+            : null;
+
+    public static int? SessionOf(int processId) =>
+        NativeMethods.ProcessIdToSessionId(unchecked((uint)processId), out var session) ? unchecked((int)session) : null;
+
+    public static string? ImagePath(SafeProcessHandle handle)
+    {
+        var buffer = new char[32768];
+        var size = buffer.Length;
+        return NativeMethods.QueryFullProcessImageNameW(handle, 0, buffer, ref size) ? new string(buffer, 0, size) : null;
+    }
+
+    /// <summary>True once exited, false while running, null when the state cannot be read.</summary>
+    public static bool? HasExited(SafeProcessHandle handle) => NativeMethods.WaitForSingleObject(handle, 0) switch
+    {
+        WaitObject0 => true,
+        WaitTimeout => false,
+        _ => null
+    };
+
+    public static bool WaitForExit(SafeProcessHandle handle, TimeSpan timeout) =>
+        NativeMethods.WaitForSingleObject(handle, (uint)timeout.TotalMilliseconds) == WaitObject0;
+
+    /// <summary>Ends that one process; its children are never touched.</summary>
+    public static bool TerminateOnly(SafeProcessHandle handle) => NativeMethods.TerminateProcess(handle, 1);
+
+    private static class NativeMethods
+    {
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern SafeProcessHandle OpenProcess(uint access, int inheritHandle, int processId);
+
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetProcessTimes(SafeProcessHandle process, out long creation, out long exit, out long kernel, out long user);
+
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool ProcessIdToSessionId(uint processId, out uint sessionId);
+
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool QueryFullProcessImageNameW(SafeProcessHandle process, uint flags, [Out] char[] name, ref int size);
+
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern uint WaitForSingleObject(SafeProcessHandle handle, uint milliseconds);
+
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool TerminateProcess(SafeProcessHandle process, uint exitCode);
+    }
+}
+
 /// <summary>The closed vocabulary of process roles a record may name.</summary>
 internal static class ProcessRoles
 {
@@ -154,19 +236,30 @@ internal static class ProcessRoles
     public const string Other = "other";
     public const string Exited = "exited";
 
+    // The only processes that may descend from the bound worker before watchdog-kill's stall:
+    // the console host Windows starts for a console process. The product's watchdog ends the
+    // worker's whole tree, so a stall is refused when anything else descends from it.
+    public static IReadOnlyList<string> ApprovedWorkerDescendantNames { get; } = ["conhost"];
+
+    private static readonly HashSet<string> ApprovedWorkerDescendants = new(ApprovedWorkerDescendantNames, StringComparer.OrdinalIgnoreCase);
+
+    // Image names compare case-insensitively, as Windows does.
     public static string? RoleOf(string name) => name switch
     {
-        ProcessCensus.SpatialAnalyzer => SpatialAnalyzer,
-        ProcessCensus.SpatialAnalyzerSdk => Sdk,
-        ProcessCensus.BriosaServer => Server,
-        ProcessCensus.BriosaWorker => Worker,
+        _ when string.Equals(name, ProcessCensus.SpatialAnalyzer, StringComparison.OrdinalIgnoreCase) => SpatialAnalyzer,
+        _ when string.Equals(name, ProcessCensus.SpatialAnalyzerSdk, StringComparison.OrdinalIgnoreCase) => Sdk,
+        _ when string.Equals(name, ProcessCensus.BriosaServer, StringComparison.OrdinalIgnoreCase) => Server,
+        _ when string.Equals(name, ProcessCensus.BriosaWorker, StringComparison.OrdinalIgnoreCase) => Worker,
         _ => null
     };
 
     public static bool IsTracked(string name) => RoleOf(name) is not null;
 
-    // A parent outside the tracked roles is named only as the harness, the service host that
-    // DCOM activation uses, or "other"; no other process name is ever recorded.
+    public static bool IsApprovedWorkerDescendant(string name) => ApprovedWorkerDescendants.Contains(name);
+
+    // A parent outside the tracked roles is named only as the harness, a Windows service host,
+    // or "other"; no other process name is ever recorded. A service-host parent is a fact of the
+    // snapshot, not a claim about how the process was started.
     public static string ParentRoleOf(int parentId, ProcessEntry? parent, int harnessProcessId) => parent switch
     {
         _ when parentId == harnessProcessId => Harness,
@@ -251,13 +344,20 @@ internal sealed class ProcessTracker(int harnessProcessId)
 
     /// <summary>
     /// Labels and counts of every process descended from <paramref name="rootId"/> in the last
-    /// snapshot, through parent ids. Only tracked descendants have labels.
+    /// snapshot, through parent ids. Only tracked descendants have labels; how many are not on
+    /// the approved list is counted, and no other name is ever returned.
     /// </summary>
     public (IReadOnlyList<string> Labels, int Count) Descendants(int rootId)
     {
+        var (labels, count, _) = DescendantCensus(rootId);
+        return (labels, count);
+    }
+
+    public (IReadOnlyList<string> Labels, int Count, int Unapproved) DescendantCensus(int rootId)
+    {
         if (LastSnapshot is not { } snapshot)
         {
-            return ([], 0);
+            return ([], 0, 0);
         }
 
         var children = snapshot.Entries.Where(static entry => entry.Id != entry.ParentId)
@@ -266,6 +366,7 @@ internal sealed class ProcessTracker(int harnessProcessId)
         var queue = new Queue<int>([rootId]);
         var labels = new List<string>();
         var count = 0;
+        var unapproved = 0;
         while (queue.Count > 0)
         {
             foreach (var child in children.GetValueOrDefault(queue.Dequeue(), []))
@@ -277,6 +378,11 @@ internal sealed class ProcessTracker(int harnessProcessId)
 
                 count++;
                 queue.Enqueue(child.Id);
+                if (!ProcessRoles.IsApprovedWorkerDescendant(child.Name))
+                {
+                    unapproved++;
+                }
+
                 if (child.StartedAt is { } started && _processes.TryGetValue((child.Id, started), out var tracked))
                 {
                     labels.Add(tracked.Label);
@@ -284,7 +390,7 @@ internal sealed class ProcessTracker(int harnessProcessId)
             }
         }
 
-        return ([.. labels.Order(StringComparer.Ordinal)], count);
+        return ([.. labels.Order(StringComparer.Ordinal)], count, unapproved);
     }
 
     public void Observe(ProcessSnapshot snapshot, long offsetMilliseconds)

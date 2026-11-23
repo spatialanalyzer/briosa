@@ -200,10 +200,17 @@ internal sealed record LifecycleResult(
 {
     public const string ClientCancelledTransport = "grpc:client-cancelled";
 
+    // The connection's peer could not be proven to be the bound server, so the call was never
+    // sent (#402).
+    public const string PeerUnverifiedTransport = "peer-unverified";
+
     public bool Ok => string.Equals(Transport, "grpc:OK", StringComparison.Ordinal);
 
     /// <summary>The call was sent and the caller stopped waiting: its outcome is unknown.</summary>
     public bool Cancelled => string.Equals(Transport, ClientCancelledTransport, StringComparison.Ordinal);
+
+    /// <summary>The call was never sent: no connection to the bound server could be proven.</summary>
+    public bool PeerUnverified => string.Equals(Transport, PeerUnverifiedTransport, StringComparison.Ordinal);
 
     public static LifecycleResult Failed(string transport, string? diagnosticCode) =>
         new(transport, null, null, false, null, diagnosticCode, null);
@@ -219,6 +226,12 @@ internal sealed record ServerDescription(
 {
     public static ServerDescription Unreachable { get; } =
         new(false, false, null, null, new SortedDictionary<string, long>(StringComparer.Ordinal));
+
+    /// <summary>Discovery was never sent: the connection's peer was not the bound server.</summary>
+    public static ServerDescription PeerRefused { get; } = Unreachable with { PeerVerified = false };
+
+    /// <summary>Whether every connection the call could use was proven to reach the bound server.</summary>
+    public bool PeerVerified { get; init; } = true;
 }
 
 /// <summary>The value-free result of one step of the competing second worker.</summary>
@@ -228,9 +241,22 @@ internal sealed record SecondWorkerResult(string Result, string? ConnectionState
     public const string Connected = "connected";
 }
 
-/// <summary>The packaged server, through generated clients on loopback only.</summary>
+/// <summary>
+/// The packaged server, through generated clients on loopback only. Nothing is sent before
+/// <see cref="BindPeer"/>, and afterwards only over a connection whose peer, read from the
+/// TCP connection table, is the bound server process.
+/// </summary>
 internal interface IOwnershipServer : IAsyncDisposable
 {
+    /// <summary>Every connection from now on must reach this process, or the call is never sent.</summary>
+    void BindPeer(int serverProcessId);
+
+    /// <summary>Connections proven to reach the bound server; more than one means one was replaced.</summary>
+    int VerifiedConnections { get; }
+
+    /// <summary>Connections closed unused because their peer was not proven.</summary>
+    int RefusedConnections { get; }
+
     Task<ServerDescription> DescribeAsync(CancellationToken cancellationToken);
 
     Task<LifecycleResult> GetSdkStateAsync(CancellationToken cancellationToken);
@@ -261,13 +287,17 @@ internal enum BindingCheck
 /// One Briosa worker or server process bound to this run through a handle that was opened and
 /// checked once (name and start time read through the handle). While it is held, the handle
 /// names only that process, even if its id is reused, so a check or a termination can never
-/// reach a replacement.
+/// reach a replacement. The handle can query and wait only, and can terminate only when the
+/// scenario's script terminates that process.
 /// </summary>
 internal interface IBoundProcess : IDisposable
 {
     BindingCheck Check();
 
-    /// <summary>Ends that one process, never its children: terminated, exited, or failed.</summary>
+    /// <summary>
+    /// Ends that one process, never its children: terminated, exited, failed, or not-authorized
+    /// when it was bound without the right to terminate.
+    /// </summary>
     string Terminate();
 }
 
@@ -279,11 +309,15 @@ internal interface IProcessControl
 
     /// <summary>
     /// Binds one Briosa worker or server. Null when the process is gone, cannot be opened, or its
-    /// name or start time read through the handle is not the one the tracker saw.
+    /// name or start time read through the handle is not the one the tracker saw. Only a
+    /// <paramref name="terminable"/> binding can end the process.
     /// </summary>
-    IBoundProcess? Bind(int processId, DateTimeOffset startedAt, string expectedName);
+    IBoundProcess? Bind(int processId, DateTimeOffset startedAt, string expectedName, bool terminable);
 
-    /// <summary>The owning process ids of every listener on the endpoint's port; null when the table cannot be read.</summary>
+    /// <summary>
+    /// The owning process ids of every listener the endpoint's address can reach (its own address
+    /// or its family's wildcard, both families for a name); null when the table cannot be read.
+    /// </summary>
     IReadOnlyList<int>? EndpointListeners(Uri address);
 
     /// <summary>Whether the worker executable is in the bound server's own folder; null when that cannot be read.</summary>
@@ -298,6 +332,9 @@ internal interface ISecondWorker : IAsyncDisposable
     Task<SecondWorkerResult> ConnectAsync(CancellationToken cancellationToken);
 
     Task<SecondWorkerResult> StopAsync(CancellationToken cancellationToken);
+
+    /// <summary>A license prompt is open: from now on nothing is sent and nothing is terminated.</summary>
+    void Abandon();
 }
 
 /// <summary>Waits between process snapshots. Tests replace it so that no test sleeps.</summary>
@@ -343,8 +380,11 @@ internal sealed record OwnershipStepRecord(string Id, string Action, long Starte
     // descendant census the labelled descendants.
     public IReadOnlyList<string> Alive { get; init; } = [];
 
-    // A descendant census: how many processes of any kind descend from the bound worker.
+    // A descendant census: how many processes of any kind descend from the bound worker, and how
+    // many of them are not on the approved list (only their count is ever recorded).
     public int? DescendantCount { get; init; }
+
+    public int? UnapprovedDescendantCount { get; init; }
 
     // The status of the snapshot the step ended with.
     public SnapshotStatus? Snapshot { get; init; }
@@ -372,6 +412,11 @@ internal sealed record OwnershipRecord(
     public int IncompleteSnapshots { get; init; }
 
     public int FailedSnapshots { get; init; }
+
+    /// <summary>Connections proven to reach the bound server, and connections refused unused.</summary>
+    public int VerifiedConnections { get; init; }
+
+    public int RefusedConnections { get; init; }
 
     /// <summary>The last snapshot of the run; only a complete one can show that nothing remains.</summary>
     public SnapshotStatus? FinalSnapshot { get; init; }

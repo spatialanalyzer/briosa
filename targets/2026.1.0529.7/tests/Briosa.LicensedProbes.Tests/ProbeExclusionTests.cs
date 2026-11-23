@@ -34,7 +34,7 @@ public sealed class ProbeExclusionTests
                     ProbeTarget.ConfirmFlag, "--fixtures", "m.json", "--output-directory", "out",
                     "--worker-path", @"C:\package\Briosa.Worker.exe",
                     "--connected-sa-attested-version", ProbeTarget.SpatialAnalyzerTarget,
-                    "--connected-sa-attestation-reference", "r277-connected"
+                    "--connected-sa-attestation-reference", "sa-title-bar"
                 ]
                 : [ProbeTarget.ConfirmFlag, "--fixtures", "m.json", "--output-directory", "out"];
 

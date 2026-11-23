@@ -305,7 +305,7 @@ public sealed class SessionThreeProbeTests
     {
         var options = ProbeOptions.Parse(["--phase", "worker", ProbeTarget.ConfirmFlag, "--fixtures", "manifest.json", "--output-directory", "out",
             "--worker-path", "Briosa.Worker.exe", "--connected-sa-attested-version", ProbeTarget.SpatialAnalyzerTarget,
-            "--connected-sa-attestation-reference", "probe-s3"]);
+            "--connected-sa-attestation-reference", "sa-title-bar"]);
 
         // Creating the transport starts nothing; only a step timeout calls the detector.
         var transport = Assert.IsType<WorkerTransport>(LicensedProbeProgram.CreateTransport(options));

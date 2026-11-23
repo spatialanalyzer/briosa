@@ -143,7 +143,7 @@ public sealed class LicensedProbeProgramTests : IDisposable
             ?
             [
                 "--worker-path", Path.Combine(_root, "Briosa.Worker.exe"), "--connected-sa-attested-version", ProbeTarget.SpatialAnalyzerTarget,
-                "--connected-sa-attestation-reference", "r-connected"
+                "--connected-sa-attestation-reference", "sa-title-bar"
             ]
             : [];
 

@@ -24,10 +24,11 @@ internal enum StartupCondition
 /// (1302 to 1305). It connects to nothing and adds no timing of its own. Only records of this
 /// exact SpatialAnalyzer target are read, every JSON value's kind is checked, and only event
 /// numbers, closed-vocabulary phases, RPC names and statuses, listed diagnostic codes, integers
-/// and timestamps are kept. A line that is not such a record is counted, never thrown on. An
-/// attempt is labelled with the measured condition only when the log proves it was the
-/// server's first start, and its phases are reported only when they can be told apart from any
-/// other request.
+/// and timestamps are kept. A line that is not such a record, including one whose known field
+/// has the wrong JSON kind, is counted, never thrown on. An attempt is labelled with the
+/// measured condition only when the log proves it was the server's first start. The log names
+/// no request, so lifecycle requests are followed as outstanding until their exit: an attempt
+/// that overlapped any other request has neither its RPC timing nor its phases reported.
 /// </summary>
 internal static class StartupTiming
 {
@@ -41,6 +42,12 @@ internal static class StartupTiming
     public const string OverlappingRequests = "overlapping-requests";
     public const string SeveralGenerations = "several-generations";
     public const string NoExitRecorded = "no-exit-recorded";
+
+    // The RPC timing of an attempt that overlapped another request: which exit was its own is unknown.
+    public const string WithheldExit = "withheld-overlapping";
+
+    private static readonly string[] StringFields = ["Phase", "Rpc", "GrpcStatus", "DiagnosticCode"];
+    private static readonly string[] IntegerFields = ["ElapsedMilliseconds", "Generation"];
 
     private static readonly HashSet<string> Phases = new(StringComparer.Ordinal)
     {
@@ -126,22 +133,40 @@ internal static class StartupTiming
                 return (LineKind.OtherTarget, null);
             }
 
+            // A known field of the wrong kind makes the whole line unusable: it is counted, and
+            // never read as an event with that field missing.
             var fields = new SortedDictionary<string, string>(StringComparer.Ordinal);
-            foreach (var name in new[] { "Phase", "Rpc", "GrpcStatus", "DiagnosticCode" })
+            foreach (var name in StringFields)
             {
-                if (properties.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String &&
-                    value.GetString() is { } text && Accept(name, text) is { } accepted)
+                if (!properties.TryGetProperty(name, out var value))
+                {
+                    continue;
+                }
+
+                if (value.ValueKind != JsonValueKind.String)
+                {
+                    return (LineKind.Unreadable, null);
+                }
+
+                if (Accept(name, value.GetString()!) is { } accepted)
                 {
                     fields[name] = accepted;
                 }
             }
 
-            foreach (var name in new[] { "ElapsedMilliseconds", "Generation" })
+            foreach (var name in IntegerFields)
             {
-                if (properties.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Number && value.TryGetInt64(out var integer))
+                if (!properties.TryGetProperty(name, out var value))
                 {
-                    fields[name] = integer.ToString(CultureInfo.InvariantCulture);
+                    continue;
                 }
+
+                if (value.ValueKind != JsonValueKind.Number || !value.TryGetInt64(out var integer))
+                {
+                    return (LineKind.Unreadable, null);
+                }
+
+                fields[name] = integer.ToString(CultureInfo.InvariantCulture);
             }
 
             return (LineKind.Event, new LogEvent(at.ToUniversalTime(), number, instanceId, fields));
@@ -161,11 +186,58 @@ internal static class StartupTiming
         _ => null
     };
 
+    /// <summary>One lifecycle request as the log shows it: its arrival, the exit paired with it, and whether it overlapped another.</summary>
+    private sealed class Request(LogEvent arrival, string? rpc)
+    {
+        public LogEvent Arrival { get; } = arrival;
+
+        // Null when the arrival named no listed RPC: such a request never exits, so it overlaps
+        // everything after it.
+        public string? Rpc { get; } = rpc;
+
+        public LogEvent? Exit { get; set; }
+
+        public bool Overlapped { get; set; }
+    }
+
+    // Walks the log in order, keeping every request outstanding from its arrival to the first
+    // later exit of the same RPC. A request that arrives while another is outstanding overlaps
+    // it, and both are marked: the log cannot say which exit and which phases are whose.
+    private static List<Request> Requests(IReadOnlyList<LogEvent> ordered)
+    {
+        var requests = new List<Request>();
+        var outstanding = new List<Request>();
+        foreach (var item in ordered)
+        {
+            if (item.EventId == 1303)
+            {
+                var request = new Request(item, Field(item, "Rpc"));
+                if (outstanding.Count > 0)
+                {
+                    request.Overlapped = true;
+                    outstanding.ForEach(static other => other.Overlapped = true);
+                }
+
+                outstanding.Add(request);
+                requests.Add(request);
+            }
+            else if (item.EventId is 1302 or 1304 or 1305 && Field(item, "Rpc") is { } rpc &&
+                outstanding.Find(request => request.Rpc == rpc) is { } open)
+            {
+                open.Exit = item;
+                outstanding.Remove(open);
+            }
+        }
+
+        return requests;
+    }
+
     /// <summary>
     /// Builds the report from one server instance's events. Each StartSpatialAnalyzerSdk is an
-    /// attempt, in order. Its phases are attributed only when no other lifecycle request arrived
-    /// while it ran and its phases name one worker generation; its Connect is the next
-    /// ConnectToSpatialAnalyzer, likewise only when nothing overlapped it.
+    /// attempt, in order. Its RPC timing and phases are reported only when no other lifecycle
+    /// request was outstanding at any time while it ran, and its phases only when they name one
+    /// worker generation; its Connect is the next ConnectToSpatialAnalyzer, likewise only when
+    /// nothing overlapped it.
     /// </summary>
     internal static Report Analyze(StartupCondition condition, TimeSpan configuredStartupTimeout, IReadOnlyList<LogEvent> events,
         int unreadableLines, string? harnessRevision)
@@ -175,24 +247,25 @@ internal static class StartupTiming
         var listeningEvent = ordered.FirstOrDefault(static item => item.EventId == 1001);
         long? listening = listeningEvent is not null && Long(listeningEvent, "ElapsedMilliseconds") is { } ms ? ms : null;
 
-        var arrivals = ordered.Where(static item => item.EventId == 1303 && Field(item, "Rpc") is not null).ToList();
-        var starts = arrivals.Where(static item => Field(item, "Rpc") == StartRpc).ToList();
+        var requests = Requests(ordered);
+        var starts = requests.Where(static request => request.Rpc == StartRpc).ToList();
         var attempts = new List<StartAttempt>();
         for (var index = 0; index < starts.Count; index++)
         {
-            var arrival = starts[index];
-            var next = index + 1 < starts.Count ? starts[index + 1].Timestamp : DateTimeOffset.MaxValue;
-            var exit = Exit(ordered, StartRpc, arrival.Timestamp, next);
-            var until = exit?.Timestamp ?? next;
-            var overlapping = arrivals.Any(item => !ReferenceEquals(item, arrival) && item.Timestamp >= arrival.Timestamp && item.Timestamp < until);
-            var phases = ordered
-                .Where(item => item.EventId == 1203 && item.Timestamp >= arrival.Timestamp && item.Timestamp <= until && Field(item, "Phase") is not null)
-                .Select(static item => (Phase: Field(item, "Phase")!, Elapsed: Long(item, "ElapsedMilliseconds"), Generation: Long(item, "Generation")))
-                .Where(static item => item.Elapsed is >= 0)
-                .ToList();
+            var request = starts[index];
+            var arrival = request.Arrival;
+            var next = index + 1 < starts.Count ? starts[index + 1].Arrival.Timestamp : DateTimeOffset.MaxValue;
+            var exit = request.Overlapped ? null : request.Exit;
+            var phases = exit is null
+                ? []
+                : ordered
+                    .Where(item => item.EventId == 1203 && item.Timestamp >= arrival.Timestamp && item.Timestamp <= exit.Timestamp && Field(item, "Phase") is not null)
+                    .Select(static item => (Phase: Field(item, "Phase")!, Elapsed: Long(item, "ElapsedMilliseconds"), Generation: Long(item, "Generation")))
+                    .Where(static item => item.Elapsed is >= 0)
+                    .ToList();
             var generations = phases.Select(static item => item.Generation).Distinct().ToList();
-            var correlation = exit is null ? NoExitRecorded :
-                overlapping ? OverlappingRequests :
+            var correlation = request.Overlapped ? OverlappingRequests :
+                exit is null ? NoExitRecorded :
                 generations.Count > 1 || generations.Contains(null) ? SeveralGenerations :
                 Unambiguous;
             int? generation = correlation == Unambiguous && generations.Count == 1 ? (int?)generations[0] : null;
@@ -208,27 +281,22 @@ internal static class StartupTiming
                 : correlation == Unambiguous ? "repeat" : "ambiguous";
 
             RpcTiming? connect = null;
-            if (exit is not null)
+            if (exit is not null &&
+                requests.Find(item => item.Rpc == ConnectRpc && item.Arrival.Timestamp >= exit.Timestamp && item.Arrival.Timestamp < next) is
+                    { Overlapped: false, Exit: { } connectExit })
             {
-                var connectArrival = arrivals.FirstOrDefault(item => Field(item, "Rpc") == ConnectRpc && item.Timestamp >= exit.Timestamp && item.Timestamp < next);
-                if (connectArrival is not null && Exit(ordered, ConnectRpc, connectArrival.Timestamp, next) is { } connectExit &&
-                    !arrivals.Any(item => !ReferenceEquals(item, connectArrival) && item.Timestamp >= connectArrival.Timestamp && item.Timestamp <= connectExit.Timestamp))
-                {
-                    connect = Timing(connectExit);
-                }
+                connect = Timing(connectExit);
             }
 
-            attempts.Add(new StartAttempt(index + 1, label, correlation, generation, exit is null ? new RpcTiming(NoExitRecorded, null, null, null) : Timing(exit),
+            var start = request.Overlapped ? new RpcTiming(WithheldExit, null, null, null) :
+                exit is null ? new RpcTiming(NoExitRecorded, null, null, null) : Timing(exit);
+            attempts.Add(new StartAttempt(index + 1, label, correlation, generation, start,
                 correlation == Unambiguous ? [.. phases.Select(static item => new PhaseTiming(item.Phase, item.Elapsed!.Value))] : [],
                 connect));
         }
 
         return new Report(condition, configuredStartupTimeout, listening, attempts, unreadableLines, harnessRevision);
     }
-
-    private static LogEvent? Exit(IReadOnlyList<LogEvent> ordered, string rpc, DateTimeOffset from, DateTimeOffset before) =>
-        ordered.FirstOrDefault(item => item.Timestamp >= from && item.Timestamp < before &&
-            item.EventId is 1302 or 1304 or 1305 && Field(item, "Rpc") == rpc);
 
     private static RpcTiming Timing(LogEvent exit) => new(
         exit.EventId switch { 1304 => "completed", 1302 => "rejected", _ => "faulted" },
@@ -330,8 +398,8 @@ internal static class StartupTiming
         }
 
         text.Append("\nPhase times are milliseconds since the worker start began; RPC times are from the server's acceptance to its exit record. ")
-            .Append("An attempt whose label is not the condition did not prove it was the server's first start, and an attempt that is not ")
-            .Append("`unambiguous` has no phases attributed to it. ")
+            .Append("An attempt whose label is not the condition did not prove it was the server's first start, an attempt that is not ")
+            .Append("`unambiguous` has no phases attributed to it, and an attempt that overlapped another request has no RPC timing either. ")
             .Append("These are observations of one bounded run on one machine, not vendor guarantees.\n");
         return text.ToString();
     }

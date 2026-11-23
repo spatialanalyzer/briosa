@@ -43,8 +43,10 @@ internal static class LicensedProbeProgram
             SpatialAnalyzerApplicationOptions.BindAndValidate(new ConfigurationBuilder().Build()),
             new WindowsSpatialAnalyzerProcessPlatform(),
             new WindowsSpatialAnalyzerWindowSource());
+        var signal = FileOperatorConsole.LicenseAbortPath(options.OutputDirectory!);
         return new WorkerTransport(options.WorkerPath!, options.StepTimeout, ProcessCensus.Instance,
-            () => detector.Observe() == SpatialAnalyzerModalDialogState.ModalDialogOpen);
+            () => detector.Observe() == SpatialAnalyzerModalDialogState.ModalDialogOpen,
+            () => File.Exists(signal));
     }
 
     /// <summary>The licensed-run operator console: progress on standard output, checkpoints through files.</summary>

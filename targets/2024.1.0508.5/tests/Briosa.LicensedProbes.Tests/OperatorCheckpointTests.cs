@@ -180,6 +180,26 @@ public sealed class OperatorCheckpointTests : IDisposable
     }
 
     [Fact]
+    public async Task TheLicenseAbortSignalEndsAPendingCheckpointAndIsSeenOutsideOne()
+    {
+        using var output = new StringWriter();
+        var console = NewConsole(output, TimeSpan.FromSeconds(60));
+        Assert.False(console.LicenseAbortRaised);
+        Assert.Contains(FileOperatorConsole.LicenseAbortFileName, output.ToString(), StringComparison.Ordinal);
+
+        var pending = console.CheckpointAsync(AnyStep(), OperatorCheckpoint.After, CancellationToken.None);
+        await WaitForRequestAsync("001-p24-r0-after.response.txt");
+
+        // Only the signal's existence is read; its content never reaches a record.
+        await File.WriteAllTextAsync(Path.Combine(_root, FileOperatorConsole.LicenseAbortFileName), TestSupport.Sentinel);
+        Assert.Equal(OperatorObservationText.LicensePromptAbort, await pending);
+        Assert.True(console.LicenseAbortRaised);
+        Assert.DoesNotContain(TestSupport.Sentinel, output.ToString(), StringComparison.Ordinal);
+        Assert.Equal(Path.Combine("out", FileOperatorConsole.DirectoryName, FileOperatorConsole.LicenseAbortFileName),
+            FileOperatorConsole.LicenseAbortPath("out"));
+    }
+
+    [Fact]
     public async Task TheFileConsoleWaitsForTheResponseFileAndNormalizesIt()
     {
         using var output = new StringWriter();
@@ -326,9 +346,11 @@ public sealed class OperatorCheckpointTests : IDisposable
         console.Dispatching(AnyStep(), 40, 70);
         console.Completed(AnyStep(), 40, 70, TestSupport.Outcome(ProbeOutcomeKind.MpFailed), 1234);
 
+        // The first line, written when the console starts, says how to signal a license prompt.
         var lines = output.ToString().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-        Assert.StartsWith("[040/070] p24-r0 (probe 24): dispatched at ", lines[0], StringComparison.Ordinal);
-        Assert.Equal("[040/070] p24-r0: MpFailed, MP code 3, 1234 ms.", lines[1]);
+        Assert.StartsWith("LICENSE PROMPT: ", lines[0], StringComparison.Ordinal);
+        Assert.StartsWith("[040/070] p24-r0 (probe 24): dispatched at ", lines[1], StringComparison.Ordinal);
+        Assert.Equal("[040/070] p24-r0: MpFailed, MP code 3, 1234 ms.", lines[2]);
     }
 
     [Theory]

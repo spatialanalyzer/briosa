@@ -119,11 +119,14 @@ internal static class OwnershipProgram
             text.Append("Preconditions: a complete process census with exactly one Spatial Analyzer, one Briosa server with no SDK started, ")
                 .Append("and no worker or SDK process.\n");
             text.Append("Binding: the server must be in the operator's session and own the endpoint's listener; it is bound through a held ")
-                .Append("handle. After start, the one new worker whose parent is that server is bound the same way, and so is the SDK ")
-                .Append("generation the start created. The run acts only on what it bound; when a bound process has gone or the generation ")
-                .Append("changed, it records that and stops without acting.\n");
-            text.Append("Script: census; bind the server; describe; get SDK state; start SDK; census; bind the worker; connect; census; ")
-                .Append("worker descendant census; then\n");
+                .Append("handle that can query and wait, and terminate only in parent-death. Nothing is sent before it is bound, and every ")
+                .Append("connection must reach it, read from the TCP connection table, or it is closed unused and the call is recorded as ")
+                .Append("never sent. Only a successful start binds an SDK generation; a generation in a failed start's error is recorded as ")
+                .Append("observed and never acted on. On a complete census after start, the one new worker whose parent is that server is bound ")
+                .Append("the same way (terminable only in worker-crash). The run acts only on what it bound; when a bound process has gone or ")
+                .Append("the generation changed, it records that and stops without acting.\n");
+            text.Append("Script: census; bind the server; describe; get SDK state; start SDK; census; bind the generation; bind the worker; ")
+                .Append("connect; census; worker descendant census; then\n");
         }
 
         text.Append(options.Scenario switch
@@ -133,18 +136,22 @@ internal static class OwnershipProgram
                 "  terminate the bound worker through its handle (that process only, not its children); wait up to 30 s for the server to\n" +
                 "  report Faulted; watch; then stop the bound generation and watch.\n",
             OwnershipScenario.ParentDeath =>
+                "  get SDK state: the server must still report the bound generation, ready, and the bound worker must still run; then\n" +
                 "  terminate the bound server through its handle (that process only, not its children); watch until the worker and the SDK\n" +
-                "  process are gone.\n",
+                "  process are gone. When the re-check fails, nothing is terminated and the bound generation is stopped.\n",
             OwnershipScenario.WatchdogKill =>
-                "  set SA Interaction Mode Manual (it stays Manual; nothing restores another mode); a descendant census of the bound worker;\n" +
-                "  operator checkpoint (no dialog open); a wildcard selection that matches nothing, which stalls on its dialog until the\n" +
-                "  product's watchdog terminates the worker AND ITS WHOLE PROCESS TREE; watch with the dialog open; operator checkpoint\n" +
+                "  set SA Interaction Mode Manual (it stays Manual; nothing restores another mode); operator checkpoint (no dialog open);\n" +
+                "  a descendant census of the bound worker, taken just before dispatch: the stall is sent only when it is complete, the\n" +
+                $"  bound worker still runs, and every descendant is approved ({string.Join(", ", ProcessRoles.ApprovedWorkerDescendantNames)}); otherwise the run stops\n" +
+                "  and stops the bound generation. The stall is a wildcard selection that matches nothing, which stalls on its dialog until\n" +
+                "  the product's watchdog terminates the worker AND ITS WHOLE PROCESS TREE; watch with the dialog open; operator checkpoint\n" +
                 "  (dismiss the dialog); watch; then stop the bound generation and watch.\n",
             OwnershipScenario.CompetingClient =>
                 "  one read-only MP through the first client, which must succeed; the second worker must be in the bound server's own\n" +
                 "  folder; start it (SDK activation), which must report this exact target's SDK; its one ConnectEx, which must attach;\n" +
-                "  a read-only MP through the first client; stop the second worker; watch; a read-only MP; then stop the bound generation\n" +
-                "  and watch. A failed gate skips every later step but the stops. The second worker never runs an MP.\n",
+                "  a read-only MP through the first client, which must succeed; stop the second worker, whose exit its stop and a complete\n" +
+                "  census must both confirm; a read-only MP; then stop the bound generation and watch. The first failed gate ends the\n" +
+                "  script: only the stops follow. The second worker never runs an MP.\n",
             _ => "Script: census, then watch until a complete census shows no SDK, worker or server process.\n"
         });
 
@@ -166,6 +173,13 @@ internal static class OwnershipProgram
                     text.Append("  ").Append(line).Append('\n');
                 }
             }
+        }
+
+        if (options.Scenario != OwnershipScenario.Observe)
+        {
+            text.Append(CultureInfo.InvariantCulture,
+                $"License prompt: create {FileOperatorConsole.DirectoryName}\\{FileOperatorConsole.LicenseAbortFileName} in the output folder at any time. ")
+                .Append("Nothing more is sent, not even cleanup, and nothing is terminated. Ctrl+C instead cancels and then stops the bound generation.\n");
         }
 
         text.Append("The record holds process labels (sdk-1, worker-1), roles, parent roles, start times and offsets, lifecycle states and codes. ")
@@ -214,6 +228,10 @@ internal static class OwnershipRecorder
             else
                 json.WriteNull("sdk_generation");
             json.WriteEndObject();
+            json.WriteStartObject("connections");
+            json.WriteNumber("verified", record.VerifiedConnections);
+            json.WriteNumber("refused", record.RefusedConnections);
+            json.WriteEndObject();
             json.WriteStartObject("snapshots");
             json.WriteNumber("complete", record.CompleteSnapshots);
             json.WriteNumber("incomplete", record.IncompleteSnapshots);
@@ -255,6 +273,8 @@ internal static class OwnershipRecorder
                 Nullable(json, "snapshot", step.Snapshot is { } snapshot ? SnapshotName(snapshot) : null);
                 if (step.DescendantCount is { } descendants)
                     json.WriteNumber("descendant_count", descendants);
+                if (step.UnapprovedDescendantCount is { } unapproved)
+                    json.WriteNumber("unapproved_descendant_count", unapproved);
                 if (step.Lifecycle is { } lifecycle)
                 {
                     json.WriteStartObject("lifecycle");
@@ -370,7 +390,9 @@ internal static class OwnershipRecorder
         text.Append(CultureInfo.InvariantCulture,
             $"\nBound: server `{record.BoundServer ?? "none"}`, worker `{record.BoundWorker ?? "none"}`, SDK generation {record.BoundGeneration?.ToString(CultureInfo.InvariantCulture) ?? "none"}. ")
             .Append(CultureInfo.InvariantCulture,
-                $"Snapshots: {record.CompleteSnapshots} complete, {record.IncompleteSnapshots} incomplete, {record.FailedSnapshots} failed.\n");
+                $"Snapshots: {record.CompleteSnapshots} complete, {record.IncompleteSnapshots} incomplete, {record.FailedSnapshots} failed. ")
+            .Append(CultureInfo.InvariantCulture,
+                $"Connections to the bound server: {record.VerifiedConnections} verified, {record.RefusedConnections} refused unused.\n");
         text.Append("\n| Process | Role | Parent | Attribution | Present at start | First seen (ms) | Last seen (ms) | First absent (ms) |\n")
             .Append("| --- | --- | --- | --- | --- | --- | --- | --- |\n");
         foreach (var process in record.Processes)
@@ -378,7 +400,7 @@ internal static class OwnershipRecorder
             text.Append(CultureInfo.InvariantCulture,
                 $"| `{process.Label}` | {process.Role} | {process.ParentRole} | {process.Attribution ?? "unattributed"} | {(process.PresentAtStart ? "yes" : "no")} | ")
                 .Append(CultureInfo.InvariantCulture,
-                    $"{process.FirstSeenMilliseconds} | {process.LastSeenMilliseconds} | {process.FirstAbsentMilliseconds?.ToString(CultureInfo.InvariantCulture) ?? "alive at end"} |\n");
+                    $"{process.FirstSeenMilliseconds} | {process.LastSeenMilliseconds} | {AbsentText(record, process)} |\n");
         }
 
         text.Append("\nAn exit happened after the last-seen time and no later than the first-absent time; no exit time is measured. ")
@@ -392,6 +414,12 @@ internal static class OwnershipRecorder
         text.Append("\nThese are observations of one bounded run, not vendor guarantees.\n");
         return text.ToString();
     }
+
+    // Only a complete final census can show a process alive at the end; after a degraded one
+    // the last sighting is all that is known.
+    private static string AbsentText(OwnershipRecord record, TrackedProcess process) =>
+        process.FirstAbsentMilliseconds?.ToString(CultureInfo.InvariantCulture) ??
+        (record.ResidualKnown ? "alive at end" : "unknown: final census incomplete; see last seen");
 
     private static string Detail(OwnershipStepRecord step)
     {
@@ -434,6 +462,8 @@ internal static class OwnershipRecorder
 
         if (step.DescendantCount is { } descendants)
             parts.Add(string.Create(CultureInfo.InvariantCulture, $"{descendants} descendants"));
+        if (step.UnapprovedDescendantCount is { } unapproved and > 0)
+            parts.Add(string.Create(CultureInfo.InvariantCulture, $"{unapproved} not approved"));
         if (step.Snapshot is { } snapshot && snapshot != SnapshotStatus.Complete)
             parts.Add($"snapshot {SnapshotName(snapshot)}");
         if (step.OperatorAnswer is { } answer)
