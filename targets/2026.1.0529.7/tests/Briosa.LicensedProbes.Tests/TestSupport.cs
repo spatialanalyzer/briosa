@@ -4,6 +4,25 @@ internal static class TestSupport
 {
     public const string Sentinel = "SENTINEL";
 
+    // The target folder, found at run time from the test's own output folder: the nearest folder
+    // above it that holds the target's Briosa.slnx. A compile-time source path cannot be used,
+    // because a CI build maps it to /_/.
+    public static string TargetRoot()
+    {
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Briosa.slnx")))
+        {
+            root = root.Parent;
+        }
+
+        if (root is null)
+        {
+            Assert.Fail($"No Briosa.slnx was found in {AppContext.BaseDirectory} or any folder above it, so the repository files cannot be checked.");
+        }
+
+        return root.FullName;
+    }
+
     // Manual fixture values that must never appear in plans, records, or console output.
     public static FixtureManifest SentinelManifest(string? profileFile = null) => new()
     {
@@ -48,6 +67,21 @@ internal sealed class FakeOperator(Func<ProbeStep, OperatorCheckpoint, string?>?
 
     public List<string> Dispatched { get; } = [];
 
+    // The operator's license-abort signal, raised outside any checkpoint.
+    public LicenseAbortSignal LicenseAbort { get; } = new(static () => false);
+
+    public bool LicenseAbortRaised
+    {
+        get => LicenseAbort.Raised;
+        set
+        {
+            if (value)
+            {
+                LicenseAbort.Raise();
+            }
+        }
+    }
+
     public void Dispatching(ProbeStep step, int ordinal, int count) => Dispatched.Add(step.Id);
 
     public void Completed(ProbeStep step, int ordinal, int count, ProbeOutcome outcome, long elapsedMilliseconds)
@@ -71,13 +105,21 @@ internal sealed class FakeTransport(ProbePhase phase, Func<ProbeStep, ProbeOutco
 
     public bool Disposed { get; private set; }
 
+    public bool Abandoned { get; private set; }
+
     public ProbeRefusedException? Refusal { get; init; }
+
+    // Runs while the transport is disposed, after the session has returned.
+    public Action? OnDispose { get; init; }
+
+    public LicenseAbortSignal? LicenseAbort { get; private set; }
 
     public ProbePhase Phase { get; } = phase;
 
-    public Task<SessionIdentity> StartAsync(ProbePlan plan, CancellationToken cancellationToken)
+    public Task<SessionIdentity> StartAsync(ProbePlan plan, LicenseAbortSignal licenseAbort, CancellationToken cancellationToken)
     {
         Started = true;
+        LicenseAbort = licenseAbort;
         if (Refusal is not null)
         {
             throw Refusal;
@@ -96,8 +138,11 @@ internal sealed class FakeTransport(ProbePhase phase, Func<ProbeStep, ProbeOutco
         return Task.FromResult(respond(step));
     }
 
+    public void Abandon() => Abandoned = true;
+
     public ValueTask DisposeAsync()
     {
+        OnDispose?.Invoke();
         Disposed = true;
         return ValueTask.CompletedTask;
     }

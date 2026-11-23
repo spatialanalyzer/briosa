@@ -201,6 +201,13 @@ internal sealed record ProbeStep(
 
     public ProbeRequirement? Requirement { get; init; }
 
+    // The manual fixture-manifest key this step needs (licensed session 4, #402). When the
+    // supplied manifest omits it, the step is recorded as fixture-missing and never sent.
+    public string? RequiredFixture { get; init; }
+
+    // The step is one of probe 34's result-size measurements: its record states the response size.
+    public bool MeasuresResponseSize { get; init; }
+
     // Steps that must run earlier in the same session for this step's result to
     // mean what the plan says (for example a control or a before-count). An
     // operator exclusion that would remove one of them is refused.
@@ -234,14 +241,21 @@ internal sealed record ProbeOutcome(
     public const string FactPrefix = "outcome.";
 
     /// <summary>The call may have started and its completion is unknown, by kind or by reported disposition.</summary>
+    // Only the two recognized dispositions establish completion one way or the other; any other
+    // one, withheld or unrecognized, leaves it unknown. No disposition (a success, a harness
+    // refusal) defers to the kind.
     public bool CompletionUnknown =>
-        Kind.IsCompletionUnknown() || string.Equals(ExecutionDisposition, StartedOutcomeUnknown, StringComparison.Ordinal);
+        Kind.IsCompletionUnknown() || ExecutionDisposition is not (null or "Completed" or "NotStarted");
 
     // The public error's recovery guidance (for example OperatorInterventionRequired). Null in the worker phase.
     public string? RecoveryGuidance { get; init; }
 
     // The public result's typed MP execution state (for example PartialSuccess, #351). Null in the worker phase.
     public string? ExecutionState { get; init; }
+
+    // The received response's size (#402): the private frame in the worker phase, the protobuf
+    // message in the public phase. Null when nothing was received to measure.
+    public ResponseSize? Size { get; init; }
 
     /// <summary>
     /// One outcome field by its <c>outcome.</c> name, or else one observation, for

@@ -91,8 +91,8 @@ public sealed class SessionThreeProbeTests
 
     [Theory]
     [InlineData("selected more than once", "--probe", "30", "--probe", "30")]
-    [InlineData("names a retired probe", "--probe", "22")]
-    [InlineData("not a probe in the approved list", "--probe", "34")]
+    [InlineData("named a retired probe", "--probe", "22")]
+    [InlineData("a probe that is not in the approved list", "--probe", "38")]
     [InlineData("takes one probe number", "--probe", "030")]
     [InlineData("cannot be combined", "--probe", "30", "--exclude-probe", "2")]
     [InlineData("names an opt-in probe", "--exclude-probe", "29")]
@@ -305,7 +305,7 @@ public sealed class SessionThreeProbeTests
     {
         var options = ProbeOptions.Parse(["--phase", "worker", ProbeTarget.ConfirmFlag, "--fixtures", "manifest.json", "--output-directory", "out",
             "--worker-path", "Briosa.Worker.exe", "--connected-sa-attested-version", ProbeTarget.SpatialAnalyzerTarget,
-            "--connected-sa-attestation-reference", "probe-s3"]);
+            "--connected-sa-attestation-reference", "sa-title-bar"]);
 
         // Creating the transport starts nothing; only a step timeout calls the detector.
         var transport = Assert.IsType<WorkerTransport>(LicensedProbeProgram.CreateTransport(options));
@@ -855,7 +855,8 @@ public sealed class SessionThreeProbeTests
         var root = selected.RootElement;
         var stall = root.GetProperty("steps").EnumerateArray().Last();
 
-        Assert.Equal(4, root.GetProperty("schema_version").GetInt32());
+        // Schema 4's fields are kept by every later schema.
+        Assert.Equal(ProbeRecorder.SchemaVersion, root.GetProperty("schema_version").GetInt32());
         Assert.Equal([26, 30], root.GetProperty("selection").GetProperty("probes").EnumerateArray().Select(static p => p.GetInt32()));
         Assert.Equal("operator", root.GetProperty("selection").GetProperty("selected_by").GetString());
         Assert.Equal("Unchanged", root.GetProperty("server_interaction_mode_setting").GetString());
