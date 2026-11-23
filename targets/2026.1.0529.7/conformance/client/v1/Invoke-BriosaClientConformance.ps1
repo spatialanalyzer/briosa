@@ -15,13 +15,14 @@ param(
     [Parameter(ParameterSetName = "Run")]
     [string[]]$OptionalScenario = @(),
 
-    # Longer than a first-party client's startup wait under this runner. Client
-    # 0.5.1 or later waits for the startup allowance the server publishes (Server
-    # 0.10.1 and later) plus 20 s: with the 30 s worker startup bound set below,
-    # 160 s with launch, so 180 s. Client 0.5.0 waits 120 s. This clock starts
-    # before the client does, so the extra time lets a slow start or a hang end
-    # in the client's own typed startup timeout, whose error names the pending
-    # call, and lets that error be printed before the runner kills the fixture.
+    # Longer than a first-party client's startup wait under this runner's default
+    # settings when the client's own startup timeout is omitted. Client 0.5.1 or
+    # later waits for the startup allowance the server publishes (Server 0.10.1
+    # and later) plus 20 s: with the 30 s worker startup bound set below, 160 s
+    # with launch, so up to 180 s to start the SDK, launch SpatialAnalyzer and
+    # connect. Client 0.5.0 waits 120 s. The remaining 60 s is room for fixture
+    # setup and error reporting, so a slow start or a hang ends in the client's
+    # own typed startup timeout, printed before the runner kills the fixture.
     [Parameter(ParameterSetName = "Run")]
     [ValidateRange(5, 600)]
     [int]$FixtureTimeoutSeconds = 240,

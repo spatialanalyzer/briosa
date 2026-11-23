@@ -149,15 +149,16 @@ prints the same phases on its result line, for example
 A phase that the scenario does not reach is left out.
 
 `-FixtureTimeoutSeconds` defaults to 240 seconds, longer than a first-party
-client's startup wait under this runner. A client 0.5.1 or later waits for the
-startup allowance that the server publishes (Server 0.10.1 and later), plus a
+client's startup wait under this runner's default settings when the client's
+own startup timeout is omitted. A client 0.5.1 or later waits for the startup
+allowance that the server publishes (Server 0.10.1 and later), plus a
 20-second margin. With the runner's 30-second worker startup bound, the
 allowance for a startup that launches SpatialAnalyzer is 160 seconds, so the
-client waits 180 seconds. Client 0.5.0 waits 120 seconds. The runner's clock
-starts before the client begins its startup, so the extra time lets a slow
-start or a hang end in the client's own typed startup timeout, which names the
-pending call, and lets that error be printed before the runner kills the
-fixture. If the fixture still times out, the runner first prints the processes that are still
+client waits up to 180 seconds to start the SDK, launch SpatialAnalyzer, and
+connect. Client 0.5.0 waits 120 seconds. The remaining 60 seconds is room for
+fixture setup and error reporting, so a slow start or a hang ends in the
+client's own typed startup timeout, and that error is printed before the
+runner kills the fixture. If the fixture still times out, the runner first prints the processes that are still
 alive (fixture, server, worker, and fake application), with their start times
 and CPU times, and marks any that is not a verified descendant of the fixture.
 These timeout diagnostics run in a separate copy of the runner under one
