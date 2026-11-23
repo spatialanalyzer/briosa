@@ -1685,7 +1685,7 @@ function Invoke-Fixture {
 
         # The original report text: a check that needs the report's exact JSON
         # shape reads it with System.Text.Json.
-        return $output
+        return $outputTask.GetAwaiter().GetResult()
     }
     finally {
         $process.Dispose()
@@ -1791,7 +1791,7 @@ try {
                 -Environment $environment `
                 -ScenarioRoot $scenarioRoot `
                 -Timing $timing
-            $report = $reportJson | ConvertFrom-Json
+            $report = $reportJson.Trim() | ConvertFrom-Json
             if ($report.schema_version -ne 1 -or
                 $report.contract_id -ne $contract.contract_id -or
                 $report.scenario -ne $scenarioDefinition.id -or
