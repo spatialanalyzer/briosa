@@ -152,7 +152,20 @@ jobs:
           # Fixture source and package source are separately pinned. The fixture
           # uses the public API from an isolated verified package installation.
           Push-Location (Join-Path $PWD "retained-client/targets/$env:SA_TARGET")
-          try { & ./eng/Test-PublishedClientConformance.ps1 @arguments }
+          # The fixture's report lists the scenarios it requested. Count the
+          # runner's own pass line, printed only after it validated the receipt,
+          # so a published 0.5.0 job cannot pass without large-result having run.
+          try {
+            $largeResultPasses = 0
+            & ./eng/Test-PublishedClientConformance.ps1 @arguments 6>&1 | ForEach-Object {
+              if ([string]$_ -cmatch '^Passed client conformance scenario: large-result(?: \(|$)') { $largeResultPasses++ }
+              $_
+            }
+            if ($env:CLIENT_PUBLISHED -eq 'true' -and $env:CLIENT_VERSION -eq '0.5.0' -and
+                -not $arguments.ExpectIncompatible -and $largeResultPasses -ne 1) {
+              throw 'Published 0.5.0 must pass large-result exactly once.'
+            }
+          }
           finally { Pop-Location }
       - name: Check the conformance digest vocabulary
         if: ${{ !cancelled() }}
