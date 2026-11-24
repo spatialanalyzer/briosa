@@ -429,6 +429,16 @@ The root `LICENSE.txt` is also the Apache 2.0 text where referenced.
 For Microsoft runtime packs, `declaredLicense` describes NuGet metadata only.
 The entries under `perFileLicenses` give the terms for those specific paths
 instead of the pack's MIT declaration.
+
+## Microsoft components
+
+This archive includes files from Microsoft's .NET runtime. Most are under the
+MIT license. The files listed under `perFileLicenses` in `index.json` are not:
+Microsoft licenses them under the .NET Library License or the Windows SDK
+License, and both texts are in this archive. Those files are not covered by
+Briosa's Apache-2.0 license. By using or redistributing them, you agree to
+Microsoft's terms for those files. They are included for use with Briosa and
+must not be distributed on their own.
 '@.Replace("`r`n", "`n") + "`n")
     @{
         IndexText = $indexText
@@ -478,6 +488,10 @@ function Assert-WindowsPackageNotices {
     }
     foreach ($path in $Expected.Files.Keys) {
         if (-not $seen.Contains($path)) { throw "Packaged file inventory differs: missing '$path'." }
+    }
+    $guidePath = Join-Path $PackageRoot 'licenses/README.md'
+    if ((Get-Content -LiteralPath $guidePath) -cnotcontains '## Microsoft components') {
+        throw 'Packaged notice guide lacks the Microsoft components section.'
     }
     if (-not $Quiet) { Write-Host 'Verified third-party owners, packaged files and rights texts against the independent publish.' }
 }

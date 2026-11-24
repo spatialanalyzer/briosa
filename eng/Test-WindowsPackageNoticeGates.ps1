@@ -169,6 +169,19 @@ try {
         }
         finally { [IO.File]::WriteAllBytes($path, $saved) }
     }
+    $guidePath = 'licenses/README.md'
+    $guide = Join-Path $PackageRoot $guidePath
+    $originalGuide = [IO.File]::ReadAllBytes($guide)
+    $sameStagedGuide = @{ IndexText = $Expected.IndexText; Files = $Expected.Files.Clone() }
+    try {
+        $withoutSection = [Text.Encoding]::UTF8.GetString($originalGuide) -creplace '(?ms)^## Microsoft components\r?\n.*?(?=^## |\z)', ''
+        [IO.File]::WriteAllText($guide, $withoutSection)
+        $sameStagedGuide.Files[$guidePath] = (Get-FileHash -LiteralPath $guide).Hash
+        Assert-Rejected 'missing Microsoft components section in both builds' 'Packaged notice guide lacks the Microsoft components section*' {
+            Assert-WindowsPackageNotices $PackageRoot $sameStagedGuide
+        }
+    }
+    finally { [IO.File]::WriteAllBytes($guide, $originalGuide) }
     $text = Get-ChildItem -LiteralPath (Join-Path $PackageRoot 'licenses/texts') -File | Select-Object -First 1
     $relativePath = "licenses/texts/$($text.Name)"
     $originalBytes = [IO.File]::ReadAllBytes($text.FullName)

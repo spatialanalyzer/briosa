@@ -463,6 +463,9 @@ License rather than MIT. The in-box SDK apphost uses the matching .NET runtime
 pack's text when there is no apphost `.nupkg`. The reviewed runtime version,
 native-file classifications, and sources and digests for both Microsoft
 license texts are in [the evidence file](../../eng/licenses/reviewed-windows-evidence.json).
+The packaged `licenses/README.md` states Microsoft's terms for using or
+redistributing those files and explains that Briosa's Apache-2.0 license does
+not cover them.
 Shipping these texts does not establish compliance with their redistribution
 conditions; a maintainer must review those conditions before release.
 
