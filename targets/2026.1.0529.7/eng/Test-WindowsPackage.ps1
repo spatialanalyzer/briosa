@@ -89,8 +89,9 @@ try {
         SourceRevision = $sourceRevision
         OutputDirectory = $secondOutput
         NoRestore = $true
+        PassNoticeExpectation = $true
     }
-    & $packageScript @secondBuild
+    $noticeExpectation = & $packageScript @secondBuild
 
     $firstHash = (Get-FileHash -LiteralPath $firstZip -Algorithm SHA256).Hash
     $secondHash = (Get-FileHash -LiteralPath $secondZip -Algorithm SHA256).Hash
@@ -102,7 +103,8 @@ try {
     Expand-Archive -LiteralPath $firstZip -DestinationPath $extractRoot
     $packageRoot = Join-Path $extractRoot $artifactBase
     Assert-Condition -Condition (Test-Path -LiteralPath $packageRoot -PathType Container) -Message "The archive does not contain the expected package root."
-    Assert-WindowsPackageNotices $packageRoot
+    Assert-WindowsPackageNotices $packageRoot $noticeExpectation
+    & (Join-Path $repositoryRoot '../../eng/Test-WindowsPackageNoticeGates.ps1') -PackageRoot $packageRoot -TargetDirectory $repositoryRoot -Expected $noticeExpectation
 
     $manifest = Get-Content -LiteralPath (Join-Path $packageRoot "manifest.json") -Raw | ConvertFrom-Json
     Assert-Condition -Condition ($manifest.briosaVersion -eq $Version) -Message "The manifest Briosa version is incorrect."

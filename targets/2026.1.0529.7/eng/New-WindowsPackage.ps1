@@ -11,7 +11,9 @@ param(
 
     [string]$Configuration = "Release",
 
-    [switch]$NoRestore
+    [switch]$NoRestore,
+
+    [switch]$PassNoticeExpectation
 )
 
 Set-StrictMode -Version Latest
@@ -34,7 +36,7 @@ $outputRoot = [IO.Path]::GetFullPath($OutputDirectory, $repositoryRoot)
 function Invoke-DotNet {
     param([Parameter(Mandatory)][string[]]$Arguments)
 
-    & dotnet @Arguments
+    & dotnet @Arguments | Out-Host
     if ($LASTEXITCODE -ne 0) {
         throw "dotnet $($Arguments -join ' ') failed with exit code $LASTEXITCODE."
     }
@@ -71,7 +73,7 @@ function Invoke-PublishWithReceipt {
     param([string[]]$Arguments, [string]$Output, [string]$Prefix = '')
 
     Write-Host "Publishing $($Arguments[1]) and resolving shipped components."
-    $result = & dotnet @Arguments '-getItem:ResolvedFileToPublish,ResolvedAppHostPack' '-getProperty:ProjectAssetsFile,AppHostSourcePath,TargetName,StaticWebAssetEndpointsPublishManifestPath'
+    $result = & dotnet @Arguments '-getItem:ResolvedFileToPublish,ResolvedAppHostPack,IntermediateAssembly' '-getProperty:ProjectAssetsFile,AppHostSourcePath,AppHostIntermediatePath,TargetName,MSBuildProjectFullPath,ProjectDepsFilePath,ProjectRuntimeConfigFilePath,StaticWebAssetEndpointsPublishManifestPath,ApplicationIcon'
     if ($LASTEXITCODE -ne 0) {
         throw "dotnet $($Arguments -join ' ') failed with exit code ${LASTEXITCODE}: $($result -join "`n")"
     }
@@ -230,7 +232,7 @@ try {
         -Destination (Join-Path $brandMetadata "icon-derivation.json")
     $projectLicense = Get-Content -LiteralPath (Join-Path $monorepoRoot "LICENSE") -Raw
     Write-Utf8File -Path (Join-Path $packageRoot "LICENSE.txt") -Content $projectLicense.Replace("`r`n", "`n")
-    Write-WindowsPackageNotices $packageRoot $repositoryRoot $publishes
+    $notice = Write-WindowsPackageNotices $packageRoot $repositoryRoot $publishes
     Copy-Item -LiteralPath (Join-Path $repositoryRoot "docs\operations\windows-package.md") `
         -Destination (Join-Path $packageRoot "README.md")
     Copy-Item -LiteralPath (Join-Path $repositoryRoot "docs\operations\health-and-discovery.md") `
@@ -276,6 +278,8 @@ try {
         }
     }
 
+    $noticeExpectation = Get-WindowsPackageNoticeExpectation $packageRoot $notice
+    Assert-WindowsPackageNotices $packageRoot $noticeExpectation -Quiet
     New-DeterministicZip $packageRoot $zipPath $artifactBase
     $zipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash
     Write-Utf8File $zipChecksumPath "$zipHash  $([IO.Path]::GetFileName($zipPath))`n"
@@ -284,6 +288,7 @@ try {
     Write-Host "Created $zipPath"
     Write-Host "Created $zipChecksumPath"
     Write-Host "Created $externalProvenancePath"
+    if ($PassNoticeExpectation) { $noticeExpectation }
 }
 finally {
     $resolvedTemporaryRoot = [IO.Path]::GetFullPath($temporaryRoot)
