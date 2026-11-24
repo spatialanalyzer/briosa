@@ -237,18 +237,19 @@ The runner cannot see the value, so the scenario shows receipt only when the
 fixture computes both from what its client actually received.
 
 A fixture runs `large-result` only by asking for it (`-OptionalScenario`), so
-the published fixture revisions, which do not know it, keep passing.
+older fixtures that do not know the scenario can still run the required suite.
 
 What shows receipt:
-- **Today:** the packaged client scenarios (`eng/Test-ClientScenarios.ps1`).
+- **Generated client:** the packaged client scenarios (`eng/Test-ClientScenarios.ps1`).
   This repository's generated .NET client computes the length and digest from
   the value it received through the packaged server.
 - **Not receipt:** `eng/Test-ClientConformancePackage.ps1` checks the runner
   with fixtures that echo the contract's values, and with malformed reports.
-- **For the first-party clients:** once each client repository has a fixture
-  revision that opts in and computes both values from the value it received,
-  and `fixtureSources` in `compatibility/retained-clients.json` pins that
-  revision, the retained-client gate shows it for the published 0.5.0 packages.
+- **First-party clients:** `fixtureSources` in `compatibility/retained-clients.json`
+  pins fixtures whose scripts opt in when the packaged runner and contract
+  offer the scenario. The retained-client gate runs them against the packaged
+  fake-SDK server using the published 0.5.0 packages for both targets. The runner
+  verifies the byte length and digest computed by each fixture.
 
 ## Licensed gaps
 
