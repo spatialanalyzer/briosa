@@ -490,8 +490,16 @@ function Assert-WindowsPackageNotices {
         if (-not $seen.Contains($path)) { throw "Packaged file inventory differs: missing '$path'." }
     }
     $guidePath = Join-Path $PackageRoot 'licenses/README.md'
-    if ((Get-Content -LiteralPath $guidePath) -cnotcontains '## Microsoft components') {
-        throw 'Packaged notice guide lacks the Microsoft components section.'
+    $guide = [IO.File]::ReadAllText($guidePath)
+    $section = [regex]::Match($guide, '(?ms)^## Microsoft components\r?\n(?<body>.*?)(?=^#{1,2} |\z)')
+    $body = $section.Groups['body'].Value -replace '\s+', ' '
+    foreach ($sentence in @(
+        "Those files are not covered by Briosa's Apache-2.0 license.",
+        "By using or redistributing them, you agree to Microsoft's terms for those files.",
+        'They are included for use with Briosa and must not be distributed on their own.')) {
+        if (-not $body.Contains($sentence)) {
+            throw 'Packaged notice guide lacks the Microsoft components section or its required terms.'
+        }
     }
     if (-not $Quiet) { Write-Host 'Verified third-party owners, packaged files and rights texts against the independent publish.' }
 }

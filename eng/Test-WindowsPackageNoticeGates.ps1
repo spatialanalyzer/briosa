@@ -174,11 +174,15 @@ try {
     $originalGuide = [IO.File]::ReadAllBytes($guide)
     $sameStagedGuide = @{ IndexText = $Expected.IndexText; Files = $Expected.Files.Clone() }
     try {
-        $withoutSection = [Text.Encoding]::UTF8.GetString($originalGuide) -creplace '(?ms)^## Microsoft components\r?\n.*?(?=^## |\z)', ''
-        [IO.File]::WriteAllText($guide, $withoutSection)
-        $sameStagedGuide.Files[$guidePath] = (Get-FileHash -LiteralPath $guide).Hash
-        Assert-Rejected 'missing Microsoft components section in both builds' 'Packaged notice guide lacks the Microsoft components section*' {
-            Assert-WindowsPackageNotices $PackageRoot $sameStagedGuide
+        $originalText = [Text.Encoding]::UTF8.GetString($originalGuide)
+        $sections = [ordered]@{ missing = ''; empty = "## Microsoft components`n" }
+        foreach ($case in $sections.Keys) {
+            $changed = $originalText -creplace '(?ms)^## Microsoft components\r?\n.*?(?=^#{1,2} |\z)', $sections[$case]
+            [IO.File]::WriteAllText($guide, $changed)
+            $sameStagedGuide.Files[$guidePath] = (Get-FileHash -LiteralPath $guide).Hash
+            Assert-Rejected "$case Microsoft components section in both builds" 'Packaged notice guide lacks the Microsoft components section*' {
+                Assert-WindowsPackageNotices $PackageRoot $sameStagedGuide
+            }
         }
     }
     finally { [IO.File]::WriteAllBytes($guide, $originalGuide) }
