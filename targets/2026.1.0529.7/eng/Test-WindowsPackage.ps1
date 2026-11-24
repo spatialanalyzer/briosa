@@ -10,6 +10,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+Import-Module (Join-Path $repositoryRoot '../../eng/WindowsPackageNotices.psm1') -Force
 $packageScript = Join-Path $PSScriptRoot "New-WindowsPackage.ps1"
 $workerTestHostProject = Join-Path $repositoryRoot "tests\Briosa.Worker.TestHost\Briosa.Worker.TestHost.csproj"
 $temporaryBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
@@ -101,6 +102,7 @@ try {
     Expand-Archive -LiteralPath $firstZip -DestinationPath $extractRoot
     $packageRoot = Join-Path $extractRoot $artifactBase
     Assert-Condition -Condition (Test-Path -LiteralPath $packageRoot -PathType Container) -Message "The archive does not contain the expected package root."
+    Assert-WindowsPackageNotices $packageRoot
 
     $manifest = Get-Content -LiteralPath (Join-Path $packageRoot "manifest.json") -Raw | ConvertFrom-Json
     Assert-Condition -Condition ($manifest.briosaVersion -eq $Version) -Message "The manifest Briosa version is incorrect."

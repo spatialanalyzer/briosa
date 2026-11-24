@@ -19,6 +19,7 @@ $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $monorepoRoot = [IO.Path]::GetFullPath((Join-Path $repositoryRoot "..\.."))
+Import-Module (Join-Path $monorepoRoot 'eng/WindowsPackageNotices.psm1') -Force
 $serverProject = Join-Path $repositoryRoot "src\Briosa.Server\Briosa.Server.csproj"
 $workerProject = Join-Path $repositoryRoot "src\Briosa.Worker\Briosa.Worker.csproj"
 $desktopProject = Join-Path $repositoryRoot "src\Briosa.ControlCenter\Briosa.ControlCenter.csproj"
@@ -64,6 +65,17 @@ function Copy-PublishTree {
 
         Copy-Item -LiteralPath $file.FullName -Destination $targetPath
     }
+}
+
+function Invoke-PublishWithReceipt {
+    param([string[]]$Arguments, [string]$Output, [string]$Prefix = '')
+
+    Write-Host "Publishing $($Arguments[1]) and resolving shipped components."
+    $result = & dotnet @Arguments '-getItem:ResolvedFileToPublish,ResolvedAppHostPack' '-getProperty:ProjectAssetsFile,AppHostSourcePath,TargetName,StaticWebAssetEndpointsPublishManifestPath'
+    if ($LASTEXITCODE -ne 0) {
+        throw "dotnet $($Arguments -join ' ') failed with exit code ${LASTEXITCODE}: $($result -join "`n")"
+    }
+    @{ Output = $Output; Prefix = $Prefix; Receipt = ($result -join "`n" | ConvertFrom-Json -AsHashtable) }
 }
 
 function Write-Utf8File {
@@ -187,7 +199,6 @@ try {
         "--no-restore",
         "-o", $serverOutput
     ) + $publishProperties
-    Invoke-DotNet $serverPublishArguments
     $workerPublishArguments = @(
         "publish", $workerProject,
         "-c", $Configuration,
@@ -196,11 +207,14 @@ try {
         "--no-restore",
         "-o", $workerOutput
     ) + $publishProperties
-    Invoke-DotNet $workerPublishArguments
-    Invoke-DotNet (@("publish", $desktopProject, "-c", $Configuration, "-r", "win-x64",
-        "--self-contained", "true", "--no-restore", "-o", $desktopOutput) + $publishProperties)
-    Invoke-DotNet (@("publish", $desktopLauncherProject, "-c", $Configuration, "-r", "win-x64",
-        "--self-contained", "true", "--no-restore", "-o", $desktopLauncherOutput) + $publishProperties)
+    $publishes = @(
+        Invoke-PublishWithReceipt $serverPublishArguments $serverOutput
+        Invoke-PublishWithReceipt $workerPublishArguments $workerOutput
+        Invoke-PublishWithReceipt (@("publish", $desktopProject, "-c", $Configuration, "-r", "win-x64",
+            "--self-contained", "true", "--no-restore", "-o", $desktopOutput) + $publishProperties) $desktopOutput 'desktop/'
+        Invoke-PublishWithReceipt (@("publish", $desktopLauncherProject, "-c", $Configuration, "-r", "win-x64",
+            "--self-contained", "true", "--no-restore", "-o", $desktopLauncherOutput) + $publishProperties) $desktopLauncherOutput
+    )
 
     Copy-PublishTree $serverOutput $packageRoot
     Copy-PublishTree $workerOutput $packageRoot
@@ -210,21 +224,13 @@ try {
         -Destination (Join-Path $packageRoot "CONTROL-CENTER.md")
     $brandMetadata = Join-Path $packageRoot "metadata\desktop-brand"
     [IO.Directory]::CreateDirectory($brandMetadata) | Out-Null
-    [IO.Directory]::CreateDirectory((Join-Path $brandMetadata "fonts")) | Out-Null
-    foreach ($license in "Inter-OFL.txt", "Saira-OFL.txt") {
-        Copy-Item -LiteralPath (Join-Path $repositoryRoot "src\Briosa.ControlCenter\Assets\Brand\fonts\$license") `
-            -Destination (Join-Path $brandMetadata "fonts\$license")
-    }
-    Copy-Item -LiteralPath (Join-Path $repositoryRoot "src\Briosa.ControlCenter\Assets\Brand\THIRD-PARTY-NOTICES.md") `
-        -Destination (Join-Path $brandMetadata "THIRD-PARTY-NOTICES.md")
-    Copy-Item -LiteralPath (Join-Path $repositoryRoot "src\Briosa.ControlCenter\Assets\Brand\LICENSE") `
-        -Destination (Join-Path $brandMetadata "LICENSE")
     Copy-Item -LiteralPath (Join-Path $repositoryRoot "src\Briosa.ControlCenter\Assets\Brand\provenance.json") `
         -Destination (Join-Path $brandMetadata "provenance.json")
     Copy-Item -LiteralPath (Join-Path $repositoryRoot "src\Briosa.ControlCenter\Assets\AppIcon\derivation.json") `
         -Destination (Join-Path $brandMetadata "icon-derivation.json")
-    Copy-Item -LiteralPath (Join-Path $monorepoRoot "LICENSE") `
-        -Destination (Join-Path $packageRoot "LICENSE.txt")
+    $projectLicense = Get-Content -LiteralPath (Join-Path $monorepoRoot "LICENSE") -Raw
+    Write-Utf8File -Path (Join-Path $packageRoot "LICENSE.txt") -Content $projectLicense.Replace("`r`n", "`n")
+    Write-WindowsPackageNotices $packageRoot $repositoryRoot $publishes
     Copy-Item -LiteralPath (Join-Path $repositoryRoot "docs\operations\windows-package.md") `
         -Destination (Join-Path $packageRoot "README.md")
     Copy-Item -LiteralPath (Join-Path $repositoryRoot "docs\operations\health-and-discovery.md") `

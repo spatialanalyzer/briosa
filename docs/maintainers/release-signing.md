@@ -432,3 +432,42 @@ If compromise is suspected, pause signing and publication, remove the affected
 app's access or federated trust, investigate affected releases, and coordinate
 replacement trust with consumers. Catalog signature expiry and client history
 checks are not a global revocation service for already installed software.
+
+## Third-party notices in Windows Server packages
+
+Each target's Windows Server ZIP includes `licenses/index.json`, the referenced
+third-party texts, and the Control Center brand notices. The publisher reads
+MSBuild's actual publish file records for the server, worker, Control Center
+launcher and WPF desktop app; restore-only, test and build-tool dependencies do
+not count. The index contains no local cache paths. Brand notices and font
+licenses come from the pinned brand assets, and provenance remains under
+`metadata/desktop-brand/`.
+
+For each shipped package, the build reads the exact restored `.nupkg`, its
+`.nuspec` license declaration, copyright, license files and notice files. This
+also covers the self-contained .NET, ASP.NET Core and Windows Desktop runtime
+packs. The SDK's in-box apphost pack uses the license and notices from its
+matching .NET runtime pack when there is no apphost `.nupkg`. Some Windows
+Desktop runtime packs omit the WPF and Windows Forms notices. For those packs,
+`eng/licenses/dotnet-windowsdesktop/<nuspec repository commit>/` preserves both
+upstream `src/{wpf,winforms}/THIRD-PARTY-NOTICES.TXT` texts. A pack with no
+notices and a new source commit must supply freshly reviewed upstream texts;
+the build will not inherit notices from an older commit. Text extracted from
+archives uses UTF-8/LF, and identical texts share a content-addressed path.
+The only fallback texts are the root Apache-2.0 license and the
+[SPDX](https://spdx.org/licenses/) MIT and BSD-3-Clause templates under
+`eng/licenses/`, with attribution supplied by the resolved package metadata
+or embedded binary metadata. No additional network reads are required.
+
+For a new or updated dependency, run `./eng/Test-WindowsPackage.ps1` in each
+target. Package assembly rejects missing metadata, unresolved license texts,
+and unclassified external publish assets. Smoke independently checks the
+shipped dependency manifests, apphosts and desktop brand against the index
+and verifies the referenced texts. If this fails, inspect the exact restored
+archive or publish input; do not bypass the gate. Ask a maintainer to review
+missing or conflicting metadata, restricted licenses, compound expressions,
+or additional obligations. Add a reviewed standard text if needed, rather
+than adding an exception for one package version. A non-NuGet bundle or a
+new vendored asset needs explicit provenance and licensing integration before
+it ships. The signing stage signs the same first-party binaries as before;
+all notices are included in the internal checksum list and signed ZIP digest.

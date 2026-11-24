@@ -22,6 +22,9 @@ Verify the downloaded ZIP against its adjacent `.sha256` file before extraction.
 
 The archive contains one top-level directory. Extract that complete directory; do not move `Briosa.Server.exe`, `Briosa.Worker.exe`, or `Briosa.SpatialAnalyzer.Interop.dll` away from one another.
 
+See `licenses/README.md` and `licenses/index.json` for the included third-party
+components, versions, copyright attributions, licenses and notices.
+
 ## Diagnostics
 
 Run the offline diagnostics command before starting the server:
