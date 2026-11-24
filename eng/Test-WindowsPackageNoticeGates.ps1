@@ -169,6 +169,18 @@ try {
         }
         finally { [IO.File]::WriteAllBytes($path, $saved) }
     }
+    $text = Get-ChildItem -LiteralPath (Join-Path $PackageRoot 'licenses/texts') -File | Select-Object -First 1
+    $relativePath = "licenses/texts/$($text.Name)"
+    $originalBytes = [IO.File]::ReadAllBytes($text.FullName)
+    $sameStagedBytes = @{ IndexText = $Expected.IndexText; Files = $Expected.Files.Clone() }
+    try {
+        [IO.File]::AppendAllText($text.FullName, 'Different text at a reserved digest path.')
+        $sameStagedBytes.Files[$relativePath] = (Get-FileHash -LiteralPath $text.FullName).Hash
+        Assert-Rejected 'wrong rights text staged identically in both builds' 'Packaged rights text differs from its content-addressed name*' {
+            Assert-WindowsPackageNotices $PackageRoot $sameStagedBytes
+        }
+    }
+    finally { [IO.File]::WriteAllBytes($text.FullName, $originalBytes) }
     if ($failures.Count) { throw "Notice regressions not rejected: $($failures -join '; ')" }
 }
 finally {

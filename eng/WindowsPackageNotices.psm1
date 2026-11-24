@@ -413,7 +413,7 @@ function Write-WindowsPackageNotices {
         noticeFiles = @()
         reviewedSources = @($evidence.icon.licenseUrl)
         derivation = 'metadata/desktop-brand/icon-derivation.json'
-        embeddedIn = @('Briosa.ControlCenter.exe', 'desktop/Briosa.ControlCenter.App.exe', 'desktop/Briosa.ControlCenter.App.dll')
+        embeddedIn = @('Briosa.ControlCenter.dll', 'Briosa.ControlCenter.exe', 'desktop/Briosa.ControlCenter.App.exe', 'desktop/Briosa.ControlCenter.App.dll')
     }
     $document = [ordered]@{ schemaVersion = 2; components = $index }
     $indexText = ($document | ConvertTo-Json -Depth 12).Replace("`r`n", "`n") + "`n"
@@ -468,7 +468,11 @@ function Assert-WindowsPackageNotices {
         if (-not $Expected.Files.ContainsKey($path) -or -not $seen.Add($path)) {
             throw "Packaged file inventory differs: unexpected '$path'."
         }
-        if ((Get-FileHash -LiteralPath $file.FullName).Hash -cne $Expected.Files[$path]) {
+        $actualHash = (Get-FileHash -LiteralPath $file.FullName).Hash
+        if ($path -cmatch '^licenses/texts/([0-9a-f]{64})\.txt$' -and $actualHash -ine $Matches[1]) {
+            throw "Packaged rights text differs from its content-addressed name: '$path'."
+        }
+        if ($actualHash -cne $Expected.Files[$path]) {
             throw "Packaged file digest differs from its independently assembled source: '$path'."
         }
     }
