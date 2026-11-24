@@ -432,3 +432,63 @@ If compromise is suspected, pause signing and publication, remove the affected
 app's access or federated trust, investigate affected releases, and coordinate
 replacement trust with consumers. Catalog signature expiry and client history
 checks are not a global revocation service for already installed software.
+
+## Third-party notices in Windows Server packages
+
+Each target's Windows Server ZIP has a recipient-facing `licenses/index.json`.
+The publisher uses MSBuild publish records for the server, worker, Control
+Center launcher and WPF desktop app. Restore-only, build-tool and test
+dependencies do not count. Each published file must resolve to a package or a
+recognized product output or generated file. Files do not become first-party
+just by living under a target directory. A new vendored asset or other bundle
+needs explicit provenance and licensing before it ships.
+
+The publisher reads each exact restored `.nupkg`, keeps its declaration and
+copyright metadata separate, and collects its licenses and notices. A declared
+license file is authoritative for that component; for an expression, the build
+requires a recognized matching root text or reviewed source at the resolved
+revision. An ancillary license cannot satisfy the main declaration. For
+expression-only packages, use the actual upstream attribution and record the
+source and digest. Do not fill a standard template with a guessed copyright
+holder or reuse a previous revision without review. The full root Apache-2.0
+text is shared for the reviewed gRPC and Serilog declarations; the gRPC rows
+that embed `NonCapturingTimer` also reference the .NET Foundation MIT text.
+The Serilog rows without copyright metadata say so.
+
+The self-contained .NET, ASP.NET Core and Windows Desktop packs report their
+NuGet declaration and the applicable paths under `perFileLicenses` separately.
+Microsoft's [Windows per-file license map](https://github.com/dotnet/core/blob/main/license-information-windows.md)
+identifies files governed by the .NET Library License and the Windows SDK
+License rather than MIT. The in-box SDK apphost uses the matching .NET runtime
+pack's text when there is no apphost `.nupkg`. The reviewed runtime version,
+native-file classifications, and sources and digests for both Microsoft
+license texts are in [the evidence file](../../eng/licenses/reviewed-windows-evidence.json).
+Shipping these texts does not establish compliance with their redistribution
+conditions; a maintainer must review those conditions before release.
+
+A runtime update stops packaging until its Windows packs and apphost version
+have been reviewed. Inspect the actual restored native files, recheck the
+Microsoft map and operative license terms, and update the version, native
+classifications and copies of the applicable terms together. Check the
+Windows Desktop nuspec repository commit and both WPF and Windows Forms
+upstream notices, even if the pack adds its own notice. Update the commit,
+source URLs, raw SHA-256 values and packaged SHA-256 values together. The two
+desktop notices are normalized to UTF-8 without BOM, LF with a single final
+newline, and no trailing spaces or tabs per line. The evidence distinguishes
+raw upstream bytes from that representation. The two Microsoft web licenses
+are rendered as plain UTF-8 text from the license HTML, without page chrome.
+
+The package includes the pinned Control Center art and font notices and a
+separate entry for the older icon revision. The publisher checks the brand
+asset and text hashes from the committed provenance, and the icon hash from
+its derivation record against the WPF resource. Both revisions reference the
+same Apache text. The build normalizes archive rights texts to UTF-8/LF and
+stores identical texts once. There are no network reads beyond restore.
+
+Run `./eng/Test-WindowsPackage.ps1` in each target after changing a dependency.
+The smoke test compares the extracted ZIP to the owners, paths and text
+digests derived by the independent second publish, and checks that the ZIPs
+are byte-identical. If notices fail, inspect the resolved archive, source
+revision or publish input and request review for ambiguous or restricted
+terms; do not bypass the gate. Signing still selects the same first-party
+binaries and the notices are covered by the package checksums and ZIP digest.
