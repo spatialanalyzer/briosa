@@ -118,9 +118,9 @@ from the merged .NET, JavaScript, and Python 0.5.1 pull requests (`f03d2c8c`,
 `4e5ab1ce`, and `f101fcdf`) to test the published 0.5.0 packages. Their scripts
 request `large-result` when the packaged runner and scenario contract offer it,
 and the fixtures report the exact UTF-8 byte length and SHA-256 of the value
-received. The fixtures use the installation's declared compatibility revision
-for server behavior checks, so the CI build label does not affect expectations.
-The six 0.4.0 packages keep their explicit fixture pins and still run only to
+received. The retained-client workflow fails a published 0.5.0 job unless the
+packaged runner reports `large-result` as passed exactly once. The six 0.4.0
+packages keep their explicit fixture pins and still run only to
 verify pre-launch rejection. As for earlier releases, the matrix keeps declaring
 the contract of its recorded release evidence, 3.0, until the 0.10.1 release
 gate's reports are recorded.
