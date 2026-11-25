@@ -494,8 +494,34 @@ $scenarios = @(
             RecoverySucceeded = $false
             FailureKinds = @("Unsupported")
         }
+    },
+    # A working directory just under the 1 MiB response budget reaches the
+    # generated client whole: the client checks the UTF-8 length and SHA-256 that
+    # the conformance contract publishes for its large-result scenario.
+    [pscustomobject]@{
+        Worker = "large-result"
+        Client = "large-result"
+        Watchdog = $null
+        DenyOperation = $false
+        Expected = [pscustomobject]@{
+            ReadyForMp = $true
+            GrpcStatus = "OK"
+            OperationSucceeded = $true
+            TypedErrorObserved = $false
+            RecoverySucceeded = $false
+            FailureKinds = @()
+        }
     }
 )
+
+$largeResultContract = @((Get-Content -LiteralPath (Join-Path $repositoryRoot "conformance\client\v1\scenarios.json") -Raw |
+        ConvertFrom-Json).optional_scenarios | Where-Object { $_.id -eq "large-result" })
+if ($largeResultContract.Count -ne 1) {
+    throw "The conformance contract does not define the large-result scenario."
+}
+$largeResultArguments = @(
+    "--expected-utf8-length", [string]$largeResultContract[0].expected_working_directory.utf8_length,
+    "--expected-sha256", [string]$largeResultContract[0].expected_working_directory.sha256)
 
 [IO.Directory]::CreateDirectory($temporaryRoot) | Out-Null
 try {
@@ -619,6 +645,9 @@ try {
                 "--address", "http://127.0.0.1:$port",
                 "--scenario", $scenario.Client,
                 "--timeout-seconds", $clientTimeoutSeconds)
+            if ($scenario.Client -eq "large-result") {
+                $clientArguments += $largeResultArguments
+            }
             $phaseStarted = $stopwatch.ElapsedMilliseconds
             $clientOutput = @(
                 & dotnet @clientArguments 2>&1 |

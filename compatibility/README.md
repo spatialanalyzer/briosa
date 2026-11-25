@@ -90,12 +90,12 @@ release gates (`e6df2cab`, `d67ba80f`, and `6ee825e4`). Those fixtures moved to
 languages and both exact targets. They require contract 3.0, were generated
 from the `0.10.0-dev.1` protocol checkpoint, and were published from merged
 source: briosa-dotnet `bc722444`, briosa-js `b94fce3f`, and briosa-py
-`cae6e535`. They run with the current fixtures from the major-3 client pull
-requests (`38233690`, `feda30f3`, and `6a04ff93`). Between each fixture pin and
-its release commit, only package source, tests, and documentation changed. The
-gate runs twelve jobs, six rejections and six published accepts, and downloads
-every package by immutable URL and SHA-256. The earlier source-candidate results
-remain development evidence, not evidence for the published package bytes.
+`cae6e535`. The Server 0.10.0 gate used the fixtures from the major-3 client
+pull requests (`38233690`, `feda30f3`, and `6a04ff93`), now kept as historical
+fixture pins. The gate runs twelve jobs, six rejections and six published
+accepts, and downloads every package by immutable URL and SHA-256. The earlier
+source-candidate results remain development evidence, not evidence for the
+published package bytes.
 
 The released Server `0.10.0` (source `ee16784d9fdaf67ce7d7bb0b68609a98fe403e1c`)
 release gate supplied the 2026-11-20 reports: 12 released-package pairs, all
@@ -110,6 +110,20 @@ and the published `0.5.0` clients, bringing the recorded total to 144
 evidence-backed pairs: 102 released-package pairs (36 major-1, 54 major-2, and
 12 major-3; 738 accepted scenario runs) and 42 development-candidate pairs. No
 licensed-SA coverage is implied.
+
+For Server 0.10.1, each target's `compatibility.json` declares contract 3.1
+([#397](https://github.com/spatialanalyzer/briosa/issues/397)). The published
+`0.5.0` clients require 3.0, which 3.1 satisfies. Both targets use the fixtures
+from the merged .NET, JavaScript, and Python 0.5.1 pull requests (`f03d2c8c`,
+`4e5ab1ce`, and `f101fcdf`) to test the published 0.5.0 packages. Their scripts
+request `large-result` when the packaged runner and scenario contract offer it,
+and the fixtures report the exact UTF-8 byte length and SHA-256 of the value
+received. The retained-client workflow fails a published 0.5.0 job unless the
+packaged runner reports `large-result` as passed exactly once. The six 0.4.0
+packages keep their explicit fixture pins and still run only to
+verify pre-launch rejection. As for earlier releases, the matrix keeps declaring
+the contract of its recorded release evidence, 3.0, until the 0.10.1 release
+gate's reports are recorded.
 
 Each new tested pair records `expectedCompatibility`. An accepted pair passed
 the fake-SDK scenarios listed in its report; a rejected pair proves

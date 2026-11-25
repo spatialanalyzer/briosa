@@ -148,10 +148,17 @@ prints the same phases on its result line, for example
 `Passed client conformance scenario: default-ready (fixture 5.1 s; server listening +1.2 s; worker start 1140 ms; launch 520 ms; connect 300 ms)`.
 A phase that the scenario does not reach is left out.
 
-`-FixtureTimeoutSeconds` defaults to 180 seconds, longer than the first-party
-clients' 120-second startup budget. A slow start or a hang then ends in the
-client's own typed startup timeout, which names the pending call. If the
-fixture still times out, the runner first prints the processes that are still
+`-FixtureTimeoutSeconds` defaults to 240 seconds, longer than a first-party
+client's startup wait under this runner's default settings when the client's
+own startup timeout is omitted. A client 0.5.1 or later waits for the startup
+allowance that the server publishes (Server 0.10.1 and later), plus a
+20-second margin. With the runner's 30-second worker startup bound, the
+allowance for a startup that launches SpatialAnalyzer is 160 seconds, so the
+client waits up to 180 seconds to start the SDK, launch SpatialAnalyzer, and
+connect. Client 0.5.0 waits 120 seconds. The remaining 60 seconds is room for
+fixture setup and error reporting, so a slow start or a hang ends in the
+client's own typed startup timeout, and that error is printed before the
+runner kills the fixture. If the fixture still times out, the runner first prints the processes that are still
 alive (fixture, server, worker, and fake application), with their start times
 and CPU times, and marks any that is not a verified descendant of the fixture.
 These timeout diagnostics run in a separate copy of the runner under one
@@ -245,6 +252,58 @@ second for the server to accept the first Connect before the deadline expires,
 and the second Connect then has about 2 seconds before the hold ends. The hold
 stays well inside the server's `StartupTimeout`, 30 seconds here, which bounds an
 accepted Connect, and its 5-second heartbeat timeout.
+
+## Optional scenarios
+
+`optional_scenarios` in the contract lists scenarios that a fixture runs only
+when it asks for them. The fixture's test script passes their IDs to the
+runner with `-OptionalScenario`, for example `-OptionalScenario large-result`.
+Without that parameter the runner runs only `scenarios`, so a fixture revision
+that does not know an optional scenario never receives it. A script that lists
+the scenarios it ran in its evidence should read both lists and record only the
+optional ones it requested. An optional entry has the same fields as a scenario
+and the same `minimum_contract_major` gate.
+
+`large-result` (#399) shows that a client receives a result at the 1 MiB
+worker response budget whole. The fake worker returns a working directory of
+1,046,528 characters of a fixed ASCII pattern, so its private frame is just
+under 1,048,576 bytes. The public response is a little larger and stays well
+under the 4 MiB default receive limit of the first-party clients. The contract
+publishes the UTF-8 length and SHA-256 of that text as
+`expected_working_directory`. The fixture starts in `default` mode, calls
+`get_working_directory` once, and:
+
+1. asserts through its public API that the call succeeded, and that the UTF-8
+   length and lowercase hexadecimal SHA-256 of the returned directory equal
+   `expected_working_directory`;
+2. adds them to its report, never the value itself:
+
+   ```json
+   {"schema_version":1,"contract_id":"briosa.first-party-client.v1","scenario":"large-result","success":true,"working_directory":{"utf8_length":1046528,"sha256":"<hex>"}}
+   ```
+
+The runner checks what the fixture reports, and it cannot see the value
+itself. It reads the fixture's original JSON:
+- the report and `working_directory` must be JSON objects, and property names
+  match exactly;
+- `utf8_length` must be a JSON number that is an integer equal to the
+  contract's;
+- `sha256` must be a JSON string equal to the contract's, compared ordinally,
+  so case and ignorable characters count. Lowercase hexadecimal is the
+  documented form.
+
+The runner rejects the scenario otherwise. The scenario shows that a client
+received the whole value only when its fixture computes both from the value
+the client returned; a fixture that copied the contract's values would also
+pass.
+
+`eng/Test-ClientConformancePackage.ps1` runs the runner with fixtures that
+echo the contract's values, and with malformed reports. It therefore proves
+the runner's check, not a client's receipt. Receipt is shown today by the
+packaged client scenarios (`eng/Test-ClientScenarios.ps1`), where this
+repository's generated .NET client computes the length and digest from the
+value it received. For the first-party clients it will be shown by fixture
+revisions that do the same, once the retained-client gate pins them.
 
 The `capability-denied` scenario runs the packaged `standard` profile with one
 per-operation override that denies `file_operations.get_working_directory`.

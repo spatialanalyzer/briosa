@@ -1,7 +1,8 @@
 # Contract major 3
 
 Status: released. Both exact-SA targets (`2026.1.0529.7` and `2024.1.0508.5`)
-declare behavioral contract major 3, revision 0.
+declared behavioral contract major 3, revision 0, for Server 0.10.0. For Server
+0.10.1 they declare major 3, revision 1; see [revision 1](#revision-1).
 [Server 0.10.0](https://github.com/spatialanalyzer/briosa/releases/tag/v0.10.0)
 was published on 2026-11-21 at 03:03 UTC (tag `v0.10.0` at
 `ee16784d9fdaf67ce7d7bb0b68609a98fe403e1c`), with the first-party clients at
@@ -68,6 +69,31 @@ unchanged until licensed probes settle them.
 Each later change is classified against the 3.x contract first, and only then
 versioned. Raising an internal limit or adding an API can be compatible. A new
 rejection of a request that 3.x accepts is breaking.
+
+## Revision 1
+
+Server 0.10.1 raises the declared revision of both targets from 0 to 1, once,
+for the additive public fields of
+[#397](https://github.com/spatialanalyzer/briosa/issues/397) and
+[#400](https://github.com/spatialanalyzer/briosa/issues/400)
+([maintainer decision](https://github.com/spatialanalyzer/briosa/issues/397#issuecomment-7088773261)).
+Revision 1 is the first state that carries both: the lifecycle bounds and the
+configured interaction mode in `GetServerInfo`, and the typed denial detail and
+request options. The major stays 3. The rule above doesn't require a new
+revision for an additive field; the maintainer chose one so that a client can
+require these features. The published 0.5.0 clients require revision 0, so they accept
+revision 1 and ignore the new fields. The 0.5.1 clients keep requiring
+revision 0, in installation selection and in live discovery, so they still
+work with Server 0.10.0.
+
+| Change | Issue and pull request | Class | Where it is described |
+| --- | --- | --- | --- |
+| `GetServerInfo` reports the effective lifecycle bounds and the configured SpatialAnalyzer interaction mode | [#400](https://github.com/spatialanalyzer/briosa/issues/400), [#422](https://github.com/spatialanalyzer/briosa/pull/422) | Additive. Response fields only; the 0.5.0 clients ignore them | [Client behavioral contract](../architecture/client-library-behavioral-contract.md#startup-budget-from-published-lifecycle-bounds) |
+| A denied call carries typed denial detail; a denied capability names its flag; discovery describes request options | [#397](https://github.com/spatialanalyzer/briosa/issues/397), [#424](https://github.com/spatialanalyzer/briosa/pull/424) | Additive. No request that Server 0.10.0 accepts is rejected, and the denied call's status, kind, disposition, guidance, and diagnostic code are unchanged | [Client behavioral contract](../architecture/client-library-behavioral-contract.md#compatibility-and-capabilities) |
+
+The [compatibility matrix](../../compatibility/matrix.json) keeps declaring
+3.0 until the Server 0.10.1 release evidence is recorded, as it did for the
+earlier majors.
 
 ## Protocol checkpoint
 

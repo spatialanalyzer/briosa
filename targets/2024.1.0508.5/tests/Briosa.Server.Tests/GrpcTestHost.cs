@@ -54,7 +54,8 @@ internal sealed class GrpcTestHost : IAsyncDisposable
         builder.Logging.ClearProviders();
         builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, 0,
             listener => listener.Protocols = HttpProtocols.Http2));
-        builder.Services.AddGrpc();
+        // The production gRPC options, including the public inbound limit.
+        builder.Services.AddBriosaGrpc();
         configureServices(builder.Services);
         var app = builder.Build();
         mapServices(app);

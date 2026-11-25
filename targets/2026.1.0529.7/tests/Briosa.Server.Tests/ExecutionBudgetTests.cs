@@ -143,6 +143,7 @@ public sealed class ExecutionBudgetTests
         Assert.Equal(WorkerExecutionStatus.PolicyDenied, rejected.Status);
         Assert.Equal(WorkerExecutionDisposition.NotStarted, rejected.ExecutionDisposition);
         Assert.Equal("operation-duration-unreviewed", rejected.DiagnosticCode);
+        AssertDurationUnreviewed(rejected);
         Assert.False(mapped);
     }
 
@@ -288,6 +289,7 @@ public sealed class ExecutionBudgetTests
         Assert.Equal(WorkerExecutionStatus.PolicyDenied, rejected.Status);
         Assert.Equal(WorkerExecutionDisposition.NotStarted, rejected.ExecutionDisposition);
         Assert.Equal("operation-duration-unreviewed", rejected.DiagnosticCode);
+        AssertDurationUnreviewed(rejected);
         Assert.Null(rejected.Execution);
         Assert.False(mapped);
         Assert.Equal(WorkerExecutionStatus.Completed, completed.Status);
@@ -569,6 +571,21 @@ public sealed class ExecutionBudgetTests
             "2026.1.0529.7",
             activatedSdkVersion: "2026.1.0529.7",
             connectedSpatialAnalyzerVersion: "2026.1.0529.7");
+
+    // The execution-budget producer has no policy decision; its typed detail is
+    // the unreviewed rule with nothing else named (#397).
+    private static void AssertDurationUnreviewed(WorkerExecutionOutcome rejected)
+    {
+        Assert.Same(OperationPolicyDenial.DurationUnreviewed, rejected.PolicyDenial);
+        var exception = Assert.Throws<Grpc.Core.RpcException>(() => GrpcOperationOutcomeMapper.RequireSuccess(
+            rejected, QuickOperation, Api.ReplaySafety.Safe, [], callerDeadlineExceeded: false));
+        Assert.Equal(Grpc.Core.StatusCode.PermissionDenied, exception.StatusCode);
+        var error = Api.OperationError.Parser.ParseFrom(Assert.Single(exception.Trailers,
+            entry => entry.Key == GrpcOperationOutcomeMapper.ErrorTrailerName).ValueBytes);
+        Assert.Equal(Api.OperationFailureKind.PolicyDenied, error.Kind);
+        Assert.Equal("operation-duration-unreviewed", error.DiagnosticCode);
+        Assert.Equal(new Api.PolicyDenialDetails { Rule = Api.PolicyDenialRule.Unreviewed }, error.PolicyDenial);
+    }
 
     private static T Populated<T>(Action<T> configure)
         where T : IMessage, new()

@@ -18,7 +18,11 @@ internal static class ProbeRecorder
     // 4 adds "ended_in_planned_stall", "selection", and "server_interaction_mode_setting",
     // per step "expected_stall" and "server_interaction_mode", and per outcome
     // "recovery_guidance" and "execution_state".
-    public const int SchemaVersion = 4;
+    // 5 (#402) adds "fixtures_missing" and "response_limits", per step "required_fixture",
+    // "measures_response_size" and the "fixture-missing" classification, and per outcome
+    // "response_size"; a size step also has "list_result" (whether a list came back, and where
+    // its element count comes from, if anywhere).
+    public const int SchemaVersion = 5;
 
     public static string FileStem(ProbeSessionRecord record)
     {
@@ -68,11 +72,23 @@ internal static class ProbeRecorder
             json.WriteBoolean("completed", record.Completed);
             WriteNullable(json, "stopped_at", record.StoppedAt);
             WriteNullable(json, "stop_reason", record.StopReason);
+            WriteNullable(json, "superseded_stop_reason", record.SupersededStopReason);
             json.WriteBoolean("ended_in_planned_stall", record.EndedInPlannedStall);
             WriteExclusions(json, record);
             WriteSelection(json, record);
             WriteInteractionMode(json, record.InteractionMode);
             WriteNullable(json, "server_interaction_mode_setting", record.ServerInteractionModeSetting);
+            json.WriteStartArray("fixtures_missing");
+            foreach (var fixture in record.MissingFixtures)
+            {
+                json.WriteStringValue(fixture);
+            }
+
+            json.WriteEndArray();
+            json.WriteStartObject("response_limits");
+            json.WriteNumber("worker_response_budget_bytes", WorkerResponseBudget.Bytes);
+            json.WriteNumber("published_client_receive_limit_bytes", ResponseSize.PublishedClientReceiveLimitBytes);
+            json.WriteEndObject();
             json.WriteStartObject("identity");
             WriteNullable(json, "server_version", record.Identity.ServerVersion);
             WriteNullable(json, "server_source_revision", record.Identity.ServerSourceRevision);
@@ -86,7 +102,7 @@ internal static class ProbeRecorder
             json.WriteStartArray("steps");
             foreach (var step in record.Steps)
             {
-                WriteStep(json, step);
+                WriteStep(json, step, record);
             }
 
             json.WriteEndArray();
@@ -162,7 +178,7 @@ internal static class ProbeRecorder
         json.WriteEndObject();
     }
 
-    private static void WriteStep(Utf8JsonWriter json, ProbeStepRecord record)
+    private static void WriteStep(Utf8JsonWriter json, ProbeStepRecord record, ProbeSessionRecord session)
     {
         var step = record.Step;
         json.WriteStartObject();
@@ -203,6 +219,21 @@ internal static class ProbeRecorder
         WriteNullable(json, "server_interaction_mode",
             step.ServerInteractionMode is { } setting ? InteractionModeSettings.ModeName(setting) : null);
         WriteNullable(json, "destructive_target", step.DestructiveTarget);
+        WriteNullable(json, "required_fixture", step.RequiredFixture);
+        json.WriteBoolean("measures_response_size", step.MeasuresResponseSize);
+        if (step.MeasuresResponseSize && record.Outcome is not null)
+        {
+            var list = ListResultOf(session, record);
+            json.WriteStartObject("list_result");
+            json.WriteString("list", list.List);
+            if (list.Elements is { } elements)
+                json.WriteNumber("elements", elements);
+            else
+                json.WriteNull("elements");
+            json.WriteString("elements_from", list.ElementsFrom);
+            json.WriteEndObject();
+        }
+
         json.WriteBoolean("requires_operator", step.RequiresOperator);
         json.WriteStartArray("operator_checkpoints");
         foreach (var timing in new[] { OperatorCheckpoint.Before, OperatorCheckpoint.After }.Where(timing => step.Checkpoints.HasFlag(timing)))
@@ -315,6 +346,23 @@ internal static class ProbeRecorder
         WriteNullable(json, "execution_disposition", outcome.ExecutionDisposition);
         WriteNullable(json, "recovery_guidance", outcome.RecoveryGuidance);
         WriteNullable(json, "execution_state", outcome.ExecutionState);
+        if (outcome.Size is { } size)
+        {
+            json.WriteStartObject("response_size");
+            WriteNullable(json, "received_frame_bytes", size.ReceivedFrameBytes);
+            WriteNullable(json, "public_message_bytes", size.PublicMessageBytes);
+            json.WriteBoolean("encoding_rejected", size.EncodingRejected);
+
+            // A rejected result's own size is never measured: the frame is its replacement.
+            json.WriteString("original_size", size.EncodingRejected ? "unknown" : "as received");
+            WriteNullable(json, "exceeds_published_client_limit", size.ExceedsPublishedClientLimit);
+            json.WriteEndObject();
+        }
+        else
+        {
+            json.WriteNull("response_size");
+        }
+
         json.WriteStartObject("observations");
         foreach (var (key, value) in outcome.Observations)
         {
@@ -367,6 +415,13 @@ internal static class ProbeRecorder
                 .Append("Guard and fixture setup steps always run.\n\n");
         }
 
+        if (record.MissingFixtures.Count > 0)
+        {
+            var missing = record.Steps.Where(static step => step.Classification == StepClassification.FixtureMissing).Select(static step => $"`{step.Step.Id}`");
+            text.Append(CultureInfo.InvariantCulture, $"**{ProbePlan.FixtureMissingStatement(record.MissingFixtures)}.** ")
+                .Append(CultureInfo.InvariantCulture, $"Steps never sent: {string.Join(", ", missing)}.\n\n");
+        }
+
         if (record.ExcludedProbes.Count > 0)
         {
             var excluded = record.Steps.Where(static step => step.Classification == StepClassification.Excluded).Select(static step => $"`{step.Step.Id}`");
@@ -384,6 +439,8 @@ internal static class ProbeRecorder
                 $"| `{step.Step.Id}` | {step.Step.Probe} | {Cell(step.Step.Command.StepName)} | {Cell(VariantText(step.Step))} | {Cell(ResultText(record.Phase, step))} |\n");
         }
 
+        AppendResultSizes(text, record);
+
         var fixtures = record.Steps.Where(static step => step.Step.Kind is ProbeStepKind.Guard or ProbeStepKind.Setup).ToList();
         text.Append(CultureInfo.InvariantCulture,
             $"\nGuard and fixture steps: {fixtures.Count(static step => step.Classification == StepClassification.Observed)} of {fixtures.Count} observed as planned.\n");
@@ -391,6 +448,12 @@ internal static class ProbeRecorder
         if (record.StopReason is not null)
         {
             text.Append(CultureInfo.InvariantCulture, $"\nThe session stopped{(record.StoppedAt is null ? " before any step" : $" at `{record.StoppedAt}`")} (`{record.StopReason}`). ");
+            if (record.SupersededStopReason is { } superseded)
+            {
+                text.Append(CultureInfo.InvariantCulture,
+                    $"A license prompt was signalled while `{superseded}` was being handled, and takes precedence: from the harness's next check of the signal it sent, started and terminated nothing more; an action already sent was not recalled. ");
+            }
+
             text.Append(string.Equals(record.StopReason, ProbeSession.UnknownOutcomeStop, StringComparison.Ordinal)
                 ? "Completion of that step is unknown. It was not replayed and later steps were not run; follow the runbook's recovery before any further SDK use.\n"
                 : "Later steps were not run and nothing was replayed.\n");
@@ -413,6 +476,93 @@ internal static class ProbeRecorder
             .Append("Maintainer follow-up tasks are recorded below before this draft is committed.\n\n## Follow-up\n\n- (maintainer)\n");
         return text.ToString();
     }
+
+    // Probe 34 (#402): one row per size step, with counts and byte sizes only.
+    private static void AppendResultSizes(StringBuilder text, ProbeSessionRecord record)
+    {
+        var sized = record.Steps.Where(static step => step.Step.MeasuresResponseSize).ToList();
+        if (sized.Count == 0)
+        {
+            return;
+        }
+
+        text.Append(CultureInfo.InvariantCulture,
+            $"\n**Result sizes (probe 34).** This build's worker response budget is {WorkerResponseBudget.Bytes} bytes; ")
+            .Append(CultureInfo.InvariantCulture, $"the published clients receive at most {ResponseSize.PublishedClientReceiveLimitBytes} bytes.\n\n")
+            .Append("| Step | Elements | Received frame bytes | Protobuf message bytes | Encoding |\n")
+            .Append("| --- | --- | --- | --- | --- |\n");
+        foreach (var step in sized)
+        {
+            var size = step.Outcome?.Size;
+            var list = step.Outcome is null ? null : ListResultOf(record, step);
+            var elements = list is null ? "-" : list.Elements?.ToString(CultureInfo.InvariantCulture) ?? "unknown";
+            if (list is { ElementsFrom: "count" })
+            {
+                elements += " (from its count)";
+            }
+
+            text.Append(CultureInfo.InvariantCulture,
+                $"| `{step.Step.Id}` | {elements} | {Bytes(size?.ReceivedFrameBytes)} | {Bytes(size?.PublicMessageBytes)} | ")
+                .Append(step.Classification switch
+                {
+                    StepClassification.FixtureMissing => "not run (fixture missing)",
+                    StepClassification.Excluded => "excluded",
+                    StepClassification.NotRun => "not run",
+                    _ => list?.List switch
+                    {
+                        "delivered" => "delivered",
+                        "rejected" => "rejected; original size unknown",
+                        _ => "unavailable (no list returned)"
+                    }
+                })
+                .Append(" |\n");
+        }
+
+        text.Append("\nWhen the worker rejected a result's encoding, the frame size is that of its bounded replacement and the ")
+            .Append("original size is unknown: the same code covers a result over the budget and a value that cannot be encoded. ")
+            .Append("Worker: record the received replacement or error frame's bytes. Public RPC error: no result message was delivered; ")
+            .Append("leave public message bytes blank. Trailer size was not measured. The element count comes from the ")
+            .Append("list, or else from a successful count of the same group just before it; with neither, it is unknown.\n");
+    }
+
+    /// <summary>Whether a size step's list came back, and its element count with its source.</summary>
+    internal sealed record ListResult(string List, int? Elements, string ElementsFrom);
+
+    // A list is "delivered" only when the step succeeded with its element count; otherwise it was
+    // "rejected" (its encoding) or is "unavailable". The count is the list's own, or else that of
+    // a successful count check the step depends on (c34-count-N, c34-count-job-group); the
+    // object lists have none, and a count check that ended in an MP failure supplies none.
+    internal static ListResult ListResultOf(ProbeSessionRecord session, ProbeStepRecord step)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        ArgumentNullException.ThrowIfNull(step);
+        var outcome = step.Outcome;
+        int? listed = outcome is { Kind: ProbeOutcomeKind.Succeeded } &&
+            (outcome.Observations.TryGetValue("element_count", out var text) || outcome.Observations.TryGetValue("match_count", out text)) &&
+            int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out var value)
+                ? value
+                : null;
+        var list = listed is not null ? "delivered" : outcome?.Size is { EncodingRejected: true } ? "rejected" : "unavailable";
+        if (listed is not null)
+        {
+            return new ListResult(list, listed, "list");
+        }
+
+        foreach (var prerequisite in step.Step.Prerequisites)
+        {
+            if (session.Steps.FirstOrDefault(other => other.Step.Id == prerequisite) is
+                    { Step.Kind: ProbeStepKind.Check, Outcome: { Kind: ProbeOutcomeKind.Succeeded } counted } &&
+                counted.Observations.TryGetValue("points_count", out var countText) &&
+                int.TryParse(countText, NumberStyles.None, CultureInfo.InvariantCulture, out var count))
+            {
+                return new ListResult(list, count, "count");
+            }
+        }
+
+        return new ListResult(list, null, "unknown");
+    }
+
+    private static string Bytes(int? value) => value?.ToString(CultureInfo.InvariantCulture) ?? "-";
 
     private static string Introduction(ProbeSessionRecord record)
     {
@@ -456,6 +606,11 @@ internal static class ProbeRecorder
         if (record.Classification == StepClassification.Excluded)
         {
             return "Excluded by operator; not sent.";
+        }
+
+        if (record.Classification == StepClassification.FixtureMissing)
+        {
+            return $"Not run: the manifest has no `{record.Step.RequiredFixture}`; not sent and not a pass.";
         }
 
         var outcome = record.Outcome;
@@ -503,6 +658,17 @@ internal static class ProbeRecorder
             !string.Equals(state, Api.MpExecutionState.Succeeded.ToString(), StringComparison.Ordinal))
         {
             text.Append(CultureInfo.InvariantCulture, $" Execution state `{state}`.");
+        }
+
+        if (record.Step.MeasuresResponseSize && outcome.Size is { } size)
+        {
+            text.Append(size switch
+            {
+                { EncodingRejected: true } => " The worker rejected the result's encoding; its outputs were not delivered and its size is unknown.",
+                { ReceivedFrameBytes: { } frame } => string.Create(CultureInfo.InvariantCulture, $" Worker frame {frame} bytes."),
+                { PublicMessageBytes: { } message } => string.Create(CultureInfo.InvariantCulture, $" Protobuf message {message} bytes."),
+                _ => string.Empty
+            });
         }
 
         if (outcome.DiagnosticCode is not null && outcome.Kind != ProbeOutcomeKind.Succeeded)
@@ -558,6 +724,7 @@ internal static class ProbeRecorder
         StepClassification.Unexpected => "unexpected",
         StepClassification.Refused => "refused",
         StepClassification.Excluded => "excluded",
+        StepClassification.FixtureMissing => "fixture-missing",
         _ => "not-run"
     };
 
@@ -572,6 +739,18 @@ internal static class ProbeRecorder
         else
         {
             json.WriteString(name, value);
+        }
+    }
+
+    private static void WriteNullable(Utf8JsonWriter json, string name, int? value)
+    {
+        if (value is { } number)
+        {
+            json.WriteNumber(name, number);
+        }
+        else
+        {
+            json.WriteNull(name);
         }
     }
 

@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.IO.Pipes;
 using Briosa.Worker.Control;
 using Briosa.Worker.Sdk;
@@ -107,6 +108,97 @@ public sealed class ProductionWorkerControlTests
             Assert.True(sdk.AllCallsOnSta);
             Assert.True(sdk.Disposed);
             Assert.Equal(2, sdk.OperationCalls);
+        }
+        finally
+        {
+            await pipe.DisposeAsync();
+            await host.WaitAsync(TimeSpan.FromSeconds(3));
+        }
+    }
+
+    // The production worker endpoint bounds the frames it reads by the request
+    // budget and rejects an over-budget frame from its header alone, without
+    // waiting for a payload. The frame is within the larger response budget, so
+    // a worker bounded by that budget would wait for the payload instead, and
+    // this test would time out.
+    [Fact]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The production connection manager owns and disposes this injected SDK on its STA; the test must not dispose it on a different thread.")]
+    public async Task TheProductionWorkerRejectsAnOverBudgetRequestFromItsHeader()
+    {
+        var name = $"briosa-control-test-{Guid.NewGuid():N}";
+        using var pipe = new NamedPipeServerStream(name, PipeDirection.InOut, 1,
+            PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var sdk = new ControlledSdk();
+        var host = WorkerControlHost.RunAsync(name, "localhost", () => { sdk.Observe(); return sdk; });
+        try
+        {
+            await pipe.WaitForConnectionAsync(timeout.Token);
+            using var channel = new WorkerControlChannel(pipe, leaveOpen: true,
+                maximumReceiveBytes: WorkerControlProtocol.MaximumResponseBytes);
+            Assert.Equal(WorkerControlMessageKind.Ready, (await channel.ReceiveAsync(timeout.Token)).Kind);
+
+            var header = new byte[sizeof(int)];
+            BinaryPrimitives.WriteInt32LittleEndian(header, WorkerControlProtocol.MaximumRequestBytes + 1);
+            await pipe.WriteAsync(header, timeout.Token);
+            await pipe.FlushAsync(timeout.Token);
+
+            // InvalidDataException stops the worker with exit code 4.
+            Assert.Equal(4, await host.WaitAsync(TimeSpan.FromSeconds(5)));
+            Assert.Equal(0, sdk.OperationCalls);
+        }
+        finally
+        {
+            await pipe.DisposeAsync();
+            await host.WaitAsync(TimeSpan.FromSeconds(3));
+        }
+    }
+
+    // The production worker accepts host frames only on its own private protocol
+    // version. A host frame on an older or newer version stops the worker with exit
+    // code 4 before it touches the SDK; the host side rejects a worker's Ready the
+    // same way (WorkerProtocolVersionTests in Briosa.Server.Tests).
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(1)]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The production connection manager owns and disposes this injected SDK on its STA; the test must not dispose it on a different thread.")]
+    public async Task TheProductionWorkerRejectsAHostFrameOnAnotherProtocolVersion(int offset)
+    {
+        var name = $"briosa-control-test-{Guid.NewGuid():N}";
+        using var pipe = new NamedPipeServerStream(name, PipeDirection.InOut, 1,
+            PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var sdk = new ControlledSdk();
+        var host = WorkerControlHost.RunAsync(name, "localhost", () => { sdk.Observe(); return sdk; });
+        try
+        {
+            await pipe.WaitForConnectionAsync(timeout.Token);
+            using var channel = new WorkerControlChannel(pipe, leaveOpen: true,
+                maximumReceiveBytes: WorkerControlProtocol.MaximumResponseBytes);
+            Assert.Equal(WorkerControlMessageKind.Ready, (await channel.ReceiveAsync(timeout.Token)).Kind);
+
+            using (var frame = new MemoryStream())
+            {
+                using (var encoder = new WorkerControlChannel(frame, leaveOpen: true))
+                {
+                    await encoder.SendAsync(WorkerControlMessage.Execute(Guid.NewGuid(),
+                        new("normal", "Normal", [], [new("Value", WorkerMpValueKind.Text)])), timeout.Token);
+                }
+
+                var current = $"\"protocolVersion\":{WorkerControlProtocol.CurrentVersion}";
+                var json = System.Text.Encoding.UTF8.GetString(frame.ToArray(), sizeof(int), (int)frame.Length - sizeof(int));
+                Assert.Contains(current, json, StringComparison.Ordinal);
+                var rewritten = System.Text.Encoding.UTF8.GetBytes(json.Replace(current,
+                    $"\"protocolVersion\":{WorkerControlProtocol.CurrentVersion + offset}", StringComparison.Ordinal));
+                var header = new byte[sizeof(int)];
+                BinaryPrimitives.WriteInt32LittleEndian(header, rewritten.Length);
+                await pipe.WriteAsync(header, timeout.Token);
+                await pipe.WriteAsync(rewritten, timeout.Token);
+                await pipe.FlushAsync(timeout.Token);
+            }
+
+            Assert.Equal(4, await host.WaitAsync(TimeSpan.FromSeconds(5)));
+            Assert.Equal(0, sdk.OperationCalls);
         }
         finally
         {
@@ -402,7 +494,7 @@ public sealed class ProductionWorkerControlTests
             LastCommand = command;
             WorkerMpOutputValue value = command.OperationId switch
             {
-                "oversized" => new WorkerRetrievedOutput("Value", WorkerMpValueKind.Text, new WorkerTextValue(new string('x', 100_000))),
+                "oversized" => new WorkerRetrievedOutput("Value", WorkerMpValueKind.Text, new WorkerTextValue(new string('x', WorkerControlProtocol.MaximumResponseBytes + 1))),
                 "non-finite" => new WorkerRetrievedOutput("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(double.NaN)),
                 _ => new WorkerRetrievedOutput("Value", WorkerMpValueKind.Text, new WorkerTextValue("normal"))
             };

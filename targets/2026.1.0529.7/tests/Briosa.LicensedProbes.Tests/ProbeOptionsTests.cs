@@ -10,7 +10,7 @@ public sealed class ProbeOptionsTests
         "--phase", "worker", ProbeTarget.ConfirmFlag, "--fixtures", "m.json", "--output-directory", "out",
         "--worker-path", @"C:\package\Briosa.Worker.exe",
         "--connected-sa-attested-version", ProbeTarget.SpatialAnalyzerTarget,
-        "--connected-sa-attestation-reference", "r277-connected"
+        "--connected-sa-attestation-reference", "sa-title-bar"
     ];
 
     [Fact]
@@ -63,12 +63,38 @@ public sealed class ProbeOptionsTests
     public void TheWorkerPhaseRequiresAnExactConnectedSaAttestation()
     {
         var options = ProbeOptions.Parse(WorkerLicensed);
-        Assert.Equal("r277-connected", options.ConnectedSaAttestationReference);
+        Assert.Equal("sa-title-bar", options.ConnectedSaAttestationReference);
 
         var wrongVersion = WorkerLicensed.Select(static a => a == ProbeTarget.SpatialAnalyzerTarget ? "1.0.0.0" : a).ToArray();
         Assert.Throws<ProbeUsageException>(() => ProbeOptions.Parse(wrongVersion));
         Assert.Throws<ProbeUsageException>(() => ProbeOptions.Parse(WorkerLicensed.Take(WorkerLicensed.Length - 2).ToArray()));
-        Assert.Throws<ProbeUsageException>(() => ProbeOptions.Parse(WorkerLicensed.Select(static a => a == "r277-connected" ? @"C:\evidence\file" : a).ToArray()));
+        Assert.Throws<ProbeUsageException>(() => ProbeOptions.Parse(WorkerLicensed.Select(static a => a == "sa-title-bar" ? @"C:\evidence\file" : a).ToArray()));
+    }
+
+    [Theory]
+    [InlineData("424203")]
+    [InlineData("0424203")]
+    public void ARejectedProbeNumberIsNeverEchoed(string number)
+    {
+        ArgumentNullException.ThrowIfNull(number);
+        var exception = Assert.Throws<ProbeUsageException>(() => ProbeOptions.Parse(["--phase", "public-api", "--dry-run", "--probe", number]));
+
+        Assert.DoesNotContain(number.TrimStart('0'), exception.Message, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("SENTINEL-PC")]
+    [InlineData("alice_smith")]
+    [InlineData("probe-s3-2026-sa-titlebar")]
+    [InlineData("SA-TITLE-BAR")]
+    public void AnAttestationReferenceIsOnlyAPredefinedEvidenceAlias(string reference)
+    {
+        // Well formed is not enough: a machine, account or free-form name is refused.
+        var exception = Assert.Throws<ProbeUsageException>(() =>
+            ProbeOptions.Parse(WorkerLicensed.Select(a => a == "sa-title-bar" ? reference : a).ToArray()));
+        Assert.Contains("predefined evidence aliases", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain(reference, exception.Message, StringComparison.Ordinal);
+        Assert.All(ProbeOptions.AttestationAliases, static alias => Assert.True(ProbeOptions.IsSafeReference(alias)));
     }
 
     [Fact]

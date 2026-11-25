@@ -23,6 +23,8 @@ internal static class LicensedProbeProgram
               --probe <n> (repeatable; run only these probes of the selected phase; opt-in probes 26 to 29 need it)
           A licensed run pauses at operator checkpoints; answer each by writing its response file
           in the checkpoints folder of the output directory.
+          Licensed session 4 (#402) also has --observe-processes, a read-only process observation; run it with
+          no other options for its own usage.
         """;
 
     public static IProbeTransport CreateTransport(ProbeOptions options)
@@ -77,8 +79,8 @@ internal static class LicensedProbeProgram
                 : FixtureManifest.Parse(await File.ReadAllTextAsync(options.FixturesPath, cancellationToken).ConfigureAwait(false));
             if (!options.DryRun && !File.Exists(manifest.UiProfileFile))
                 throw new ProbeUsageException("The manifest's ui_profile_file does not exist.");
-            if (options.OutputDirectory is not null && Directory.Exists(options.OutputDirectory) &&
-                Directory.EnumerateFileSystemEntries(options.OutputDirectory).Any())
+            if (options.OutputDirectory is not null && (File.Exists(options.OutputDirectory) ||
+                (Directory.Exists(options.OutputDirectory) && Directory.EnumerateFileSystemEntries(options.OutputDirectory).Any())))
                 throw new ProbeUsageException("--output-directory must be new or empty; records are never overwritten.");
 
             // An exclusion outside this phase or of a prerequisite is a usage error.
@@ -115,7 +117,12 @@ internal static class LicensedProbeProgram
             await output.WriteAsync(plan.RenderDryRun()).ConfigureAwait(false);
             if (options.OutputDirectory is not null)
             {
-                var files = ProbeRecorder.Write(ProbeSession.DryRun(plan, clock), options.OutputDirectory);
+                if (!TryWrite(ProbeSession.DryRun(plan, clock), options.OutputDirectory, out var files))
+                {
+                    await error.WriteLineAsync(RecordFiles.WriteFailure).ConfigureAwait(false);
+                    return 2;
+                }
+
                 await output.WriteLineAsync($"Plan records: {Path.GetFileName(files.JsonPath)}, {Path.GetFileName(files.MarkdownPath)}").ConfigureAwait(false);
             }
 
@@ -123,7 +130,15 @@ internal static class LicensedProbeProgram
         }
 
         // Fail before any client starts if the record cannot be written.
-        Directory.CreateDirectory(options.OutputDirectory!);
+        try
+        {
+            Directory.CreateDirectory(options.OutputDirectory!);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        {
+            await error.WriteLineAsync(RecordFiles.WriteFailure).ConfigureAwait(false);
+            return 2;
+        }
         var operatorIdentity = new SessionIdentity
         {
             ConnectedSpatialAnalyzerAttestedVersion = options.ConnectedSaAttestedVersion,
@@ -140,7 +155,14 @@ internal static class LicensedProbeProgram
             record = await ProbeSession.RunAsync(plan, transport, clock, operatorIdentity, console, cancellationToken).ConfigureAwait(false);
         }
 
-        var written = ProbeRecorder.Write(record, options.OutputDirectory!);
+        // A license prompt signalled while the transport was being disposed still takes precedence.
+        record = ProbeSession.WithLicensePrecedence(record, console.LicenseAbort, transport: null);
+        if (!TryWrite(record, options.OutputDirectory!, out var written))
+        {
+            await error.WriteLineAsync(RecordFiles.WriteFailure).ConfigureAwait(false);
+            return 2;
+        }
+
         var observed = record.Steps.Count(static step => step.Classification == StepClassification.Observed);
         var excluded = record.Steps.Count(static step => step.Classification == StepClassification.Excluded);
         await output.WriteLineAsync(string.Create(CultureInfo.InvariantCulture,
@@ -179,5 +201,21 @@ internal static class LicensedProbeProgram
 
         await output.WriteLineAsync($"Records: {Path.GetFileName(written.JsonPath)}, {Path.GetFileName(written.MarkdownPath)}").ConfigureAwait(false);
         return record.Completed ? 0 : 1;
+    }
+
+    // Records are written at the command's boundary: a folder or file that cannot be written ends
+    // the command with a fixed message that names no path.
+    private static bool TryWrite(ProbeSessionRecord record, string directory, out (string JsonPath, string MarkdownPath) files)
+    {
+        try
+        {
+            files = ProbeRecorder.Write(record, directory);
+            return true;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        {
+            files = default;
+            return false;
+        }
     }
 }

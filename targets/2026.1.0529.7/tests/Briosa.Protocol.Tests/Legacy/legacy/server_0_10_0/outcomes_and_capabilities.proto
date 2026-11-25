@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+// OperationError and the capability listing exactly as Server 0.10.0 published
+// them, frozen so that a test can read a newer server's policy denial detail and
+// request options with the older schema. Their other message and enum types did
+// not change, so it reuses them.
+package legacy.server_0_10_0;
+
+import "briosa/discovery.proto";
+import "briosa/operation_outcomes.proto";
+
+option csharp_namespace = "Briosa.Protocol.Tests.Legacy.Server0100";
+
+message OperationError {
+  reserved 4;
+  reserved "retry_guidance";
+
+  string operation_id = 1;
+  briosa.OperationFailureKind kind = 2;
+  string diagnostic_code = 3;
+  optional int32 worker_generation = 5;
+  optional briosa.MpExecutionDetails mp_execution = 6;
+  briosa.ExecutionDisposition execution_disposition = 7;
+  briosa.RecoveryGuidance recovery_guidance = 8;
+  briosa.ReplayGuidance replay_guidance = 9;
+  briosa.ReplaySafety replay_safety = 10;
+}
+
+message ListCapabilitiesResponse {
+  reserved 1, 2;
+  reserved "catalog_id", "catalog_revision", "target_protocol_package";
+  string spatial_analyzer_target = 3;
+  string protocol_package = 4;
+  repeated OperationCapability operations = 5;
+  string admission_profile = 6;
+  string policy_fingerprint = 7;
+}
+
+message OperationCapability {
+  string operation_id = 1;
+  string grpc_service = 2;
+  string rpc = 3;
+  string fully_qualified_method = 4;
+  briosa.OperationEffect effect = 5;
+  briosa.ReplaySafety replay_safety = 6;
+  briosa.OperationExecutionScope execution_scope = 7;
+  repeated briosa.OperationRiskFlag risk_flags = 8;
+  briosa.OperationDurationClass duration_class = 9;
+  briosa.OperationValidationStatus validation_status = 10;
+  briosa.OperationAdmission admission = 11;
+}

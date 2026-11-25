@@ -1,3 +1,4 @@
+using Briosa.Server.Security;
 using Briosa.Worker.Control;
 
 namespace Briosa.Server.Workers;
@@ -11,7 +12,8 @@ internal sealed record WorkerExecutionOutcome
         WorkerConnectionSnapshot? Connection,
         string DiagnosticCode,
         int Generation,
-        Guid CorrelationId = default)
+        Guid CorrelationId = default,
+        OperationPolicyDenial? PolicyDenial = null)
     {
         var shapeIsValid = Status switch
         {
@@ -27,8 +29,10 @@ internal sealed record WorkerExecutionOutcome
                 Execution is null && ExecutionDisposition != WorkerExecutionDisposition.Completed,
             _ => false
         };
+        // Every policy denial carries the structured record of the step that decided.
         if (!Enum.IsDefined(ExecutionDisposition) || Generation < 0 ||
-            string.IsNullOrWhiteSpace(DiagnosticCode) || !shapeIsValid)
+            string.IsNullOrWhiteSpace(DiagnosticCode) || !shapeIsValid ||
+            (Status == WorkerExecutionStatus.PolicyDenied) != (PolicyDenial is not null))
         {
             throw new ArgumentException("The worker execution outcome is contradictory.");
         }
@@ -40,6 +44,7 @@ internal sealed record WorkerExecutionOutcome
         this.DiagnosticCode = DiagnosticCode;
         this.Generation = Generation;
         this.CorrelationId = CorrelationId;
+        this.PolicyDenial = PolicyDenial;
     }
 
     public WorkerExecutionStatus Status { get; }
@@ -50,9 +55,12 @@ internal sealed record WorkerExecutionOutcome
     public int Generation { get; }
     public Guid CorrelationId { get; }
 
+    /// <summary>The step that denied the request; present exactly when the status is policy denied.</summary>
+    public OperationPolicyDenial? PolicyDenial { get; }
+
     public WorkerExecutionOutcome WithGeneration(int generation) =>
         new(Status, ExecutionDisposition, Execution, Connection, DiagnosticCode,
-            generation, CorrelationId);
+            generation, CorrelationId, PolicyDenial);
 
     public static WorkerExecutionOutcome FromWorkerResponse(
         WorkerExecutionResponse response,

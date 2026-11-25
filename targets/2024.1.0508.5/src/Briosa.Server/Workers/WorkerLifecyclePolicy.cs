@@ -43,24 +43,30 @@ internal sealed class WorkerLifecyclePolicy
     public int LifecycleHistoryCapacity { get; }
 
     /// <summary>
-    /// The longest an accepted Start, Connect, or Recover takes to its typed outcome,
-    /// failure cleanup included (#321). Connect runs ConnectEx and the application
-    /// association under the startup bound, the readiness probe, a liveness ping, and
-    /// forced cleanup. Recover drains the heartbeat and cleans up the faulted worker,
-    /// then starts a replacement whose Ready can report an attached SDK, which runs
-    /// the probe and its cleanup. Start alone is never longer than Recover.
+    /// An accepted Start to its typed outcome: the startup bound, then the readiness
+    /// probe when the new worker's Ready reports an attached SDK, then forced cleanup.
     /// </summary>
-    public TimeSpan AcceptedExchangeBound
-    {
-        get
-        {
-            var start = StartupTimeout + ReadinessProbeTimeout + ShutdownTimeout;
-            var connect = StartupTimeout + ReadinessProbeTimeout + StartupTimeout +
-                HeartbeatTimeout + ShutdownTimeout;
-            var recover = HeartbeatTimeout + ShutdownTimeout + start;
-            return connect > recover ? connect : recover;
-        }
-    }
+    public TimeSpan StartBound => StartupTimeout + ReadinessProbeTimeout + ShutdownTimeout;
+
+    /// <summary>
+    /// An accepted Connect or Reconnect to its typed outcome: ConnectEx and the
+    /// application association under the startup bound each, the readiness probe, a
+    /// liveness ping, and forced cleanup.
+    /// </summary>
+    public TimeSpan ConnectBound => StartupTimeout + ReadinessProbeTimeout + StartupTimeout +
+        HeartbeatTimeout + ShutdownTimeout;
+
+    /// <summary>
+    /// An accepted Recover to the typed outcome of its replacement: the heartbeat drain
+    /// and the faulted worker's cleanup, then a replacement Start.
+    /// </summary>
+    public TimeSpan RecoverBound => HeartbeatTimeout + ShutdownTimeout + StartBound;
+
+    /// <summary>
+    /// The longest an accepted Start, Connect, or Recover takes to its typed outcome,
+    /// failure cleanup included (#321). Start alone is never longer than Recover.
+    /// </summary>
+    public TimeSpan AcceptedExchangeBound => ConnectBound > RecoverBound ? ConnectBound : RecoverBound;
 
     /// <summary>
     /// The worker stop after any accepted exchange: heartbeat drain, stop exchange, and

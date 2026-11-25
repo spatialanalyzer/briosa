@@ -52,11 +52,23 @@ internal static class ProbeCatalog
     public static TimeSpan WorkerStallClientTimeout { get; } = TimeSpan.FromSeconds(60);
 
     public static IReadOnlyList<string> ProbeNumbers { get; } =
-        [.. Enumerable.Range(1, 33).Select(static number => number.ToString(CultureInfo.InvariantCulture))];
+        [.. Enumerable.Range(1, 37).Select(static number => number.ToString(CultureInfo.InvariantCulture))];
 
     // Run only when --probe names them. Probes 26 to 28 each end their run with a planned
     // stall, and probe 29 needs another server setting, so none can join the default plan.
-    public static IReadOnlyList<string> OptInProbeNumbers { get; } = ["26", "27", "28", "29"];
+    // Probes 34 to 37 prepare licensed session 4 (#402); they need optional manual fixtures
+    // and create thousands of points, so they run only when selected too.
+    public static IReadOnlyList<string> OptInProbeNumbers { get; } = ["26", "27", "28", "29", "34", "35", "36", "37"];
+
+    // Probe 34: the point counts of the harness's result-size ladder, ascending, so that a
+    // stop loses only the larger rungs. At about 70 bytes of private frame per point name,
+    // 100 to 10,000 fit the 1 MiB worker response budget (#411) and 20,000 does not; 2,000 is
+    // the first rung beyond the former 64 KiB frame limit. The protobuf message is roughly a
+    // third of the frame, so no rung can reach the published clients' 4 MiB receive limit.
+    public static IReadOnlyList<int> ResultSizeLadder { get; } = [100, 500, 2000, 10000, 20000];
+
+    // Probe 35: two lines of harness text, sent through each callout's text or notes setter.
+    public static IReadOnlyList<string> CalloutLines { get; } = ["Briosa probe 35", "second line"];
 
     // Retired with the operations they probed: the operations were removed because these
     // probes showed they cannot work on either exact target. Probes 7 to 10 and 14 to 16
@@ -306,7 +318,239 @@ internal static class ProbeCatalog
         steps.Probe("p04-value", "4", "User interface profile with a profile file value (public API)",
             ProbeOperations.SetUserInterfaceProfile, Profile(manifest));
         AddRuntimeSelectProbe(steps, manifest);
+
+        // Licensed session 4 (#402).
+        AddResultSizeProbe(steps, manifest);
+        AddCalloutTextProbe(steps, manifest);
+        AddTcpNotesProbe(steps, manifest);
+        AddRobotMachineIdProbe(steps, manifest);
     }
+
+    // Probe 34 (#402, #399, #245): the size of representative list results, as the response
+    // budget applies to them. A B-spline through GFIT's four corners, then for each ladder rung
+    // a group of N evenly spaced points, its point count, and its point name list. Then two
+    // object name lists (the harness collection and the whole job), and, when the manifest
+    // names them, a large point group and a cloud from the job. Each list step records the
+    // number of returned elements and the response size: the private frame in the worker
+    // phase, the protobuf message in the public phase. A result over the budget arrives as the
+    // completed outputs-unavailable outcome and is recorded as such; the step's count is then
+    // the size of the list that did not fit. No name or coordinate is recorded.
+    private static void AddResultSizeProbe(StepList steps, FixtureManifest manifest)
+    {
+        var bspline = new Api.ConstructBSplineFromPointsRequest
+        {
+            ResultingBSplineName = Object(FixtureNames.ResultSizeBSpline, Api.ObjectType.BSpline)
+        };
+        bspline.PointList.AddRange(ResultSizeCurvePoints.Select(static name => Point(FixtureNames.GroupFit, name)));
+        steps.Probe("p34-bspline", "34", "Construct the B-spline BSZ through GFIT's four corners (the ladder's curve)",
+            ProbeOperations.ConstructBSplineFromPoints, bspline);
+
+        var previous = "p34-bspline";
+        foreach (var count in ResultSizeLadder)
+        {
+            var group = FixtureNames.ResultSizeGroup(count);
+            var points = new Api.ConstructPointsNSpacedOnCurvesRequest
+            {
+                NumberOfEvenlySpacedPoints = count,
+                ResultantGroupName = Object(group, Api.ObjectType.PointGroup),
+                ResultantPointNamePrefix = "P"
+            };
+            points.BSplineList.Add(Object(FixtureNames.ResultSizeBSpline, Api.ObjectType.BSpline));
+            var construct = $"p34-points-{count}";
+            steps.Add(steps.NewProbe(construct, "34",
+                string.Create(CultureInfo.InvariantCulture, $"Construct {count} points evenly spaced on BSZ in group {group}"),
+                ProbeOperations.ConstructPointsNSpacedOnCurves, points) with { Prerequisites = [previous] });
+            var counted = $"c34-count-{count}";
+            steps.Add(CountCheck(steps, counted, string.Create(CultureInfo.InvariantCulture, $"Count the points in {group}"),
+                ProbeOperations.GetNumberOfPointsInGroup, new Api.GetNumberOfPointsInGroupRequest { GroupName = Object(group, Api.ObjectType.PointGroup) }) with
+            {
+                Hypotheses = [new ProbeHypothesis("the group holds the requested points", "points_count", Observations.Count(count))],
+                Prerequisites = [construct]
+            });
+            steps.Add(SizeStep(steps, $"p34-list-{count}", string.Create(CultureInfo.InvariantCulture, $"Point name list of {group}: element count and response size"),
+                ProbeOperations.MakePointNameRefListFromGroup, new Api.MakePointNameRefListFromGroupRequest { GroupName = Object(group, Api.ObjectType.PointGroup) }) with
+            {
+                Hypotheses = [new ProbeHypothesis("every point name returned", "element_count", Observations.Count(count))],
+                Prerequisites = [counted]
+            });
+            previous = construct;
+        }
+
+        steps.Add(SizeStep(steps, "p34-objects-harness", "Object name list of every object in B277: element count and response size",
+            ProbeOperations.ObjectWildcardSelection, ObjectsNamed(FixtureNames.Collection, "*", Api.ObjectType.Any)));
+        steps.Add(SizeStep(steps, "p34-objects-job", "Object name list of every object in the job: element count and response size",
+            ProbeOperations.ObjectWildcardSelection, ObjectsNamed("*", "*", Api.ObjectType.Any)));
+
+        var largeGroup = manifest.ResultSizePointGroup ?? FixtureManifest.Placeholder.ResultSizePointGroup!;
+        var jobGroup = new Api.CollectionObjectName
+        {
+            CollectionName = largeGroup.Collection,
+            ObjectName = largeGroup.Name,
+            ObjectType = Api.ObjectType.PointGroup
+        };
+        steps.Add(CountCheck(steps, "c34-count-job-group", "Count the points in the manifest's large point group",
+            ProbeOperations.GetNumberOfPointsInGroup, new Api.GetNumberOfPointsInGroupRequest { GroupName = jobGroup }) with
+        {
+            RequiredFixture = FixtureKeys.ResultSizePointGroup
+        });
+        steps.Add(SizeStep(steps, "p34-list-job-group", "Point name list of the manifest's large point group: element count and response size",
+            ProbeOperations.MakePointNameRefListFromGroup, new Api.MakePointNameRefListFromGroupRequest { GroupName = jobGroup }) with
+        {
+            RequiredFixture = FixtureKeys.ResultSizePointGroup,
+            Prerequisites = ["c34-count-job-group"]
+        });
+
+        var cloud = manifest.ResultSizeCloud ?? FixtureManifest.Placeholder.ResultSizeCloud!;
+        steps.Add(CountCheck(steps, "c34-count-job-cloud", "Count the points in the manifest's cloud (no list operation returns cloud points)",
+            ProbeOperations.GetCloudPointCount, new Api.GetCloudPointCountRequest
+            {
+                CloudName = new Api.CollectionObjectName { CollectionName = cloud.Collection, ObjectName = cloud.Name, ObjectType = Api.ObjectType.Cloud }
+            }) with
+        {
+            RequiredFixture = FixtureKeys.ResultSizeCloud
+        });
+    }
+
+    // Probe 35 (#402, #220): the five callouts whose text or notes setter was corrected to
+    // SetEditTextArg, through the generated client. A setter that SA refuses is
+    // ArgumentRejected, so a recorded MP code means every setter, including the text one,
+    // returned true. The view's callout count is read before and after. The operator records
+    // any dialog after each step, and whether the two lines show in the callouts.
+    private static void AddCalloutTextProbe(StepList steps, FixtureManifest manifest)
+    {
+        var view = manifest.CalloutView ?? FixtureManifest.Placeholder.CalloutView!;
+        var destination = new Api.CollectionItemName
+        {
+            CollectionName = view.Collection,
+            ItemName = view.Name,
+            ItemType = Api.ItemType.CalloutView
+        };
+        void Callout(ProbeStep step, params string[] prerequisites) =>
+            steps.Add(step with { Checkpoints = OperatorCheckpoint.After, RequiredFixture = FixtureKeys.CalloutView, Prerequisites = prerequisites });
+
+        Callout(CountCheck(steps, "c35-callouts-before", "Count the callouts in the manifest's callout view",
+            ProbeOperations.GetNumberOfCalloutsInCalloutView, new Api.GetNumberOfCalloutsInCalloutViewRequest { CalloutView = destination }));
+        var text = new Api.CreateTextCalloutRequest { DestinationCalloutView = destination };
+        text.Text.AddRange(CalloutLines);
+        Callout(steps.NewProbe("p35-text", "35", "Text callout with two lines of text (SetEditTextArg Text)",
+            ProbeOperations.CreateTextCallout, text), "c35-callouts-before");
+        var point = new Api.CreatePointCalloutRequest
+        {
+            DestinationCalloutView = destination,
+            Point = Point(FixtureNames.GroupOne, "P1"),
+            DesiredCoordinateSystem = Api.CoordinateSystemType.Cartesian,
+            UseDefaultPlacement = true
+        };
+        point.Notes.AddRange(CalloutLines);
+        Callout(steps.NewProbe("p35-point", "35", "Point callout on B277::G1::P1 with two lines of notes (SetEditTextArg Notes)",
+            ProbeOperations.CreatePointCallout, point), "c35-callouts-before");
+        var comparison = new Api.CreatePointComparisonCalloutRequest
+        {
+            DestinationCalloutView = destination,
+            FirstPoint = Point(FixtureNames.GroupOne, "P1"),
+            SecondPoint = Point(FixtureNames.GroupOne, "P2"),
+            UseDefaultPlacement = true
+        };
+        comparison.AdditionalNotes.AddRange(CalloutLines);
+        Callout(steps.NewProbe("p35-point-comparison", "35", "Point comparison callout P1 to P2 with two lines of notes (SetEditTextArg Additional Notes)",
+            ProbeOperations.CreatePointComparisonCallout, comparison), "c35-callouts-before");
+        var relationship = new Api.CreateRelationshipCalloutRequest
+        {
+            DestinationCalloutView = destination,
+            RelationshipName = new Api.CollectionItemName
+            {
+                CollectionName = FixtureNames.Collection,
+                ItemName = FixtureNames.Relationship,
+                ItemType = Api.ItemType.Relationship
+            }
+        };
+        relationship.AdditionalNotes.AddRange(CalloutLines);
+        Callout(steps.NewProbe("p35-relationship", "35", "Relationship callout on B277::R1 with two lines of notes (SetEditTextArg Additional Notes)",
+            ProbeOperations.CreateRelationshipCallout, relationship), "c35-callouts-before");
+        // VG1's vectors take the names of the related points; P1 is one of them. A wrong vector
+        // name fails the MP after every setter returned true, so it cannot hide a refused setter.
+        var vector = new Api.CreateVectorCalloutRequest
+        {
+            DestinationCalloutView = destination,
+            VectorGroupName = Object(FixtureNames.VectorGroup, Api.ObjectType.VectorGroup),
+            VectorName = "P1",
+            UseDefaultPlacement = true
+        };
+        vector.AdditionalNotes.AddRange(CalloutLines);
+        Callout(steps.NewProbe("p35-vector", "35", "Vector callout on VG1 vector P1 with two lines of notes (SetEditTextArg Additional Notes)",
+            ProbeOperations.CreateVectorCallout, vector), "c35-callouts-before");
+        Callout(CountCheck(steps, "c35-callouts-after", "Count the callouts in the manifest's callout view again",
+            ProbeOperations.GetNumberOfCalloutsInCalloutView, new Api.GetNumberOfCalloutsInCalloutViewRequest { CalloutView = destination }),
+            "p35-text", "p35-point", "p35-point-comparison", "p35-relationship", "p35-vector");
+    }
+
+    // Probe 36 (#402, #220): Calculate TCP Fixture Uncertainties, whose Result Notes getter was
+    // corrected to GetEditTextArg, on the manifest's TCP fixture. A refused getter after MP code
+    // 2 is OutputRetrievalFailed with the getter's diagnostic; all nine outputs retrieved means
+    // it worked. The record keeps only the number of note lines.
+    private static void AddTcpNotesProbe(StepList steps, FixtureManifest manifest)
+    {
+        var tcp = manifest.TcpFixture ?? FixtureManifest.Placeholder.TcpFixture!;
+        var request = new Api.CalculateTcpFixtureUncertaintiesRequest
+        {
+            TcpFixture = new Api.CollectionObjectName
+            {
+                CollectionName = tcp.Fixture!.Collection,
+                ObjectName = tcp.Fixture.Name,
+                ObjectType = Api.ObjectType.Any
+            },
+            TcpInWorking = new Api.Transform()
+        };
+        request.TcpInWorking.Values.AddRange(tcp.TcpInWorking ?? IdentityTransform);
+        request.TcpMeasurements.AddRange(tcp.Measurements.Select(static point =>
+            new Api.PointName { CollectionName = point.Collection, GroupName = point.Group, TargetName = point.Target }));
+        steps.Add(steps.NewProbe("p36-notes", "36", "TCP fixture uncertainties with the Result Notes getter (GetEditTextArg)",
+            ProbeOperations.CalculateTcpFixtureUncertainties, request) with
+        {
+            Checkpoints = OperatorCheckpoint.After,
+            RequiredFixture = FixtureKeys.TcpFixture,
+            Hypotheses = [new ProbeHypothesis("all nine outputs retrieved, including the notes", ProbeOutcome.FactPrefix + "outputs_retrieved", "9 of 9")]
+        });
+    }
+
+    // Probe 37 (#402, #220): Get Robot/Machine Parameter, whose Machine ID is sent with the
+    // corrected SetColInstIdArg. The value is never recorded. Start and Stop Robot/Machine
+    // Interface carry the same correction, but they are exclusive workflows that no server
+    // setting admits, so no generated client can send them; the runbook records them as not run.
+    private static void AddRobotMachineIdProbe(StepList steps, FixtureManifest manifest)
+    {
+        var robot = manifest.RobotMachine ?? FixtureManifest.Placeholder.RobotMachine!;
+        steps.Add(steps.NewProbe("p37-parameter", "37", "Robot machine parameter by Machine ID (SetColInstIdArg)",
+            ProbeOperations.GetRobotMachineParameter, new Api.GetRobotMachineParameterRequest
+            {
+                MachineId = new Api.CollectionInstrumentId { CollectionName = robot.Collection, InstrumentId = robot.InstrumentId },
+                ParameterName = robot.ParameterName
+            }) with
+        {
+            Checkpoints = OperatorCheckpoint.After,
+            RequiredFixture = FixtureKeys.RobotMachine,
+            Hypotheses = [new ProbeHypothesis("the parameter value retrieved", ProbeOutcome.FactPrefix + "outputs_retrieved", "1 of 1")]
+        });
+    }
+
+    // GFIT's corners in order around the square, so the open curve has no crossing.
+    internal static IReadOnlyList<string> ResultSizeCurvePoints { get; } = ["P1", "P2", "P4", "P3"];
+
+    internal static IReadOnlyList<double> IdentityTransform { get; } = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+
+    // A count is an observation: an MP failure (for example a missing object) is recorded too.
+    private static ProbeStep CountCheck(StepList steps, string id, string purpose, ProbeOperation operation, IMessage request) =>
+        new(id, ProbeNumberOf(id), ProbeStepKind.Check, steps.Phase, purpose, operation, request,
+            CommandVariant.Shipped, ProbeOutcomes.Succeeded | ProbeOutcomes.MpFailed);
+
+    // A list whose size probe 34 measures. Any determinate outcome is the answer, including
+    // the completed outputs-unavailable outcome of a result over the budget.
+    private static ProbeStep SizeStep(StepList steps, string id, string purpose, ProbeOperation operation, IMessage request) =>
+        steps.NewProbe(id, "34", purpose, operation, request) with { MeasuresResponseSize = true };
+
+    // "c35-callouts-before" belongs to probe 35.
+    private static string ProbeNumberOf(string id) =>
+        new(id.Skip(1).TakeWhile(char.IsAsciiDigit).ToArray());
 
     // Probe 31 (#311, #357): the shipped mappings of Fit Geometry to Points and Fit Geometry
     // to Point Group Projected to Plane skip the seed setter when the seed is absent, by
@@ -678,6 +922,9 @@ internal static class ProbeCatalog
         steps.Variant("p04-blank", "4", "User interface profile with a blank file",
             ProbeOperations.SetUserInterfaceProfile, Profile(manifest), CommandVariant.Blank(ProfileFileLabel));
         AddExcludedGroupsProbe(steps, manifest);
+
+        // Licensed session 4 (#402): the same result sizes, measured as private frames.
+        AddResultSizeProbe(steps, manifest);
     }
 
     // Probe 33 (briosa-dotnet#39): every client offers USMN's Groups to be Excluded as

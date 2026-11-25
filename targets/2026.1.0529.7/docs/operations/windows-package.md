@@ -22,6 +22,12 @@ Verify the downloaded ZIP against its adjacent `.sha256` file before extraction.
 
 The archive contains one top-level directory. Extract that complete directory; do not move `Briosa.Server.exe`, `Briosa.Worker.exe`, or `Briosa.SpatialAnalyzer.Interop.dll` away from one another.
 
+See `licenses/README.md` and `licenses/index.json` for the included third-party
+components, versions, copyright attributions, licenses and notices.
+The Microsoft runtime files listed under `perFileLicenses` carry Microsoft's
+terms and fall outside Briosa's Apache-2.0 license. The archive includes both
+applicable texts, the .NET Library License and the Windows SDK License.
+
 ## Diagnostics
 
 Run the offline diagnostics command before starting the server:
@@ -53,7 +59,65 @@ The public endpoint has one authoritative configuration surface: `Briosa:Endpoin
 
 LAN, Internet, reverse-proxy, tunnel, shared-host, and other remotely reachable deployments are unsupported. Briosa currently has no client authentication, per-operation authorization, or TLS configuration. See the [public endpoint operator guide](endpoint-security.md) and [current threat model](../security/threat-model.md) before deployment.
 
-The worker admission budget defaults to 32 MiB and can be set with `Briosa__Worker__MaxRetainedWorkMiB` (1–1024 MiB). Each accepted request reserves 16 KiB plus eight times its protobuf wire size, capped at 1 MiB, before MP command mapping. The reservation remains charged while queued or in flight; this is a conservative retained-work budget, not an exact CLR heap measurement. The existing queue count remains an independent limit. Worker response frames are limited separately to 64 KiB, with one active exchange per worker.
+The worker admission budget defaults to 32 MiB and can be set with `Briosa__Worker__MaxRetainedWorkMiB` (1–1024 MiB). Each accepted request reserves 16 KiB plus eight times its protobuf wire size, capped at 1 MiB, before MP command mapping. The reservation remains charged while queued or in flight; this is a conservative retained-work budget, not an exact CLR heap measurement. The existing queue count remains an independent limit. Results have their own size limit (below), with one active exchange per worker.
+
+### Request and result sizes
+
+Requests and results have separate size limits.
+
+- **Requests.** A request message can be up to 64 KiB (65,536 bytes), as in
+  Server 0.10.0. gRPC rejects a larger request with `RESOURCE_EXHAUSTED` before
+  Briosa runs it. The server passes each request to its worker as JSON, which
+  can be larger than the request message. A request whose JSON is over 64 KiB
+  fails with the typed `INVALID_ARGUMENT` validation error and does not start.
+- **Results.** From Server 0.10.1, one result can be up to 1 MiB (1,048,576
+  bytes) in the worker's JSON encoding; Server 0.10.0 allowed 64 KiB. About
+  this much fits:
+  - text of about 1,000,000 plain ASCII characters, or less when it has
+    characters that JSON escapes. Quotes, `<`, `&`, control characters and
+    non-ASCII letters take up to 6 bytes per UTF-16 code unit, so a character
+    outside the Basic Multilingual Plane, such as an emoji, takes 12;
+  - about 55,000 full-precision numbers in a double list, or about 520,000
+    single-digit values;
+  - name lists with fewer entries, because each entry carries its collection
+    and group names.
+- **When a result is too large.** The MP command has run. The call fails with
+  `DATA_LOSS`, disposition `COMPLETED`, replay guidance `DO_NOT_REPLAY`, and
+  the MP result code in the error details. The failure kind and the reported
+  outputs depend on whether an output getter also faulted:
+  - **No getter faulted.** The failure kind is `OUTPUT_RETRIEVAL_FAILURE`, and
+    the call's diagnostic code is `worker-output-encoding-rejected`. Every output
+    is reported as failed, without repeating that code on each output. This is
+    the same as in Server 0.10.0.
+  - **A getter also faulted.** The failure kind is `SDK_CALL_FAULTED`, and each
+    output keeps its own status. A faulted getter stays failed. Successfully
+    retrieved values retained in the combined frame are marked retrieved; values
+    dropped to fit it are marked `worker-output-encoding-rejected`.
+
+  Because a 1 MiB result holds more, a call with a getter fault can report more
+  outputs as retrieved than Server 0.10.0 did. Its status, failure kind,
+  disposition, replay and recovery guidance, MP result code and diagnostic code
+  are the same.
+
+  Running the call again repeats the command and does not return the outputs;
+  split the work so that each result is smaller.
+- **Clients.** The published 0.5.0 clients for .NET, JavaScript/TypeScript
+  and Python receive every result up to this limit from Server 0.10.1 with no
+  configuration. The largest response a 1 MiB result produced in Briosa's tests
+  was 4,192,459 bytes, 1,845 bytes under the clients' default 4 MiB
+  (4,194,304-byte) receive limit. A client you build from the published
+  protocol needs a receive limit of at least 4 MiB, the default of grpc-dotnet,
+  grpc-js and grpcio.
+- **Memory.** In Briosa's tests, processing one result at the limit (six double
+  lists in one response) allocated about 30 MB (28.76 MiB) of server memory in
+  total. In one recorded cold measurement, the first call after the server
+  started allocated 37 MB, including one-time initialization. That is a
+  measurement, not a cap: how much initialization a first call includes varies.
+  These are totals allocated for one result,
+  not memory in use at one time. Concurrent calls, and responses still waiting
+  for a slow client to read them, each add their own. Encoding one result in
+  the worker holds at most 25 buffers of 64 KiB (1.56 MiB) plus 16 KiB of
+  escaping scratch, however large the result SpatialAnalyzer returns.
 
 ### Worker time bounds
 
@@ -77,7 +141,9 @@ The defaults are conservative starting points, not measurements. The quick budge
 
 A client deadline or cancellation stops that caller from waiting; it does not claim to cancel synchronous COM work already in flight. An MP request that the supervisor has not yet claimed is abandoned and never executed. Once the server accepts Start, Connect, Reconnect, or Recover, the exchange continues under the startup, readiness-probe, and shutdown bounds above even if the caller stops waiting. An accepted `LaunchSpatialAnalyzer` likewise keeps waiting for the application window under the application startup bound.
 
-Stopping the server (Ctrl+C, or **Stop server** in Control Center) lets accepted lifecycle work finish and then stops the worker. The server sets the host's shutdown bound from the settings above: `ApplicationStartupTimeout`, plus the longest accepted SDK exchange to a typed failure (a Connect: twice `StartupTimeout` plus `ReadinessProbeTimeout` plus 10 seconds), plus 15 seconds for the worker stop. That is 105 seconds at the defaults; a stop with nothing in flight is not slower. An MP command still in flight is not included. The stop waits for it under its execution budget, and if it outlasts the shutdown bound the host reports a shutdown failure and the server exits with an error after the command ends. The runtime lifecycle architecture (`docs/architecture/runtime-boundary-and-lifecycle.md` in the Briosa repository) gives the derivation.
+Stopping the server (Ctrl+C, or **Stop server** in Control Center) lets accepted lifecycle work finish and then stops the worker. The server sets the host's shutdown bound from the settings above: `ApplicationStartupTimeout`, plus the longest accepted SDK exchange to a typed failure (the longer of Connect and Recover; Connect is longer at the defaults), plus 15 seconds for the worker stop. That is 105 seconds at the defaults; a stop with nothing in flight is not slower. An MP command still in flight is not included. The stop waits for it under its execution budget, and if it outlasts the shutdown bound the host reports a shutdown failure and the server exits with an error after the command ends. The runtime lifecycle architecture (`docs/architecture/runtime-boundary-and-lifecycle.md` in the Briosa repository) gives the derivation.
+
+Server 0.10.1 and later publish the allowances that follow from these settings in `GetServerInfo`, as `lifecycle_bounds` in milliseconds: Start, launch, Connect, Recover, Stop, and close, the startup sizing rule with and without a launch, and the host shutdown bound. The first six cover individual lifecycle operations; the two startup values size a startup of several requests and are not server deadlines; the host shutdown bound describes the host's graceful shutdown cancellation window. A client can size its waits from them instead of from fixed defaults. See `HEALTH-AND-DISCOVERY.md` for each field's scope and units. The 0.5.0 clients ignore them and work with Server 0.10.1 unchanged.
 
 ### SpatialAnalyzer interaction mode
 
@@ -91,6 +157,8 @@ Job state or an argument value can make SpatialAnalyzer open a blocking dialog e
 | `Silent` | Recommended for unattended stations. SpatialAnalyzer shows the fewest dialogs. |
 | `Automatic` | SpatialAnalyzer's middle setting. |
 | `Manual` | SpatialAnalyzer's most interactive setting. |
+
+Server 0.10.1 and later report this setting in `GetServerInfo` as `configured_spatial_analyzer_interaction_mode`, whether or not SpatialAnalyzer is connected. It is the configured value, never a reading of SpatialAnalyzer's current mode; see `HEALTH-AND-DISCOVERY.md`.
 
 With any value other than `Unchanged`, each worker generation runs Set Interaction Mode after its readiness probe and before it reports ready, so the mode is in place before the first admitted MP. This happens at startup, after an explicit Connect, and after each SDK recovery. The step sends the configured SA mode, MP mode `Halt on Failure or Partial Success` and MP dialog mode `Allow Application Interaction`. The probe and the step share one `Briosa__Worker__ReadinessProbeTimeout` bound, so the setting does not raise the longest time a Start, Connect or recovery can take. If SpatialAnalyzer does not accept it (an MP code other than 2) or the step does not finish in time, the generation does not become ready. It then requires operator recovery, with diagnostic `interaction-mode-not-applied` or `interaction-mode-apply-timeout`. Each attempt is recorded as the `InteractionModeApplied` event (1202) in the [observability log](server-observability.md).
 

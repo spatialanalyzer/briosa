@@ -929,7 +929,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             if (retrieved)
             {
                 value = name == UndeliverableOutputName
-                    ? new string('x', WorkerControlProtocol.MaximumMessageBytes + 1)
+                    ? new string('x', WorkerControlProtocol.MaximumResponseBytes + 1)
                     : "scripted-output";
             }
 

@@ -36,7 +36,7 @@ public static class WorkerExecutionDelivery
 
     // Keep the phase, diagnostic code and every output's status. First mark each
     // output value that cannot be encoded on its own (non-finite, invalid, or
-    // alone over the frame bound); then, while the frame is still over the bound,
+    // alone over the response budget); then, while the frame is still over it,
     // drop the largest remaining value. If even a frame with every output marked
     // unavailable does not fit, send the fault with its per-output evidence
     // withheld: that frame has a fixed size, so the SDK call fault always arrives.
@@ -51,7 +51,7 @@ public static class WorkerExecutionDelivery
         {
             if (outputs[index].Retrieved &&
                 (!WorkerControlChannel.TryMeasureOutput(outputs[index], out sizes[index]) ||
-                    sizes[index] > WorkerControlProtocol.MaximumMessageBytes))
+                    sizes[index] > WorkerControlProtocol.MaximumResponseBytes))
             {
                 outputs[index] = EncodingRejected(outputs[index]);
             }

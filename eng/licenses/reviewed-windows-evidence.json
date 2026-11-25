@@ -1,0 +1,109 @@
+{
+  "runtimeVersion": "10.0.15",
+  "runtimeMap": {
+    "url": "https://github.com/dotnet/core/blob/main/license-information-windows.md",
+    "retrieved": "2026-11-24",
+    "rawSha256": "3bdf7142d570f11780d1a5fcb6cbe47f5cf4a15bc634acf8db93fe3be8837119"
+  },
+  "runtimeNativeFiles": {
+    "Microsoft.AspNetCore.App.Runtime.win-x64": {
+      "MIT": ["aspnetcorev2_inprocess.dll"]
+    },
+    "Microsoft.NETCore.App.Runtime.win-x64": {
+      "MIT": ["clretwrc.dll", "clrgc.dll", "clrgcexp.dll", "clrjit.dll", "createdump.exe", "hostfxr.dll", "hostpolicy.dll", "mscordaccore_amd64_amd64_10.0.1526.53008.dll", "mscordaccore.dll", "mscordbi.dll", "mscorrc.dll", "msquic.dll", "System.IO.Compression.Native.dll"],
+      ".NET Library License": ["coreclr.dll", "Microsoft.DiaSymReader.Native.amd64.dll"]
+    },
+    "Microsoft.WindowsDesktop.App.Runtime.win-x64": {
+      "MIT": ["PenImc_cor3.dll"],
+      ".NET Library License": ["PresentationNative_cor3.dll", "vcruntime140_cor3.dll", "wpfgfx_cor3.dll"],
+      "Windows SDK License": ["D3DCompiler_47_cor3.dll"]
+    }
+  },
+  "desktopSourceCommit": "8e0f8ed2312954727f8919d7d1c2f78b483b4ee7",
+  "projectApacheSha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+  "texts": {
+    ".NET Library License": {
+      "file": "dotnet-library-10.0.15.txt",
+      "url": "https://dotnet.microsoft.com/en-us/dotnet_library_license.htm",
+      "retrieved": "2026-11-24",
+      "rawSha256": "0f69be2c8ac44c3980047664c3347ff22cba5842dc9d8b0a88a4f0914645a780",
+      "sha256": "d2ebfe723dd9051da5ac0e130889d13550e7b3166cdaa509bb45aca058fad2d0"
+    },
+    "Windows SDK License": {
+      "file": "windows-sdk-10.0.15.txt",
+      "url": "https://learn.microsoft.com/en-us/legal/windows-sdk/license",
+      "retrieved": "2026-11-24",
+      "rawSha256": "32b15c0b65d5ba1fdc240bec8bcdc4fc3ebc47be31df59198e4884e73939c8f",
+      "sha256": "d293459c6ff34fea9654f6c767d6938108fce496032205e8e3469a11730d288e"
+    },
+    "wpf": {
+      "file": "dotnet-windowsdesktop/8e0f8ed2312954727f8919d7d1c2f78b483b4ee7/wpf-THIRD-PARTY-NOTICES.txt",
+      "url": "https://raw.githubusercontent.com/dotnet/dotnet/8e0f8ed2312954727f8919d7d1c2f78b483b4ee7/src/wpf/THIRD-PARTY-NOTICES.TXT",
+      "rawSha256": "d23dba2fee20c6b59d8f7088ee9ed372459c952a319b7ca90f3eec370cc76eb9",
+      "sha256": "55fcac28c047e0d453d91d091501929349566262901566d222590b6986386f57"
+    },
+    "winforms": {
+      "file": "dotnet-windowsdesktop/8e0f8ed2312954727f8919d7d1c2f78b483b4ee7/winforms-THIRD-PARTY-NOTICES.txt",
+      "url": "https://raw.githubusercontent.com/dotnet/dotnet/8e0f8ed2312954727f8919d7d1c2f78b483b4ee7/src/winforms/THIRD-PARTY-NOTICES.TXT",
+      "rawSha256": "5a412b38efae0b162dc0893b319023f4cd14a8985a0f9f9ae01ac052b37a36eb",
+      "sha256": "8750e8af0d782cc1c7e387ad18a7480f8f6adbf3b6e889edfe0b6231d9cdb77a"
+    },
+    "Google.Protobuf/3.36.2": {
+      "file": "protobuf-3.36.2.txt",
+      "url": "https://raw.githubusercontent.com/protocolbuffers/protobuf/2c74169b34066ceb8ddb6b882fcb3fb32d737a55/LICENSE",
+      "sha256": "6e5e117324afd944dcf67f36cf329843bc1a92229a8cd9bb573d7a83130fea7d"
+    },
+    ".NET Foundation MIT": {
+      "file": "dotnet-foundation-MIT.txt",
+      "url": "https://raw.githubusercontent.com/dotnet/dotnet/297acf930fb0f5c07fd4e51d78e521b4ad2e5d1f/src/runtime/LICENSE.TXT",
+      "sha256": "cfc21f5e8bd655ae997eec916138b707b1d290b83272c02a95c9f821b8c87310"
+    }
+  },
+  "sourceLicenses": {
+    "Google.Protobuf/3.36.2": {
+      "expression": "BSD-3-Clause",
+      "repository": "https://github.com/protocolbuffers/protobuf.git",
+      "commit": "2c74169b34066ceb8ddb6b882fcb3fb32d737a55",
+      "text": "Google.Protobuf/3.36.2"
+    },
+    "System.Diagnostics.DiagnosticSource/11.0.0": {
+      "expression": "MIT",
+      "repository": "https://github.com/dotnet/dotnet",
+      "commit": "297acf930fb0f5c07fd4e51d78e521b4ad2e5d1f",
+      "text": ".NET Foundation MIT"
+    }
+  },
+  "apacheSources": {
+    "https://github.com/grpc/grpc-dotnet.git": {
+      "commit": "a7767e28a2c2f4e89a17e9efb95f75e8a82637d0",
+      "rawSha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "https://github.com/serilog/serilog": {
+      "commit": "c00e17fdeb615d36c062569f7342f72c9ece4aa7",
+      "rawSha256": "73ba74dfaa520b49a401b5d21459a8523a146f3b7518a833eea5efa85130bf68"
+    },
+    "https://github.com/serilog/serilog-extensions-logging": {
+      "commit": "538cf2fd64baf760950e202a00dd426c6b76e18c",
+      "rawSha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08"
+    },
+    "https://github.com/serilog/serilog-sinks-async": {
+      "commit": "5c6e5df7dffe5535978475c9ce8c5c6fb1cc9dca",
+      "rawSha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1"
+    },
+    "https://github.com/serilog/serilog-sinks-file": {
+      "commit": "23c732a8658a0df2a5434fe69b0011800b14f0da",
+      "rawSha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1"
+    }
+  },
+  "grpcShared": {
+    "repository": "https://github.com/grpc/grpc-dotnet.git",
+    "commit": "a7767e28a2c2f4e89a17e9efb95f75e8a82637d0",
+    "url": "https://github.com/grpc/grpc-dotnet/blob/a7767e28a2c2f4e89a17e9efb95f75e8a82637d0/src/Shared/NonCapturingTimer.cs"
+  },
+  "icon": {
+    "source": "spatialanalyzer/briosa-brand@v2.0.0",
+    "commit": "a5250e8e2fc48fc07c94069f4c89e33b65f2cc21",
+    "licenseUrl": "https://github.com/spatialanalyzer/briosa-brand/blob/a5250e8e2fc48fc07c94069f4c89e33b65f2cc21/LICENSE",
+    "licenseSha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+  }
+}

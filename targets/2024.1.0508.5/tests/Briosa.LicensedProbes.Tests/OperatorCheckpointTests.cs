@@ -91,7 +91,7 @@ public sealed class OperatorCheckpointTests : IDisposable
     public async Task TheOperatorIsAskedAfterAnUnknownOutcomeAndTheStopStaysUnknown()
     {
         var plan = WatchedPlan();
-        var console = new FakeOperator((_, _) => "dialog: Example dialog (dismissed during the step)");
+        var console = new FakeOperator((_, _) => OperatorObservationText.DialogDismissed);
         var transport = new FakeTransport(ProbePhase.PublicApi, step => step.Id == Watched
             ? ProbeOutcome.Unknown("grpc:DeadlineExceeded", "untyped-rpc-failure")
             : TestSupport.Succeeding(step));
@@ -109,7 +109,7 @@ public sealed class OperatorCheckpointTests : IDisposable
         var plan = WatchedPlan();
         var record = await Run(plan, new FakeTransport(ProbePhase.PublicApi, TestSupport.Succeeding),
             new FakeOperator((step, timing) => step.Id == "p25-chart-missing-silent"
-                ? "dialog: Template Chart Not found (dismissed during the step)"
+                ? OperatorObservationText.DialogDismissed
                 : "none"));
 
         using var document = JsonDocument.Parse(ProbeRecorder.ToJson(record));
@@ -119,16 +119,16 @@ public sealed class OperatorCheckpointTests : IDisposable
         var watched = steps[Watched];
         var markdown = ProbeRecorder.ToMarkdown(record);
 
-        Assert.Equal(4, document.RootElement.GetProperty("schema_version").GetInt32());
+        Assert.Equal(ProbeRecorder.SchemaVersion, document.RootElement.GetProperty("schema_version").GetInt32());
         Assert.Equal(["before", "after"], watched.GetProperty("operator_checkpoints").EnumerateArray().Select(static t => t.GetString()));
         Assert.Equal(630, watched.GetProperty("client_timeout_seconds").GetInt64());
         Assert.Equal(0, watched.GetProperty("elapsed_ms").GetInt64());
         var observation = Assert.Single(chart.GetProperty("operator_observations").EnumerateArray());
         Assert.Equal("after", observation.GetProperty("timing").GetString());
-        Assert.Equal("dialog: Template Chart Not found (dismissed during the step)", observation.GetProperty("text").GetString());
+        Assert.Equal(OperatorObservationText.DialogDismissed, observation.GetProperty("text").GetString());
         Assert.Empty(steps["s-collection"].GetProperty("operator_checkpoints").EnumerateArray());
         Assert.Equal(JsonValueKind.Null, steps["s-collection"].GetProperty("client_timeout_seconds").ValueKind);
-        Assert.Contains("Operator after the result: `dialog: Template Chart Not found (dismissed during the step)`.", markdown, StringComparison.Ordinal);
+        Assert.Contains("Operator after the result: `dialog-dismissed`.", markdown, StringComparison.Ordinal);
         Assert.Contains("Operator before dispatch: `none`.", markdown, StringComparison.Ordinal);
     }
 
@@ -180,16 +180,73 @@ public sealed class OperatorCheckpointTests : IDisposable
     }
 
     [Fact]
+    public async Task TheLicenseAbortSignalEndsAPendingCheckpointAndIsSeenOutsideOne()
+    {
+        using var output = new StringWriter();
+        var console = NewConsole(output, TimeSpan.FromSeconds(60));
+        Assert.False(console.LicenseAbort.Raised);
+        Assert.Contains(FileOperatorConsole.LicenseAbortFileName, output.ToString(), StringComparison.Ordinal);
+
+        var pending = console.CheckpointAsync(AnyStep(), OperatorCheckpoint.After, CancellationToken.None);
+        await WaitForRequestAsync("001-p24-r0-after.response.txt");
+
+        // Only the signal's existence is read; its content never reaches a record.
+        await File.WriteAllTextAsync(Path.Combine(_root, FileOperatorConsole.LicenseAbortFileName), TestSupport.Sentinel);
+        Assert.Equal(OperatorObservationText.LicensePromptAbort, await pending);
+        Assert.True(console.LicenseAbort.Raised);
+
+        // Latched: removing the file does not lower it again.
+        File.Delete(Path.Combine(_root, FileOperatorConsole.LicenseAbortFileName));
+        Assert.True(console.LicenseAbort.Raised);
+        Assert.DoesNotContain(TestSupport.Sentinel, output.ToString(), StringComparison.Ordinal);
+        Assert.Equal(Path.Combine("out", FileOperatorConsole.DirectoryName, FileOperatorConsole.LicenseAbortFileName),
+            FileOperatorConsole.LicenseAbortPath("out"));
+    }
+
+    [Fact]
+    public async Task ACheckpointWhoseRequestFileCannotBeWrittenStopsWithoutAPathAndKeepsTheOutcome()
+    {
+        // The review's case: a request file of the same name already exists. The checkpoint is
+        // unanswered, the session stops, and the step's own outcome stays in the record.
+        using var output = new StringWriter();
+        var console = NewConsole(output, TimeSpan.FromSeconds(60));
+        await File.WriteAllTextAsync(Path.Combine(_root, "001-p02-value-after.request.txt"), "collision");
+        var plan = WatchedPlan();
+
+        var record = await ProbeSession.RunAsync(plan, new FakeTransport(plan.Phase, TestSupport.Succeeding), Clock, SessionIdentity.None,
+            new BeforeAnswered(console), CancellationToken.None);
+
+        Assert.Equal((ProbeSession.CheckpointStop, Watched), (record.StopReason, record.StoppedAt));
+        Assert.Equal(ProbeOutcomeKind.Succeeded, record.Steps.Single(static step => step.Step.Id == Watched).Outcome!.Kind);
+        Assert.Contains("its request file could not be written", output.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain(_root, output.ToString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    // Answers the before-dispatch checkpoint at once and hands the after-checkpoint to the file console.
+    private sealed class BeforeAnswered(FileOperatorConsole files) : IOperatorConsole
+    {
+        public LicenseAbortSignal LicenseAbort => files.LicenseAbort;
+
+        public void Dispatching(ProbeStep step, int ordinal, int count) => files.Dispatching(step, ordinal, count);
+
+        public void Completed(ProbeStep step, int ordinal, int count, ProbeOutcome outcome, long elapsedMilliseconds) =>
+            files.Completed(step, ordinal, count, outcome, elapsedMilliseconds);
+
+        public Task<string?> CheckpointAsync(ProbeStep step, OperatorCheckpoint timing, CancellationToken cancellationToken) =>
+            timing == OperatorCheckpoint.Before ? Task.FromResult<string?>(OperatorObservationText.None) : files.CheckpointAsync(step, timing, cancellationToken);
+    }
+
+    [Fact]
     public async Task TheFileConsoleWaitsForTheResponseFileAndNormalizesIt()
     {
         using var output = new StringWriter();
         var console = NewConsole(output, TimeSpan.FromSeconds(60));
 
         var pending = console.CheckpointAsync(AnyStep(), OperatorCheckpoint.Before, CancellationToken.None);
-        await AnswerAsync("001-p24-r0-before.response.txt", "  Dialog:   Encountered an improper argument.  \r\n");
+        await AnswerAsync("001-p24-r0-before.response.txt", "  Dialog-Dismissed   registry-0  \r\n");
         var answer = await pending;
 
-        Assert.Equal("dialog: Encountered an improper argument.", answer);
+        Assert.Equal("dialog-dismissed registry-0", answer);
         Assert.Contains("p24-r0 (probe 24)", await File.ReadAllTextAsync(Path.Combine(_root, "001-p24-r0-before.request.txt")), StringComparison.Ordinal);
         var text = output.ToString();
         Assert.Contains("OPERATOR CHECKPOINT 001-p24-r0-before: before dispatch of p24-r0.", text, StringComparison.Ordinal);
@@ -212,9 +269,9 @@ public sealed class OperatorCheckpointTests : IDisposable
         await AnswerAsync("001-p26-zero-match-stall-before.response.txt", "none");
         await before;
         var after = console.CheckpointAsync(stall, OperatorCheckpoint.After, CancellationToken.None);
-        await AnswerAsync("002-p26-zero-match-stall-after.response.txt", "dialog: No objects matched specified criteria.");
+        await AnswerAsync("002-p26-zero-match-stall-after.response.txt", OperatorObservationText.DialogDismissed);
 
-        Assert.Equal("dialog: No objects matched specified criteria.", await after);
+        Assert.Equal(OperatorObservationText.DialogDismissed, await after);
         Assert.Contains("PLANNED STALL p26-zero-match-stall: do not dismiss the SpatialAnalyzer dialog", output.ToString(), StringComparison.Ordinal);
         Assert.Contains("do not dismiss that one until the step has returned",
             await File.ReadAllTextAsync(Path.Combine(_root, "001-p26-zero-match-stall-before.request.txt")), StringComparison.Ordinal);
@@ -255,15 +312,15 @@ public sealed class OperatorCheckpointTests : IDisposable
         // can never see the file without this writer.
         var writer = new StreamWriter(new FileStream(Path.Combine(_root, "001-p24-r0-after.response.txt"),
             FileMode.CreateNew, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete));
-        await writer.WriteAsync("dialog: Templ");
+        await writer.WriteAsync("dialog-dis");
         await writer.FlushAsync();
         await Task.Delay(300);
 
         Assert.False(pending.IsCompleted, "A partly written answer must not be recorded.");
-        await writer.WriteAsync("ate Chart Not found");
+        await writer.WriteAsync("missed");
         await writer.DisposeAsync();
 
-        Assert.Equal("dialog: Template Chart Not found", await pending);
+        Assert.Equal(OperatorObservationText.DialogDismissed, await pending);
     }
 
     [Fact]
@@ -326,44 +383,70 @@ public sealed class OperatorCheckpointTests : IDisposable
         console.Dispatching(AnyStep(), 40, 70);
         console.Completed(AnyStep(), 40, 70, TestSupport.Outcome(ProbeOutcomeKind.MpFailed), 1234);
 
+        // The first line, written when the console starts, says how to signal a license prompt.
         var lines = output.ToString().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-        Assert.StartsWith("[040/070] p24-r0 (probe 24): dispatched at ", lines[0], StringComparison.Ordinal);
-        Assert.Equal("[040/070] p24-r0: MpFailed, MP code 3, 1234 ms.", lines[1]);
+        Assert.StartsWith("LICENSE PROMPT: ", lines[0], StringComparison.Ordinal);
+        Assert.StartsWith("[040/070] p24-r0 (probe 24): dispatched at ", lines[1], StringComparison.Ordinal);
+        Assert.Equal("[040/070] p24-r0: MpFailed, MP code 3, 1234 ms.", lines[2]);
     }
 
     [Theory]
     [InlineData("none", "none")]
     [InlineData("NONE", "none")]
-    [InlineData("none; InteractionMode registry value 2", "none; InteractionMode registry value 2")]
-    [InlineData("dialog: Blank 'High' Plane Not Allowed!", "dialog: Blank 'High' Plane Not Allowed!")]
-    [InlineData("dialog:No objects matched specified criteria.", "dialog: No objects matched specified criteria.")]
-    [InlineData("dialog:  two   spaces", "dialog: two spaces")]
+    [InlineData("none registry-2", "none registry-2")]
+    [InlineData("dialog-seen", "dialog-seen")]
+    [InlineData("Dialog-Dismissed  lines-shown", "dialog-dismissed lines-shown")]
+    [InlineData("dialog-dismissed lines-not-shown registry-0", "dialog-dismissed lines-not-shown registry-0")]
+    [InlineData("license-prompt-abort", "license-prompt-abort")]
     public void ValidObservationsAreNormalized(string raw, string expected)
     {
         Assert.True(OperatorObservationText.TryNormalize(raw, out var observation));
         Assert.Equal(expected, observation);
     }
 
+    // Only the closed vocabulary is accepted, so no dialog text, machine or account name,
+    // process id, license text or path can be recorded through a checkpoint.
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
     [InlineData("nonexistent")]
     [InlineData("ok")]
     [InlineData("dialog:")]
-    [InlineData("dialog: two\nlines")]
-    [InlineData(@"dialog: C:\path")]
-    [InlineData("dialog: `code`")]
-    [InlineData("dialog: a | b")]
-    [InlineData("dialog: non-ASCII ’ apostrophe")]
+    [InlineData("dialog: Template Chart Not found")]
+    [InlineData("none; seen on DESKTOP-SENTINEL by someone")]
+    [InlineData("dialog-seen pid-4242")]
+    [InlineData("license-prompt-abort lines-shown")]
+    [InlineData("none lines-shown lines-shown")]
+    [InlineData("dialog-seen registry-10")]
+    [InlineData("dialog-dismissed lines-shown registry-1 registry-2")]
+    [InlineData("license key ABCD-1234-EFGH")]
+    [InlineData(@"none C:\Users\someone")]
+    [InlineData("none\nlines-shown")]
     public void InvalidObservationsAreRefused(string raw)
     {
         Assert.False(OperatorObservationText.TryNormalize(raw, out _));
     }
 
-    [Fact]
-    public void LongObservationsAreRefused()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ALicensePromptAnswerStopsTheSessionAndNothingMoreIsSent(bool before)
     {
-        Assert.True(OperatorObservationText.TryNormalize("dialog: " + new string('x', OperatorObservationText.MaximumLength - 8), out _));
-        Assert.False(OperatorObservationText.TryNormalize("dialog: " + new string('x', OperatorObservationText.MaximumLength - 7), out _));
+        var plan = WatchedPlan();
+        var transport = new FakeTransport(ProbePhase.PublicApi, TestSupport.Succeeding);
+        var console = new FakeOperator((step, timing) => step.Id == Watched &&
+            timing == (before ? OperatorCheckpoint.Before : OperatorCheckpoint.After)
+                ? OperatorObservationText.LicensePromptAbort
+                : "none");
+
+        var record = await Run(plan, transport, console);
+        var step = record.Steps.Single(static step => step.Step.Id == Watched);
+
+        Assert.Equal(ProbeSession.LicensePromptStop, record.StopReason);
+        Assert.Equal(Watched, record.StoppedAt);
+        Assert.Equal(before, !transport.Executed.Contains(Watched));
+        Assert.Equal(before ? StepClassification.Refused : StepClassification.Observed, step.Classification);
+        Assert.All(record.Steps.SkipWhile(static item => item.Step.Id != Watched).Skip(1),
+            static item => Assert.Equal(StepClassification.NotRun, item.Classification));
     }
 }
