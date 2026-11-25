@@ -22,6 +22,12 @@ Verify the downloaded ZIP against its adjacent `.sha256` file before extraction.
 
 The archive contains one top-level directory. Extract that complete directory; do not move `Briosa.Server.exe`, `Briosa.Worker.exe`, or `Briosa.SpatialAnalyzer.Interop.dll` away from one another.
 
+See `licenses/README.md` and `licenses/index.json` for the included third-party
+components, versions, copyright attributions, licenses and notices.
+The Microsoft runtime files listed under `perFileLicenses` carry Microsoft's
+terms and fall outside Briosa's Apache-2.0 license. The archive includes both
+applicable texts, the .NET Library License and the Windows SDK License.
+
 ## Diagnostics
 
 Run the offline diagnostics command before starting the server:
