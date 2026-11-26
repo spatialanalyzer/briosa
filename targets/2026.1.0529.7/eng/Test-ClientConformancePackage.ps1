@@ -677,8 +677,10 @@ foreach ($index in 1..200) {
                     "D $(& $stamp 90) | v1.14.6 $PID | channel | (2) dns:127.0.0.1:5000 createResolvingCall [1] method=`"/briosa.DiscoveryService/GetServerInfo`", deadline=Infinity",
                     "`tgenuine-indented-fixture-line",
                     "D $(& $stamp 95) | v1.14.6 $PID | subchannel_call | [2] Received server headers:",
+                    "`t`t:status: 200",
                     "`t`tcontent-type: application/grpc",
                     "`t`tx-peer: 127.0.0.1",
+                    "",
                     "D $(& $stamp 96) | v1.14.6 $PID | subchannel_call | [2] write() called with message of length 5",
                     "D $(& $stamp 103) | v1.14.6 $PID | resolving_call | [1] ended with status: code=0 details=`"`"",
                     "D $(& $stamp 190) | v1.14.6 $PID | channel | (2) dns:127.0.0.1:5000 createResolvingCall [3] method=`"/briosa.FileOperations/GetWorkingDirectory`", deadline=Infinity",
@@ -687,6 +689,7 @@ foreach ($index in 1..200) {
                     "`t`tgrpc-message: secret-status-message",
                     "`t`tbriosa-operation-error-bin: c2VjcmV0LXRyYWlsZXI=",
                     "`t`tx-custom: secret-header-value",
+                    "",
                     "D $(& $stamp 205) | v1.14.6 $PID | resolving_call | [3] ended with status: code=7 details=`"secret-status-detail`"",
                     "D $(& $stamp 290) | v1.14.6 $PID | channel | (2) dns:127.0.0.1:5000 createResolvingCall [5] method=`"/briosa.DiscoveryService/ListCapabilities`", deadline=Infinity")) {
                 [Console]::Error.WriteLine($line)

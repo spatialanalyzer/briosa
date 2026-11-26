@@ -152,7 +152,7 @@ $clientTraceDotNetProviders = "Grpc.Net.Client:0xFFFFFFFFFFFFFFFF:5"
 # records are never saved: the runner keeps only the events it can render from
 # validated names, numbers and times, and counts the rest.
 $clientTraceJavaScriptRecord = '\AD (?<time>[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z) \| v[0-9]+\.[0-9]+\.[0-9]+ (?<pid>[0-9]{1,10}) \| (?<tracer>channel|resolving_call|subchannel|subchannel_call|transport) \| (?<text>.*)\z'
-$clientTraceJavaScriptHeaderLine = '\A\t\t(?<name>[a-z0-9-]{1,64}): '
+$clientTraceJavaScriptHeaderLine = '\A\t\t(?<name>:?[a-z0-9-]{1,64}): '
 $clientTracePythonRecord = '\AI(?<date>[0-9]{4}) (?<time>[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{6}) +(?<thread>[0-9]{1,10}) (?<file>[a-z0-9_]{1,64}\.cc):[0-9]{1,6}\] (?<text>.*)\z'
 $clientTraceMethod = '/[A-Za-z][A-Za-z0-9_.]{0,127}/[A-Za-z][A-Za-z0-9_]{0,127}'
 $clientTraceTrailerNames = New-OrdinalSet @("grpc-status", "grpc-message", "briosa-operation-error-bin",
@@ -2047,7 +2047,13 @@ function Split-ClientTrace {
         $headers = $null
         foreach ($line in ($ErrorOutput -split "\r?\n")) {
             if ($null -ne $headers) {
-                $header = [regex]::Match($line, $clientTraceJavaScriptHeaderLine)
+                # grpc-js ends a header list with an empty line.
+                if ($line.Length -eq 0) {
+                    $headers.Ended = $true
+                    continue
+                }
+                $header = $(if ($headers.Ended) { [regex]::Match('', '\A\z(?!)') } else {
+                        [regex]::Match($line, $clientTraceJavaScriptHeaderLine) })
                 if ($header.Success) {
                     if ($headers.Trailers -and $clientTraceTrailerNames.Contains($header.Groups["name"].Value)) {
                         $headers.Names.Add($header.Groups["name"].Value)
@@ -2083,6 +2089,7 @@ function Split-ClientTrace {
                         Index = $events.Count - 1
                         Trailers = $event.EndsWith(" received trailers", [StringComparison]::Ordinal)
                         Names = [Collections.Generic.List[string]]::new()
+                        Ended = $false
                     }
                 }
                 continue
