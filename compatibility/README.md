@@ -42,6 +42,16 @@ tested it, so a newer fixture never has to build against an older package.
 previously recorded evidence and these pins remain verifiable after a fixture
 advances.
 
+A fixture source may also list `optionalScenarios`: the optional conformance
+scenarios its scripts request whenever the packaged runner and scenario contract
+offer them. Each entry must be a distinct scenario ID that
+`targets/<target>/conformance/client/v1/scenarios.json` offers for both targets.
+Every accepted job that runs on that fixture must then show each listed scenario
+passed exactly once, whichever client version it tests. A rejection job requests
+no optional scenario, so it requires none. A fixture keeps its list when it moves to
+`historicalFixtureSources`, so a client still pinned to it keeps the
+requirement.
+
 The initial 0.7.0 bootstrap remains historical evidence; the empty-inventory
 exception is no longer active. All twelve published 0.2.0 and 0.3.0 products are recorded with their
 actual registry artifacts. Each passed all 12 scenarios against released Server
@@ -115,15 +125,22 @@ For Server 0.10.1, each target's `compatibility.json` declares contract 3.1
 ([#397](https://github.com/spatialanalyzer/briosa/issues/397)). The published
 `0.5.0` clients require 3.0, which 3.1 satisfies. Both targets use the fixtures
 from the merged .NET, JavaScript, and Python 0.5.1 pull requests (`f03d2c8c`,
-`4e5ab1ce`, and `f101fcdf`) to test the published 0.5.0 packages. Their scripts
+`4e5ab1ce`, and `f101fcdf`) to test the published packages. Their scripts
 request `large-result` when the packaged runner and scenario contract offer it,
 and the fixtures report the exact UTF-8 byte length and SHA-256 of the value
-received. The retained-client workflow fails a published 0.5.0 job unless the
-packaged runner reports `large-result` as passed exactly once. The six 0.4.0
-packages keep their explicit fixture pins and still run only to
-verify pre-launch rejection. As for earlier releases, the matrix keeps declaring
-the contract of its recorded release evidence, 3.0, until the 0.10.1 release
-gate's reports are recorded.
+received. Six published `0.5.1` packages now join the `0.5.0` packages for the
+three client languages and both exact targets. They were published from the
+same commits as those fixtures, the `v0.5.1` tags of briosa-dotnet, briosa-js,
+and briosa-py, so they run on the current fixtures without a pin of their own.
+Like the `0.5.0` packages, they require contract 3.0. The three current fixture
+sources list `large-result` in `optionalScenarios`, so the retained-client
+workflow fails an accepted `0.5.0` or `0.5.1` job unless the packaged runner
+reports `large-result` as passed exactly once. The six 0.4.0 packages keep their
+explicit fixture pins and still run only to verify pre-launch rejection. The
+gate runs eighteen jobs: six rejections and twelve published accepts. As for
+earlier releases, the matrix keeps declaring the contract of its recorded
+release evidence, 3.0, and the published `0.5.0` clients until the 0.10.1
+release gate's reports are recorded.
 
 Each new tested pair records `expectedCompatibility`. An accepted pair passed
 the fake-SDK scenarios listed in its report; a rejected pair proves

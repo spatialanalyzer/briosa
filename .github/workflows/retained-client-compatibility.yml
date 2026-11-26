@@ -100,6 +100,7 @@ jobs:
           CLIENT_LANGUAGE: ${{ matrix.language }}
           CLIENT_PUBLISHED: ${{ matrix.published }}
           EXPECT_INCOMPATIBLE: ${{ matrix.expectIncompatible }}
+          REQUIRED_OPTIONAL_SCENARIOS: ${{ toJSON(matrix.requiredOptionalScenarios) }}
           CLIENT_CONTRACT_MAJOR: ${{ matrix.requiredContract.major }}
           SA_TARGET: ${{ matrix.target }}
           SERVER_VERSION: ${{ inputs.server-version }}
@@ -111,6 +112,7 @@ jobs:
           # scenario, the property and a count, never the value.
           BRIOSA_CONFORMANCE_DIGEST_AUDIT: ${{ github.workspace }}/conformance-digest-audit.txt
         run: |
+          Import-Module ./eng/RetainedClientPolicy.psm1
           if ($env:CLIENT_PUBLISHED -eq 'true') {
             $package = Join-Path $PWD $env:CLIENT_FILE
             Invoke-WebRequest $env:CLIENT_URL -OutFile $package
@@ -152,19 +154,17 @@ jobs:
           # Fixture source and package source are separately pinned. The fixture
           # uses the public API from an isolated verified package installation.
           Push-Location (Join-Path $PWD "retained-client/targets/$env:SA_TARGET")
-          # The fixture's report lists the scenarios it requested. Count the
-          # runner's own pass line, printed only after it validated the receipt,
-          # so a published 0.5.0 job cannot pass without large-result having run.
+          # The policy lists the optional scenarios, such as large-result, that
+          # this job's fixture requests. An accepted job fails unless the runner's
+          # own pass line shows each of them exactly once, whichever client
+          # version it tests. A rejection lists none.
           try {
-            $largeResultPasses = 0
+            $runnerOutput = [Collections.Generic.List[string]]::new()
             & ./eng/Test-PublishedClientConformance.ps1 @arguments 6>&1 | ForEach-Object {
-              if ([string]$_ -cmatch '^Passed client conformance scenario: large-result(?: \(|$)') { $largeResultPasses++ }
+              $runnerOutput.Add([string]$_)
               $_
             }
-            if ($env:CLIENT_PUBLISHED -eq 'true' -and $env:CLIENT_VERSION -eq '0.5.0' -and
-                -not $arguments.ExpectIncompatible -and $largeResultPasses -ne 1) {
-              throw 'Published 0.5.0 must pass large-result exactly once.'
-            }
+            Assert-OptionalScenarioPasses -RequiredScenarioJson $env:REQUIRED_OPTIONAL_SCENARIOS -RunnerOutput $runnerOutput.ToArray() -ClientVersion $env:CLIENT_VERSION
           }
           finally { Pop-Location }
       - name: Check the conformance digest vocabulary

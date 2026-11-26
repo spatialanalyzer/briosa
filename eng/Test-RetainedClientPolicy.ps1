@@ -36,17 +36,36 @@ function New-PublishedClient {
         requiredContract = @{ major = $Major; minimumRevision = 0 }
     }
 }
+# The workflow's policy step serializes the plan, and the job passes toJSON of its list to the
+# gate. Round-trip the same way, so a one-element list must survive as a JSON array.
+function Get-WorkflowScenarioJson {
+    param([hashtable]$Item)
+    $job = (@{ include = @($Item) } | ConvertTo-Json -Depth 8 -Compress | ConvertFrom-Json).include[0]
+    if ($job.PSObject.Properties.Name -cnotcontains 'requiredOptionalScenarios') { return 'null' }
+    return ConvertTo-Json -InputObject $job.requiredOptionalScenarios -Compress
+}
+function Assert-GateRejected {
+    param([hashtable]$Item, [string[]]$RunnerOutput, [string]$Message, [string]$Json = (Get-WorkflowScenarioJson $Item))
+    $failure = $null
+    try { Assert-OptionalScenarioPasses -RequiredScenarioJson $Json -RunnerOutput $RunnerOutput -ClientVersion $Item.version }
+    catch { $failure = $_.Exception.Message }
+    if ($failure -cne $Message) { throw "Expected the gate failure '$Message', got '$failure'." }
+}
 try {
     $languages = @('dotnet', 'js', 'py')
     $targets = @('2026.1.0529.7', '2024.1.0508.5')
+    $offeredScenarios = '{"optional_scenarios":[{"id":"large-result"}]}'
     foreach ($target in $targets) {
         $directory = Join-Path $temporary "targets/$target"
         [IO.Directory]::CreateDirectory($directory) | Out-Null
         # Mirrors the current servers: Server 0.10.1 declares 3.1, and clients requiring 3.0 still run.
         '{"schemaVersion":1,"major":3,"revision":1}' | Set-Content (Join-Path $directory 'compatibility.json')
+        [IO.Directory]::CreateDirectory((Join-Path $directory 'conformance/client/v1')) | Out-Null
+        $offeredScenarios | Set-Content (Join-Path $directory 'conformance/client/v1/scenarios.json')
     }
-    # The current fixture builds the major-3 source candidates. The earlier fixture is the one
-    # that tested the published previous-major packages, so they keep it as their own pin.
+    # The current fixture builds the major-3 source candidates and requests large-result. The
+    # earlier fixture is the one that tested the published previous-major packages, so they keep
+    # it as their own pin. It requests no optional scenario.
     $current = @{ dotnet = '1' * 40; js = '2' * 40; py = '3' * 40 }
     $earlier = @{ dotnet = '4' * 40; js = '5' * 40; py = '6' * 40 }
     $clients = @()
@@ -67,12 +86,13 @@ try {
     }
     $valid = @{
         schemaVersion = 3; clients = $clients; retiredClients = $retired; candidates = $candidates
-        fixtureSources = @($languages | ForEach-Object { @{ language = $_; sourceRevision = $current[$_] } })
+        fixtureSources = @($languages | ForEach-Object { @{ language = $_; sourceRevision = $current[$_]; optionalScenarios = @('large-result') } })
         historicalFixtureSources = @($languages | ForEach-Object { @{ language = $_; sourceRevision = $earlier[$_] } })
     }
 
     # Development: six previous-major rejections on their own fixture pins and six source
-    # candidates on the current fixture. Retired clients never run.
+    # candidates on the current fixture. Retired clients never run. Only accepted jobs require
+    # their fixture's optional scenarios.
     $plan = Get-Plan $valid
     $rejections = @($plan.include | Where-Object expectIncompatible)
     $compatible = @($plan.include | Where-Object { -not $_.expectIncompatible })
@@ -80,6 +100,10 @@ try {
         @($rejections | Where-Object { $_.version -cne '0.4.0' -or -not $_.published -or $_.fixtureSourceRevision -cne $earlier[$_.language] }).Count -ne 0 -or
         @($compatible | Where-Object { $_.version -cne '0.5.0' -or $_.published -or $_.fixtureSourceRevision -cne $current[$_.language] }).Count -ne 0) {
         throw 'The development matrix must run six pinned previous-major rejections and six current-fixture candidates, and no retired client.'
+    }
+    if (@($rejections | Where-Object { (Get-WorkflowScenarioJson $_) -cne '[]' }).Count -ne 0 -or
+        @($compatible | Where-Object { (Get-WorkflowScenarioJson $_) -cne '["large-result"]' }).Count -ne 0) {
+        throw 'Accepted jobs must require their fixture optional scenarios, and rejections none.'
     }
     Assert-Rejected $valid 'Server 0.10.0 cannot release until compatible clients are published' -Release
 
@@ -92,6 +116,8 @@ try {
     $unknownPin = 'Published client fixture pins must name a current or historical fixture source of the same language.'
     $candidatePin = 'Source candidates use the current fixture source and cannot pin another.'
     $invalidHistory = 'Historical fixture sources must pin distinct immutable revisions.'
+    $invalidOptional = 'Fixture optional scenarios must list distinct scenario IDs.'
+    $unofferedOptional = 'Fixture optional scenarios must be offered by the scenario contract of every exact target.'
     $cases = @(
         # Schema 3 only.
         @{ message = 'Unsupported retained-client policy.'; change = { param($p) $p.schemaVersion = 2 } }
@@ -132,12 +158,25 @@ try {
         @{ message = $candidatePin; change = { param($p) $p.candidates[0].fixtureSourceRevision = $earlier.dotnet } }
         @{ message = $invalidHistory; change = { param($p) $p.historicalFixtureSources[0].sourceRevision = 'main' } }
         @{ message = $invalidHistory; change = { param($p) $p.historicalFixtureSources += $p.fixtureSources[0] } }
+        # A fixture's optional scenarios are distinct contract IDs that both targets offer.
+        @{ message = $invalidOptional; change = { param($p) $p.fixtureSources[0].optionalScenarios = @() } }
+        @{ message = $invalidOptional; change = { param($p) $p.fixtureSources[0].optionalScenarios = 'large-result' } }
+        @{ message = $invalidOptional; change = { param($p) $p.fixtureSources[0].optionalScenarios = @('large-result', 'large-result') } }
+        @{ message = $invalidOptional; change = { param($p) $p.fixtureSources[0].optionalScenarios = @('Large_Result') } }
+        @{ message = $invalidOptional; change = { param($p) $p.fixtureSources[0].optionalScenarios = @(1) } }
+        @{ message = $unofferedOptional; change = { param($p) $p.fixtureSources[0].optionalScenarios = @('large-result', 'huge-result') } }
+        @{ message = $unofferedOptional; change = { param($p) $p.historicalFixtureSources[0].optionalScenarios = @('huge-result') } }
     )
     foreach ($case in $cases) {
         $changed = Copy-Policy $valid
         & $case.change $changed
         Assert-Rejected $changed $case.message
     }
+    # Both targets must offer the scenario, since a fixture tests both.
+    $secondContract = Join-Path $temporary "targets/$($targets[1])/conformance/client/v1/scenarios.json"
+    '{"scenarios":[]}' | Set-Content $secondContract
+    try { Assert-Rejected $valid $unofferedOptional }
+    finally { $offeredScenarios | Set-Content $secondContract }
 
     # A published client may also pin the current fixture of its language.
     $changed = Copy-Policy $valid
@@ -145,29 +184,78 @@ try {
     $item = @((Get-Plan $changed).include | Where-Object { $_.language -ceq 'dotnet' -and $_.target -ceq $changed.clients[0].target -and $_.version -ceq '0.4.0' })
     if ($item.Count -ne 1 -or $item[0].fixtureSourceRevision -cne $current.dotnet) { throw 'A published client must run with its own fixture pin.' }
 
-    # Release: the published major-3 packages replace the candidates. Without a pin they run on
-    # the current fixture, beside the pinned previous-major rejections.
+    # Release: the published 0.5.0 packages replace the candidates, and the published 0.5.1
+    # packages join them. Without a pin both run on the current fixture, beside the pinned
+    # previous-major rejections.
     $published = Copy-Policy $valid
     foreach ($candidate in $published.candidates) {
-        $client = New-PublishedClient $candidate.language $candidate.target '0.5.0' 3
-        $client.sourceRevision = $candidate.sourceRevision
-        $published.clients += $client
+        foreach ($version in @('0.5.0', '0.5.1')) {
+            $client = New-PublishedClient $candidate.language $candidate.target $version 3
+            $client.sourceRevision = $candidate.sourceRevision
+            $published.clients += $client
+        }
     }
     $published.candidates = @()
     $release = Get-Plan $published -Release
-    if ($release.include.Count -ne 12 -or @($release.include | Where-Object { -not $_.published }).Count -ne 0 -or
-        @($release.include | Where-Object { $_.version -ceq '0.4.0' -and $_.expectIncompatible -and $_.fixtureSourceRevision -ceq $earlier[$_.language] }).Count -ne 6 -or
-        @($release.include | Where-Object { $_.version -ceq '0.5.0' -and -not $_.expectIncompatible -and $_.fixtureSourceRevision -ceq $current[$_.language] }).Count -ne 6) {
-        throw 'Published positive and negative pairs must both remain covered.'
+    $accepted = @($release.include | Where-Object { -not $_.expectIncompatible })
+    if ($release.include.Count -ne 18 -or @($release.include | Where-Object { -not $_.published }).Count -ne 0 -or
+        @($release.include | Where-Object { $_.version -ceq '0.4.0' -and $_.expectIncompatible -and $_.fixtureSourceRevision -ceq $earlier[$_.language] -and (Get-WorkflowScenarioJson $_) -ceq '[]' }).Count -ne 6 -or
+        @($accepted | Where-Object { $_.version -ceq '0.5.0' -and $_.fixtureSourceRevision -ceq $current[$_.language] -and (Get-WorkflowScenarioJson $_) -ceq '["large-result"]' }).Count -ne 6 -or
+        @($accepted | Where-Object { $_.version -ceq '0.5.1' -and $_.fixtureSourceRevision -ceq $current[$_.language] -and (Get-WorkflowScenarioJson $_) -ceq '["large-result"]' }).Count -ne 6) {
+        throw 'Published positive and negative pairs must both remain covered, and every accepted job must require large-result.'
     }
+
+    # The workflow gate: an accepted 0.5.0 or 0.5.1 job passes only when the runner printed its
+    # large-result pass line exactly once. A pass line for another scenario does not count.
+    $passLine = 'Passed client conformance scenario: large-result (startup 1.1 s)'
+    $otherLines = @('Passed client conformance scenario: control-plane-only', 'Passed client conformance scenario: large-result-extended', '')
+    foreach ($version in @('0.5.0', '0.5.1')) {
+        $job = @($accepted | Where-Object { $_.version -ceq $version -and $_.language -ceq 'py' -and $_.target -ceq $targets[0] })[0]
+        $missing = "Client $version must pass large-result exactly once."
+        Assert-OptionalScenarioPasses -RequiredScenarioJson (Get-WorkflowScenarioJson $job) -RunnerOutput ($otherLines + $passLine) -ClientVersion $version
+        Assert-GateRejected $job $otherLines $missing
+        Assert-GateRejected $job @() $missing
+        Assert-GateRejected $job ($otherLines + $passLine + $passLine) $missing
+    }
+    $job051 = @($accepted | Where-Object { $_.version -ceq '0.5.1' })[0]
+    $planGap = 'The retained-client plan must list the optional scenarios each job requires.'
+    Assert-GateRejected $job051 @($passLine) $planGap -Json 'null'
+    Assert-GateRejected $job051 @($passLine) $planGap -Json '"large-result"'
+    # A rejection job requests no optional scenario and requires none.
+    $rejection = @($release.include | Where-Object expectIncompatible)[0]
+    Assert-OptionalScenarioPasses -RequiredScenarioJson (Get-WorkflowScenarioJson $rejection) -RunnerOutput @() -ClientVersion $rejection.version
+
+    # The requirement follows the fixture a client runs with: a published client pinned to a
+    # fixture without optional scenarios requires none, and one pinned to a historical fixture
+    # that lists large-result requires it.
+    $pinnedPolicy = Copy-Policy $published
+    $pinnedClient = @($pinnedPolicy.clients | Where-Object { $_.version -ceq '0.5.1' -and $_.language -ceq 'js' })[0]
+    $pinnedClient.fixtureSourceRevision = $earlier.js
+    $pinnedJob = @((Get-Plan $pinnedPolicy -Release).include | Where-Object { $_.version -ceq '0.5.1' -and $_.language -ceq 'js' -and $_.target -ceq $pinnedClient.target })
+    if ($pinnedJob.Count -ne 1 -or $pinnedJob[0].expectIncompatible -or (Get-WorkflowScenarioJson $pinnedJob[0]) -cne '[]') {
+        throw 'A client pinned to a fixture without optional scenarios must require none.'
+    }
+    $earlierFixture = @($pinnedPolicy.historicalFixtureSources | Where-Object { $_.language -ceq 'js' })[0]
+    $earlierFixture.optionalScenarios = @('large-result')
+    $pinnedPlan = (Get-Plan $pinnedPolicy -Release).include
+    $pinnedJob = @($pinnedPlan | Where-Object { $_.version -ceq '0.5.1' -and $_.language -ceq 'js' -and $_.target -ceq $pinnedClient.target })
+    if ($pinnedJob.Count -ne 1 -or (Get-WorkflowScenarioJson $pinnedJob[0]) -cne '["large-result"]') {
+        throw 'A client pinned to a historical fixture must require that fixture optional scenarios.'
+    }
+    # The js 0.4.0 rejections use that same fixture and still require none.
+    $pinnedRejections = @($pinnedPlan | Where-Object { $_.version -ceq '0.4.0' -and $_.language -ceq 'js' })
+    if ($pinnedRejections.Count -ne 2 -or @($pinnedRejections | Where-Object { -not $_.expectIncompatible -or (Get-WorkflowScenarioJson $_) -cne '[]' }).Count -ne 0) {
+        throw 'A rejection must require no optional scenario, whichever fixture it runs with.'
+    }
+
     # After that release, the previous-major clients may be retired too.
     $published.retiredClients += @($published.clients | Where-Object { $_.version -ceq '0.4.0' })
     $published.clients = @($published.clients | Where-Object { $_.version -cne '0.4.0' })
     $release = Get-Plan $published -Release
-    if ($release.include.Count -ne 6 -or @($release.include | Where-Object expectIncompatible).Count -ne 0) {
+    if ($release.include.Count -ne 12 -or @($release.include | Where-Object expectIncompatible).Count -ne 0) {
         throw 'Retiring the previous-major clients must leave only the current-major release pairs.'
     }
-    Write-Host 'Verified the #250 support window, retired-client identities, per-entry fixture pins, compatible coverage, and the published-client release gate.'
+    Write-Host 'Verified the #250 support window, retired-client identities, per-entry fixture pins, fixture optional scenarios and their gate, compatible coverage, and the published-client release gate.'
 }
 finally {
     $resolved = [IO.Path]::GetFullPath($temporary)
