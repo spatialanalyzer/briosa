@@ -19,18 +19,18 @@ internal static class PublicGrpcHosting
 
     // The send size keeps the gRPC default (no limit). A response is already
     // bounded upstream by the worker response budget and the host's mapping.
-    // Every unary call passes the audit interceptor, so no RPC, present or
-    // future, lacks an arrival and completion record (#450). Its records are
-    // Debug; with Debug off it only checks the level.
+    // When the unary call audit records (#450) are enabled at Debug as gRPC builds
+    // its endpoints, every unary call passes their interceptor, so no RPC, present
+    // or future, lacks an arrival and completion record. Otherwise the interceptor
+    // is not registered with gRPC, and gRPC builds the same call path as before.
     public static IServiceCollection AddBriosaGrpc(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
         services.AddSingleton<UnaryCallAuditInterceptor>();
         services.AddGrpc(options =>
-        {
-            options.MaxReceiveMessageSize = MaximumReceiveMessageBytes;
-            options.Interceptors.Add<UnaryCallAuditInterceptor>();
-        });
+            options.MaxReceiveMessageSize = MaximumReceiveMessageBytes);
+        services.AddOptions<Grpc.AspNetCore.Server.GrpcServiceOptions>()
+            .Configure<ILoggerFactory>(UnaryCallAuditInterceptor.AddWhenEnabled);
         return services;
     }
 }

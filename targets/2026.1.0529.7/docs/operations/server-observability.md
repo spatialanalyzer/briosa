@@ -89,7 +89,7 @@ ServerInstanceId, SpatialAnalyzerTarget, and applicable event metadata.
 | 1402 | LaunchPreconditionSlow (Phase, ElapsedMilliseconds) | Warning |
 | 1600 | UnaryCallStarted (Rpc or OperationId) | Debug |
 | 1601 / 1602 | UnaryCallCompleted (Rpc or OperationId, GrpcStatus, ElapsedMilliseconds) / UnaryCallFaulted (Rpc or OperationId, ElapsedMilliseconds) | Debug |
-| 1603 | UnaryCallResponseEnded (Rpc or OperationId, GrpcStatus, ElapsedMilliseconds) | Debug |
+| 1603 / 1604 | UnaryCallResponseEnded (Rpc or OperationId, GrpcStatus, ElapsedMilliseconds) / UnaryCallResponseAbandoned (Rpc or OperationId, ElapsedMilliseconds) | Debug |
 | 2000 | PolicyLoaded | Information |
 | 2001 / 2002 | RequestStarted / PolicyAllowed | Debug |
 | 2003 | PolicyRejected | Warning |
@@ -134,24 +134,41 @@ be placed from the log alone:
   checks). A launch whose arrival is recorded but whose ApplicationTransition
   to `spatial-analyzer-starting` never follows stalled in these steps.
 
-Every unary call, including discovery, state reads, health checks and MP
-operations, passes one gRPC interceptor that records it at Debug (#450):
-UnaryCallStarted when it arrives, UnaryCallCompleted with its gRPC status when
-its handler returns a response or a status, or UnaryCallFaulted when the
-handler ends without one, and UnaryCallResponseEnded with the status once the
-server has finished the response. A call whose handler returned but whose
-response never ended stalled in the server's transport, not in its handler. A
-call is named by `Rpc`, its RPC name, or by `OperationId` for an MP operation,
-never by its request, status message or metadata. The records are off at the
-default Information level, where the interceptor only checks the level and
-passes the call through unchanged. Turn them on for this one category with
+When the Debug level is enabled for the
+`Briosa.Server.Services.UnaryCallAuditInterceptor` category at startup, every
+unary call, including discovery, state reads, health checks and MP operations,
+passes one gRPC interceptor that records it (#450):
+
+- UnaryCallStarted when it arrives;
+- UnaryCallCompleted when its handler returns, with the status the handler
+  assigned (OK unless it set another) or the status of the `RpcException` it
+  threw, or UnaryCallFaulted when the handler ends without a status, for
+  example with an unexpected exception or when a deadline or cancellation
+  unwinds it;
+- UnaryCallResponseEnded with the gRPC status the server committed to the
+  response, from its trailers or the headers of a trailers-only response, or
+  UnaryCallResponseAbandoned when the response ended without one, for example
+  when the client reset the stream.
+
+The response records come from the end of the server's response processing.
+They show what the server committed, not that the client received it. A call
+whose handler returned but whose response never ended stalled in the server's
+transport, not in its handler. A call is named by the endpoint gRPC routed it
+to: by `OperationId` for an MP operation, otherwise by `Rpc`, the method's name
+in the server's protocol descriptors. The caller's spelling of the request path,
+the request, the response, status messages and metadata are never recorded.
+
+Enable the records with
 `--Logging:LogLevel:Briosa.Server.Services.UnaryCallAuditInterceptor=Debug`, or
 the environment variable
-`Logging__LogLevel__Briosa.Server.Services.UnaryCallAuditInterceptor=Debug`. They
-add three records of about 500 bytes to each call, which matters for a client
-that polls state; the client conformance runner turns them on for its
-scenarios.
-
+`Logging__LogLevel__Briosa.Server.Services.UnaryCallAuditInterceptor=Debug`. gRPC
+reads its interceptors once, as it builds its endpoints at startup, so the
+setting takes effect only when the server starts; like the other logging
+settings, a change needs a restart. At the default level the interceptor is not
+registered with gRPC at all, and gRPC builds the same call path as without it.
+With the records on, each call adds three records of about 500 bytes, which
+matters for a client that polls state. The client conformance runner turns them
+on for its scenarios.
 These timing records are best effort. A clock or logger failure loses the record
 and nothing else: it cannot skip a worker's cleanup, replace an RPC's response,
 or hide the exception that ended a call. As in the worker supervisor, an

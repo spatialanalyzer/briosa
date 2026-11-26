@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Briosa.Server.Operations;
 using Briosa.Server.Services;
+using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Grpc.AspNetCore.Server;
 using Grpc.Core;
@@ -64,12 +65,14 @@ public sealed class UnaryCallAuditTests
             UnaryCallAuditInterceptor.Identify(null));
     }
 
+    // UnaryCallAuditPipelineTests shows that the interceptor joins gRPC only when its
+    // Debug level is enabled; here, that gRPC has no other way in.
     [Fact]
-    public void TheAuditInterceptorIsGlobalAndNoServiceOptsOut()
+    public void GrpcIsRegisteredOnlyThroughAddBriosaGrpcAndNoServiceOptsOut()
     {
         using var provider = new ServiceCollection().AddLogging().AddBriosaGrpc().BuildServiceProvider();
         var options = provider.GetRequiredService<IOptions<GrpcServiceOptions>>().Value;
-        Assert.Contains(options.Interceptors, registration => registration.Type == typeof(UnaryCallAuditInterceptor));
+        Assert.Empty(options.Interceptors);
         Assert.NotNull(provider.GetService<UnaryCallAuditInterceptor>());
 
         // The server registers gRPC only through AddBriosaGrpc, and no service opts
@@ -99,33 +102,42 @@ public sealed class UnaryCallAuditTests
         {
             var calls = await RunServerAsync(Path.Combine(directory, "debug"), debug: true).ConfigureAwait(true);
             // Discovery, state reads, health, a denied MP operation and an admitted one
-            // that no worker serves: each has exactly one record of each kind.
-            var expected = new (string? Rpc, string? OperationId, string Status)[]
+            // that no worker serves: each call has one record of each kind. The
+            // discovery read and the denied operation are also called with their method
+            // names in lower case; routing reaches the same endpoints, and the records
+            // carry the endpoints' names, never the caller's spelling.
+            var expected = new (string? Rpc, string? OperationId, string Status, int Calls)[]
             {
-                ("GetServerInfo", null, "OK"),
-                ("ListCapabilities", null, "OK"),
-                ("GetSpatialAnalyzerSdkState", null, "OK"),
-                ("GetSpatialAnalyzerState", null, "OK"),
-                ("Check", null, "OK"),
-                (null, "file_operations.get_working_directory", "PermissionDenied"),
-                (null, "variables.get_double_variable", calls.DoubleVariableStatus)
+                ("GetServerInfo", null, "OK", 2),
+                ("ListCapabilities", null, "OK", 1),
+                ("GetSpatialAnalyzerSdkState", null, "OK", 1),
+                ("GetSpatialAnalyzerState", null, "OK", 1),
+                ("Check", null, "OK", 1),
+                (null, "file_operations.get_working_directory", "PermissionDenied", 2),
+                (null, "variables.get_double_variable", calls.DoubleVariableStatus, 1)
             };
             var records = calls.Records.Where(record => EventNames.Contains(record.Name)).ToArray();
-            Assert.Equal(expected.Length * 3, records.Length);
-            Assert.DoesNotContain(records, record => record.Name == "UnaryCallFaulted");
-            foreach (var (rpc, operationId, status) in expected)
+            Assert.Equal(expected.Sum(entry => entry.Calls) * 3, records.Length);
+            Assert.DoesNotContain(records, record => record.Name is "UnaryCallFaulted" or "UnaryCallResponseAbandoned");
+            foreach (var (rpc, operationId, status, count) in expected)
             {
                 var call = records.Where(record => record.Rpc == rpc && record.OperationId == operationId).ToArray();
-                Assert.Equal(CallSequence, call.Select(record => record.Name));
+                Assert.Equal(Enumerable.Repeat(CallSequence, count).SelectMany(sequence => sequence),
+                    call.Select(record => record.Name));
                 Assert.All(call, record => Assert.Equal("Debug", record.Level));
-                Assert.All(call.Skip(1), record =>
+                Assert.All(call.Where(record => record.Name != "UnaryCallStarted"), record =>
                 {
                     Assert.Equal(status, record.GrpcStatus);
                     Assert.InRange(record.ElapsedMilliseconds!.Value, 0, 60_000);
                 });
-                Assert.Null(call[0].GrpcStatus);
-                Assert.Null(call[0].ElapsedMilliseconds);
+                Assert.All(call.Where(record => record.Name == "UnaryCallStarted"), record =>
+                {
+                    Assert.Null(record.GrpcStatus);
+                    Assert.Null(record.ElapsedMilliseconds);
+                });
             }
+
+            Assert.DoesNotContain(records, record => record.Rpc is "getserverinfo" or UnaryCallAuditInterceptor.UnrecognizedRpc);
 
             // Metadata only: identity, status and time, never a request value, a
             // status message or a path.
@@ -135,10 +147,20 @@ public sealed class UnaryCallAuditTests
             Assert.DoesNotContain(directory.Replace("\\", "\\\\", StringComparison.Ordinal), calls.LogText,
                 StringComparison.OrdinalIgnoreCase);
 
-            // Off at the default level: the same calls leave no record.
+            // Off at the default level: the same calls leave no record, and clients see
+            // the same results either way, down to the typed denial's binary trailer.
             var quiet = await RunServerAsync(Path.Combine(directory, "default"), debug: false).ConfigureAwait(true);
             Assert.Contains(quiet.Records, record => record.Name == "PolicyLoaded");
             Assert.DoesNotContain(quiet.Records, record => EventNames.Contains(record.Name));
+            Assert.Equal(quiet.DoubleVariableStatus, calls.DoubleVariableStatus);
+            Assert.Equal(2, calls.DenialTrailers.Count);
+            Assert.Equal(quiet.DenialTrailers, calls.DenialTrailers);
+            Assert.All(calls.DenialTrailers, trailer =>
+            {
+                var detail = Api.OperationError.Parser.ParseFrom(Convert.FromHexString(trailer));
+                Assert.Equal("operation-policy-denied", detail.DiagnosticCode);
+                Assert.Equal(Api.ExecutionDisposition.NotStarted, detail.ExecutionDisposition);
+            });
         }
         finally
         {
@@ -194,10 +216,26 @@ public sealed class UnaryCallAuditTests
                 .ResponseAsync.ConfigureAwait(true);
             await new Health.HealthClient(channel).CheckAsync(
                 new HealthCheckRequest { Service = "briosa.liveness" }, Options()).ResponseAsync.ConfigureAwait(true);
-            var denied = await Assert.ThrowsAsync<RpcException>(async () =>
-                await new Api.FileOperations.FileOperationsClient(channel)
-                    .GetWorkingDirectoryAsync(new Api.GetWorkingDirectoryRequest(), Options()).ResponseAsync.ConfigureAwait(true)).ConfigureAwait(true);
-            Assert.Equal(StatusCode.PermissionDenied, denied.StatusCode);
+            var invoker = channel.CreateCallInvoker();
+            await invoker.AsyncUnaryCall(Lowercase<Api.GetServerInfoRequest, Api.GetServerInfoResponse>(
+                    "briosa.DiscoveryService", "getserverinfo", Api.GetServerInfoResponse.Parser), null, Options(),
+                new Api.GetServerInfoRequest()).ResponseAsync.ConfigureAwait(true);
+            var denialTrailers = new List<string>();
+            foreach (var call in new Func<Task>[]
+            {
+                async () => await new Api.FileOperations.FileOperationsClient(channel)
+                    .GetWorkingDirectoryAsync(new Api.GetWorkingDirectoryRequest(), Options()).ResponseAsync.ConfigureAwait(true),
+                async () => await invoker.AsyncUnaryCall(
+                    Lowercase<Api.GetWorkingDirectoryRequest, Api.GetWorkingDirectoryResult>(
+                        "briosa.FileOperations", "getworkingdirectory", Api.GetWorkingDirectoryResult.Parser),
+                    null, Options(), new Api.GetWorkingDirectoryRequest()).ResponseAsync.ConfigureAwait(true)
+            })
+            {
+                var denied = await Assert.ThrowsAsync<RpcException>(call).ConfigureAwait(true);
+                Assert.Equal(StatusCode.PermissionDenied, denied.StatusCode);
+                denialTrailers.Add(Convert.ToHexString(Assert.Single(denied.Trailers,
+                    entry => entry.Key == "briosa-operation-error-bin").ValueBytes));
+            }
             var unserved = await Assert.ThrowsAsync<RpcException>(async () =>
                 await new Api.Variables.VariablesClient(channel)
                     .GetDoubleVariableAsync(new Api.GetDoubleVariableRequest { Name = Sentinel }, Options())
@@ -206,8 +244,8 @@ public sealed class UnaryCallAuditTests
 
             // The file sink writes on its own consumer; wait for the last response's
             // record before the server is stopped.
-            var records = await ReadRecordsAsync(logDirectory, wanted: debug ? 21 : 0).ConfigureAwait(true);
-            return new(records.Records, records.Text, doubleVariableStatus);
+            var records = await ReadRecordsAsync(logDirectory, wanted: debug ? 27 : 0).ConfigureAwait(true);
+            return new(records.Records, records.Text, doubleVariableStatus, denialTrailers);
         }
         finally
         {
@@ -350,7 +388,17 @@ public sealed class UnaryCallAuditTests
         }
     }
 
-    private sealed record ServerCalls(List<LogRecord> Records, string LogText, string DoubleVariableStatus);
+    // A method under another spelling of its name, as a caller can send it.
+    private static Method<TRequest, TResponse> Lowercase<TRequest, TResponse>(string service, string name,
+        MessageParser<TResponse> parser)
+        where TRequest : class, IMessage<TRequest>, new()
+        where TResponse : class, IMessage<TResponse>, new() =>
+        new(MethodType.Unary, service, name,
+            Marshallers.Create<TRequest>(message => message.ToByteArray(), _ => throw new NotSupportedException()),
+            Marshallers.Create(message => message.ToByteArray(), parser.ParseFrom));
+
+    private sealed record ServerCalls(List<LogRecord> Records, string LogText, string DoubleVariableStatus,
+        List<string> DenialTrailers);
 
     private sealed record LogRecord(string Name, string Level, string? Rpc, string? OperationId, string? GrpcStatus,
         long? ElapsedMilliseconds, string[] Properties);
