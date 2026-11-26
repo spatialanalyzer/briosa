@@ -87,6 +87,9 @@ ServerInstanceId, SpatialAnalyzerTarget, and applicable event metadata.
 | 1400 | ApplicationTransition | Information; Warning for faulted application |
 | 1401 | LogSinkDegraded | Warning |
 | 1402 | LaunchPreconditionSlow (Phase, ElapsedMilliseconds) | Warning |
+| 1600 | UnaryCallStarted (Rpc or OperationId) | Debug |
+| 1601 / 1602 | UnaryCallCompleted (Rpc or OperationId, GrpcStatus, ElapsedMilliseconds) / UnaryCallFaulted (Rpc or OperationId, ElapsedMilliseconds) | Debug |
+| 1603 | UnaryCallResponseEnded (Rpc or OperationId, GrpcStatus, ElapsedMilliseconds) | Debug |
 | 2000 | PolicyLoaded | Information |
 | 2001 / 2002 | RequestStarted / PolicyAllowed | Debug |
 | 2003 | PolicyRejected | Warning |
@@ -122,8 +125,8 @@ be placed from the log alone:
   Reconnect, Stop, Recover, Launch, and Close) records its arrival
   (LifecycleRpcStarted) and exactly one exit: LifecycleRpcCompleted,
   LifecycleRejected, or, for an exception without a typed lifecycle detail,
-  LifecycleRpcFaulted. The state queries are not recorded, so polling does not
-  fill the log.
+  LifecycleRpcFaulted. The state queries are not recorded at Information, so
+  polling does not fill the log; the Debug call records below cover them.
 - LaunchPreconditionSlow warns when a launch precondition step takes more than
   2 seconds. The steps run on the request thread before the launch is
   accepted: `process-scan` (the eligible-process scan) and
@@ -131,14 +134,33 @@ be placed from the log alone:
   checks). A launch whose arrival is recorded but whose ApplicationTransition
   to `spatial-analyzer-starting` never follows stalled in these steps.
 
+Every unary call, including discovery, state reads, health checks and MP
+operations, passes one gRPC interceptor that records it at Debug (#450):
+UnaryCallStarted when it arrives, UnaryCallCompleted with its gRPC status when
+its handler returns a response or a status, or UnaryCallFaulted when the
+handler ends without one, and UnaryCallResponseEnded with the status once the
+server has finished the response. A call whose handler returned but whose
+response never ended stalled in the server's transport, not in its handler. A
+call is named by `Rpc`, its RPC name, or by `OperationId` for an MP operation,
+never by its request, status message or metadata. The records are off at the
+default Information level, where the interceptor only checks the level and
+passes the call through unchanged. Turn them on for this one category with
+`--Logging:LogLevel:Briosa.Server.Services.UnaryCallAuditInterceptor=Debug`, or
+the environment variable
+`Logging__LogLevel__Briosa.Server.Services.UnaryCallAuditInterceptor=Debug`. They
+add three records of about 500 bytes to each call, which matters for a client
+that polls state; the client conformance runner turns them on for its
+scenarios.
+
 These timing records are best effort. A clock or logger failure loses the record
 and nothing else: it cannot skip a worker's cleanup, replace an RPC's response,
 or hide the exception that ended a call. As in the worker supervisor, an
 `OutOfMemoryException` is not contained. `ElapsedMilliseconds` is `-1` when the
 time could not be measured. EndpointListening, WorkerStartPhase,
-LifecycleRpcStarted, LifecycleRpcCompleted, LifecycleRpcFaulted and
-LaunchPreconditionSlow carry only fixed names, enum values and numbers;
-LifecycleRejected also carries the lifecycle error's diagnostic code.
+LifecycleRpcStarted, LifecycleRpcCompleted, LifecycleRpcFaulted,
+LaunchPreconditionSlow and the unary call records carry only fixed names,
+operation IDs, enum values and numbers; LifecycleRejected also carries the
+lifecycle error's diagnostic code.
 
 The metadata boundary discards raw messages, exceptions and ambient scopes from
 framework logs, preserving their category, ID, severity and a FrameworkEvent
