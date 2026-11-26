@@ -174,6 +174,90 @@
         "major": 3,
         "minimumRevision": 0
       }
+    },
+    {
+      "language": "dotnet",
+      "repository": "spatialanalyzer/briosa-dotnet",
+      "target": "2024.1.0508.5",
+      "version": "0.5.1",
+      "sourceRevision": "f03d2c8c5da9f434acb0001ef841a1ade6c9b924",
+      "url": "https://api.nuget.org/v3-flatcontainer/briosa.2024.1.0508.5/0.5.1/briosa.2024.1.0508.5.0.5.1.nupkg",
+      "fileName": "briosa.2024.1.0508.5.0.5.1.nupkg",
+      "sha256": "02da4341a3f3a7a089840e292e000a78a36f7182342459170c9f93827896edb4",
+      "requiredContract": {
+        "major": 3,
+        "minimumRevision": 0
+      }
+    },
+    {
+      "language": "dotnet",
+      "repository": "spatialanalyzer/briosa-dotnet",
+      "target": "2026.1.0529.7",
+      "version": "0.5.1",
+      "sourceRevision": "f03d2c8c5da9f434acb0001ef841a1ade6c9b924",
+      "url": "https://api.nuget.org/v3-flatcontainer/briosa.2026.1.0529.7/0.5.1/briosa.2026.1.0529.7.0.5.1.nupkg",
+      "fileName": "briosa.2026.1.0529.7.0.5.1.nupkg",
+      "sha256": "80f654268906a0d2a8d23c340efb73eeb0f7f269d3dd52d8db6ea537362ce08a",
+      "requiredContract": {
+        "major": 3,
+        "minimumRevision": 0
+      }
+    },
+    {
+      "language": "js",
+      "repository": "spatialanalyzer/briosa-js",
+      "target": "2024.1.0508.5",
+      "version": "0.5.1",
+      "sourceRevision": "4e5ab1ce03d3f5de77fc88e165e3f57a17d93e8e",
+      "url": "https://registry.npmjs.org/@spatialanalyzer/briosa-2024.1.0508.5/-/briosa-2024.1.0508.5-0.5.1.tgz",
+      "fileName": "briosa-2024.1.0508.5-0.5.1.tgz",
+      "sha256": "83a98adcee99004d735875c85b24073c636c993b5c8b0a1eb9c772a4c42a85cc",
+      "requiredContract": {
+        "major": 3,
+        "minimumRevision": 0
+      }
+    },
+    {
+      "language": "js",
+      "repository": "spatialanalyzer/briosa-js",
+      "target": "2026.1.0529.7",
+      "version": "0.5.1",
+      "sourceRevision": "4e5ab1ce03d3f5de77fc88e165e3f57a17d93e8e",
+      "url": "https://registry.npmjs.org/@spatialanalyzer/briosa-2026.1.0529.7/-/briosa-2026.1.0529.7-0.5.1.tgz",
+      "fileName": "briosa-2026.1.0529.7-0.5.1.tgz",
+      "sha256": "a10be39e025432d572f6a80c871f30a67c4ec3d4ae266312ca56d3534a84b687",
+      "requiredContract": {
+        "major": 3,
+        "minimumRevision": 0
+      }
+    },
+    {
+      "language": "py",
+      "repository": "spatialanalyzer/briosa-py",
+      "target": "2024.1.0508.5",
+      "version": "0.5.1",
+      "sourceRevision": "f101fcdf51224c26a0d0f45624b1c895a663cbae",
+      "url": "https://files.pythonhosted.org/packages/05/3d/4c2d8ee33eb7a053e90eb9667e92cdc9770ccc799d2d93bb31ecdfa2602f/briosa_2024_1_0508_5-0.5.1-py3-none-any.whl",
+      "fileName": "briosa_2024_1_0508_5-0.5.1-py3-none-any.whl",
+      "sha256": "63b9ed517a59dde8ebb0e736c9d17a53f2684b3b15fd33b59b0f945fb8b56728",
+      "requiredContract": {
+        "major": 3,
+        "minimumRevision": 0
+      }
+    },
+    {
+      "language": "py",
+      "repository": "spatialanalyzer/briosa-py",
+      "target": "2026.1.0529.7",
+      "version": "0.5.1",
+      "sourceRevision": "f101fcdf51224c26a0d0f45624b1c895a663cbae",
+      "url": "https://files.pythonhosted.org/packages/e6/52/91bfbfd4c9a44714c48df25013d9ee40a603de75f9762f557f4629d7e0e2/briosa_2026_1_0529_7-0.5.1-py3-none-any.whl",
+      "fileName": "briosa_2026_1_0529_7-0.5.1-py3-none-any.whl",
+      "sha256": "ac5e597273ce1e1ed0907047e7cb23d38637a2458531c208cdc26379ee4697bd",
+      "requiredContract": {
+        "major": 3,
+        "minimumRevision": 0
+      }
     }
   ],
   "retiredClients": [
@@ -349,15 +433,24 @@
   "fixtureSources": [
     {
       "language": "dotnet",
-      "sourceRevision": "f03d2c8c5da9f434acb0001ef841a1ade6c9b924"
+      "sourceRevision": "f03d2c8c5da9f434acb0001ef841a1ade6c9b924",
+      "optionalScenarios": [
+        "large-result"
+      ]
     },
     {
       "language": "js",
-      "sourceRevision": "4e5ab1ce03d3f5de77fc88e165e3f57a17d93e8e"
+      "sourceRevision": "4e5ab1ce03d3f5de77fc88e165e3f57a17d93e8e",
+      "optionalScenarios": [
+        "large-result"
+      ]
     },
     {
       "language": "py",
-      "sourceRevision": "f101fcdf51224c26a0d0f45624b1c895a663cbae"
+      "sourceRevision": "f101fcdf51224c26a0d0f45624b1c895a663cbae",
+      "optionalScenarios": [
+        "large-result"
+      ]
     }
   ],
   "historicalFixtureSources": [

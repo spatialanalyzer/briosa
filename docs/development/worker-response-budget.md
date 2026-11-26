@@ -248,8 +248,8 @@ What shows receipt:
 - **First-party clients:** `fixtureSources` in `compatibility/retained-clients.json`
   pins fixtures whose scripts opt in when the packaged runner and contract
   offer the scenario. The retained-client gate runs them against the packaged
-  fake-SDK server using the published 0.5.0 packages for both targets. The runner
-  verifies the byte length and digest computed by each fixture.
+  fake-SDK server using the published 0.5.0 and 0.5.1 packages for both targets.
+  The runner verifies the byte length and digest computed by each fixture.
 
 ## Licensed measurements and remaining gaps
 
