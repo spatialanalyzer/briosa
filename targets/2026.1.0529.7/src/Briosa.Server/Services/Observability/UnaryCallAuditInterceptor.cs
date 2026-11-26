@@ -1,9 +1,7 @@
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Reflection;
 using Briosa.Server.Operations;
-using Google.Protobuf.Reflection;
 using Grpc.AspNetCore.Server;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
@@ -43,14 +41,15 @@ internal sealed partial class UnaryCallAuditInterceptor(
             operation => operation.OperationId,
             StringComparer.Ordinal);
 
-    // Every other unary RPC the server's protocol and health check define, by full
-    // method, with the name from its descriptor.
-    private static readonly FrozenDictionary<string, string> RpcNames = typeof(global::Briosa.DiscoveryService).Assembly
-        .GetTypes()
-        .Select(type => type.GetProperty("Descriptor", BindingFlags.Public | BindingFlags.Static))
-        .Where(property => property?.PropertyType == typeof(FileDescriptor))
-        .Select(property => (FileDescriptor)property!.GetValue(null)!)
-        .Append(Grpc.Health.V1.HealthReflection.Descriptor)
+    // The server's unary RPCs that are not MP operations, by full method, with the
+    // name from their descriptors: discovery, the SDK and application lifecycle, and
+    // the health check. A test fails when a unary RPC elsewhere is not an operation.
+    private static readonly FrozenDictionary<string, string> RpcNames = new[]
+        {
+            global::Briosa.DiscoveryReflection.Descriptor,
+            global::Briosa.LifecycleReflection.Descriptor,
+            Grpc.Health.V1.HealthReflection.Descriptor
+        }
         .SelectMany(file => file.Services)
         .SelectMany(service => service.Methods)
         .Where(method => !method.IsClientStreaming && !method.IsServerStreaming)
@@ -68,14 +67,13 @@ internal sealed partial class UnaryCallAuditInterceptor(
     /// gRPC reads the options once, as it builds its endpoints, so a level set later
     /// takes effect at the next start.
     /// </summary>
-    internal static void AddWhenEnabled(GrpcServiceOptions options, ILoggerFactory loggers)
+    internal static void AddWhenEnabled(GrpcServiceOptions options, ILoggerFactory? loggers)
     {
         ArgumentNullException.ThrowIfNull(options);
-        ArgumentNullException.ThrowIfNull(loggers);
         bool enabled;
         try
         {
-            enabled = loggers.CreateLogger<UnaryCallAuditInterceptor>().IsEnabled(LogLevel.Debug);
+            enabled = loggers?.CreateLogger<UnaryCallAuditInterceptor>().IsEnabled(LogLevel.Debug) == true;
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {

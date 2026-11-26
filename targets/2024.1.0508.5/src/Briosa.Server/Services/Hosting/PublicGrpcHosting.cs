@@ -29,8 +29,10 @@ internal static class PublicGrpcHosting
         services.AddSingleton<UnaryCallAuditInterceptor>();
         services.AddGrpc(options =>
             options.MaxReceiveMessageSize = MaximumReceiveMessageBytes);
+        // A host without logging has no records to enable.
         services.AddOptions<Grpc.AspNetCore.Server.GrpcServiceOptions>()
-            .Configure<ILoggerFactory>(UnaryCallAuditInterceptor.AddWhenEnabled);
+            .Configure<IServiceProvider>((options, provider) =>
+                UnaryCallAuditInterceptor.AddWhenEnabled(options, provider.GetService<ILoggerFactory>()));
         return services;
     }
 }
