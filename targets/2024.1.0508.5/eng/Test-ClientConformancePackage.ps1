@@ -267,13 +267,24 @@ $definition = Get-Content -LiteralPath $Contract -Raw | ConvertFrom-Json
         DiagnosticsDirectory = "unusable`0diagnostics-directory"
     }
     $passedOutput = [Collections.Generic.List[string]]::new()
-    & $runnerPath @runnerArguments *>&1 | ForEach-Object {
-        $passedOutput.Add([string]$_)
-        Write-Host $_
+    # An unknown client trace language turns tracing off with a notice (#450).
+    $previousClientTrace = $env:BRIOSA_CONFORMANCE_CLIENT_TRACE
+    Set-EnvironmentValue "BRIOSA_CONFORMANCE_CLIENT_TRACE" "ruby"
+    try {
+        & $runnerPath @runnerArguments *>&1 | ForEach-Object {
+            $passedOutput.Add([string]$_)
+            Write-Host $_
+        }
+    }
+    finally {
+        Set-EnvironmentValue "BRIOSA_CONFORMANCE_CLIENT_TRACE" $previousClientTrace
     }
     Assert-Condition ($passedOutput -contains
         "Conformance diagnostics are disabled: the diagnostics directory is not a usable path.") `
         "The conformance runner did not report an unusable diagnostics directory."
+    Assert-Condition ($passedOutput -contains
+        "Client gRPC tracing is off: BRIOSA_CONFORMANCE_CLIENT_TRACE must be js, py or dotnet.") `
+        "The conformance runner did not report an unknown client trace language."
     # Each passed scenario reports its phase durations; this fixture starts no
     # server, so only the fixture's own time is known (#371).
     $passedLines = @($passedOutput | Where-Object { $_ -like "Passed client conformance scenario: *" })
@@ -384,6 +395,34 @@ $json
         "$unknownOptionalFailure" -like "*Unknown optional conformance scenario 'no-such-scenario'*") `
         "The conformance runner did not reject an unknown optional scenario."
 
+    # BRIOSA_CONFORMANCE_ONLY_SCENARIO narrows a run to one of its selected scenarios
+    # and never adds one (#450).
+    $previousOnlyScenario = $env:BRIOSA_CONFORMANCE_ONLY_SCENARIO
+    try {
+        Set-EnvironmentValue "BRIOSA_CONFORMANCE_ONLY_SCENARIO" "capability-denied"
+        $onlyOutput = @(& $runnerPath -FixtureCommand (Get-Process -Id $PID).Path `
+                -FixtureArguments @("-NoProfile", "-File", $fixturePath) -FixtureTimeoutSeconds 30 *>&1 |
+            ForEach-Object { [string]$_ })
+        Assert-Condition (@($onlyOutput | Where-Object { $_ -like "Passed client conformance scenario: *" }).Count -eq 1 -and
+            @($onlyOutput | Where-Object { $_ -like "Passed client conformance scenario: capability-denied (*" }).Count -eq 1 -and
+            $onlyOutput -contains "Running only conformance scenario 'capability-denied', as BRIOSA_CONFORMANCE_ONLY_SCENARIO asks.") `
+            "The conformance runner did not run only the scenario BRIOSA_CONFORMANCE_ONLY_SCENARIO names."
+        $notSelectedFailure = $null
+        try {
+            & $runnerPath -FixtureCommand (Get-Process -Id $PID).Path -FixtureArguments @("-NoProfile", "-File", $fixturePath) `
+                -Scenario @("control-plane-only") *>&1 | Out-Null
+        }
+        catch {
+            $notSelectedFailure = $_
+        }
+        Assert-Condition ($null -ne $notSelectedFailure -and
+            "$notSelectedFailure" -like "*BRIOSA_CONFORMANCE_ONLY_SCENARIO names a scenario that this run did not select.*") `
+            "The conformance runner ran a scenario that BRIOSA_CONFORMANCE_ONLY_SCENARIO named but the run did not select."
+    }
+    finally {
+        Set-EnvironmentValue "BRIOSA_CONFORMANCE_ONLY_SCENARIO" $previousOnlyScenario
+    }
+
     # Every rejected scenario prints the fixture's complete stderr and, when a
     # diagnostics directory is configured, keeps it with the scenario's server
     # logs (#302). Rejection by exit code and by report validation must behave
@@ -403,6 +442,11 @@ if ([string]::IsNullOrWhiteSpace($logDirectory) -or
 if ($env:Briosa__Worker__StartupTimeout -ne "__STARTUP__") {
     [Console]::Error.WriteLine("worker-startup-timeout-not-applied")
     exit 4
+}
+# The runner turns on the server's Debug unary call records (#450).
+if ([Environment]::GetEnvironmentVariable("Logging__LogLevel__Briosa.Server.Services.UnaryCallAuditInterceptor") -cne "Debug") {
+    [Console]::Error.WriteLine("unary-call-audit-not-enabled")
+    exit 6
 }
 [IO.Directory]::CreateDirectory($logDirectory) | Out-Null
 [IO.File]::WriteAllText((Join-Path $logDirectory "server-log-marker.jsonl"), "server-log-marker")
@@ -450,6 +494,15 @@ $records.Add('{"Timestamp":"' + $started.AddMilliseconds(9).ToString("o") +
 foreach ($index in 1..250) {
     Add-ServerRecord (10 + $index) "Information" "ReadinessNotReady" @{} -Id 1500
 }
+# The server's unary call records (#450), at Debug: a call named by its RPC, one
+# named by its operation ID, and one with a name the digest does not list.
+Add-ServerRecord 270 "Debug" "UnaryCallStarted" @{ Rpc = "GetServerInfo"; OperationId = $null } -Id 1600
+Add-ServerRecord 271 "Debug" "UnaryCallCompleted" @{
+    Rpc = "GetServerInfo"; OperationId = $null; GrpcStatus = "OK"; ElapsedMilliseconds = 1 } -Id 1601
+Add-ServerRecord 272 "Debug" "UnaryCallResponseEnded" @{
+    Rpc = "GetServerInfo"; OperationId = $null; GrpcStatus = "OK"; ElapsedMilliseconds = 2 } -Id 1603
+Add-ServerRecord 273 "Debug" "UnaryCallStarted" @{ Rpc = $null; OperationId = "file_operations.get_working_directory" } -Id 1600
+Add-ServerRecord 274 "Debug" "UnaryCallFaulted" @{ Rpc = "secret-rpc-name"; ElapsedMilliseconds = 3 } -Id 1602
 Add-ServerRecord 300 "Information" "LifecycleRpcStarted" @{
     Rpc = "LaunchSpatialAnalyzer"; Path = "secret-geometry-path" } -Id 1303
 Add-ServerRecord 301 "secret-level-text" "LifecycleRpcStarted" @{ Rpc = "StopSpatialAnalyzerSdk" } -Id 1303
@@ -492,6 +545,44 @@ $records.Add('{"Timestamp":"2026-11-22T12:00:00')
     (Join-Path $logDirectory "briosa-0123456789abcdef0123456789abcdef-20261122.jsonl"), $records)
 foreach ($index in 1..200) {
     [Console]::Error.WriteLine("__MODE__-trace-line-$index")
+    if ($index -ne 100) {
+        continue
+    }
+    # Opt-in client gRPC tracing (#450), in the middle of the fixture's own stderr.
+    switch ("__CLIENT_TRACE__") {
+        "js" {
+            if ($env:GRPC_NODE_VERBOSITY -cne "DEBUG" -or [string]::IsNullOrEmpty($env:GRPC_NODE_TRACE)) {
+                [Console]::Error.WriteLine("client-trace-not-applied")
+                exit 7
+            }
+            $stamp = { param($Offset) $started.AddMilliseconds($Offset).UtcDateTime.ToString(
+                    "yyyy-MM-ddTHH:mm:ss.fffZ", [Globalization.CultureInfo]::InvariantCulture) }
+            foreach ($line in @(
+                    "D $(& $stamp 90) | v1.14.6 $PID | channel | (2) dns:127.0.0.1:5000 createResolvingCall [1] method=`"/briosa.DiscoveryService/GetServerInfo`", deadline=Infinity",
+                    "D $(& $stamp 95) | v1.14.6 $PID | subchannel_call | [2] Received server headers:",
+                    "`t`tcontent-type: application/grpc",
+                    "D $(& $stamp 103) | v1.14.6 $PID | resolving_call | [1] ended with status: code=0 details=`"`"",
+                    "D $(& $stamp 190) | v1.14.6 $PID | channel | (2) dns:127.0.0.1:5000 createResolvingCall [3] method=`"/briosa.FileOperations/GetWorkingDirectory`", deadline=Infinity",
+                    "D $(& $stamp 205) | v1.14.6 $PID | resolving_call | [3] ended with status: code=7 details=`"secret-status-detail`"",
+                    "D $(& $stamp 290) | v1.14.6 $PID | channel | (2) dns:127.0.0.1:5000 createResolvingCall [5] method=`"/briosa.DiscoveryService/ListCapabilities`", deadline=Infinity")) {
+                [Console]::Error.WriteLine($line)
+            }
+        }
+        "py" {
+            if ($env:GRPC_VERBOSITY -cne "DEBUG" -or [string]::IsNullOrEmpty($env:GRPC_TRACE)) {
+                [Console]::Error.WriteLine("client-trace-not-applied")
+                exit 7
+            }
+            [Console]::Error.WriteLine("I1126 20:55:21.652329    3136 filter_stack_call.cc:299] secret-python-trace")
+        }
+        "dotnet" {
+            if ($env:DOTNET_EnableEventPipe -cne "1" -or
+                -not (Test-Path -LiteralPath (Split-Path -Parent $env:DOTNET_EventPipeOutputPath) -PathType Container)) {
+                [Console]::Error.WriteLine("client-trace-not-applied")
+                exit 7
+            }
+        }
+    }
 }
 switch ("__MODE__") {
     "unsuccessful-report" {
@@ -510,6 +601,16 @@ switch ("__MODE__") {
         exit 0
     }
     "timeout" {
+        Start-Sleep -Seconds 120
+        exit 0
+    }
+    "timeout-tree" {
+        # A launcher whose child has a child of its own, as tsx starts the Node
+        # process that runs a JavaScript fixture.
+        $shell = (Get-Process -Id $PID).Path
+        $child = "Start-Process -FilePath '$shell' -ArgumentList @('-NoProfile', '-Command', 'Start-Sleep -Seconds 120') " +
+            "-NoNewWindow; Start-Sleep -Seconds 120"
+        Start-Process -FilePath $shell -ArgumentList @("-NoProfile", "-Command", $child) -NoNewWindow
         Start-Sleep -Seconds 120
         exit 0
     }
@@ -549,10 +650,26 @@ switch ("__MODE__") {
             Failure = "*report did not satisfy scenario 'default-ready'*" },
         # A destination that cannot be created never hides the scenario's own failure.
         [pscustomobject]@{ Name = "exit-nonzero-unwritable"; Mode = "exit-nonzero"; Diagnostics = "file"
-            Failure = "*failed scenario 'default-ready' with exit code 1*" })
+            Failure = "*failed scenario 'default-ready' with exit code 1*" },
+        # The timeout census covers the fixture's whole process tree, here a launcher
+        # with a child and a grandchild, as tsx starts Node (#450). The JavaScript
+        # client trace leaves the printed stderr and is summarised call by call.
+        [pscustomobject]@{ Name = "timeout-process-tree"; Mode = "timeout-tree"; Diagnostics = "directory"
+            ClientTrace = "js"; Failure = "*timed out after 5 s in scenario 'default-ready'*" },
+        # A census that fails is reported and never hides the timeout.
+        [pscustomobject]@{ Name = "timeout-census-failure"; Mode = "timeout"; Diagnostics = "directory"
+            FailCensus = "1"; Failure = "*timed out after 5 s in scenario 'default-ready'*" },
+        # The grpcio trace leaves the stderr and the failure message for its own file;
+        # the EventPipe trace writes one file for each .NET process, here the fixture.
+        [pscustomobject]@{ Name = "exit-nonzero-python-trace"; Mode = "exit-nonzero"; Diagnostics = "directory"
+            ClientTrace = "py"; Failure = "*failed scenario 'default-ready' with exit code 1*" },
+        [pscustomobject]@{ Name = "exit-nonzero-dotnet-trace"; Mode = "exit-nonzero"; Diagnostics = "directory"
+            ClientTrace = "dotnet"; Failure = "*failed scenario 'default-ready' with exit code 1*" })
+    $unaryCallAuditKey = "Logging__LogLevel__Briosa.Server.Services.UnaryCallAuditInterceptor"
     $previousEnvironment = @{}
     foreach ($name in @("BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY", "Briosa__Worker__StartupTimeout",
-            "BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT", "DOTNET_EnableDiagnostics", "DOTNET_EnableDiagnostics_IPC")) {
+            "BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT", "DOTNET_EnableDiagnostics", "DOTNET_EnableDiagnostics_IPC",
+            "BRIOSA_CONFORMANCE_CLIENT_TRACE", "BRIOSA_CONFORMANCE_TEST_FAIL_PROCESS_TREE", $unaryCallAuditKey)) {
         $previousEnvironment[$name] = [Environment]::GetEnvironmentVariable($name)
     }
     try {
@@ -563,15 +680,21 @@ switch ("__MODE__") {
             $dump = & $property "Dump"
             $flood = & $property "Flood"
             $channel = & $property "Channel"
+            $clientTrace = & $property "ClientTrace"
+            $failCensus = & $property "FailCensus"
             $auditPath = $(if (& $property "Audit") { Join-Path $temporaryRoot "digest-audit-$caseName.txt" })
             Set-EnvironmentValue "BRIOSA_CONFORMANCE_DIGEST_AUDIT" $auditPath
+            Set-EnvironmentValue "BRIOSA_CONFORMANCE_CLIENT_TRACE" $clientTrace
+            Set-EnvironmentValue "BRIOSA_CONFORMANCE_TEST_FAIL_PROCESS_TREE" $failCensus
+            Set-EnvironmentValue $unaryCallAuditKey $null
             $failingFixturePath = Join-Path $temporaryRoot "failing-fixture-$caseName.ps1"
             # The runner gives the fake worker start 30 s unless the caller set a bound.
             [IO.File]::WriteAllText(
                 $failingFixturePath,
                 $failingFixtureSource.Replace("__MODE__", $case.Mode).Replace(
                     "__STARTUP__", $(if ($null -ne $callerStartupTimeout) { $callerStartupTimeout } else { "00:00:30" })).Replace(
-                    "__FLOOD__", $(if ($null -ne $flood) { [string]$flood } else { "0" })),
+                    "__FLOOD__", $(if ($null -ne $flood) { [string]$flood } else { "0" })).Replace(
+                    "__CLIENT_TRACE__", $(if ($null -ne $clientTrace) { $clientTrace } else { "none" })),
                 [Text.UTF8Encoding]::new($false))
             $diagnosticsRoot = Join-Path $temporaryRoot "conformance-diagnostics-$caseName"
             if ($case.Diagnostics -eq "file") {
@@ -591,7 +714,7 @@ switch ("__MODE__") {
                     FixtureCommand = (Get-Process -Id $PID).Path
                     FixtureArguments = @("-NoProfile", "-File", $failingFixturePath)
                     Scenario = @("default-ready")
-                    FixtureTimeoutSeconds = $(if ($case.Mode -eq "timeout") { 5 } else { 30 })
+                    FixtureTimeoutSeconds = $(if ($case.Mode -like "timeout*") { 5 } else { 30 })
                 }
                 & $runnerPath @failingRunnerArguments *>&1 |
                     ForEach-Object { $runnerOutput.Add([string]$_) }
@@ -614,7 +737,7 @@ switch ("__MODE__") {
             $timingLine = @($runnerOutput | Where-Object { $_ -like "Runner timing for default-ready (UTC): *" })
             Assert-Condition ($timingLine.Count -eq 1 -and
                 $timingLine[0] -like "*scenario start *, fixture start * (+*), fixture end * (+*)*" -and
-                ($case.Mode -ne "timeout" -or $timingLine[0] -like "*, fixture timed out.")) `
+                ($case.Mode -notlike "timeout*" -or $timingLine[0] -like "*, fixture timed out.")) `
                 "The conformance runner did not print its timing marks for $caseName."
             $digestStart = [Array]::IndexOf([string[]]$runnerOutput,
                 "--- server log digest for default-ready (times from fixture start) ---")
@@ -630,7 +753,7 @@ switch ("__MODE__") {
                 })
             Assert-Condition ($runnerMarks.Count -eq 2 -and
                 $runnerMarks[0] -eq "+0.000 s Runner FixtureStart" -and
-                $runnerMarks[1] -like "+* s Runner $(if ($case.Mode -eq 'timeout') { 'FixtureTimedOut' } else { 'FixtureEnd' })" -and
+                $runnerMarks[1] -like "+* s Runner $(if ($case.Mode -like 'timeout*') { 'FixtureTimedOut' } else { 'FixtureEnd' })" -and
                 @(for ($index = 1; $index -lt $offsets.Count; $index++) {
                         if ($offsets[$index] -lt $offsets[$index - 1]) { $index }
                     }).Count -eq 0) `
@@ -640,13 +763,13 @@ switch ("__MODE__") {
             Assert-Condition ($ordinary.Count -eq 200 -and
                 @($warnings | Where-Object {
                     $_ -like "* Warning WorkerStartPhase Phase=startup-bound-expired ElapsedMilliseconds=10000 Generation=*" }).Count -eq 3 -and
-                @($ordinary | Where-Object { $_ -like "+* s Information ReadinessNotReady" }).Count -eq 192 -and
+                @($ordinary | Where-Object { $_ -like "+* s Information ReadinessNotReady" }).Count -eq 187 -and
                 @($ordinary | Where-Object { $_ -like "+* s Information LifecycleRpcStarted Rpc=LaunchSpatialAnalyzer" }).Count -eq 1 -and
                 @($ordinary | Where-Object { $_ -like "+* s UnknownLevel LifecycleRpcStarted Rpc=StopSpatialAnalyzerSdk" }).Count -eq 1 -and
                 $ordinary[-1] -like "+* s Information WorkerTransition DiagnosticCode=<withheld>" -and
                 # The oversized-record placeholder takes the time of the record before it.
                 $digestEvents[[Array]::IndexOf([string[]]$digestEvents, $ordinary[-1]) + 1] -like "+* s Warning LogRecordTooLarge" -and
-                $digest -contains "(58 earlier lower-severity records omitted; every warning and error is kept)" -and
+                $digest -contains "(63 earlier lower-severity records omitted; every warning and error is kept)" -and
                 # The two truncated lines, the undecodable record and the marker file's
                 # line, none admitted.
                 $digest -contains "(4 malformed server log records skipped)") `
@@ -709,11 +832,82 @@ switch ("__MODE__") {
                 Assert-Condition ($warnings.Count -eq 15) `
                     "The conformance runner did not keep every warning for $caseName."
             }
-            if ($case.Mode -eq "timeout") {
-                Assert-Condition ($runnerOutput -contains
-                    "--- processes alive at the fixture timeout in default-ready (start times from fixture start) ---" -and
-                    @($runnerOutput | Where-Object { $_ -match '^fixture pid [0-9]+: started [+-][0-9]+\.[0-9]{3} s, CPU [0-9]+\.[0-9]{2} s$' }).Count -eq 1) `
-                    "The conformance runner did not record the processes alive at the fixture timeout."
+            # The unary call records (#450) print with the digest's listed names only.
+            Assert-Condition (
+                @($ordinary | Where-Object { $_ -like "+* s Debug UnaryCallStarted Rpc=GetServerInfo" }).Count -eq 1 -and
+                @($ordinary | Where-Object { $_ -like "+* s Debug UnaryCallCompleted Rpc=GetServerInfo GrpcStatus=OK ElapsedMilliseconds=1" }).Count -eq 1 -and
+                @($ordinary | Where-Object { $_ -like "+* s Debug UnaryCallResponseEnded Rpc=GetServerInfo GrpcStatus=OK ElapsedMilliseconds=2" }).Count -eq 1 -and
+                @($ordinary | Where-Object { $_ -like "+* s Debug UnaryCallStarted OperationId=file_operations.get_working_directory" }).Count -eq 1 -and
+                @($ordinary | Where-Object { $_ -like "+* s Debug UnaryCallFaulted Rpc=<withheld> ElapsedMilliseconds=3" }).Count -eq 1) `
+                "The conformance runner did not print the server's unary call records for $caseName."
+            if ($case.Mode -like "timeout*") {
+                $censusStart = [Array]::IndexOf([string[]]$runnerOutput,
+                    "--- processes alive at the fixture timeout in default-ready (start times from fixture start) ---")
+                $censusEnd = [Array]::IndexOf([string[]]$runnerOutput, "--- end processes for default-ready ---")
+                Assert-Condition ($censusStart -ge 0 -and $censusEnd -gt $censusStart) `
+                    "The conformance runner did not record the processes alive at the fixture timeout for $caseName."
+                $census = @($runnerOutput[$censusStart..$censusEnd])
+                $lineTail = 'started [+-][0-9]+\.[0-9]{3} s, CPU [0-9]+\.[0-9]{2} s \(\+[0-9]+\.[0-9]{2} s in [0-9]+\.[0-9] s\), threads [1-9][0-9]* \([0-9]+ [a-z]+(?:, [0-9]+ [a-z]+)*\)$'
+                if ($null -ne $failCensus) {
+                    Assert-Condition ($census -contains "(the fixture's process tree could not be recorded)" -and
+                        @($census | Where-Object { $_ -cmatch '^fixture pid [0-9]+: started [+-][0-9]+\.[0-9]{3} s, CPU [0-9]+\.[0-9]{2} s$' }).Count -eq 1) `
+                        "The conformance runner did not fall back to the launched fixture when its process tree census failed."
+                }
+                else {
+                    $fixtureLine = @($census | Where-Object {
+                            $_ -cmatch "^fixture pid [0-9]+ \(pwsh\.exe failing-fixture-$([regex]::Escape($caseName))\.ps1\): parent [0-9]+, $lineTail" })
+                    Assert-Condition ($fixtureLine.Count -eq 1) `
+                        "The conformance runner did not record the fixture with its parent, CPU sample and threads for $caseName."
+                    if ($case.Mode -eq "timeout-tree") {
+                        $fixturePid = [regex]::Match($fixtureLine[0], '^fixture pid ([0-9]+) ').Groups[1].Value
+                        $childLine = @($census | Where-Object { $_ -cmatch "^  child pid [0-9]+ \(pwsh\.exe\): parent $fixturePid, $lineTail" })
+                        $childPid = $(if ($childLine.Count -eq 1) { [regex]::Match($childLine[0], '^  child pid ([0-9]+) ').Groups[1].Value })
+                        Assert-Condition ($childLine.Count -eq 1 -and
+                            @($census | Where-Object { $_ -cmatch "^    child pid [0-9]+ \(pwsh\.exe\): parent $childPid, $lineTail" }).Count -eq 1) `
+                            "The conformance runner did not record the fixture's child and grandchild: $($census -join ' | ')"
+                    }
+                }
+                $savedCensus = @(Get-Content -LiteralPath (Join-Path (Join-Path $diagnosticsRoot "default-ready") "timeout-processes.txt"))
+                Assert-Condition (@($census | Where-Object { $savedCensus -notcontains $_ }).Count -eq 0) `
+                    "The conformance runner did not keep the processes alive at the fixture timeout for $caseName."
+            }
+            # Opt-in client gRPC tracing (#450): the trace is kept apart from the stderr,
+            # and only method names and status codes reach the log.
+            $tracePath = Join-Path (Join-Path $diagnosticsRoot "default-ready") "client-trace.txt"
+            switch ($clientTrace) {
+                "js" {
+                    $summaryStart = [Array]::IndexOf([string[]]$runnerOutput,
+                        "--- client gRPC calls in default-ready (from the client trace; times from fixture start) ---")
+                    $offset = '\+[0-9]+\.[0-9]{3} s'
+                    Assert-Condition ($summaryStart -gt [Array]::IndexOf([string[]]$runnerOutput, "$($case.Mode)-trace-line-200") -and
+                        $runnerOutput[$summaryStart + 1] -cmatch "^$offset call 1 /briosa\.DiscoveryService/GetServerInfo: status 0 \(OK\) at $offset$" -and
+                        $runnerOutput[$summaryStart + 2] -cmatch "^$offset call 3 /briosa\.FileOperations/GetWorkingDirectory: status 7 \(PermissionDenied\) at $offset$" -and
+                        $runnerOutput[$summaryStart + 3] -cmatch "^$offset call 5 /briosa\.DiscoveryService/ListCapabilities: no status by the end of the fixture$" -and
+                        $runnerOutput[$summaryStart + 4] -ceq "--- end client gRPC calls in default-ready ---" -and
+                        @($runnerOutput | Where-Object { $_ -clike "* | channel | *" -or $_ -clike "*content-type*" }).Count -eq 0) `
+                        "The conformance runner did not summarise the JavaScript client trace for $caseName."
+                    $savedTrace = @(Get-Content -LiteralPath $tracePath)
+                    Assert-Condition ($savedTrace.Count -eq 7 -and $savedTrace[2] -ceq "`t`tcontent-type: application/grpc" -and
+                        @($savedTrace | Where-Object { $_ -clike "*secret-status-detail*" }).Count -eq 1 -and
+                        (Test-Path -LiteralPath (Join-Path (Join-Path $diagnosticsRoot "default-ready") "client-calls.txt") -PathType Leaf)) `
+                        "The conformance runner did not keep the JavaScript client trace for $caseName."
+                }
+                "py" {
+                    Assert-Condition ((Get-Content -LiteralPath $tracePath) -ceq "I1126 20:55:21.652329    3136 filter_stack_call.cc:299] secret-python-trace" -and
+                        $runnerOutput -contains "(client gRPC trace: 1 files are kept with the diagnostics of default-ready)") `
+                        "The conformance runner did not keep the Python client trace for $caseName."
+                }
+                "dotnet" {
+                    $traces = @(Get-ChildItem -LiteralPath (Join-Path (Join-Path $diagnosticsRoot "default-ready") "client-trace") `
+                            -Filter "dotnet-*.nettrace" -File -ErrorAction SilentlyContinue | Where-Object Length -gt 0)
+                    Assert-Condition ($traces.Count -ge 1 -and
+                        $runnerOutput -contains "(client gRPC trace: $($traces.Count) files are kept with the diagnostics of default-ready)") `
+                        "The conformance runner did not keep the .NET client trace for $caseName."
+                }
+                default {
+                    Assert-Condition ($case.Diagnostics -ne "directory" -or -not (Test-Path -LiteralPath $tracePath)) `
+                        "The conformance runner kept a client trace without the opt-in for $caseName."
+                }
             }
             if ($null -ne $auditPath) {
                 # The audit names the scenario, the property and how many unlisted values

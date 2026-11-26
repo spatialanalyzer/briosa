@@ -143,7 +143,18 @@ log still holds its events after a forced kill. The digest is also saved as
 
 The server's lifecycle records give the digest its phase timeline: when the
 endpoint started listening, each worker start sub-phase, and each lifecycle
-RPC's arrival and completion with its elapsed time. A scenario that passes
+RPC's arrival and completion with its elapsed time. The runner also turns on
+the server's Debug records of every unary call (#450), by setting
+`Logging__LogLevel__Briosa.Server.Services.UnaryCallAuditInterceptor=Debug` for
+the fixture and so for the server it starts; a caller that sets the key keeps
+its value. For each call the digest then shows `UnaryCallStarted` when it
+arrived, `UnaryCallCompleted` with the gRPC status when its handler returned,
+or `UnaryCallFaulted` when the handler ended without one, and
+`UnaryCallResponseEnded` with the gRPC status when the server finished the
+response. A call is named by `Rpc`, or by `OperationId` for an MP operation.
+Discovery and state reads have no other record, so these show whether a call
+after the last lifecycle event arrived and whether it was answered. A
+scenario that passes
 prints the same phases on its result line, for example
 `Passed client conformance scenario: default-ready (fixture 5.1 s; server listening +1.2 s; worker start 1140 ms; launch 520 ms; connect 300 ms)`.
 A phase that the scenario does not reach is left out.
@@ -158,9 +169,25 @@ client waits up to 180 seconds to start the SDK, launch SpatialAnalyzer, and
 connect. Client 0.5.0 waits 120 seconds. The remaining 60 seconds is room for
 fixture setup and error reporting, so a slow start or a hang ends in the
 client's own typed startup timeout, and that error is printed before the
-runner kills the fixture. If the fixture still times out, the runner first prints the processes that are still
-alive (fixture, server, worker, and fake application), with their start times
-and CPU times, and marks any that is not a verified descendant of the fixture.
+runner kills the fixture. If the fixture still times out, the runner first prints the fixture's whole
+process tree: the process it started and every descendant, each indented under
+its parent. A launcher matters here: `tsx` starts the Node process that runs a
+JavaScript fixture, and a Python virtual environment's `python.exe` starts the
+interpreter that runs a Python one, so the process the runner started is often
+not the one that stalled. Each line gives the role (`fixture`, `server`,
+`worker`, `application` or `child`), the process ID, the executable name and at
+most three script or assembly file names from its command line (for example
+`node.exe cli.mjs conformance.ts`), the parent's process ID, the start time from
+the fixture start, the CPU time and its growth over a one-second sample, and the
+thread count with how many threads run, wait or are suspended. A process that
+waits with no CPU growth is idle; one whose CPU grows is busy. The command line
+itself, its paths and its values, and the environment are never printed. A
+package process outside the tree is listed after it and marked as not a
+verified descendant of the fixture. The census is also saved as
+`timeout-processes.txt` with the scenario's diagnostics. If the census fails,
+the runner says so and lists the launched fixture and the package processes
+instead; the scenario still fails with its timeout.
+
 These timeout diagnostics run in a separate copy of the runner under one
 120-second deadline that covers every step, including the process query and
 any file system work. The runner kills that copy if it overruns, and reports
@@ -173,13 +200,12 @@ diagnostics directory to also write heap dumps to `<directory>/<scenario>/dumps`
 before the kill:
 
 - Only this scenario's own processes are dumped: the fixture the runner
-  started, and a server only when its parent chain reaches that fixture. Each
+  started, and a server only when it is in the fixture's process tree. Each
   process is held open while it is checked, and the process snapshot must
   name the same process: its creation time, in UTC, must match the live
-  process at the snapshot's microsecond precision, each parent must be older
-  than its child, and the chain must end at the fixture within four steps. A
-  server it cannot verify, for example one started by another caller sharing
-  the package extraction, is reported and skipped.
+  process at the snapshot's microsecond precision, and no child may be older
+  than its parent. A server it cannot verify, for example one started by
+  another caller sharing the package extraction, is reported and skipped.
 - Nothing needs installing. The runner sends each process's .NET runtime the
   same dump request that `dotnet-dump collect` sends over the runtime's
   diagnostics channel, and the runtime writes the dump with the
@@ -252,6 +278,50 @@ second for the server to accept the first Connect before the deadline expires,
 and the second Connect then has about 2 seconds before the hold ends. The hold
 stays well inside the server's `StartupTimeout`, 30 seconds here, which bounds an
 accepted Connect, and its 5-second heartbeat timeout.
+
+## Client gRPC tracing
+
+Set `BRIOSA_CONFORMANCE_CLIENT_TRACE` to the fixture's language, `js`, `py` or
+`dotnet`, to trace the client's gRPC calls without changing the fixture (#450).
+The runner sets the switches that language's gRPC library reads from the
+environment, for the fixture and the processes it starts. The ordinary gate
+leaves it off; the conformance soak workflow turns it on. Another value turns
+tracing off with a notice. A passing scenario discards its trace; a rejected one
+keeps it with its diagnostics.
+
+| Value | Library | What the runner sets | Where the trace goes |
+| --- | --- | --- | --- |
+| `js` | `@grpc/grpc-js` | `GRPC_NODE_VERBOSITY=DEBUG` and `GRPC_NODE_TRACE` with the `channel`, `resolving_call`, `subchannel`, `subchannel_call` and `transport` tracers | `client-trace.txt` |
+| `py` | `grpcio` | `GRPC_VERBOSITY=DEBUG` and `GRPC_TRACE` with the `api`, `call_error`, `client_channel_call`, `connectivity_state`, `http` and `subchannel` tracers | `client-trace.txt` |
+| `dotnet` | `Grpc.Net.Client` | an EventPipe file session (`DOTNET_EnableEventPipe` and its settings) for the `Grpc.Net.Client` and `System.Net.Http` event sources | `client-trace/dotnet-<process ID>.nettrace` |
+
+The JavaScript and Python libraries write their trace to stderr. The runner
+moves those lines out of the fixture's stderr into `client-trace.txt`, so the
+stderr it prints and saves, and the failure message, stay the fixture's own.
+The traces record method names, received headers and trailers, and status
+messages; they never record request or response messages. They stay in the
+diagnostics files and are not printed. For a JavaScript fixture the runner also
+prints, and saves as `client-calls.txt`, one line per client call from the
+trace: when it was created, its method, and its status and when it ended, or
+that it had no status when the fixture stopped. Consecutive calls to one method
+that ended with one status, such as a client polling the server while it
+starts, share a line. That line names the call the fixture was still waiting on.
+EventPipe applies to every .NET process in the tree, including the server and
+the fake worker, and writes one file for each; open the files with PerfView,
+`dotnet-trace convert` or the TraceEvent library.
+
+Measured locally on Windows 11 with Node 24 and `@grpc/grpc-js` 1.14.6 (the
+published 0.5.1 JavaScript fixture, `capability-denied`, eight runs with and
+eight without), the trace was about 80 KB and 870 lines for the scenario, and
+the fixture took a median 3.6 s either way. With `grpcio` 1.83, these tracers
+write about 43 lines and 7 KB for each call and add about 0.5 ms to it.
+
+## Repeating one scenario
+
+Set `BRIOSA_CONFORMANCE_ONLY_SCENARIO` to a scenario ID to run only that
+scenario of the ones the run selected, for example to repeat `capability-denied`
+through a client repository's own test script. It never adds a scenario: naming
+one the run did not select is an error. The conformance soak workflow uses it.
 
 ## Optional scenarios
 
