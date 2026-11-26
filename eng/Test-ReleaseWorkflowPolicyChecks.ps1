@@ -87,8 +87,25 @@ try {
     Assert-Rejected 'draft refusal without a recovery' {
         param($d) Set-WorkflowText $d 'release.yml' 'Re-run failed jobs' 'Retry'
     } 'must write the maintainer''s recovery'
+    # The conformance soak (#450) never reaches a release, signing or registry job.
+    $soakRule = 'conformance-soak\.yml must run only from workflow_dispatch'
+    Assert-Rejected 'soak calling the release workflow' {
+        param($d) Set-WorkflowText $d 'conformance-soak.yml' '    uses: ./.github/workflows/retained-client-compatibility.yml' '    uses: ./.github/workflows/release.yml'
+    } $soakRule
+    Assert-Rejected 'soak inheriting secrets' {
+        param($d) Set-WorkflowText $d 'conformance-soak.yml' "    uses: ./.github/workflows/retained-client-compatibility.yml`n" "    uses: ./.github/workflows/retained-client-compatibility.yml`n    secrets: inherit`n"
+    } $soakRule
+    Assert-Rejected 'soak with a write permission' {
+        param($d) Set-WorkflowText $d 'conformance-soak.yml' "permissions:`n  contents: read" "permissions:`n  contents: write"
+    } $soakRule
+    Assert-Rejected 'soak on push' {
+        param($d) Set-WorkflowText $d 'conformance-soak.yml' "on:`n  workflow_dispatch:" "on:`n  push:`n    branches:`n      - main`n  workflow_dispatch:"
+    } $soakRule
+    Assert-Rejected 'retained-client gate with an OIDC token' {
+        param($d) Set-WorkflowText $d 'retained-client-compatibility.yml' "permissions:`n  contents: read" "permissions:`n  contents: read`n  id-token: write"
+    } 'retained-client-compatibility\.yml must run only when called'
 
-    Write-Host 'Release workflow policy rejects tag triggers, unreviewed environments, wider signing refs, OIDC without an environment, misplaced R2 credentials, executable signing in the R2 environment, and non-draft releases.'
+    Write-Host 'Release workflow policy rejects tag triggers, unreviewed environments, wider signing refs, OIDC without an environment, misplaced R2 credentials, executable signing in the R2 environment, non-draft releases, and a soak or retained-client gate that could reach credentials or release jobs.'
 }
 finally {
     $resolvedRoot = [IO.Path]::GetFullPath($root)

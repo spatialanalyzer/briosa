@@ -1,0 +1,147 @@
+name: Client conformance soak
+
+# Repeats one retained-client conformance job on hosted runners, against the server
+# built from the dispatched commit, with every timeout diagnostic and the client's
+# gRPC trace on (#450). Each iteration runs on its own runner. It publishes, signs
+# and releases nothing, uses no secrets and no environment, and calls only the
+# retained-client workflow, never the release workflow.
+on:
+  workflow_dispatch:
+    inputs:
+      language:
+        description: Client language
+        required: true
+        type: choice
+        options:
+          - js
+          - dotnet
+          - py
+        default: js
+      target:
+        description: Exact SpatialAnalyzer target
+        required: true
+        type: choice
+        options:
+          - '2024.1.0508.5'
+          - '2026.1.0529.7'
+        default: '2024.1.0508.5'
+      client-version:
+        description: Retained client version, as compatibility/retained-clients.json lists it
+        required: true
+        type: string
+        default: '0.5.1'
+      iterations:
+        description: Number of runs, 1 to 50, each on its own runner
+        required: true
+        type: number
+        default: 20
+      scenario:
+        description: One scenario to repeat; leave empty to run every scenario of the job
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Build the SA ${{ inputs.target }} conformance server
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+      DOTNET_NOLOGO: 'true'
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: 'targets/${{ inputs.target }}/**/packages.lock.json'
+
+      - name: Build the client conformance package
+        shell: pwsh
+        working-directory: targets/${{ inputs.target }}
+        run: >-
+          ./eng/New-ClientConformancePackage.ps1
+          -Version 0.2.0-soak
+          -SourceRevision $env:GITHUB_SHA
+          -OutputDirectory artifacts/client-conformance-soak
+
+      - name: Keep the package for the soak jobs
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: compatibility-server-${{ inputs.target }}
+          path: targets/${{ inputs.target }}/artifacts/client-conformance-soak/briosa-client-conformance-*
+          if-no-files-found: error
+          retention-days: 7
+
+  soak:
+    needs: package
+    uses: ./.github/workflows/retained-client-compatibility.yml
+    with:
+      server-version: 0.2.0-soak
+      allow-source-candidates: true
+      soak-iterations: ${{ inputs.iterations }}
+      soak-client: ${{ inputs.language }}/${{ inputs.target }}/${{ inputs.client-version }}
+      soak-scenario: ${{ inputs.scenario }}
+
+  summary:
+    name: Summarise the soak
+    needs: soak
+    if: always()
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - name: Download the iteration results
+        continue-on-error: true
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          pattern: soak-result-*
+          path: soak-results
+
+      - name: Write the summary
+        shell: pwsh
+        env:
+          ITERATIONS: ${{ inputs.iterations }}
+          LANGUAGE: ${{ inputs.language }}
+          TARGET: ${{ inputs.target }}
+          CLIENT_VERSION: ${{ inputs.client-version }}
+          SCENARIO: ${{ inputs.scenario }}
+          SOAK_RESULT: ${{ needs.soak.result }}
+        run: |
+          $results = @{}
+          foreach ($file in @(Get-ChildItem -Path soak-results -Recurse -Filter soak-result.json -File -ErrorAction SilentlyContinue)) {
+            $result = Get-Content -LiteralPath $file.FullName -Raw | ConvertFrom-Json
+            $results[[int]$result.iteration] = $result
+          }
+          $requested = [int]$env:ITERATIONS
+          $passed = @($results.Values | Where-Object { $_.outcome -ceq 'success' }).Count
+          $lines = [Collections.Generic.List[string]]::new()
+          $lines.Add('## Client conformance soak')
+          $lines.Add('')
+          $lines.Add(('Client {0} {1} on SA {2}, {3}; {4} of {5} iterations passed.' -f $env:LANGUAGE, $env:CLIENT_VERSION, $env:TARGET,
+            $(if ($env:SCENARIO) { "scenario $($env:SCENARIO)" } else { 'every scenario of the job' }), $passed, $requested))
+          $lines.Add('')
+          $lines.Add('| Iteration | Outcome | Failed scenarios |')
+          $lines.Add('| ---: | --- | --- |')
+          for ($iteration = 1; $iteration -le [Math]::Min($requested, 50); $iteration++) {
+            $result = $results[$iteration]
+            if ($null -eq $result) {
+              $lines.Add("| $iteration | no result |  |")
+              continue
+            }
+            $failed = (@($result.failed) | ForEach-Object { "$($_.scenario)$(if ($_.timedOut) { ' (timed out)' })" }) -join ', '
+            $lines.Add("| $iteration | $($result.outcome) | $failed |")
+          }
+          $lines.Add('')
+          $lines.Add('A failing iteration keeps its diagnostics as the artifact conformance-diagnostics-<language>-<target>-<version>-iteration-<n>.')
+          $lines | ForEach-Object { Write-Host $_ }
+          $lines | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          if ($env:SOAK_RESULT -cne 'success') {
+            throw "The soak did not pass every iteration ($passed of $requested passed)."
+          }

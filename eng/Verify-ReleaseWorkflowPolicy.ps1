@@ -183,7 +183,28 @@ if ($publish.Text -notmatch ':refs/tags/\$tag' -or $publish.Text -notmatch 'Re-r
     throw "The release.yml publish job must write the maintainer's recovery for the signed commit when the draft release is refused."
 }
 
+# The conformance soak (#450) is dispatched by hand and repeats the retained-client gate's
+# own jobs. It may call only that reusable workflow, which runs only when called, and
+# neither may use secrets or ask for a write permission or an OIDC token, so a soak can
+# never reach a release, signing or registry job.
+$noCredentials = '(?m)secrets\.|^\s*secrets:|id-token|^\s+[a-z-]+:\s*write\s*$'
+$soak = $workflows | Where-Object Name -ceq 'conformance-soak.yml'
+if ($null -eq $soak) { throw 'conformance-soak.yml is missing.' }
+$soakText = $soak.Lines -join "`n"
+$soakCalls = @([regex]::Matches($soakText, '(?m)^\s*-?\s*uses:\s*\./\.github/workflows/(?<file>[^\s@#]+)') |
+    ForEach-Object { $_.Groups['file'].Value })
+if (($soak.Events -join ',') -cne 'workflow_dispatch' -or ($soakCalls -join ',') -cne 'retained-client-compatibility.yml' -or
+    $soakText -cmatch $noCredentials) {
+    throw 'conformance-soak.yml must run only from workflow_dispatch, call only retained-client-compatibility.yml, and use no secrets, write permissions or OIDC token.'
+}
+$gate = $workflows | Where-Object Name -ceq 'retained-client-compatibility.yml'
+if ($null -eq $gate -or ($gate.Events -join ',') -cne 'workflow_call' -or ($gate.Lines -join "`n") -cmatch $noCredentials -or
+    ($gate.Lines -join "`n") -cmatch '(?m)^\s*-?\s*uses:\s*\./\.github/workflows/') {
+    throw 'retained-client-compatibility.yml must run only when called, call no other workflow, and use no secrets, write permissions or OIDC token.'
+}
+
 Write-Host (
     'Release workflows never run on tag pushes, name environments only in reviewed jobs, ' +
     'limit signing to main or a release line, keep R2 credentials in the R2 environment, ' +
-    'and leave tag creation to the published draft release.')
+    'and leave tag creation to the published draft release. The conformance soak runs only ' +
+    'by dispatch and only the retained-client gate''s jobs, without secrets or write permissions.')

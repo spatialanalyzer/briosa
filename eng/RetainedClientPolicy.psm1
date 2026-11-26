@@ -174,6 +174,49 @@ function Get-RetainedClientMatrix {
     return [pscustomobject]@{ include = @($matrix.ToArray()) }
 }
 
+# A soak run repeats one job of the gate's own plan (#450), so it tests the same pinned package
+# and fixture revision as the gate. Each iteration is its own matrix entry, so it runs on a fresh
+# hosted runner and keeps its own diagnostics. It publishes and signs nothing.
+$script:SoakIterationLimit = 50
+function Get-RetainedClientSoakMatrix {
+    param(
+        # The plan from Get-RetainedClientMatrix.
+        [Parameter(Mandatory)][object]$Plan,
+        # language/target/version, for example js/2024.1.0508.5/0.5.1.
+        [Parameter(Mandatory)][string]$Client,
+        [Parameter(Mandatory)][int]$Iterations,
+        # One scenario to repeat, or empty for every scenario the job runs.
+        [AllowEmptyString()][string]$Scenario = '',
+        [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot)
+    )
+    if ($Iterations -lt 1 -or $Iterations -gt $script:SoakIterationLimit) {
+        throw "A soak run takes 1 to $($script:SoakIterationLimit) iterations."
+    }
+    $parts = $Client -split '/'
+    if ($parts.Count -ne 3) { throw 'A soak run names one client as language/target/version.' }
+    $jobs = @($Plan.include | Where-Object { $_.language -ceq $parts[0] -and $_.target -ceq $parts[1] -and $_.version -ceq $parts[2] })
+    if ($jobs.Count -ne 1) { throw "The retained-client plan has no job for client $Client." }
+    $job = $jobs[0]
+    if ($job.expectIncompatible) { throw "A soak run repeats an accepted client; the gate expects $Client to be rejected." }
+    if (-not [string]::IsNullOrEmpty($Scenario)) {
+        $contract = Get-Content (Join-Path $RepositoryRoot "targets/$($job.target)/conformance/client/v1/scenarios.json") -Raw | ConvertFrom-Json
+        $required = [string[]]@($contract.scenarios | ForEach-Object { [string]$_.id })
+        if ($Scenario -cnotmatch '^[a-z0-9]+(?:-[a-z0-9]+)*$' -or
+            ($required -cnotcontains $Scenario -and @($job.requiredOptionalScenarios) -cnotcontains $Scenario)) {
+            throw "A soak run of $Client can repeat only a scenario its job runs."
+        }
+    }
+    $include = [Collections.Generic.List[object]]::new()
+    for ($iteration = 1; $iteration -le $Iterations; $iteration++) {
+        $item = @{}
+        foreach ($key in $job.Keys) { $item[$key] = $job[$key] }
+        $item.iteration = $iteration
+        $item.soakScenario = $Scenario
+        $include.Add($item)
+    }
+    return [pscustomobject]@{ include = @($include.ToArray()) }
+}
+
 # The retained-client workflow calls this after the packaged runner finishes a job. A fixture's
 # report lists the scenarios it requested, which does not show that they ran. The runner prints
 # its pass line only after it validated the fixture's receipt, so count that line instead. The
@@ -205,4 +248,4 @@ function Assert-OptionalScenarioPasses {
         }
     }
 }
-Export-ModuleMember -Function Get-RetainedClientMatrix, Assert-OptionalScenarioPasses
+Export-ModuleMember -Function Get-RetainedClientMatrix, Get-RetainedClientSoakMatrix, Assert-OptionalScenarioPasses
