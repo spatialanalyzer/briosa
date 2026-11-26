@@ -4,7 +4,7 @@ Server 0.10.1 raises the private worker response budget from 64 KiB to 1 MiB
 ([#399](https://github.com/spatialanalyzer/briosa/issues/399)). The public
 inbound limit and the private request budget stay at 64 KiB. This page records
 the limits, what the synthetic measurements showed, what is bounded and what
-is not, and what the licensed session still has to measure. User-facing limits
+is not, what licensed session 4 measured, and what remains unmeasured. User-facing limits
 are in each target's `docs/operations/windows-package.md`.
 
 ## Limits
@@ -251,22 +251,47 @@ What shows receipt:
   fake-SDK server using the published 0.5.0 packages for both targets. The runner
   verifies the byte length and digest computed by each fixture.
 
-## Licensed gaps
+## Licensed measurements and remaining gaps
 
-Every figure above is synthetic. The licensed session
-([#402](https://github.com/spatialanalyzer/briosa/issues/402)) should measure:
+Every figure above is synthetic. Licensed session 4
+([#402](https://github.com/spatialanalyzer/briosa/issues/402)) measured probe 34
+against the 1 MiB (1,048,576-byte) worker response budget on each target
+independently ([SA 2026.1.0529.7 evidence](../../targets/2026.1.0529.7/docs/testing/evidence/probe-session-4-2026.1.0529.7-2026-11-26.md),
+[SA 2024.1.0508.5 evidence](../../targets/2024.1.0508.5/docs/testing/evidence/probe-session-4-2024.1.0508.5-2026-11-26.md)):
 
-1. **Real result sizes** for the list-returning operations on realistic jobs,
-   as private frame bytes per operation, and how many come near or over 1 MiB:
-   - point-name and collection-object-name lists from large collections;
+- On each target, harness-constructed point-name lists of 100, 500, 2,000, and
+  10,000 elements were delivered: 10,000 elements used 699,540 worker frame
+  bytes and 248,928 public protobuf bytes. Two harness/job object-name lists
+  also fit well under the budget.
+- On each target, the 20,000-element point-name list returned `DataLoss` /
+  `OutputRetrievalFailure` with `worker-output-encoding-rejected` (MP code `2`,
+  execution disposition `Completed`, recovery guidance `None`, 0 of 1 outputs
+  retrieved, and a 637-byte replacement frame in the worker run). The original
+  response size is unknown because the same diagnostic covers both an
+  over-budget result and one that cannot be encoded.
+
+What still remains unmeasured in a licensed session:
+
+1. **Real job-owned result sizes** on realistic jobs, as private frame bytes
+   per operation:
+   - job-owned large point groups (`result_size_point_group`, absent and not
+     run in session 4) and collection-object-name lists from large production
+     collections (session 4's job-wide list had 20 objects in R2 and 24 in R1);
+   - a job-owned scan cloud point count (`result_size_cloud`, absent and not
+     run in session 4) for estimating an equivalent name-list size, since probe
+     34 has no cloud point-list response to measure directly;
    - edit text and string lists;
-   - the robot, calibration and covariance double lists.
+   - the robot, calibration, and covariance double lists.
 2. **The worker's working set** for a result near 1 MiB, and for a sized getter
    at large `ArraySize` values. This covers the SDK materialization that the
    budget does not bound.
-3. **Time** from `GetMPStepResult` to the public response for a near-1 MiB
-   result, against the quick execution budget.
+3. **Isolated time** from `GetMPStepResult` to the public response for a
+   near-1 MiB result, against the quick execution budget (probe 34 recorded
+   end-to-end step elapsed times only).
 4. **Escaping**, from names with non-ASCII or HTML-sensitive characters, and
    how much it shrinks what fits.
-5. **Whether any real result exceeds 1 MiB**, which would show as the completed
-   `DataLoss` outcome, and for which operations.
+5. **Whether and which real operations exceed 1 MiB** in production jobs, showing
+   as the completed `DataLoss` outcome (session 4 observed
+   `worker-output-encoding-rejected` on the harness-constructed 20,000-element
+   point list, whose original size is unknown because the same diagnostic
+   covers both over-budget and unencodable results).
