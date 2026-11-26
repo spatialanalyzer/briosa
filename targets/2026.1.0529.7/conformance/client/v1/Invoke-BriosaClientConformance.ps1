@@ -116,15 +116,17 @@ $workerStartupTimeout = $(if ([string]::IsNullOrWhiteSpace($env:Briosa__Worker__
 $dumpOnTimeout = [string]::Equals($env:BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT, "1", $ordinal)
 # One deadline for all diagnostics taken before a timed-out fixture is killed.
 $timeoutDiagnosticsMilliseconds = 120000
-# Test hook for the package tests only: with exactly 1, the timeout census of the
-# fixture's process tree fails, to show that a failed census never hides the timeout.
-$failProcessTreeCensus = [string]::Equals($env:BRIOSA_CONFORMANCE_TEST_FAIL_PROCESS_TREE, "1", $ordinal)
+# The process tree census lists at most this many processes; membership, which decides
+# the heap dumps, always covers the whole tree.
+$processTreeDisplayLimit = 200
 
 # Opt-in client-side gRPC tracing for one fixture language, through the switches its
 # gRPC library reads from the environment: js (@grpc/grpc-js), py (grpcio) or dotnet
 # (Grpc.Net.Client through an EventPipe file). The fixture is unchanged. A rejected
 # scenario keeps the trace with its diagnostics; a passing one discards it. Tracing
 # adds log volume and some time to each call, so the ordinary gate leaves it off.
+# Tracing is diagnostics only: a trace that cannot be set up, split or saved is
+# reported and never changes a scenario's result or replaces its error.
 $clientTraceLanguages = @("js", "py", "dotnet")
 $clientTrace = $env:BRIOSA_CONFORMANCE_CLIENT_TRACE
 if ([string]::IsNullOrEmpty($clientTrace)) {
@@ -135,17 +137,30 @@ elseif ($clientTrace -cnotin $clientTraceLanguages) {
     $clientTrace = $null
 }
 # grpc-js prefers its GRPC_NODE_ names, so a JavaScript trace never turns on the
-# grpcio trace of another process. Requests, responses and request headers are not
-# traced; received headers and trailers are, and stay in the saved trace file.
+# grpcio trace of another process.
 $clientTraceJavaScriptTracers = "channel,resolving_call,subchannel,subchannel_call,transport"
 # Without grpcio's channel tracer, which writes about 170 lines for each call.
 $clientTracePythonTracers = "api,call_error,client_channel_call,connectivity_state,http,subchannel"
-$clientTraceDotNetProviders = "Grpc.Net.Client:0xFFFFFFFFFFFFFFFF:5,System.Net.Http:0xFFFFFFFFFFFFFFFF:4"
-# A grpc-js trace line, and a grpcio (C-core) log line.
-$clientTraceLinePatterns = @{
-    js = '\A[DIE] [0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z \| v[0-9]+\.[0-9]+\.[0-9]+ [0-9]+ \| [a-z_]+ \| '
-    py = '\A[IWEF][0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{6} +[0-9]+ [^ \]]+:[0-9]+\] '
-}
+# Only the gRPC client's own event source: its events carry method names and status
+# codes, and no address, header, message or exception text.
+$clientTraceDotNetProviders = "Grpc.Net.Client:0xFFFFFFFFFFFFFFFF:5"
+# The library records the runner takes out of the fixture's stderr: a grpc-js trace
+# record (always Debug) from one of the tracers above, the header lines that follow a
+# "Received server headers:" or "Received server trailers:" record, and a grpcio (C-core)
+# record at Info, which these tracers write and the default verbosity hides. Anything
+# else, including library warnings and errors, stays in the fixture's stderr. The raw
+# records are never saved: the runner keeps only the events it can render from
+# validated names, numbers and times, and counts the rest.
+$clientTraceJavaScriptRecord = '\AD (?<time>[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z) \| v[0-9]+\.[0-9]+\.[0-9]+ (?<pid>[0-9]{1,10}) \| (?<tracer>channel|resolving_call|subchannel|subchannel_call|transport) \| (?<text>.*)\z'
+$clientTraceJavaScriptHeaderLine = '\A\t\t(?<name>[a-z0-9-]{1,64}): '
+$clientTracePythonRecord = '\AI(?<date>[0-9]{4}) (?<time>[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{6}) +(?<thread>[0-9]{1,10}) (?<file>[a-z0-9_]{1,64}\.cc):[0-9]{1,6}\] (?<text>.*)\z'
+$clientTraceMethod = '/[A-Za-z][A-Za-z0-9_.]{0,127}/[A-Za-z][A-Za-z0-9_]{0,127}'
+$clientTraceTrailerNames = New-OrdinalSet @("grpc-status", "grpc-message", "briosa-operation-error-bin",
+    "briosa-spatial-analyzer-sdk-lifecycle-error-bin", "briosa-spatial-analyzer-lifecycle-error-bin")
+$clientTraceCoreStatuses = New-OrdinalSet @("OK", "CANCELLED", "UNKNOWN", "INVALID_ARGUMENT", "DEADLINE_EXCEEDED",
+    "NOT_FOUND", "ALREADY_EXISTS", "PERMISSION_DENIED", "RESOURCE_EXHAUSTED", "FAILED_PRECONDITION", "ABORTED",
+    "OUT_OF_RANGE", "UNIMPLEMENTED", "INTERNAL", "UNAVAILABLE", "DATA_LOSS", "UNAUTHENTICATED")
+$clientTraceSubchannelStates = '(?:IDLE|CONNECTING|READY|TRANSIENT_FAILURE|SHUTDOWN)'
 
 # The server records every unary call's arrival and end at Debug (#450). It is off
 # by default; the conformance server turns it on for that one category, so a stalled
@@ -177,6 +192,7 @@ $digestEventNames = @{
     1400 = "ApplicationTransition"; 1401 = "LogSinkDegraded"; 1402 = "LaunchPreconditionSlow"
     1500 = "ReadinessNotReady"
     1600 = "UnaryCallStarted"; 1601 = "UnaryCallCompleted"; 1602 = "UnaryCallFaulted"; 1603 = "UnaryCallResponseEnded"
+    1604 = "UnaryCallResponseAbandoned"
     2000 = "PolicyLoaded"; 2001 = "RequestStarted"; 2002 = "PolicyAllowed"; 2003 = "PolicyRejected"
     2004 = "RpcCompleted"; 2005 = "RpcFailed"
 }
@@ -445,19 +461,19 @@ function Get-ProcessTable {
 
 function Get-FixtureProcessTree {
     param(
-        [Parameter(Mandatory)][Diagnostics.Process]$Fixture,
+        [Parameter(Mandatory)][int]$RootId,
+        [Parameter(Mandatory)][long]$RootStartTicks,
         [Parameter(Mandatory)][hashtable]$ProcessTable
     )
 
     # The fixture the runner started and every process descended from it, each parent
     # before its children, oldest child first. A child is never older than its parent,
     # so a parent ID reused by a later process cannot adopt an unrelated one. The
-    # runner and this copy hold the fixture open, so its own ID cannot be reused.
-    if ($failProcessTreeCensus) {
-        throw "The process tree census failed (test hook)."
-    }
-    $root = $ProcessTable[$Fixture.Id]
-    if ($null -eq $root -or -not (Test-SameCreation -LiveUtcTicks $TimeoutDiagnosticsFixtureStartTicks -Entry $root)) {
+    # runner and this copy hold the fixture open, so its own ID cannot be reused. The
+    # walk visits each snapshot entry at most once, so it always ends; the display
+    # limit applies only to printing.
+    $root = $ProcessTable[$RootId]
+    if ($null -eq $root -or -not (Test-SameCreation -LiveUtcTicks $RootStartTicks -Entry $root)) {
         throw "The fixture is not in the process snapshot."
     }
     $children = @{}
@@ -475,7 +491,7 @@ function Get-FixtureProcessTree {
     $seen = [Collections.Generic.HashSet[int]]::new()
     $pending = [Collections.Generic.Stack[object]]::new()
     $pending.Push([pscustomobject]@{ Entry = $root; Depth = 0 })
-    while ($pending.Count -gt 0 -and $tree.Count -lt 256) {
+    while ($pending.Count -gt 0) {
         $node = $pending.Pop()
         if (-not $seen.Add([int]$node.Entry.ProcessId)) {
             continue
@@ -499,22 +515,157 @@ function Get-SafeProcessName {
     return $(if ($null -ne $Name -and $Name -cmatch '\A[A-Za-z0-9 ._()+-]{1,64}\z') { $Name } else { $digestWithheld })
 }
 
-function Get-ScriptNames {
+function Split-CommandLine {
     param([AllowNull()][string]$CommandLine)
 
-    # At most three file names that look like a script or an assembly, such as tsx's
-    # cli.mjs and the fixture's conformance.ts: enough to tell a launcher from the
-    # process it starts. The command line itself, with its paths and values, is never
-    # printed.
-    $names = [Collections.Generic.List[string]]::new()
+    # The arguments of a Windows command line, by the rules the C runtime uses:
+    # whitespace separates arguments outside double quotes, 2n backslashes before a
+    # quote are n backslashes, and 2n+1 are n and a literal quote.
+    $arguments = [Collections.Generic.List[string]]::new()
     if ([string]::IsNullOrEmpty($CommandLine)) {
-        return , $names
+        return , $arguments
     }
-    foreach ($match in [regex]::Matches($CommandLine,
-            '(?<![A-Za-z0-9._-])([A-Za-z0-9_-][A-Za-z0-9._-]{0,63}\.(?:mjs|cjs|js|mts|cts|ts|py|dll|ps1))(?![A-Za-z0-9._-])')) {
-        $name = $match.Groups[1].Value
-        if (-not $names.Contains($name)) {
-            $names.Add($name)
+    $current = [Text.StringBuilder]::new()
+    $quoted = $false
+    $started = $false
+    for ($index = 0; $index -lt $CommandLine.Length; $index++) {
+        $character = $CommandLine[$index]
+        if ($character -eq '\') {
+            $slashes = 0
+            while ($index -lt $CommandLine.Length -and $CommandLine[$index] -eq '\') {
+                $slashes++
+                $index++
+            }
+            if ($index -lt $CommandLine.Length -and $CommandLine[$index] -eq '"') {
+                [void]$current.Append('\', [int][Math]::Floor($slashes / 2))
+                if ($slashes % 2 -eq 1) {
+                    [void]$current.Append('"')
+                }
+                else {
+                    $quoted = -not $quoted
+                }
+            }
+            else {
+                [void]$current.Append('\', $slashes)
+                $index--
+            }
+            $started = $true
+            continue
+        }
+        if ($character -eq '"') {
+            $quoted = -not $quoted
+            $started = $true
+            continue
+        }
+        if (-not $quoted -and [char]::IsWhiteSpace($character)) {
+            if ($started) {
+                $arguments.Add($current.ToString())
+                [void]$current.Clear()
+                $started = $false
+            }
+            continue
+        }
+        [void]$current.Append($character)
+        $started = $true
+    }
+    if ($started) {
+        $arguments.Add($current.ToString())
+    }
+    return , $arguments
+}
+
+function Get-ScriptNames {
+    param(
+        [AllowNull()][string]$Name,
+        [AllowNull()][string]$CommandLine
+    )
+
+    # The file names of the scripts, loaders or assembly a known runtime was started
+    # with, read only from the positions where that runtime takes them: Node's script
+    # and its --require, --import and --loader modules, Python's script, the
+    # assembly dotnet runs, and PowerShell's -File script. Arguments after the script
+    # are the script's own and are never read, and nothing is read for any other
+    # program, so an ordinary argument value never reaches the census. Each name must
+    # look like a script or an assembly file name; at most three are returned.
+    $names = [Collections.Generic.List[string]]::new()
+    $arguments = Split-CommandLine $CommandLine
+    $runtime = ([string]$Name).ToLowerInvariant()
+    $candidates = [Collections.Generic.List[string]]::new()
+    $valueOptions = @()
+    $moduleOptions = @()
+    $scriptOption = $null
+    switch -Exact ($runtime) {
+        "node.exe" {
+            $moduleOptions = @("--require", "-r", "--import", "--loader", "--experimental-loader")
+            $valueOptions = @("--eval", "-e", "--print", "-p", "--input-type", "--conditions", "-C", "--title",
+                "--inspect-port", "--max-old-space-size", "--stack-size", "--env-file", "--watch-path")
+        }
+        { $_ -in @("python.exe", "pythonw.exe", "py.exe") } {
+            $valueOptions = @("-W", "-X", "--check-hash-based-pycs")
+        }
+        "dotnet.exe" {
+            $valueOptions = @("--depsfile", "--runtimeconfig", "--additionalprobingpath", "--additional-deps",
+                "--fx-version", "--roll-forward", "--runtimeconfig")
+        }
+        { $_ -in @("pwsh.exe", "powershell.exe") } {
+            $scriptOption = @("-File", "-f")
+        }
+        default {
+            return , $names
+        }
+    }
+    for ($index = 1; $index -lt $arguments.Count; $index++) {
+        $argument = $arguments[$index]
+        if ($null -ne $scriptOption) {
+            # PowerShell: only the value of -File names a script; everything after it
+            # belongs to the script.
+            if ($argument -in $scriptOption -and $index + 1 -lt $arguments.Count) {
+                $candidates.Add($arguments[$index + 1])
+                break
+            }
+            if ($argument -in @("-Command", "-c", "-EncodedCommand", "-e", "-ec")) {
+                break
+            }
+            continue
+        }
+        $option = $argument
+        $value = $null
+        if ($argument.StartsWith("--", [StringComparison]::Ordinal) -and $argument.Contains("=")) {
+            $option = $argument.Substring(0, $argument.IndexOf("="))
+            $value = $argument.Substring($argument.IndexOf("=") + 1)
+        }
+        if ($option -in $moduleOptions) {
+            if ($null -eq $value -and $index + 1 -lt $arguments.Count) {
+                $index++
+                $value = $arguments[$index]
+            }
+            if ($null -ne $value) {
+                $candidates.Add($value)
+            }
+            continue
+        }
+        if ($runtime -in @("python.exe", "pythonw.exe", "py.exe") -and $argument -in @("-c", "-m")) {
+            # A command or a module, not a script file.
+            break
+        }
+        if ($option -in $valueOptions) {
+            if ($null -eq $value) {
+                $index++
+            }
+            continue
+        }
+        if ($argument.StartsWith("-", [StringComparison]::Ordinal)) {
+            continue
+        }
+        # The first argument that is not an option is the script or the assembly.
+        $candidates.Add($argument)
+        break
+    }
+    foreach ($candidate in $candidates) {
+        $leaf = ($candidate -split '[\\/]')[-1]
+        if ($leaf -cmatch '\A[A-Za-z0-9_-][A-Za-z0-9._-]{0,63}\.(?:mjs|cjs|js|mts|cts|ts|py|dll|ps1)\z' -and
+            -not $names.Contains($leaf)) {
+            $names.Add($leaf)
         }
         if ($names.Count -ge 3) {
             break
@@ -567,13 +718,19 @@ function Write-FixtureProcessTree {
         [Parameter(Mandatory)][long]$DeadlineTicks
     )
 
-    # One line per process in the fixture's tree, indented under its parent. CPU is
-    # read twice, a second apart, so a busy process shows its growth and an idle one
-    # none. Returns the process IDs verified as members of the tree, live and the
-    # same process as in the snapshot.
-    $tree = Get-FixtureProcessTree -Fixture $Fixture -ProcessTable $ProcessTable
-    $rows = [Collections.Generic.List[object]]::new()
+    # One line per process in the fixture's tree, indented under its parent, for at
+    # most $processTreeDisplayLimit processes. CPU is read twice, a second apart, so a
+    # busy process shows its growth and an idle one none. Returns the process IDs of
+    # the whole tree, listed or not; a package process is checked against the
+    # snapshot again before it is treated as a member.
+    $tree = Get-FixtureProcessTree -RootId $Fixture.Id -RootStartTicks $TimeoutDiagnosticsFixtureStartTicks `
+        -ProcessTable $ProcessTable
+    $members = [Collections.Generic.HashSet[int]]::new()
     foreach ($node in $tree) {
+        [void]$members.Add([int]$node.Entry.ProcessId)
+    }
+    $rows = [Collections.Generic.List[object]]::new()
+    foreach ($node in @($tree | Select-Object -First $processTreeDisplayLimit)) {
         $entry = $node.Entry
         $processId = [int]$entry.ProcessId
         $live = $null
@@ -607,10 +764,9 @@ function Write-FixtureProcessTree {
         Start-Sleep -Milliseconds $sampleMilliseconds
     }
     $sampleSeconds = $sampleStarted.Elapsed.TotalSeconds
-    $members = [Collections.Generic.HashSet[int]]::new()
     foreach ($row in $rows) {
         $entry = $row.Node.Entry
-        $scripts = Get-ScriptNames $entry.CommandLine
+        $scripts = Get-ScriptNames -Name $entry.Name -CommandLine $entry.CommandLine
         $label = (@(Get-SafeProcessName $entry.Name) + @($scripts)) -join " "
         $prefix = Format-Invariant "{0}{1} pid {2} ({3}): parent {4}, started {5}" @(
             ("  " * $row.Node.Depth), $row.Role, $entry.ProcessId, $label, $entry.ParentProcessId,
@@ -631,11 +787,13 @@ function Write-FixtureProcessTree {
                 })
             Write-Host (Format-Invariant "{0}, CPU {1:0.00} s{2}, {3}" @(
                     $prefix, $cpu.TotalSeconds, $growth, (Get-ThreadSummary $row.Live)))
-            [void]$members.Add([int]$entry.ProcessId)
         }
         catch {
             Write-Host "$prefix, exited or unreadable"
         }
+    }
+    if ($tree.Count -gt $rows.Count) {
+        Write-Host "($($tree.Count - $rows.Count) more processes in the fixture's tree are not listed)"
     }
     return , $members
 }
@@ -1729,64 +1887,246 @@ function Get-ScenarioPhaseSummary {
 }
 
 function Get-ClientTraceEnvironment {
-    param([Parameter(Mandatory)][string]$ScenarioRoot)
+    param(
+        [Parameter(Mandatory)][string]$ScenarioId,
+        [Parameter(Mandatory)][string]$ScenarioRoot
+    )
 
     # The fixture inherits these, and so do the processes it starts. Each library
     # reads only its own names, except EventPipe, which every .NET process in the
-    # tree reads; its {pid} gives each process its own file.
-    switch -CaseSensitive ($clientTrace) {
-        "js" {
-            return @{ GRPC_NODE_VERBOSITY = "DEBUG"; GRPC_NODE_TRACE = $clientTraceJavaScriptTracers }
-        }
-        "py" {
-            return @{ GRPC_VERBOSITY = "DEBUG"; GRPC_TRACE = $clientTracePythonTracers }
-        }
-        "dotnet" {
-            $traceRoot = Join-Path $ScenarioRoot "client-trace"
-            [IO.Directory]::CreateDirectory($traceRoot) | Out-Null
-            return @{
-                DOTNET_EnableEventPipe = "1"
-                DOTNET_EventPipeOutputPath = (Join-Path $traceRoot "dotnet-{pid}.nettrace")
-                DOTNET_EventPipeConfig = $clientTraceDotNetProviders
-                # Written as it is produced, so a killed fixture still leaves its events.
-                DOTNET_EventPipeOutputStreaming = "1"
-                DOTNET_EventPipeRundown = "0"
+    # tree reads; its {pid} gives each process its own file. A trace that cannot be
+    # set up is reported and left off; the scenario runs as it would without it.
+    try {
+        switch -CaseSensitive ($clientTrace) {
+            "js" {
+                return @{ GRPC_NODE_VERBOSITY = "DEBUG"; GRPC_NODE_TRACE = $clientTraceJavaScriptTracers }
+            }
+            "py" {
+                return @{ GRPC_VERBOSITY = "DEBUG"; GRPC_TRACE = $clientTracePythonTracers }
+            }
+            "dotnet" {
+                $traceRoot = Join-Path $ScenarioRoot "client-trace"
+                [IO.Directory]::CreateDirectory($traceRoot) | Out-Null
+                return @{
+                    DOTNET_EnableEventPipe = "1"
+                    DOTNET_EventPipeOutputPath = (Join-Path $traceRoot "dotnet-{pid}.nettrace")
+                    DOTNET_EventPipeConfig = $clientTraceDotNetProviders
+                    # Written as it is produced, so a killed fixture still leaves its events.
+                    DOTNET_EventPipeOutputStreaming = "1"
+                    DOTNET_EventPipeRundown = "0"
+                }
             }
         }
+    }
+    catch {
+        Write-Host "(client gRPC tracing is off for $($ScenarioId): its trace could not be set up)"
     }
     return @{}
 }
 
-function Split-ClientTrace {
-    param([AllowEmptyString()][string]$ErrorOutput)
+function ConvertFrom-JavaScriptTraceRecord {
+    param(
+        [Parameter(Mandatory)][Text.RegularExpressions.Match]$Record,
+        [Parameter(Mandatory)][AllowEmptyCollection()][Collections.Generic.List[object]]$Calls
+    )
 
-    # With client tracing on, the gRPC library's lines leave the fixture's stderr for
-    # their own file, so the stderr printed and kept is the fixture's own. A grpc-js
-    # entry continues on tab-indented lines, such as a list of received headers.
+    # One grpc-js record as an event built only from validated numbers, method names
+    # and its time, or $null for a record whose shape is not on this list.
+    $head = "$($Record.Groups['time'].Value) pid $($Record.Groups['pid'].Value)"
+    $text = $Record.Groups["text"].Value
+    $match = $null
+    switch -CaseSensitive ($Record.Groups["tracer"].Value) {
+        "channel" {
+            $match = [regex]::Match($text, "\A\([0-9]{1,10}\) [^ ]+ createResolvingCall \[(?<call>[0-9]{1,10})\] method=`"(?<method>$clientTraceMethod)`", deadline=")
+            if ($match.Success) {
+                $Calls.Add([pscustomobject]@{
+                    Process = $Record.Groups["pid"].Value; Number = $match.Groups["call"].Value
+                    Method = $match.Groups["method"].Value; Created = $Record.Groups["time"].Value; Ended = $null; Code = $null
+                })
+                return "$head call $($match.Groups['call'].Value) created $($match.Groups['method'].Value)"
+            }
+        }
+        "resolving_call" {
+            $match = [regex]::Match($text, '\A\[(?<call>[0-9]{1,10})\] Created child \[(?<child>[0-9]{1,10})\]\z')
+            if ($match.Success) {
+                return "$head call $($match.Groups['call'].Value) uses stream $($match.Groups['child'].Value)"
+            }
+            $match = [regex]::Match($text, '\A\[(?<call>[0-9]{1,10})\] ended with status: code=(?<code>[0-9]{1,2}) details=')
+            if ($match.Success) {
+                foreach ($call in $Calls) {
+                    if ($call.Process -ceq $Record.Groups["pid"].Value -and $call.Number -ceq $match.Groups["call"].Value -and
+                        $null -eq $call.Ended) {
+                        $call.Ended = $Record.Groups["time"].Value
+                        $call.Code = [int]$match.Groups["code"].Value
+                    }
+                }
+                return "$head call $($match.Groups['call'].Value) ended with status $($match.Groups['code'].Value)"
+            }
+        }
+        "subchannel_call" {
+            foreach ($shape in @(
+                    @('\A\[(?<stream>[0-9]{1,10})\] Received server headers:\z', 'received headers'),
+                    @('\A\[(?<stream>[0-9]{1,10})\] Received server trailers:\z', 'received trailers'),
+                    @('\A\[(?<stream>[0-9]{1,10})\] received status code (?<code>[0-9]{1,2}) from server\z', 'received status {0}'),
+                    @('\A\[(?<stream>[0-9]{1,10})\] HTTP/2 stream closed with code (?<code>[0-9]{1,3})\z', 'closed with HTTP/2 code {0}'),
+                    @('\A\[(?<stream>[0-9]{1,10})\] ended with status: code=(?<code>[0-9]{1,2}) details=', 'ended with status {0}'))) {
+                $match = [regex]::Match($text, $shape[0])
+                if ($match.Success) {
+                    return "$head stream $($match.Groups['stream'].Value) $([string]::Format($invariantCulture, $shape[1], $match.Groups['code'].Value))"
+                }
+            }
+        }
+        "subchannel" {
+            $match = [regex]::Match($text, "\A\((?<id>[0-9]{1,10})\) [^ ]+ (?<from>$clientTraceSubchannelStates) -> (?<to>$clientTraceSubchannelStates)\z")
+            if ($match.Success) {
+                return "$head subchannel $($match.Groups['id'].Value) $($match.Groups['from'].Value) -> $($match.Groups['to'].Value)"
+            }
+        }
+        "transport" {
+            foreach ($shape in @(
+                    @(' Established TCP connection\z', 'connection established'),
+                    @(' session closed\z', 'session closed'),
+                    @(' connection closed by GOAWAY with code (?<code>[0-9]{1,3})\z', 'connection closed by GOAWAY with code {0}'),
+                    @(' connection closed with error ', 'connection closed with an error'),
+                    @(' connection closed\. hadError=(?<code>true|false)\z', 'connection closed, error {0}'))) {
+                $match = [regex]::Match($text, $shape[0])
+                if ($match.Success) {
+                    return "$head transport $([string]::Format($invariantCulture, $shape[1], $match.Groups['code'].Value))"
+                }
+            }
+        }
+    }
+    return $null
+}
+
+function ConvertFrom-PythonTraceRecord {
+    param([Parameter(Mandatory)][Text.RegularExpressions.Match]$Record)
+
+    # One grpcio record as an event built only from a validated method name, a status
+    # name and its local time, or $null for any other record.
+    $head = "$($Record.Groups['date'].Value) $($Record.Groups['time'].Value) local thread $($Record.Groups['thread'].Value)"
+    $text = $Record.Groups["text"].Value
+    switch -CaseSensitive ($Record.Groups["file"].Value) {
+        "client_channel_filter.cc" {
+            $match = [regex]::Match($text, "batch started from above: +SEND_INITIAL_METADATA\{:path: (?<method>$clientTraceMethod)[,}]")
+            if ($match.Success) {
+                return "$head call started $($match.Groups['method'].Value)"
+            }
+        }
+        "filter_stack_call.cc" {
+            $match = [regex]::Match($text, '\Aset_final_status CLI (?<status>[A-Z_]{2,32})(?::|\z)')
+            if ($match.Success -and $clientTraceCoreStatuses.Contains($match.Groups["status"].Value)) {
+                return "$head call ended with status $($match.Groups['status'].Value)"
+            }
+        }
+    }
+    return $null
+}
+
+function Split-ClientTrace {
+    param(
+        [AllowEmptyString()][string]$ErrorOutput,
+        [Parameter(Mandatory)][string]$ScenarioId
+    )
+
+    # With client tracing on, the gRPC library's records leave the fixture's stderr,
+    # so the stderr printed and kept, and the failure message, stay the fixture's own.
+    # Only proven library records are taken; an ambiguous line stays in the stderr.
+    # The trace keeps only events rendered from validated fields, never a record's
+    # text, so no address, header value or status message reaches it.
     $result = [pscustomobject]@{ ErrorOutput = $ErrorOutput; Trace = $null }
-    if ($null -eq $clientTrace -or -not $clientTraceLinePatterns.ContainsKey($clientTrace)) {
+    if ($null -eq $clientTrace -or $clientTrace -ceq "dotnet") {
         return $result
     }
-    $pattern = $clientTraceLinePatterns[$clientTrace]
-    $kept = [Collections.Generic.List[string]]::new()
-    $trace = [Text.StringBuilder]::new()
-    $inTrace = $false
-    foreach ($line in ($ErrorOutput -split "\r?\n")) {
-        if ($line -cmatch $pattern -or ($inTrace -and $clientTrace -ceq "js" -and $line.StartsWith("`t"))) {
-            $inTrace = $true
-            [void]$trace.AppendLine($line)
-            continue
+    try {
+        $kept = [Collections.Generic.List[string]]::new()
+        $events = [Collections.Generic.List[string]]::new()
+        $calls = [Collections.Generic.List[object]]::new()
+        $other = 0
+        # A trailers record waits for its header lines, whose allow-listed names it lists.
+        $headers = $null
+        foreach ($line in ($ErrorOutput -split "\r?\n")) {
+            if ($null -ne $headers) {
+                $header = [regex]::Match($line, $clientTraceJavaScriptHeaderLine)
+                if ($header.Success) {
+                    if ($headers.Trailers -and $clientTraceTrailerNames.Contains($header.Groups["name"].Value)) {
+                        $headers.Names.Add($header.Groups["name"].Value)
+                    }
+                    continue
+                }
+                if ($headers.Trailers) {
+                    $events[$headers.Index] += $(if ($headers.Names.Count -gt 0) { ": " + ($headers.Names -join ", ") } else { "" })
+                }
+                $headers = $null
+            }
+            if ($clientTrace -ceq "js") {
+                $record = [regex]::Match($line, $clientTraceJavaScriptRecord)
+                if (-not $record.Success) {
+                    $kept.Add($line)
+                    continue
+                }
+                # A recognized record leaves the stderr even if it cannot be rendered.
+                $event = $null
+                try {
+                    $event = ConvertFrom-JavaScriptTraceRecord -Record $record -Calls $calls
+                }
+                catch {
+                }
+                if ($null -eq $event) {
+                    $other++
+                    continue
+                }
+                $events.Add($event)
+                if ($event.EndsWith(" received headers", [StringComparison]::Ordinal) -or
+                    $event.EndsWith(" received trailers", [StringComparison]::Ordinal)) {
+                    $headers = [pscustomobject]@{
+                        Index = $events.Count - 1
+                        Trailers = $event.EndsWith(" received trailers", [StringComparison]::Ordinal)
+                        Names = [Collections.Generic.List[string]]::new()
+                    }
+                }
+                continue
+            }
+            $record = [regex]::Match($line, $clientTracePythonRecord)
+            if (-not $record.Success) {
+                $kept.Add($line)
+                continue
+            }
+            $event = $null
+            try {
+                $event = ConvertFrom-PythonTraceRecord -Record $record
+            }
+            catch {
+            }
+            if ($null -eq $event) {
+                $other++
+            }
+            else {
+                $events.Add($event)
+            }
         }
-        $inTrace = $false
-        $kept.Add($line)
+        if ($null -ne $headers -and $headers.Trailers -and $headers.Names.Count -gt 0) {
+            $events[$headers.Index] += ": " + ($headers.Names -join ", ")
+        }
+        $library = $(if ($clientTrace -ceq "js") { "@grpc/grpc-js" } else { "grpcio" })
+        $lines = [Collections.Generic.List[string]]::new()
+        $lines.Add("# Client gRPC events from the $library trace. Only validated method names, numbers, states and times are kept.")
+        $lines.AddRange($events)
+        $lines.Add("($other other library trace records were not kept)")
+        $result.ErrorOutput = ($kept -join [Environment]::NewLine).Trim()
+        $result.Trace = ($lines -join [Environment]::NewLine) + [Environment]::NewLine
     }
-    $result.ErrorOutput = ($kept -join [Environment]::NewLine).Trim()
-    $result.Trace = $trace.ToString()
+    catch {
+        Write-Host "(the client gRPC trace of $ScenarioId could not be separated from the fixture's stderr; the stderr is kept whole)"
+        $result.ErrorOutput = $ErrorOutput
+        $result.Trace = $null
+    }
     return $result
 }
 
 function Save-FixtureOutput {
     param(
+        [Parameter(Mandatory)][string]$ScenarioId,
         [Parameter(Mandatory)][string]$ScenarioRoot,
         [AllowEmptyString()][string]$Output,
         [AllowEmptyString()][string]$ErrorOutput,
@@ -1799,9 +2139,14 @@ function Save-FixtureOutput {
     [IO.File]::WriteAllText(
         (Join-Path $ScenarioRoot "fixture.stderr.txt"), (Get-SafeText $ErrorOutput), $encoding)
     # A [string] parameter turns $null into an empty string, so the language decides.
-    if ($null -ne $clientTrace -and $clientTraceLinePatterns.ContainsKey($clientTrace)) {
-        [IO.File]::WriteAllText(
-            (Join-Path $ScenarioRoot "client-trace.txt"), (Get-SafeText $Trace), $encoding)
+    # The trace is optional: a file that cannot be written is reported and nothing else.
+    if ($null -ne $clientTrace -and $clientTrace -cne "dotnet") {
+        try {
+            [IO.File]::WriteAllText((Join-Path $ScenarioRoot "client-trace.txt"), $Trace, $encoding)
+        }
+        catch {
+            Write-Host "(the client gRPC trace of $ScenarioId could not be saved)"
+        }
     }
 }
 
@@ -1814,28 +2159,27 @@ function Write-ClientCallSummary {
 
     # Diagnostics only. From a grpc-js trace, one line per client call: its method,
     # when it was created, and its status and when it ended, or that it had not ended
-    # when the fixture stopped. Only method names and status codes are printed; the
-    # trace itself, with received headers and status messages, stays in its file.
+    # when the fixture stopped.
     if ($null -eq $clientTrace) {
         return
     }
     if ($clientTrace -cne "js") {
         $saved = @(Get-ChildItem -LiteralPath $ScenarioRoot -Recurse -File -Force -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name -like "client-trace*" -or $_.Directory.Name -ceq "client-trace" })
+            Where-Object { $_.Name -ceq "client-trace.txt" -or $_.Directory.Name -ceq "client-trace" })
         Write-Host "(client gRPC trace: $($saved.Count) files are kept with the diagnostics of $ScenarioId)"
         return
     }
     $tracePath = Join-Path $ScenarioRoot "client-trace.txt"
     if (-not (Test-Path -LiteralPath $tracePath -PathType Leaf)) {
-        Write-Host "(no client gRPC trace was captured for $ScenarioId)"
+        Write-Host "(no client gRPC trace was saved for $ScenarioId)"
         return
     }
     $reference = Get-TimingReference $Timing
     $statusNames = @("OK", "Cancelled", "Unknown", "InvalidArgument", "DeadlineExceeded", "NotFound", "AlreadyExists",
         "PermissionDenied", "ResourceExhausted", "FailedPrecondition", "Aborted", "OutOfRange", "Unimplemented",
         "Internal", "Unavailable", "DataLoss", "Unauthenticated")
-    $created = '\A[DIE] (?<time>[0-9T:.Z-]+) \| v[0-9.]+ (?<pid>[0-9]+) \| channel \| \([0-9]+\) [^ ]+ createResolvingCall \[(?<call>[0-9]+)\] method="(?<method>/[A-Za-z0-9_.]{1,128}/[A-Za-z0-9_]{1,128})"'
-    $ended = '\A[DIE] (?<time>[0-9T:.Z-]+) \| v[0-9.]+ (?<pid>[0-9]+) \| resolving_call \| \[(?<call>[0-9]+)\] ended with status: code=(?<code>[0-9]{1,2}) '
+    $created = "\A(?<time>[0-9T:.Z-]{24}) pid (?<pid>[0-9]{1,10}) call (?<call>[0-9]{1,10}) created (?<method>$clientTraceMethod)\z"
+    $ended = '\A(?<time>[0-9T:.Z-]{24}) pid (?<pid>[0-9]{1,10}) call (?<call>[0-9]{1,10}) ended with status (?<code>[0-9]{1,2})\z'
     $calls = [Collections.Generic.List[object]]::new()
     $byKey = @{}
     try {
@@ -2057,8 +2401,9 @@ function Invoke-Fixture {
         [Parameter(Mandatory)][hashtable]$Timing
     )
 
+    $scenarioId = [string]$ScenarioDefinition.id
     $arguments = @($FixtureArguments) + @(
-        "--scenario", [string]$ScenarioDefinition.id,
+        "--scenario", $scenarioId,
         "--contract", $contractPath)
     $startInfo = New-ProcessStartInfo `
         -FilePath $FixtureCommand `
@@ -2101,8 +2446,9 @@ function Invoke-Fixture {
                 Stop-PackageProcesses
             }
             if ([Threading.Tasks.Task]::WaitAll(@($outputTask, $errorTask), 5000)) {
-                $split = Split-ClientTrace $errorTask.GetAwaiter().GetResult()
+                $split = Split-ClientTrace -ErrorOutput $errorTask.GetAwaiter().GetResult() -ScenarioId $scenarioId
                 Save-FixtureOutput `
+                    -ScenarioId $scenarioId `
                     -ScenarioRoot $ScenarioRoot `
                     -Output $outputTask.GetAwaiter().GetResult() `
                     -ErrorOutput $split.ErrorOutput `
@@ -2111,9 +2457,10 @@ function Invoke-Fixture {
             throw "The client fixture timed out after $FixtureTimeoutSeconds s in scenario '$($ScenarioDefinition.id)'."
         }
         $output = $outputTask.GetAwaiter().GetResult().Trim()
-        $split = Split-ClientTrace $errorTask.GetAwaiter().GetResult().Trim()
+        $split = Split-ClientTrace -ErrorOutput $errorTask.GetAwaiter().GetResult().Trim() -ScenarioId $scenarioId
         $errorOutput = $split.ErrorOutput
-        Save-FixtureOutput -ScenarioRoot $ScenarioRoot -Output $output -ErrorOutput $errorOutput -Trace $split.Trace
+        Save-FixtureOutput -ScenarioId $scenarioId -ScenarioRoot $ScenarioRoot -Output $output -ErrorOutput $errorOutput `
+            -Trace $split.Trace
         if ($process.ExitCode -ne 0) {
             $safeError = Get-SafeText $errorOutput
             throw "The client fixture failed scenario '$($ScenarioDefinition.id)' with exit code $($process.ExitCode): $safeError"
@@ -2179,16 +2526,25 @@ foreach ($requested in $requestedOptional) {
 }
 $selectedScenarios += @($optionalDefinitions | Where-Object { $_.id -in $requestedOptional })
 
-# Opt-in, for repeating one scenario through a client repository's own test script,
-# as the soak workflow does: of the scenarios this run selected, run only the one
-# named. It never adds a scenario, so naming one the run did not select is an error.
-$onlyScenario = $env:BRIOSA_CONFORMANCE_ONLY_SCENARIO
-if (-not [string]::IsNullOrEmpty($onlyScenario)) {
-    $selectedScenarios = @($selectedScenarios | Where-Object { [string]::Equals([string]$_.id, $onlyScenario, $ordinal) })
-    if ($selectedScenarios.Count -ne 1) {
-        throw "BRIOSA_CONFORMANCE_ONLY_SCENARIO names a scenario that this run did not select."
+# A soak package, built only by the conformance soak workflow (#450), names one
+# scenario in runner/soak-scenario.json. Of the scenarios this run selected, it runs
+# only that one, then always ends with an error, even when the scenario passed, so a
+# client's test script never records the run as compatibility evidence. A release or
+# CI package has no such file, and nothing in the environment can narrow a run.
+$soakScenario = $null
+$soakPath = Join-Path $PSScriptRoot "soak-scenario.json"
+if (Test-Path -LiteralPath $soakPath) {
+    $soak = Get-Content -LiteralPath $soakPath -Raw | ConvertFrom-Json
+    if ($soak.schema_version -ne 1 -or $soak.scenario -isnot [string] -or
+        $soak.scenario -cnotmatch '\A[a-z0-9]+(?:-[a-z0-9]+)*\z') {
+        throw "The soak package's scenario file is invalid."
     }
-    Write-Host "Running only conformance scenario '$($selectedScenarios[0].id)', as BRIOSA_CONFORMANCE_ONLY_SCENARIO asks."
+    $selectedScenarios = @($selectedScenarios | Where-Object { [string]::Equals([string]$_.id, $soak.scenario, $ordinal) })
+    if ($selectedScenarios.Count -ne 1) {
+        throw "The soak package names a scenario that this run did not select."
+    }
+    $soakScenario = [string]$selectedScenarios[0].id
+    Write-Host "Running only conformance scenario '$soakScenario': this soak package repeats one scenario, and its runs are not compatibility evidence."
 }
 
 [IO.Directory]::CreateDirectory($temporaryRoot) | Out-Null
@@ -2229,7 +2585,8 @@ try {
             "Briosa__Logging__File__Directory" = (Join-Path $scenarioRoot "server-logs")
             $unaryCallAuditLevelKey = $unaryCallAuditLevel
         }
-        foreach ($entry in (Get-ClientTraceEnvironment -ScenarioRoot $scenarioRoot).GetEnumerator()) {
+        foreach ($entry in (Get-ClientTraceEnvironment -ScenarioId ([string]$scenarioDefinition.id) `
+                    -ScenarioRoot $scenarioRoot).GetEnumerator()) {
             $environment[$entry.Key] = $entry.Value
         }
         $scenarioFailure = $null
@@ -2341,6 +2698,9 @@ try {
 
         $phaseSummary = Get-ScenarioPhaseSummary -ScenarioRoot $scenarioRoot -Timing $timing
         Write-Host "Passed client conformance scenario: $($scenarioDefinition.id)$(if ($phaseSummary) { " ($phaseSummary)" })"
+    }
+    if ($null -ne $soakScenario) {
+        throw "This soak run repeated conformance scenario '$soakScenario' only, so it is not compatibility evidence."
     }
 }
 finally {

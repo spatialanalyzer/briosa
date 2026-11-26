@@ -148,10 +148,12 @@ the server's Debug records of every unary call (#450), by setting
 `Logging__LogLevel__Briosa.Server.Services.UnaryCallAuditInterceptor=Debug` for
 the fixture and so for the server it starts; a caller that sets the key keeps
 its value. For each call the digest then shows `UnaryCallStarted` when it
-arrived, `UnaryCallCompleted` with the gRPC status when its handler returned,
+arrived, `UnaryCallCompleted` with the status its handler returned or threw,
 or `UnaryCallFaulted` when the handler ended without one, and
-`UnaryCallResponseEnded` with the gRPC status when the server finished the
-response. A call is named by `Rpc`, or by `OperationId` for an MP operation.
+`UnaryCallResponseEnded` with the gRPC status the server committed to the
+response, or `UnaryCallResponseAbandoned` when the response ended without one,
+as when the client resets the stream. A call is named by the endpoint it was
+routed to: `Rpc`, or `OperationId` for an MP operation.
 Discovery and state reads have no other record, so these show whether a call
 after the last lifecycle event arrived and whether it was answered. A
 scenario that passes
@@ -175,18 +177,26 @@ its parent. A launcher matters here: `tsx` starts the Node process that runs a
 JavaScript fixture, and a Python virtual environment's `python.exe` starts the
 interpreter that runs a Python one, so the process the runner started is often
 not the one that stalled. Each line gives the role (`fixture`, `server`,
-`worker`, `application` or `child`), the process ID, the executable name and at
-most three script or assembly file names from its command line (for example
-`node.exe cli.mjs conformance.ts`), the parent's process ID, the start time from
-the fixture start, the CPU time and its growth over a one-second sample, and the
-thread count with how many threads run, wait or are suspended. A process that
-waits with no CPU growth is idle; one whose CPU grows is busy. The command line
-itself, its paths and its values, and the environment are never printed. A
-package process outside the tree is listed after it and marked as not a
-verified descendant of the fixture. The census is also saved as
-`timeout-processes.txt` with the scenario's diagnostics. If the census fails,
-the runner says so and lists the launched fixture and the package processes
-instead; the scenario still fails with its timeout.
+`worker`, `application` or `child`), the process ID, the executable name, the
+parent's process ID, the start time from the fixture start, the CPU time and
+its growth over a one-second sample, and the thread count with how many threads
+run, wait or are suspended. A process that waits with no CPU growth is idle;
+one whose CPU grows is busy. For a known runtime the line also names, by file
+name only, the scripts and modules it was started with, read from the positions
+where that runtime takes them: Node's script and its `--require`, `--import` and
+`--loader` modules (for example `node.exe preflight.cjs loader.mjs
+conformance.ts`), Python's script, the assembly `dotnet` runs, and PowerShell's
+`-File` script. Arguments after the script belong to the script and are never
+read, and nothing is read for any other program, so an ordinary argument value
+never reaches the census. The command line itself, its paths and its values,
+and the environment are never printed. The census lists at most 200 processes
+and says how many more the tree holds; membership, which decides the heap
+dumps, always covers the whole tree. A package process outside the tree is
+listed after it and marked as not a verified descendant of the fixture. The
+census is also saved as `timeout-processes.txt` with the scenario's
+diagnostics. If the census fails, the runner says so and lists the launched
+fixture and the package processes instead; the scenario still fails with its
+timeout.
 
 These timeout diagnostics run in a separate copy of the runner under one
 120-second deadline that covers every step, including the process query and
@@ -289,40 +299,61 @@ leaves it off; the conformance soak workflow turns it on. Another value turns
 tracing off with a notice. A passing scenario discards its trace; a rejected one
 keeps it with its diagnostics.
 
-| Value | Library | What the runner sets | Where the trace goes |
+| Value | Library | What the runner sets | What it keeps |
 | --- | --- | --- | --- |
-| `js` | `@grpc/grpc-js` | `GRPC_NODE_VERBOSITY=DEBUG` and `GRPC_NODE_TRACE` with the `channel`, `resolving_call`, `subchannel`, `subchannel_call` and `transport` tracers | `client-trace.txt` |
+| `js` | `@grpc/grpc-js` | `GRPC_NODE_VERBOSITY=DEBUG` and `GRPC_NODE_TRACE` with the `channel`, `resolving_call`, `subchannel`, `subchannel_call` and `transport` tracers | `client-trace.txt` and `client-calls.txt` |
 | `py` | `grpcio` | `GRPC_VERBOSITY=DEBUG` and `GRPC_TRACE` with the `api`, `call_error`, `client_channel_call`, `connectivity_state`, `http` and `subchannel` tracers | `client-trace.txt` |
-| `dotnet` | `Grpc.Net.Client` | an EventPipe file session (`DOTNET_EnableEventPipe` and its settings) for the `Grpc.Net.Client` and `System.Net.Http` event sources | `client-trace/dotnet-<process ID>.nettrace` |
+| `dotnet` | `Grpc.Net.Client` | an EventPipe file session (`DOTNET_EnableEventPipe` and its settings) for the `Grpc.Net.Client` event source only | `client-trace/dotnet-<process ID>.nettrace` |
+
+Tracing is diagnostics only. A trace that cannot be set up, separated or saved
+is reported in a notice; it never changes a scenario's result and never
+replaces the fixture's error or a timeout.
 
 The JavaScript and Python libraries write their trace to stderr. The runner
-moves those lines out of the fixture's stderr into `client-trace.txt`, so the
-stderr it prints and saves, and the failure message, stay the fixture's own.
-The traces record method names, received headers and trailers, and status
-messages; they never record request or response messages. They stay in the
-diagnostics files and are not printed. For a JavaScript fixture the runner also
-prints, and saves as `client-calls.txt`, one line per client call from the
-trace: when it was created, its method, and its status and when it ended, or
-that it had no status when the fixture stopped. Consecutive calls to one method
-that ended with one status, such as a client polling the server while it
-starts, share a line. That line names the call the fixture was still waiting on.
-EventPipe applies to every .NET process in the tree, including the server and
-the fake worker, and writes one file for each; open the files with PerfView,
-`dotnet-trace convert` or the TraceEvent library.
+takes out of the fixture's stderr only records it recognizes as the library's:
+a grpc-js trace record from one of the tracers above and the header lines that
+follow a `Received server headers:` or `Received server trailers:` record, or a
+grpcio record at Info level. Everything else stays in the stderr the runner
+prints and saves, and in the failure message: the fixture's own lines, even when
+they are indented, and the libraries' own warnings and errors, which appear
+without tracing too.
+
+The runner never saves a record's text. It keeps only the events it can render
+from validated fields, and counts the rest: for grpc-js, each call's creation
+with its method, the stream it uses, its end with the status code, each
+stream's received headers and trailers (with the names of the gRPC and Briosa
+trailers present, never their values), the status code it received and its
+HTTP/2 close code, subchannel state changes and connection events; for grpcio,
+each call's start with its method and its end with the status name. No address,
+header value, status message, trailer value or request reaches the file. The
+.NET event source records each call's method and its status code. For a
+JavaScript fixture the runner also prints, and saves as `client-calls.txt`, one
+line per client call: when it was created, its method, and its status and when
+it ended, or that it had no status when the fixture stopped. Consecutive calls
+to one method that ended with one status, such as a client polling the server
+while it starts, share a line. That line names the call the fixture was still
+waiting on. EventPipe applies to every .NET process in the tree, including the
+server and the fake worker, and writes one file for each; open the files with
+PerfView, `dotnet-trace convert` or the TraceEvent library.
 
 Measured locally on Windows 11 with Node 24 and `@grpc/grpc-js` 1.14.6 (the
 published 0.5.1 JavaScript fixture, `capability-denied`, eight runs with and
-eight without), the trace was about 80 KB and 870 lines for the scenario, and
+eight without), the library wrote about 870 trace lines for the scenario, and
 the fixture took a median 3.6 s either way. With `grpcio` 1.83, these tracers
-write about 43 lines and 7 KB for each call and add about 0.5 ms to it.
+write about 43 lines for each call and add about 0.5 ms to it.
 
 ## Repeating one scenario
 
-Set `BRIOSA_CONFORMANCE_ONLY_SCENARIO` to a scenario ID to run only that
-scenario of the ones the run selected, for example to repeat `capability-denied`
-through a client repository's own test script. It never adds a scenario: naming
-one the run did not select is an error. The conformance soak workflow uses it.
-
+The conformance soak workflow can repeat one scenario. It builds a soak package
+with `eng/New-ClientConformancePackage.ps1 -SoakScenario <scenario>`, whose
+runner reads that scenario from `runner/soak-scenario.json`. Of the scenarios a
+run selects, it runs only that one, then always ends with the error
+`This soak run repeated conformance scenario '<scenario>' only, so it is not compatibility evidence.`,
+even when the scenario passed, so a client's test script never records the run
+as compatibility evidence. The soak counts an iteration as passed only when the
+runner printed exactly one pass, for that scenario, and then ended with that
+error. A release or CI package has no such file, and nothing in the
+environment can narrow a run.
 ## Optional scenarios
 
 `optional_scenarios` in the contract lists scenarios that a fixture runs only
