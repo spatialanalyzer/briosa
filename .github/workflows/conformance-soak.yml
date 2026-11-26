@@ -63,14 +63,17 @@ jobs:
           cache: true
           cache-dependency-path: 'targets/${{ inputs.target }}/**/packages.lock.json'
 
+      # With a scenario, a soak package: its runner repeats that one scenario and ends
+      # every run with an error, so no client script records it as compatibility evidence.
       - name: Build the client conformance package
         shell: pwsh
         working-directory: targets/${{ inputs.target }}
-        run: >-
-          ./eng/New-ClientConformancePackage.ps1
-          -Version 0.2.0-soak
-          -SourceRevision $env:GITHUB_SHA
-          -OutputDirectory artifacts/client-conformance-soak
+        env:
+          SOAK_SCENARIO: ${{ inputs.scenario }}
+        run: |
+          $soak = @{}
+          if (-not [string]::IsNullOrEmpty($env:SOAK_SCENARIO)) { $soak.SoakScenario = $env:SOAK_SCENARIO }
+          ./eng/New-ClientConformancePackage.ps1 -Version 0.2.0-soak -SourceRevision $env:GITHUB_SHA -OutputDirectory artifacts/client-conformance-soak @soak
 
       - name: Keep the package for the soak jobs
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -98,6 +101,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Download the iteration results
+        id: download
         continue-on-error: true
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
@@ -113,14 +117,24 @@ jobs:
           CLIENT_VERSION: ${{ inputs.client-version }}
           SCENARIO: ${{ inputs.scenario }}
           SOAK_RESULT: ${{ needs.soak.result }}
+          DOWNLOAD: ${{ steps.download.outcome }}
         run: |
-          $results = @{}
-          foreach ($file in @(Get-ChildItem -Path soak-results -Recurse -Filter soak-result.json -File -ErrorAction SilentlyContinue)) {
-            $result = Get-Content -LiteralPath $file.FullName -Raw | ConvertFrom-Json
-            $results[[int]$result.iteration] = $result
-          }
+          # One valid result per requested iteration; a missing, unreadable, repeated or
+          # unsuccessful one fails the soak.
           $requested = [int]$env:ITERATIONS
-          $passed = @($results.Values | Where-Object { $_.outcome -ceq 'success' }).Count
+          $results = @{}
+          $invalid = 0
+          foreach ($file in @(Get-ChildItem -Path soak-results -Recurse -Filter soak-result.json -File -ErrorAction SilentlyContinue)) {
+            try {
+              $result = Get-Content -LiteralPath $file.FullName -Raw | ConvertFrom-Json
+              $iteration = [int]$result.iteration
+              if ($iteration -lt 1 -or $iteration -gt $requested -or $results.ContainsKey($iteration) -or
+                  $result.status -isnot [string]) { throw 'invalid' }
+              $results[$iteration] = $result
+            }
+            catch { $invalid++ }
+          }
+          $passed = @($results.Values | Where-Object { $_.status -ceq 'success' }).Count
           $lines = [Collections.Generic.List[string]]::new()
           $lines.Add('## Client conformance soak')
           $lines.Add('')
@@ -129,19 +143,26 @@ jobs:
           $lines.Add('')
           $lines.Add('| Iteration | Outcome | Failed scenarios |')
           $lines.Add('| ---: | --- | --- |')
-          for ($iteration = 1; $iteration -le [Math]::Min($requested, 50); $iteration++) {
+          for ($iteration = 1; $iteration -le $requested; $iteration++) {
             $result = $results[$iteration]
             if ($null -eq $result) {
               $lines.Add("| $iteration | no result |  |")
               continue
             }
             $failed = (@($result.failed) | ForEach-Object { "$($_.scenario)$(if ($_.timedOut) { ' (timed out)' })" }) -join ', '
-            $lines.Add("| $iteration | $($result.outcome) | $failed |")
+            $lines.Add("| $iteration | $($result.status) | $failed |")
           }
           $lines.Add('')
+          if ($env:DOWNLOAD -cne 'success') {
+            $lines.Add('The iteration results could not be downloaded, so the iterations above have no result.')
+          }
+          if ($invalid -gt 0) {
+            $lines.Add("$invalid result files were unreadable, repeated or out of range and were not counted.")
+          }
           $lines.Add('A failing iteration keeps its diagnostics as the artifact conformance-diagnostics-<language>-<target>-<version>-iteration-<n>.')
           $lines | ForEach-Object { Write-Host $_ }
           $lines | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-          if ($env:SOAK_RESULT -cne 'success') {
-            throw "The soak did not pass every iteration ($passed of $requested passed)."
+          if ($env:DOWNLOAD -cne 'success') { throw 'The soak iteration results could not be downloaded.' }
+          if ($results.Count -ne $requested -or $passed -ne $requested -or $invalid -gt 0 -or $env:SOAK_RESULT -cne 'success') {
+            throw "The soak did not pass every iteration ($passed of $requested passed, $($results.Count) results)."
           }

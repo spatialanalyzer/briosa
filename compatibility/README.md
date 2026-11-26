@@ -198,19 +198,29 @@ The `Client conformance soak` workflow (`.github/workflows/conformance-soak.yml`
 repeats one retained-client job on hosted runners until an intermittent failure
 shows itself, with every diagnostic on (#450). It is dispatched by hand and runs
 nothing else. It builds the client conformance package for one target from the
-dispatched commit, then calls this directory's retained-client workflow in soak
-mode. That takes the job from the same plan as the gate (the same pinned package,
-fixture revision and checks) and runs it once per iteration, each iteration on
-its own runner. Each run also traces the client's gRPC calls
-(`BRIOSA_CONFORMANCE_CLIENT_TRACE` set to the client's language) and takes heap
-dumps of the .NET processes at a fixture timeout
-(`BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT=1`). The conformance runner always records
-the fixture's process tree at a timeout and turns on the server's Debug unary call
-records. A soak run is not compatibility evidence: it uploads no
-`compatibility-*` artifact, and it publishes, signs and releases nothing. It uses
-no secrets and no environment, and the release workflow policy check
-(`eng/Verify-ReleaseWorkflowPolicy.ps1`) fails if it could call anything but the
-retained-client workflow.
+dispatched commit and uploads it as the workflow's input package,
+`compatibility-server-<target>`, for the iterations to download. It then calls
+this directory's retained-client workflow in soak mode. That takes the job from
+the same plan as the gate (the same pinned package, fixture revision and checks)
+and runs it once per iteration, each iteration on its own runner. Each run also
+traces the client's gRPC calls (`BRIOSA_CONFORMANCE_CLIENT_TRACE` set to the
+client's language) and takes heap dumps of the .NET processes at a fixture
+timeout (`BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT=1`). The conformance runner always
+records the fixture's process tree at a timeout and turns on the server's Debug
+unary call records.
+
+A soak run is not compatibility evidence. It uploads none of the per-client
+`compatibility-<language>-<target>-<version>` evidence the gate uploads. When it
+repeats one scenario it builds a soak package, whose runner runs only that
+scenario and ends every run with an error naming it, so the client's own test
+script never writes a compatibility report for a run that skipped the other
+scenarios; the iteration passes only with exactly one validated pass of that
+scenario and that error. It publishes, signs and releases nothing, and it uses
+no secrets and no environment. The release workflow policy check
+(`eng/Verify-ReleaseWorkflowPolicy.ps1`) reads both workflows as parsed YAML and
+fails if the soak could run from anything but a dispatch or call anything but
+the retained-client workflow, or if either could reach secrets, an environment,
+a write permission or an OIDC token.
 
 Inputs:
 
@@ -230,12 +240,16 @@ gh workflow run conformance-soak.yml --repo spatialanalyzer/briosa --ref main `
   -f iterations=20 -f scenario=capability-denied
 ```
 
-The `Summarise the soak` job's summary lists each iteration's outcome and the
-scenarios that failed in it, marking those that timed out. A failing iteration
-keeps its diagnostics as the artifact
+Each iteration records the job's status after every check, the digest
+vocabulary check included, and the scenarios that failed in it. The
+`Summarise the soak` job lists each iteration's status and failed scenarios,
+marking those that timed out. The run fails unless there is one successful
+result for every requested iteration: a missing, unreadable or unsuccessful
+result fails it, and results that could not be downloaded are reported as such.
+A failing iteration keeps its diagnostics as the artifact
 `conformance-diagnostics-<language>-<target>-<version>-iteration-<n>`: for each
 failed scenario, the failure, the fixture's stderr and stdout, the server log
 digest and log files, the client trace (`client-trace.txt`, or
 `client-trace/*.nettrace` for .NET), the JavaScript call summary
 (`client-calls.txt`), the process tree at a timeout (`timeout-processes.txt`)
-and any heap dumps. The run fails when any iteration fails.
+and any heap dumps.

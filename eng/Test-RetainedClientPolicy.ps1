@@ -341,6 +341,27 @@ try {
         catch { $failure = $_.Exception.Message }
         if ($failure -cne $case.Message) { throw "Expected the soak rejection '$($case.Message)', got '$failure'." }
     }
+    # A soak of one scenario passes only with one validated pass of it and the soak package's
+    # own end, so a run that reported more, or that ended normally and could have written
+    # evidence, fails.
+    $soakEnd = "This soak run repeated conformance scenario 'capability-denied' only, so it is not compatibility evidence."
+    Assert-SoakScenarioPass -Scenario 'capability-denied' -RunEnd $soakEnd `
+        -RunnerOutput @('Running only conformance scenario', 'Passed client conformance scenario: capability-denied (fixture 3.6 s)')
+    foreach ($case in @(
+            @{ Output = @(); End = $soakEnd; Message = 'A soak of capability-denied must pass exactly that one scenario; the runner passed 0.' },
+            @{ Output = @('Passed client conformance scenario: capability-denied (fixture 3.6 s)', 'Passed client conformance scenario: default-ready (fixture 1.0 s)')
+                End = $soakEnd; Message = 'A soak of capability-denied must pass exactly that one scenario; the runner passed 2.' },
+            @{ Output = @('Passed client conformance scenario: default-ready (fixture 1.0 s)'); End = $soakEnd
+                Message = 'A soak of capability-denied must pass exactly that one scenario; the runner passed 1.' },
+            @{ Output = @('Passed client conformance scenario: capability-denied (fixture 3.6 s)'); End = $null
+                Message = 'A soak of capability-denied must end with the soak package''s own error, not: ' },
+            @{ Output = @('Passed client conformance scenario: capability-denied (fixture 3.6 s)'); End = 'The client fixture timed out.'
+                Message = 'A soak of capability-denied must end with the soak package''s own error, not: The client fixture timed out.' })) {
+        $failure = $null
+        try { Assert-SoakScenarioPass -Scenario 'capability-denied' -RunnerOutput $case.Output -RunEnd $case.End }
+        catch { $failure = $_.Exception.Message }
+        if ($failure -cne $case.Message) { throw "Expected the soak check '$($case.Message)', got '$failure'." }
+    }
     Write-Host "Verified the #250 support window, retired-client identities, per-entry fixture pins, fixture optional scenarios, the large-result floor and its gate, compatible coverage, the published-client release gate, the $($expectedJobs.Count) jobs the committed inventory plans for Server 0.10.1, and the soak plan."
 }
 finally {

@@ -185,22 +185,95 @@ if ($publish.Text -notmatch ':refs/tags/\$tag' -or $publish.Text -notmatch 'Re-r
 
 # The conformance soak (#450) is dispatched by hand and repeats the retained-client gate's
 # own jobs. It may call only that reusable workflow, which runs only when called, and
-# neither may use secrets or ask for a write permission or an OIDC token, so a soak can
-# never reach a release, signing or registry job.
-$noCredentials = '(?m)secrets\.|^\s*secrets:|id-token|^\s+[a-z-]+:\s*write\s*$'
-$soak = $workflows | Where-Object Name -ceq 'conformance-soak.yml'
-if ($null -eq $soak) { throw 'conformance-soak.yml is missing.' }
-$soakText = $soak.Lines -join "`n"
-$soakCalls = @([regex]::Matches($soakText, '(?m)^\s*-?\s*uses:\s*\./\.github/workflows/(?<file>[^\s@#]+)') |
-    ForEach-Object { $_.Groups['file'].Value })
-if (($soak.Events -join ',') -cne 'workflow_dispatch' -or ($soakCalls -join ',') -cne 'retained-client-compatibility.yml' -or
-    $soakText -cmatch $noCredentials) {
-    throw 'conformance-soak.yml must run only from workflow_dispatch, call only retained-client-compatibility.yml, and use no secrets, write permissions or OIDC token.'
+# neither may use secrets, an environment, a write permission or an OIDC token, so a soak
+# can never reach a release, signing or registry job. Both files are read as parsed YAML
+# in the strict subset WorkflowYaml.psm1 accepts, so no spelling of a permission, a call
+# or a secret escapes the check; a form outside that subset fails it.
+Import-Module (Join-Path $PSScriptRoot 'WorkflowYaml.psm1') -Force
+
+function Test-ReadOnlyPermissions([object]$Permissions, [switch]$Required) {
+    # Only a mapping of scopes to read or none; a scalar such as write-all, read-all or
+    # an empty value is not accepted.
+    if ($null -eq $Permissions) { return -not $Required }
+    if ($Permissions -isnot [Collections.Specialized.OrderedDictionary] -or $Permissions.Count -eq 0) { return $false }
+    foreach ($entry in $Permissions.GetEnumerator()) {
+        if ($entry.Value -isnot [string] -or $entry.Value -cnotin @('read', 'none') -or
+            ($entry.Key -ceq 'id-token' -and $entry.Value -cne 'none')) {
+            return $false
+        }
+    }
+    $true
 }
-$gate = $workflows | Where-Object Name -ceq 'retained-client-compatibility.yml'
-if ($null -eq $gate -or ($gate.Events -join ',') -cne 'workflow_call' -or ($gate.Lines -join "`n") -cmatch $noCredentials -or
-    ($gate.Lines -join "`n") -cmatch '(?m)^\s*-?\s*uses:\s*\./\.github/workflows/') {
-    throw 'retained-client-compatibility.yml must run only when called, call no other workflow, and use no secrets, write permissions or OIDC token.'
+
+function Get-Scalars([object]$Node) {
+    if ($Node -is [string]) { return , $Node }
+    if ($Node -is [Collections.Specialized.OrderedDictionary]) {
+        foreach ($entry in $Node.GetEnumerator()) { $entry.Key; Get-Scalars $entry.Value }
+        return
+    }
+    if ($Node -is [Collections.IEnumerable]) { foreach ($item in $Node) { Get-Scalars $item } }
+}
+
+function Get-ReusableWorkflowFindings([string]$Name, [string[]]$Triggers, [string[]]$AllowedCalls) {
+    # The ways a workflow could reach credentials or another workflow, as messages.
+    $findings = [Collections.Generic.List[string]]::new()
+    try {
+        $yaml = ConvertFrom-WorkflowYaml -Path (Join-Path $resolvedDirectory $Name)
+    }
+    catch {
+        $findings.Add("it uses a YAML form the policy does not read ($($_.Exception.Message))")
+        return , $findings
+    }
+    foreach ($key in $yaml.Keys) {
+        if ($key -cnotin @('name', 'run-name', 'on', 'permissions', 'concurrency', 'env', 'jobs')) { $findings.Add("it has a top-level '$key'") }
+    }
+    $on = $yaml['on']
+    if ($on -isnot [Collections.Specialized.OrderedDictionary] -or (@($on.Keys) -join ',') -cne ($Triggers -join ',')) {
+        $findings.Add("its triggers are not exactly $($Triggers -join ', ')")
+    }
+    elseif ($on[$Triggers[0]] -is [Collections.Specialized.OrderedDictionary] -and $on[$Triggers[0]].Contains('secrets')) {
+        $findings.Add('it declares secrets')
+    }
+    if (-not (Test-ReadOnlyPermissions $yaml['permissions'] -Required)) { $findings.Add('its workflow permissions are not a read-only mapping') }
+    $calls = [Collections.Generic.List[string]]::new()
+    $jobs = $yaml['jobs']
+    if ($jobs -isnot [Collections.Specialized.OrderedDictionary] -or $jobs.Count -eq 0) {
+        $findings.Add('it has no jobs mapping')
+        $jobs = [ordered]@{}
+    }
+    foreach ($entry in $jobs.GetEnumerator()) {
+        $job = $entry.Value
+        if ($job -isnot [Collections.Specialized.OrderedDictionary]) { $findings.Add("job '$($entry.Key)' is not a mapping"); continue }
+        if ($job.Contains('permissions') -and -not (Test-ReadOnlyPermissions $job['permissions'] -Required)) {
+            $findings.Add("job '$($entry.Key)' asks for more than read permissions")
+        }
+        foreach ($forbidden in @('environment', 'secrets')) {
+            if ($job.Contains($forbidden)) { $findings.Add("job '$($entry.Key)' has $forbidden") }
+        }
+        if ($job.Contains('uses')) { $calls.Add([string]$job['uses']) }
+        foreach ($step in @(if ($job['steps'] -is [Collections.IEnumerable] -and $job['steps'] -isnot [string]) { $job['steps'] })) {
+            if ($step -is [Collections.Specialized.OrderedDictionary] -and $step['uses'] -is [string] -and
+                $step['uses'].Contains('.github/workflows/', [StringComparison]::OrdinalIgnoreCase)) {
+                $findings.Add("a step of job '$($entry.Key)' calls a workflow")
+            }
+        }
+    }
+    if ((@($calls) -join ',') -cne ($AllowedCalls -join ',')) {
+        $findings.Add("its workflow calls are not exactly $(if ($AllowedCalls.Count) { $AllowedCalls -join ', ' } else { 'none' })")
+    }
+    if (@(Get-Scalars $yaml | Where-Object { $_ -cmatch '\$\{\{[^}]*\bsecrets\b' }).Count -gt 0) {
+        $findings.Add('an expression refers to secrets')
+    }
+    , $findings
+}
+
+$soakFindings = Get-ReusableWorkflowFindings 'conformance-soak.yml' @('workflow_dispatch') @('./.github/workflows/retained-client-compatibility.yml')
+if ($soakFindings.Count -gt 0) {
+    throw "conformance-soak.yml must run only from workflow_dispatch, call only retained-client-compatibility.yml, and use no secrets, environment, write permissions or OIDC token: $($soakFindings -join '; ')."
+}
+$gateFindings = Get-ReusableWorkflowFindings 'retained-client-compatibility.yml' @('workflow_call') @()
+if ($gateFindings.Count -gt 0) {
+    throw "retained-client-compatibility.yml must run only when called, call no other workflow, and use no secrets, environment, write permissions or OIDC token: $($gateFindings -join '; ')."
 }
 
 Write-Host (

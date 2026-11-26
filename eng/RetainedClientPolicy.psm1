@@ -248,4 +248,23 @@ function Assert-OptionalScenarioPasses {
         }
     }
 }
-Export-ModuleMember -Function Get-RetainedClientMatrix, Get-RetainedClientSoakMatrix, Assert-OptionalScenarioPasses
+# A soak of one scenario runs a soak package (#450). Its runner runs only that scenario and then
+# ends with a fixed error, so the client's script writes no compatibility evidence. An iteration
+# passes only when the runner printed exactly one validated pass, for that scenario, and then
+# ended with exactly that error.
+function Assert-SoakScenarioPass {
+    param(
+        [Parameter(Mandatory)][string]$Scenario,
+        [Parameter(Mandatory)][AllowEmptyCollection()][AllowEmptyString()][string[]]$RunnerOutput,
+        [AllowNull()][AllowEmptyString()][string]$RunEnd
+    )
+    $passes = @($RunnerOutput | Where-Object { $_ -cmatch '^Passed client conformance scenario: ' })
+    $pattern = "^Passed client conformance scenario: $([regex]::Escape($Scenario))(?: \(|$)"
+    if ($passes.Count -ne 1 -or $passes[0] -cnotmatch $pattern) {
+        throw "A soak of $Scenario must pass exactly that one scenario; the runner passed $($passes.Count)."
+    }
+    if ($RunEnd -cne "This soak run repeated conformance scenario '$Scenario' only, so it is not compatibility evidence.") {
+        throw "A soak of $Scenario must end with the soak package's own error, not: $RunEnd"
+    }
+}
+Export-ModuleMember -Function Get-RetainedClientMatrix, Get-RetainedClientSoakMatrix, Assert-OptionalScenarioPasses, Assert-SoakScenarioPass

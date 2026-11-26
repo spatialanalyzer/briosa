@@ -134,12 +134,13 @@ jobs:
           # IDs that the digest vocabulary does not list, the runner appends the
           # scenario, the property and a count, never the value.
           BRIOSA_CONFORMANCE_DIGEST_AUDIT: ${{ github.workspace }}/conformance-digest-audit.txt
-          # A soak run also traces the client's gRPC calls, takes heap dumps of the
-          # .NET processes at a fixture timeout, and may repeat one scenario only.
-          # The gate leaves all three off.
+          # A soak run also traces the client's gRPC calls and takes heap dumps of the
+          # .NET processes at a fixture timeout; the gate leaves both off. A soak of one
+          # scenario runs a soak package, whose runner repeats that scenario only and
+          # ends every run with an error, so no compatibility evidence is written.
           BRIOSA_CONFORMANCE_CLIENT_TRACE: ${{ inputs.soak-iterations > 0 && matrix.language || '' }}
           BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT: ${{ inputs.soak-iterations > 0 && '1' || '' }}
-          BRIOSA_CONFORMANCE_ONLY_SCENARIO: ${{ inputs.soak-iterations > 0 && inputs.soak-scenario || '' }}
+          SOAK_SCENARIO: ${{ inputs.soak-iterations > 0 && inputs.soak-scenario || '' }}
         run: |
           Import-Module ./eng/RetainedClientPolicy.psm1
           if ($env:CLIENT_PUBLISHED -eq 'true') {
@@ -190,13 +191,22 @@ jobs:
           # large-result. A rejection lists none.
           try {
             $runnerOutput = [Collections.Generic.List[string]]::new()
-            & ./eng/Test-PublishedClientConformance.ps1 @arguments 6>&1 | ForEach-Object {
-              $runnerOutput.Add([string]$_)
-              $_
+            $soakEnd = $null
+            try {
+              & ./eng/Test-PublishedClientConformance.ps1 @arguments 6>&1 | ForEach-Object {
+                $runnerOutput.Add([string]$_)
+                $_
+              }
             }
-            # A soak run of one scenario runs no optional scenario besides it.
-            if ([string]::IsNullOrEmpty($env:BRIOSA_CONFORMANCE_ONLY_SCENARIO)) {
+            catch {
+              if ([string]::IsNullOrEmpty($env:SOAK_SCENARIO)) { throw }
+              $soakEnd = "$_"
+            }
+            if ([string]::IsNullOrEmpty($env:SOAK_SCENARIO)) {
               Assert-OptionalScenarioPasses -RequiredScenarioJson $env:REQUIRED_OPTIONAL_SCENARIOS -RunnerOutput $runnerOutput.ToArray() -ClientVersion $env:CLIENT_VERSION -ExpectIncompatible $arguments.ExpectIncompatible
+            }
+            else {
+              Assert-SoakScenarioPass -Scenario $env:SOAK_SCENARIO -RunnerOutput $runnerOutput.ToArray() -RunEnd $soakEnd
             }
           }
           finally { Pop-Location }
@@ -231,12 +241,15 @@ jobs:
           path: conformance-diagnostics
           if-no-files-found: ignore
           retention-days: 14
+      # The job's status so far covers every step before this one, the vocabulary
+      # check included.
       - name: Record the soak iteration
         if: always() && inputs.soak-iterations > 0
         shell: pwsh
         env:
           ITERATION: ${{ matrix.iteration }}
-          OUTCOME: ${{ steps.verify.outcome }}
+          STATUS: ${{ job.status }}
+          VERIFY: ${{ steps.verify.outcome }}
         run: |
           # Each failing scenario's diagnostics are in a directory named after it; a
           # timeout also left the census of the fixture's process tree.
@@ -246,10 +259,10 @@ jobs:
                 [ordered]@{ scenario = $_.Name; timedOut = Test-Path -LiteralPath (Join-Path $_.FullName 'timeout-processes.txt') }
               }
             })
-          $result = [ordered]@{ iteration = [int]$env:ITERATION; outcome = $env:OUTCOME; failed = $failed }
+          $result = [ordered]@{ iteration = [int]$env:ITERATION; status = $env:STATUS; verify = $env:VERIFY; failed = $failed }
           $result | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $env:GITHUB_WORKSPACE 'soak-result.json') -Encoding utf8
           $scenarios = ($failed | ForEach-Object { "$($_.scenario)$(if ($_.timedOut) { ' (timed out)' })" }) -join ', '
-          "Iteration $($env:ITERATION): $($env:OUTCOME)$(if ($scenarios) { ", failed: $scenarios" })" >> $env:GITHUB_STEP_SUMMARY
+          "Iteration $($env:ITERATION): $($env:STATUS) (verification $($env:VERIFY))$(if ($scenarios) { ", failed: $scenarios" })" >> $env:GITHUB_STEP_SUMMARY
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always() && inputs.soak-iterations > 0
         with:

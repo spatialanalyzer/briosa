@@ -104,6 +104,31 @@ try {
     Assert-Rejected 'retained-client gate with an OIDC token' {
         param($d) Set-WorkflowText $d 'retained-client-compatibility.yml' "permissions:`n  contents: read" "permissions:`n  contents: read`n  id-token: write"
     } 'retained-client-compatibility\.yml must run only when called'
+    # The same rules on the parsed YAML, whatever the spelling: scalar and flow-style
+    # grants, job-level grants, a repository-qualified reusable call, a secret in an
+    # expression, a quoted trigger key and forms the policy does not read.
+    $soakFile = 'conformance-soak.yml'
+    $gateFile = 'retained-client-compatibility.yml'
+    $gateRule = 'retained-client-compatibility\.yml must run only when called'
+    $pinned = '0123456789abcdef0123456789abcdef01234567'
+    foreach ($mutation in @(
+            @{ Name = 'soak with a workflow-wide scalar write grant'; File = $soakFile; Old = "permissions:`n  contents: read"; New = 'permissions: write-all'; Rule = $soakRule },
+            @{ Name = 'soak with a flow-style write grant'; File = $soakFile; Old = "permissions:`n  contents: read"; New = 'permissions: { contents: write }'; Rule = $soakRule },
+            @{ Name = 'soak with a flow-style read grant'; File = $soakFile; Old = "permissions:`n  contents: read"; New = 'permissions: {contents: read}'; Rule = $soakRule },
+            @{ Name = 'soak with a job-level scalar write grant'; File = $soakFile; Old = "  summary:`n    name: Summarise the soak`n"; New = "  summary:`n    name: Summarise the soak`n    permissions: write-all`n"; Rule = $soakRule },
+            @{ Name = 'soak with a job-level OIDC token'; File = $soakFile; Old = "  summary:`n    name: Summarise the soak`n"; New = "  summary:`n    name: Summarise the soak`n    permissions:`n      id-token: write`n"; Rule = "conformance-soak\.yml(?::summary requests an OIDC token| must run only from workflow_dispatch)" },
+            @{ Name = 'soak with a repository-qualified reusable call'; File = $soakFile; Old = "  soak:`n    needs: package`n"; New = "  extra:`n    uses: spatialanalyzer/briosa/.github/workflows/release.yml@$pinned`n  soak:`n    needs: package`n"; Rule = $soakRule },
+            @{ Name = 'soak with a secret in an expression'; File = $soakFile; Old = "          ITERATIONS: `${{ inputs.iterations }}`n"; New = "          ITERATIONS: `${{ inputs.iterations }}`n          TOKEN: `${{ secrets.GITHUB_TOKEN }}`n"; Rule = $soakRule },
+            @{ Name = 'soak with a quoted trigger key'; File = $soakFile; Old = "on:`n  workflow_dispatch:"; New = "'on':`n  push:`n    branches:`n      - main`n  workflow_dispatch:"; Rule = $soakRule },
+            @{ Name = 'soak with an anchor'; File = $soakFile; Old = "permissions:`n  contents: read"; New = "permissions: &read`n  contents: read"; Rule = $soakRule },
+            @{ Name = 'gate with a workflow-wide scalar write grant'; File = $gateFile; Old = "permissions:`n  contents: read"; New = 'permissions: write-all'; Rule = $gateRule },
+            @{ Name = 'gate with a flow-style job grant'; File = $gateFile; Old = "  gate:`n    needs: [policy, conformance]`n"; New = "  gate:`n    needs: [policy, conformance]`n    permissions: {contents: write}`n"; Rule = $gateRule },
+            @{ Name = 'gate declaring secrets'; File = $gateFile; Old = "permissions:`n  contents: read`njobs:"; New = "    secrets:`n      token:`n        required: false`npermissions:`n  contents: read`njobs:"; Rule = $gateRule },
+            @{ Name = 'gate calling a workflow'; File = $gateFile; Old = "  gate:`n    needs: [policy, conformance]`n"; New = "  extra:`n    uses: ./.github/workflows/release.yml`n  gate:`n    needs: [policy, conformance]`n"; Rule = $gateRule },
+            @{ Name = 'gate with a secret in an expression'; File = $gateFile; Old = "          SERVER_VERSION: `${{ inputs.server-version }}`n"; New = "          SERVER_VERSION: `${{ inputs.server-version }}`n          TOKEN: `${{ secrets.GITHUB_TOKEN }}`n"; Rule = $gateRule })) {
+        $current = $mutation
+        Assert-Rejected $current.Name { param($d) Set-WorkflowText $d $current.File $current.Old $current.New } $current.Rule
+    }
 
     Write-Host 'Release workflow policy rejects tag triggers, unreviewed environments, wider signing refs, OIDC without an environment, misplaced R2 credentials, executable signing in the R2 environment, non-draft releases, and a soak or retained-client gate that could reach credentials or release jobs.'
 }
