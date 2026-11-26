@@ -52,6 +52,16 @@ no optional scenario, so it requires none. A fixture keeps its list when it move
 `historicalFixtureSources`, so a client still pinned to it keeps the
 requirement.
 
+The data cannot lower one requirement. `eng/RetainedClientPolicy.psm1` sets a
+floor: from client 0.5.0 on, every accepted job must pass `large-result`. The
+policy rejects an inventory whose current fixture sources do not list it, or
+that runs an accepted 0.5.0 or later client on a fixture that does not. The
+workflow gate also checks each job's list against the floor before it counts
+pass lines, so a list lost on the way to the job still fails.
+`eng/Test-RetainedClientPolicy.ps1` also checks the jobs that the committed
+inventory plans for the current release. Update its expected table with every
+change to `retained-clients.json`.
+
 The initial 0.7.0 bootstrap remains historical evidence; the empty-inventory
 exception is no longer active. All twelve published 0.2.0 and 0.3.0 products are recorded with their
 actual registry artifacts. Each passed all 12 scenarios against released Server

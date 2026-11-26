@@ -44,10 +44,14 @@ function Get-WorkflowScenarioJson {
     if ($job.PSObject.Properties.Name -cnotcontains 'requiredOptionalScenarios') { return 'null' }
     return ConvertTo-Json -InputObject $job.requiredOptionalScenarios -Compress
 }
+function Invoke-Gate {
+    param([hashtable]$Item, [string[]]$RunnerOutput, [string]$Json = (Get-WorkflowScenarioJson $Item))
+    Assert-OptionalScenarioPasses -RequiredScenarioJson $Json -RunnerOutput $RunnerOutput -ClientVersion $Item.version -ExpectIncompatible $Item.expectIncompatible
+}
 function Assert-GateRejected {
     param([hashtable]$Item, [string[]]$RunnerOutput, [string]$Message, [string]$Json = (Get-WorkflowScenarioJson $Item))
     $failure = $null
-    try { Assert-OptionalScenarioPasses -RequiredScenarioJson $Json -RunnerOutput $RunnerOutput -ClientVersion $Item.version }
+    try { Invoke-Gate $Item $RunnerOutput $Json }
     catch { $failure = $_.Exception.Message }
     if ($failure -cne $Message) { throw "Expected the gate failure '$Message', got '$failure'." }
 }
@@ -118,6 +122,7 @@ try {
     $invalidHistory = 'Historical fixture sources must pin distinct immutable revisions.'
     $invalidOptional = 'Fixture optional scenarios must list distinct scenario IDs.'
     $unofferedOptional = 'Fixture optional scenarios must be offered by the scenario contract of every exact target.'
+    $currentFloor = 'Current fixture sources must list large-result in optionalScenarios.'
     $cases = @(
         # Schema 3 only.
         @{ message = 'Unsupported retained-client policy.'; change = { param($p) $p.schemaVersion = 2 } }
@@ -166,6 +171,10 @@ try {
         @{ message = $invalidOptional; change = { param($p) $p.fixtureSources[0].optionalScenarios = @(1) } }
         @{ message = $unofferedOptional; change = { param($p) $p.fixtureSources[0].optionalScenarios = @('large-result', 'huge-result') } }
         @{ message = $unofferedOptional; change = { param($p) $p.historicalFixtureSources[0].optionalScenarios = @('huge-result') } }
+        @{ message = $unofferedOptional; change = { param($p) $p.fixtureSources[1].optionalScenarios = @('large-reslut') } }
+        # The floor in the module: the data cannot drop large-result from a current fixture.
+        @{ message = $currentFloor; change = { param($p) $p.fixtureSources[1].Remove('optionalScenarios') } }
+        @{ message = $currentFloor; change = { param($p) $p.fixtureSources[2].Remove('optionalScenarios'); $p.historicalFixtureSources[2].optionalScenarios = @('large-result') } }
     )
     foreach ($case in $cases) {
         $changed = Copy-Policy $valid
@@ -212,10 +221,13 @@ try {
     foreach ($version in @('0.5.0', '0.5.1')) {
         $job = @($accepted | Where-Object { $_.version -ceq $version -and $_.language -ceq 'py' -and $_.target -ceq $targets[0] })[0]
         $missing = "Client $version must pass large-result exactly once."
-        Assert-OptionalScenarioPasses -RequiredScenarioJson (Get-WorkflowScenarioJson $job) -RunnerOutput ($otherLines + $passLine) -ClientVersion $version
+        Invoke-Gate $job ($otherLines + $passLine)
         Assert-GateRejected $job $otherLines $missing
         Assert-GateRejected $job @() $missing
         Assert-GateRejected $job ($otherLines + $passLine + $passLine) $missing
+        # The floor in the module: a list lost on the way to the job does not lower it.
+        Assert-GateRejected $job @() "The retained-client plan for accepted client $version must require large-result." -Json '[]'
+        Assert-GateRejected $job @($passLine) "The retained-client plan for accepted client $version must require large-result." -Json '["default-ready"]'
     }
     $job051 = @($accepted | Where-Object { $_.version -ceq '0.5.1' })[0]
     $planGap = 'The retained-client plan must list the optional scenarios each job requires.'
@@ -223,18 +235,26 @@ try {
     Assert-GateRejected $job051 @($passLine) $planGap -Json '"large-result"'
     # A rejection job requests no optional scenario and requires none.
     $rejection = @($release.include | Where-Object expectIncompatible)[0]
-    Assert-OptionalScenarioPasses -RequiredScenarioJson (Get-WorkflowScenarioJson $rejection) -RunnerOutput @() -ClientVersion $rejection.version
+    Invoke-Gate $rejection @()
+    Assert-GateRejected $rejection @($passLine) 'A rejection job must require no optional scenario.' -Json '["large-result"]'
 
-    # The requirement follows the fixture a client runs with: a published client pinned to a
-    # fixture without optional scenarios requires none, and one pinned to a historical fixture
-    # that lists large-result requires it.
+    # The requirement follows the fixture a client runs with, above the floor in the module:
+    # pinning an accepted 0.5.0 or later client to a fixture that does not request large-result
+    # rejects the plan. Below the floor, such a pin requires nothing.
+    $pinFloor = 'Accepted client 0.5.1 jobs must run on a fixture that lists large-result in optionalScenarios.'
     $pinnedPolicy = Copy-Policy $published
     $pinnedClient = @($pinnedPolicy.clients | Where-Object { $_.version -ceq '0.5.1' -and $_.language -ceq 'js' })[0]
     $pinnedClient.fixtureSourceRevision = $earlier.js
-    $pinnedJob = @((Get-Plan $pinnedPolicy -Release).include | Where-Object { $_.version -ceq '0.5.1' -and $_.language -ceq 'js' -and $_.target -ceq $pinnedClient.target })
+    Assert-Rejected $pinnedPolicy $pinFloor -Release
+    $pinnedClient.version = '0.5.0-dev.1'
+    Assert-Rejected $pinnedPolicy 'Accepted client 0.5.0-dev.1 jobs must run on a fixture that lists large-result in optionalScenarios.' -Release
+    $pinnedClient.version = '0.4.9'
+    $pinnedJob = @((Get-Plan $pinnedPolicy -Release).include | Where-Object { $_.version -ceq '0.4.9' })
     if ($pinnedJob.Count -ne 1 -or $pinnedJob[0].expectIncompatible -or (Get-WorkflowScenarioJson $pinnedJob[0]) -cne '[]') {
-        throw 'A client pinned to a fixture without optional scenarios must require none.'
+        throw 'Below the floor, a client pinned to a fixture without optional scenarios must require none.'
     }
+    Invoke-Gate $pinnedJob[0] @()
+    $pinnedClient.version = '0.5.1'
     $earlierFixture = @($pinnedPolicy.historicalFixtureSources | Where-Object { $_.language -ceq 'js' })[0]
     $earlierFixture.optionalScenarios = @('large-result')
     $pinnedPlan = (Get-Plan $pinnedPolicy -Release).include
@@ -255,7 +275,39 @@ try {
     if ($release.include.Count -ne 12 -or @($release.include | Where-Object expectIncompatible).Count -ne 0) {
         throw 'Retiring the previous-major clients must leave only the current-major release pairs.'
     }
-    Write-Host 'Verified the #250 support window, retired-client identities, per-entry fixture pins, fixture optional scenarios and their gate, compatible coverage, and the published-client release gate.'
+
+    # The committed inventory. Its Server 0.10.1 release plan must be exactly these jobs, so
+    # dropping or changing a committed entry fails here. Update the expected table with every
+    # change to compatibility/retained-clients.json.
+    $repositoryRoot = Split-Path -Parent $PSScriptRoot
+    $committed = Get-RetainedClientMatrix -Path (Join-Path $repositoryRoot 'compatibility/retained-clients.json') -ServerVersion '0.10.1' -RepositoryRoot $repositoryRoot
+    $expectedJobs = @(foreach ($version in @('0.4.0', '0.5.0', '0.5.1')) {
+            foreach ($language in $languages) {
+                foreach ($target in $targets) {
+                    $rejected = $version -ceq '0.4.0'
+                    '{0} {1} {2} published=True {3} requires={4}' -f $language, $target, $version,
+                        $(if ($rejected) { 'rejected' } else { 'accepted' }), $(if ($rejected) { '[]' } else { '["large-result"]' })
+                }
+            }
+        })
+    $plannedJobs = @($committed.include | ForEach-Object {
+            '{0} {1} {2} published={3} {4} requires={5}' -f $_.language, $_.target, $_.version, $_.published,
+                $(if ($_.expectIncompatible) { 'rejected' } else { 'accepted' }), (Get-WorkflowScenarioJson $_)
+        })
+    $missingJobs = @($expectedJobs | Where-Object { $plannedJobs -cnotcontains $_ })
+    $unexpectedJobs = @($plannedJobs | Where-Object { $expectedJobs -cnotcontains $_ })
+    if ($missingJobs.Count -ne 0 -or $unexpectedJobs.Count -ne 0 -or $plannedJobs.Count -ne $expectedJobs.Count) {
+        throw ("The committed retained-client inventory must plan the $($expectedJobs.Count) expected Server 0.10.1 jobs; it plans $($plannedJobs.Count). " +
+            "Missing: $(if ($missingJobs.Count) { $missingJobs -join '; ' } else { 'none' }). Unexpected: $(if ($unexpectedJobs.Count) { $unexpectedJobs -join '; ' } else { 'none' }).")
+    }
+    # Each committed accepted job fails the gate when its list arrives empty or the runner
+    # never passed large-result, and each committed rejection passes with no output.
+    foreach ($job in @($committed.include)) {
+        if ($job.expectIncompatible) { Invoke-Gate $job @(); continue }
+        Assert-GateRejected $job @() "The retained-client plan for accepted client $($job.version) must require large-result." -Json '[]'
+        Assert-GateRejected $job @() "Client $($job.version) must pass large-result exactly once."
+    }
+    Write-Host "Verified the #250 support window, retired-client identities, per-entry fixture pins, fixture optional scenarios, the large-result floor and its gate, compatible coverage, the published-client release gate, and the $($expectedJobs.Count) jobs the committed inventory plans for Server 0.10.1."
 }
 finally {
     $resolved = [IO.Path]::GetFullPath($temporary)

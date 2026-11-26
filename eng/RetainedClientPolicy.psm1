@@ -1,6 +1,19 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+# The floor for optional scenarios lives here, not in retained-clients.json, so no edit to the
+# inventory can lower it. From client 0.5.0 on, every accepted job must pass large-result (#399):
+# the gate first required it for the published 0.5.0 packages (#433). Both the plan and the
+# workflow gate check it. Change it only with a reviewed change to the scenario contract.
+$script:OptionalScenarioFloor = @(
+    [pscustomobject]@{ Id = 'large-result'; MinimumClientVersion = [version]'0.5.0' }
+)
+function Get-OptionalScenarioFloor {
+    param([Parameter(Mandatory)][string]$ClientVersion)
+    $core = [version]($ClientVersion -split '[-+]', 2)[0]
+    return [string[]]@($script:OptionalScenarioFloor | Where-Object { $core -ge $_.MinimumClientVersion } | ForEach-Object Id)
+}
+
 function Get-RetainedClientMatrix {
     param(
         [Parameter(Mandatory)][string]$Path,
@@ -69,6 +82,15 @@ function Get-RetainedClientMatrix {
         }
         $fixtureOptional["$($fixture.language)/$($fixture.sourceRevision)"] = $requested
     }
+    # Source candidates and unpinned clients run on the current fixtures, so they must request
+    # every scenario of the floor.
+    foreach ($language in $languages) {
+        foreach ($id in @($script:OptionalScenarioFloor | ForEach-Object Id)) {
+            if ($fixtureOptional["$language/$($fixtures[$language])"] -cnotcontains $id) {
+                throw "Current fixture sources must list $id in optionalScenarios. The $language fixture $($fixtures[$language]) does not."
+            }
+        }
+    }
 
     $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
     $retainedCoverage = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
@@ -134,6 +156,13 @@ function Get-RetainedClientMatrix {
             $item.expectIncompatible = -not $accepted
             # A rejection job requests no optional scenario, so it requires none.
             $item.requiredOptionalScenarios = [string[]]@(if ($accepted) { $fixtureOptional["$($entry.language)/$($item.fixtureSourceRevision)"] })
+            if ($accepted) {
+                foreach ($id in Get-OptionalScenarioFloor $entry.version) {
+                    if ($item.requiredOptionalScenarios -cnotcontains $id) {
+                        throw "Accepted client $($entry.version) jobs must run on a fixture that lists $id in optionalScenarios. $pair runs on $($item.fixtureSourceRevision)."
+                    }
+                }
+            }
             $matrix.Add($item)
         }
     }
@@ -147,17 +176,27 @@ function Get-RetainedClientMatrix {
 
 # The retained-client workflow calls this after the packaged runner finishes a job. A fixture's
 # report lists the scenarios it requested, which does not show that they ran. The runner prints
-# its pass line only after it validated the fixture's receipt, so count that line instead.
+# its pass line only after it validated the fixture's receipt, so count that line instead. The
+# job's list is checked against the floor first, so a list lost on the way still fails.
 function Assert-OptionalScenarioPasses {
     param(
         # The job's requiredOptionalScenarios from Get-RetainedClientMatrix, as a JSON array.
         [Parameter(Mandatory)][string]$RequiredScenarioJson,
         [Parameter(Mandatory)][AllowEmptyCollection()][AllowEmptyString()][string[]]$RunnerOutput,
-        [Parameter(Mandatory)][string]$ClientVersion
+        [Parameter(Mandatory)][string]$ClientVersion,
+        # The job's expectIncompatible. A rejection job requests no optional scenario.
+        [Parameter(Mandatory)][bool]$ExpectIncompatible
     )
     $required = ConvertFrom-Json -InputObject $RequiredScenarioJson -NoEnumerate
     if ($required -isnot [Array] -or @($required | Where-Object { $_ -isnot [string] }).Count -ne 0) {
         throw 'The retained-client plan must list the optional scenarios each job requires.'
+    }
+    if ($ExpectIncompatible) {
+        if ($required.Count -ne 0) { throw 'A rejection job must require no optional scenario.' }
+        return
+    }
+    foreach ($id in Get-OptionalScenarioFloor $ClientVersion) {
+        if ($required -cnotcontains $id) { throw "The retained-client plan for accepted client $ClientVersion must require $id." }
     }
     foreach ($id in $required) {
         $pattern = "^Passed client conformance scenario: $([regex]::Escape($id))(?: \(|$)"

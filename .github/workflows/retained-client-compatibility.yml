@@ -157,14 +157,15 @@ jobs:
           # The policy lists the optional scenarios, such as large-result, that
           # this job's fixture requests. An accepted job fails unless the runner's
           # own pass line shows each of them exactly once, whichever client
-          # version it tests. A rejection lists none.
+          # version it tests, and from client 0.5.0 on the list must include
+          # large-result. A rejection lists none.
           try {
             $runnerOutput = [Collections.Generic.List[string]]::new()
             & ./eng/Test-PublishedClientConformance.ps1 @arguments 6>&1 | ForEach-Object {
               $runnerOutput.Add([string]$_)
               $_
             }
-            Assert-OptionalScenarioPasses -RequiredScenarioJson $env:REQUIRED_OPTIONAL_SCENARIOS -RunnerOutput $runnerOutput.ToArray() -ClientVersion $env:CLIENT_VERSION
+            Assert-OptionalScenarioPasses -RequiredScenarioJson $env:REQUIRED_OPTIONAL_SCENARIOS -RunnerOutput $runnerOutput.ToArray() -ClientVersion $env:CLIENT_VERSION -ExpectIncompatible $arguments.ExpectIncompatible
           }
           finally { Pop-Location }
       - name: Check the conformance digest vocabulary
