@@ -274,8 +274,12 @@ What still remains unmeasured in a licensed session:
 
 1. **Real job-owned result sizes** on realistic jobs, as private frame bytes
    per operation:
-   - job-owned large point groups (`result_size_point_group`) and scan clouds
-     (`result_size_cloud`), whose fixtures were absent and not run in session 4;
+   - job-owned large point groups (`result_size_point_group`, absent and not
+     run in session 4) and collection-object-name lists from large production
+     collections (session 4's job-wide list had 20 objects in R2 and 24 in R1);
+   - a job-owned scan cloud point count (`result_size_cloud`, absent and not
+     run in session 4) for estimating an equivalent name-list size, since probe
+     34 has no cloud point-list response to measure directly;
    - edit text and string lists;
    - the robot, calibration, and covariance double lists.
 2. **The worker's working set** for a result near 1 MiB, and for a sized getter

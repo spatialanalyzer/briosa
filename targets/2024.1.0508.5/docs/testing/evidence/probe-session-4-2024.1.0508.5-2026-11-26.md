@@ -42,7 +42,7 @@ Because the machine-wide COM registration pointed to SA `2026.1.0529.7` before S
 
 Fixtures: `result_size_point_group` — not run: fixture missing (`c34-count-job-group`, `p34-list-job-group`); `result_size_cloud` — not run: fixture missing (`c34-count-job-cloud`).
 
-All sizes below are measured against the **1,048,576-byte (1 MiB)** worker response budget and the **4,194,304-byte (4 MiB)** published client receive limit. Values in the summary table come from the two completed runs (R2 attempt 2 for worker frames; R1 for public protobuf messages). R2 attempt 1 stopped at preflight under F5 and produced no measurements.
+R2 reports received worker-frame bytes against the 1,048,576-byte worker budget. R1 reports delivered protobuf message bytes against the 4,194,304-byte published client receive limit. Values in the summary table come from the two completed runs (R2 attempt 2 for worker frames; R1 for public protobuf messages). R2 attempt 1 stopped at preflight under F5 and produced no measurements.
 
 ### List and count-only summary
 
@@ -55,8 +55,8 @@ All sizes below are measured against the **1,048,576-byte (1 MiB)** worker respo
 | `p34-list-20000` | 20,000 (from its count) | 637 | | rejected, size unknown / rejected, size unknown |
 | `p34-objects-harness` | 23 (R1) / 19 (R2 attempt 2) | 1,859 | 437 | delivered / delivered |
 | `p34-objects-job` | 24 (R1) / 20 (R2 attempt 2) | 1,918 | 451 | delivered / delivered |
-| `p34-list-job-group` | not run: fixture missing | — | — | not run (`result_size_point_group` missing) |
-| `c34-count-job-cloud` | not run: fixture missing (count only) | — | — | — |
+| `p34-list-job-group` | unknown | — | — | not run: fixture missing (`result_size_point_group`) |
+| `c34-count-job-cloud` | unknown | — | — | not run: fixture missing (`result_size_cloud`; count only) |
 
 The public-API setup runs 37 guard and fixture steps compared with 26 in the worker phase, which accounts for the four additional harness-created objects in `p34-objects-harness` and `p34-objects-job` during R1.
 
@@ -103,9 +103,7 @@ For `p34-list-20000` in R1, the public error reported execution state `Succeeded
 - **`c34-count-N` hypotheses:** Yes. In both R1 and R2 attempt 2, every constructed group held exactly `N` points (`100`, `500`, `2,000`, `10,000`, and `20,000`).
 - **Construct times of the larger rungs (`elapsed_ms`), and any dialog (F3):**
   - Construct times: `p34-points-100` 133 ms (R2 attempt 2) / 96 ms (R1); `p34-points-500` 103 ms / 103 ms; `p34-points-2000` 262 ms / 232 ms; `p34-points-10000` 623 ms / 631 ms; `p34-points-20000` 1,080 ms / 1,078 ms.
-  - Dialogs (category only; no dialog text recorded): `p34-bspline` raised a `warning` dialog in both runs that reached it ([issue #448](https://github.com/spatialanalyzer/briosa/issues/448)).
-    - **R1:** Dismissed by the operator with OK at about `14:10:15Z`, roughly 31 s into the step (~13 s after first sighting at `14:10:02Z`); `p34-bspline` succeeded in 31,201 ms. A transient progress window (`other`) cleared on its own during the ladder (exact step and timing unverified).
-    - **R2 attempt 2:** Dismissed by the operator with OK about 23 s into the step (first sighted by `14:21:05Z`, click returned at `14:21:21Z`); `p34-bspline` succeeded in 23,240 ms. A transient progress window (`other`) cleared on its own during the ladder (exact step and duration unverified).
+  - Dialog (F3): `p34-bspline`.
 
 ## 2. Corrected bindings (probes 35 to 37)
 
@@ -186,8 +184,8 @@ No generic `stop-sdk` was run in any run. After every started run (R1 and R2 att
 ## Deviations
 
 - **R2 attempt 1:** The operator checked SDK registration before copying the working job or prompting the maintainer to start SpatialAnalyzer, which allowed the F5 stop before either action. Only the pinned state wrapper and immediate read-only recheck ran after the mismatch; registration, installation, and settings were left as found.
-- **R1:** The first screenshot follow-up after harness launch occurred about 20 s later (outside the requested every-few-seconds cadence), and the `p34-bspline` warning dismissal followed about 13 s after first sight. The transient progress window cleared between screenshots, leaving its exact rung and timing unverified. The ready prompt launched a minimized harness console to keep SpatialAnalyzer visible. The generated harness JSON and Markdown records included a collection name and the JSON purpose descriptions contained fixture references; the operator redacted 30 occurrences in JSON and 1 in Markdown while preserving all step IDs, outcomes, and measurements.
-- **R2 attempt 2:** The first screenshot returned about 9 s after harness start (~4 s beyond the 5 s target), and the operator dismissed the `p34-bspline` warning about 16 s after first sight (~6 s beyond the 10 s fallback target). The progress window's exact step and duration were unverified. The generated harness records included a collection name once in JSON and once in Markdown, and 19 JSON point-setup purpose descriptions contained fixture references; the operator redacted all of them while preserving step IDs, timings, outcomes, MP codes, and frame measurements. During registration restore, the restore wrapper verified registration and wrote the CLSID export before ending prior to the comparison and the two ProgID exports; a follow-up read-only command completed the remaining two exports and byte-for-byte comparison, with the vendor registration command run once.
+- **R1:** The first screenshot follow-up after harness launch occurred about 20 s later (outside the requested every-few-seconds cadence). The operator dismissed the `p34-bspline` `warning` dialog with OK at about `14:10:15Z`, roughly 31 s into the step (~13 s after first sight at `14:10:02Z`), and the step succeeded in 31,201 ms. A transient progress window (`other`) cleared between screenshots, leaving its exact rung and timing unverified. The ready prompt launched a minimized harness console to keep SpatialAnalyzer visible. The generated harness JSON and Markdown records included a collection name and the JSON purpose descriptions contained fixture references; the operator redacted 30 occurrences in JSON and 1 in Markdown while preserving all step IDs, outcomes, and measurements.
+- **R2 attempt 2:** The first screenshot returned about 9 s after harness start (~4 s beyond the 5 s target). The operator dismissed the `p34-bspline` `warning` dialog with OK about 23 s into the step (first sighted by `14:21:05Z`, click returned at `14:21:21Z`, about 16 s after first sight and ~6 s beyond the 10 s fallback target), and the step succeeded in 23,240 ms. A transient progress window (`other`) cleared on its own; its exact step and duration were unverified. The generated harness records included a collection name once in JSON and once in Markdown, and 19 JSON point-setup purpose descriptions contained fixture references; the operator redacted all of them while preserving step IDs, timings, outcomes, MP codes, and frame measurements. During registration restore, the restore wrapper verified registration and wrote the CLSID export before ending prior to the comparison and the two ProgID exports; a follow-up read-only command completed the remaining two exports and byte-for-byte comparison, with the vendor registration command run once.
 
 ## Not run
 
@@ -201,9 +199,9 @@ No generic `stop-sdk` was run in any run. After every started run (R1 and R2 att
 
 ## Follow-up
 
-- [#245](https://github.com/spatialanalyzer/briosa/issues/245): live probe 34 point-list and object-list sizes posted ([comment](https://github.com/spatialanalyzer/briosa/issues/245#issuecomment-7194857802)); 10,000 points delivered in 699,540 worker frame bytes (248,928 protobuf bytes) under the 1 MiB budget, and 20,000 points rejected with `worker-output-encoding-rejected` (original size unknown). Job-owned point groups and clouds remain unmeasured.
+- [#245](https://github.com/spatialanalyzer/briosa/issues/245): live probe 34 point-list sizes ([point lists](https://github.com/spatialanalyzer/briosa/issues/245#issuecomment-7194857802)) and object-list sizes ([object lists](https://github.com/spatialanalyzer/briosa/issues/245#issuecomment-7195517623)) posted; 10,000 points delivered in 699,540 worker frame bytes (248,928 protobuf bytes) under the 1 MiB budget, and 20,000 points rejected with `worker-output-encoding-rejected` (original size unknown). Job-owned point groups and clouds remain unmeasured.
 - [#252](https://github.com/spatialanalyzer/briosa/issues/252): postflight observations only ([comment](https://github.com/spatialanalyzer/briosa/issues/252#issuecomment-7194865598)); no residual process was observed on this target in either completed run. The ownership scenarios are in https://github.com/spatialanalyzer/briosa/pull/428.
-- [#371](https://github.com/spatialanalyzer/briosa/issues/371) / [#438](https://github.com/spatialanalyzer/briosa/issues/438): not measured in this session; the cold-start timings are in https://github.com/spatialanalyzer/briosa/pull/431.
+- [#371](https://github.com/spatialanalyzer/briosa/issues/371) / [#438](https://github.com/spatialanalyzer/briosa/issues/438): not measured in this session. https://github.com/spatialanalyzer/briosa/issues/438 tracks the outstanding measurements. Draft https://github.com/spatialanalyzer/briosa/pull/431 preserves the proposed harness and runbook.
 - [#402](https://github.com/spatialanalyzer/briosa/issues/402): public run records posted ([R2 attempt 1 stop](https://github.com/spatialanalyzer/briosa/issues/402#issuecomment-7193876384), [R1](https://github.com/spatialanalyzer/briosa/issues/402#issuecomment-7194535080), [R2 attempt 2 and session close](https://github.com/spatialanalyzer/briosa/issues/402#issuecomment-7194857335)); probes 35 to 37 and job-owned probe 34 steps remain unexecuted pending fixtures.
 - [#448](https://github.com/spatialanalyzer/briosa/issues/448): filed for the `p34-bspline` warning dialog that blocks unattended probe 34 runs until dismissed.
 
