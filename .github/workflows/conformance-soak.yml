@@ -56,6 +56,25 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # A bad dispatch fails here, before anything is built. A number input reaches the
+      # workflow as text and can hold a sign, a fraction or an exponent, so the run
+      # count must be written as a whole number. The client and scenario are then
+      # planned exactly as the called workflow plans them, which also bounds the count.
+      - name: Check the dispatch inputs
+        shell: pwsh
+        env:
+          ITERATIONS: ${{ inputs.iterations }}
+          SOAK_CLIENT: ${{ inputs.language }}/${{ inputs.target }}/${{ inputs.client-version }}
+          SOAK_SCENARIO: ${{ inputs.scenario }}
+        run: |
+          if ($env:ITERATIONS -cnotmatch '\A[0-9]{1,4}\z') {
+            throw "The iterations input must be a whole number from 1 to 50, not '$($env:ITERATIONS)'."
+          }
+          Import-Module ./eng/RetainedClientPolicy.psm1
+          $plan = Get-RetainedClientMatrix -Path compatibility/retained-clients.json -ServerVersion 0.2.0-soak -AllowSourceCandidates
+          $soak = Get-RetainedClientSoakMatrix -Plan $plan -Client $env:SOAK_CLIENT -Iterations ([int]$env:ITERATIONS) -Scenario $env:SOAK_SCENARIO
+          Write-Host "The soak will run $(@($soak.include).Count) iterations of $($env:SOAK_CLIENT)."
+
       - name: Install .NET SDK
         uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
@@ -89,7 +108,9 @@ jobs:
     with:
       server-version: 0.2.0-soak
       allow-source-candidates: true
-      soak-iterations: ${{ inputs.iterations }}
+      # A workflow_dispatch number input reaches the inputs context as a string, and
+      # the called workflow's soak-iterations is a number, so the value is parsed.
+      soak-iterations: ${{ fromJSON(inputs.iterations) }}
       soak-client: ${{ inputs.language }}/${{ inputs.target }}/${{ inputs.client-version }}
       soak-scenario: ${{ inputs.scenario }}
 
@@ -121,6 +142,10 @@ jobs:
         run: |
           # One valid result per requested iteration; a missing, unreadable, repeated or
           # unsuccessful one fails the soak.
+          if ($env:ITERATIONS -cnotmatch '\A[0-9]{1,4}\z') {
+            'The iterations input was not a whole number, so no iteration ran.' | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+            throw "The iterations input must be a whole number from 1 to 50, not '$($env:ITERATIONS)'."
+          }
           $requested = [int]$env:ITERATIONS
           $results = @{}
           $invalid = 0
