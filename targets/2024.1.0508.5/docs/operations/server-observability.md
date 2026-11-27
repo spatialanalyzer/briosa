@@ -197,6 +197,51 @@ name. Reviewed Briosa events admit only known metadata properties. Debug and
 Trace never unlock arguments, return values, geometry, paths, evidence references,
 credentials, process IDs or vendor exception text. Trace/span IDs are optional.
 
+### HTTP/2 connection records
+
+The unary call records begin where gRPC hands a call to Briosa. Below that, ASP.NET
+Core's own HTTP stack can describe the HTTP/2 connection, and the boundary keeps a
+reviewed part of what it logs, so a stalled call can be followed to the end of the
+connection that lost it (#450). These records exist only when their categories are
+enabled at startup. At the defaults every `Microsoft` category is held at Warning,
+ASP.NET Core never creates them, and the server logs exactly what it logged before:
+a framework record at Warning or above always keeps its FrameworkEvent form.
+
+| Category | Level | Records (fields) |
+| --- | --- | --- |
+| `Microsoft.AspNetCore.Server.Kestrel.Http2` | Trace | Http2FrameReceived and Http2FrameSending, one per frame (ConnectionId, FrameType, StreamId, FrameLength, FrameFlags); Http2ConnectionClosing, Http2ConnectionClosed (HighestOpenedStreamId), Http2ConnectionQueueProcessingCompleted, Http2StreamResetAbort (ConnectionId, StreamId, Http2ErrorCode), Http2ConnectionError, Http2StreamError, Http2HPackDecodingError and Http2HPackEncodingError (ConnectionId, StreamId), Http2MaxConcurrentStreamsReached, Http2TooManyEnhanceYourCalms and Http2FlowControlQueueOperationsExceeded (Count) |
+| `Microsoft.AspNetCore.Server.Kestrel.Connections` | Debug | ConnectionAccepted, ConnectionStart, ConnectionStop, ConnectionPause, ConnectionResume, ConnectionKeepAlive, ConnectionDisconnect, ConnectionAbortedByApplication (ConnectionId, StreamId) |
+| `Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets` | Debug | SocketConnectionReadFin, SocketConnectionWriteFin, SocketConnectionWriteRst, SocketConnectionError, SocketConnectionReset, SocketConnectionPause, SocketConnectionResume (ConnectionId) |
+| `Microsoft.AspNetCore.Server.Kestrel` | Debug | RequestBodyStart, RequestBodyDone, RequestAborted, RequestBodyNotEntirelyRead, RequestBodyDrainTimedOut (ConnectionId, StreamId) |
+| `Microsoft.AspNetCore.Server.Kestrel.BadRequests` | Debug | ConnectionBadRequest, RequestProcessingError, RequestBodyMinimumDataRateNotSatisfied, ResponseMinimumDataRateNotSatisfied (ConnectionId, StreamId) |
+| `Microsoft.AspNetCore.Hosting.Diagnostics` | Information | HostingRequestStarting (HttpProtocol, HttpMethod, Rpc or OperationId) and HostingRequestFinished (the same, HttpStatusCode, RequestMilliseconds) |
+
+The categories, event IDs and event names are those of ASP.NET Core 10, which the
+server runs on; a record is matched by all three and written under the fixed name
+above. Each field is validated or mapped to a fixed value, and anything else is
+written as `unrecognized`: a connection ID is Kestrel's 13-character ID, a stream ID
+comes from the frame or from the request's trace identifier, frame types and HTTP/2
+error codes are the RFC 9113 names, and FrameFlags is the frame's flag byte (bit 1
+is END_STREAM, 4 END_HEADERS). A request path is reduced to the name the unary call
+records use, from an exact match with one of the server's own methods, or
+`unrecognized`, so a non-canonical spelling that gRPC still routes is visible as
+such. No frame payload, header value, host or port, path text, query, content type,
+reason or error message, or exception is recorded.
+
+A call can be followed through all three layers. RequestBodyStart and
+RequestBodyDone carry the connection and stream IDs and the same TraceId as the
+call's HostingRequestStarting, HostingRequestFinished and unary call records, and
+the stream's frames carry the same connection and stream IDs. A call whose HEADERS
+and DATA frames arrived but that has no RequestBodyDone stalled reading its request;
+one with UnaryCallResponseEnded but no sent HEADERS frame with END_STREAM on its
+stream stalled in the server's output.
+
+Frame records are frequent: about fifteen records of about 450 bytes per unary call.
+They are meant for diagnosis, not for a production default. The client conformance
+runner turns them on only for a soak package built with `-ConnectionCapture`, with
+`Briosa:Logging:QueueCapacity` raised to 65536 so that a burst is not dropped. A
+dropped record is still counted and reported by LogSinkDegraded.
+
 ## Metrics and optional tracing
 
 The `Briosa.Server` Meter publishes:

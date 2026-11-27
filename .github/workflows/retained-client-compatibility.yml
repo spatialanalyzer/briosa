@@ -137,9 +137,12 @@ jobs:
           # A soak run also takes heap dumps of the .NET processes at a fixture
           # timeout; the gate leaves them off. A soak of one scenario runs a soak
           # package, whose runner repeats that scenario only and ends every run with
-          # an error, so no compatibility evidence is written.
+          # an error, so no compatibility evidence is written. A soak package that
+          # records the HTTP/2 connection likewise ends a run of every scenario with
+          # its own error once they have all passed; only a soak accepts that end.
           BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT: ${{ inputs.soak-iterations > 0 && '1' || '' }}
           SOAK_SCENARIO: ${{ inputs.soak-iterations > 0 && inputs.soak-scenario || '' }}
+          SOAK_RUN: ${{ inputs.soak-iterations > 0 && 'true' || '' }}
         run: |
           Import-Module ./eng/RetainedClientPolicy.psm1
           if ($env:CLIENT_PUBLISHED -eq 'true') {
@@ -198,10 +201,11 @@ jobs:
               }
             }
             catch {
-              if ([string]::IsNullOrEmpty($env:SOAK_SCENARIO)) { throw }
+              if ([string]::IsNullOrEmpty($env:SOAK_SCENARIO) -and $env:SOAK_RUN -cne 'true') { throw }
               $soakEnd = "$_"
             }
             if ([string]::IsNullOrEmpty($env:SOAK_SCENARIO)) {
+              if ($null -ne $soakEnd) { Assert-SoakCaptureEnd -RunEnd $soakEnd }
               Assert-OptionalScenarioPasses -RequiredScenarioJson $env:REQUIRED_OPTIONAL_SCENARIOS -RunnerOutput $runnerOutput.ToArray() -ClientVersion $env:CLIENT_VERSION -ExpectIncompatible $arguments.ExpectIncompatible
             }
             else {

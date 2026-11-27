@@ -362,6 +362,19 @@ try {
         catch { $failure = $_.Exception.Message }
         if ($failure -cne $case.Message) { throw "Expected the soak check '$($case.Message)', got '$failure'." }
     }
+    # A soak of every scenario with the connection capture passes only with the capture
+    # package's own end, which its runner reaches after the last scenario passed. A
+    # scenario's failure, the single-scenario end or no end at all fails it.
+    Assert-SoakCaptureEnd -RunEnd 'This soak run recorded the HTTP/2 connection of every scenario, so it is not compatibility evidence.'
+    foreach ($end in @($null, '', $soakEnd, "The client fixture timed out after 240 s in scenario 'sdk-loss-recovery'.",
+            'this soak run recorded the HTTP/2 connection of every scenario, so it is not compatibility evidence.')) {
+        $failure = $null
+        try { Assert-SoakCaptureEnd -RunEnd $end }
+        catch { $failure = $_.Exception.Message }
+        if ($failure -cne "A soak of every scenario must pass them all, then end normally or with the connection capture's own error, not: $end") {
+            throw "Expected the capture end check to reject '$end', got '$failure'."
+        }
+    }
     # The soak workflow's own steps (#450), run from the workflow file. Its preflight
     # plans an accepted dispatch and rejects any other before the package is built.
     # Neither it nor the summary prints a rejected value, since the runner reads
@@ -400,11 +413,13 @@ try {
             throw "The soak workflow printed a rejected input for $Case."
         }
     }
-    $dispatch = @{ ITERATIONS = '20'; LANGUAGE = 'js'; TARGET = '2024.1.0508.5'; CLIENT_VERSION = '0.5.1'; SOAK_SCENARIO = '' }
+    $dispatch = @{ ITERATIONS = '20'; LANGUAGE = 'js'; TARGET = '2024.1.0508.5'; CLIENT_VERSION = '0.5.1'; SOAK_SCENARIO = ''
+        CONNECTION_CAPTURE = 'true' }
     foreach ($case in @(
             @{ Change = @{}; Runs = 'The soak will run 20 iterations of js/2024.1.0508.5/0.5.1.' },
             @{ Change = @{ ITERATIONS = '1'; SOAK_SCENARIO = 'capability-denied' }; Runs = 'The soak will run 1 iterations of js/2024.1.0508.5/0.5.1.' },
-            @{ Change = @{ ITERATIONS = '50'; LANGUAGE = 'py'; TARGET = '2026.1.0529.7' }; Runs = 'The soak will run 50 iterations of py/2026.1.0529.7/0.5.1.' })) {
+            @{ Change = @{ ITERATIONS = '50'; LANGUAGE = 'py'; TARGET = '2026.1.0529.7' }; Runs = 'The soak will run 50 iterations of py/2026.1.0529.7/0.5.1.' },
+            @{ Change = @{ CONNECTION_CAPTURE = 'false' }; Runs = 'The soak will run 20 iterations of js/2024.1.0508.5/0.5.1.' })) {
         $environment = $dispatch.Clone()
         foreach ($name in $case.Change.Keys) { $environment[$name] = $case.Change[$name] }
         $result = Invoke-SoakStep $preflightPath $environment $repositoryRoot
@@ -428,6 +443,8 @@ try {
             @{ Change = @{ CLIENT_VERSION = "0.5.1`n::error::injected-client-version" }; Message = 'The client-version input must be a version, such as 0.5.1.' },
             @{ Change = @{ CLIENT_VERSION = '::error::injected-client-version' }; Message = 'The client-version input must be a version, such as 0.5.1.' },
             @{ Change = @{ SOAK_SCENARIO = "capability-denied`n::error::injected-scenario" }; Message = 'The scenario input must be empty or a scenario ID, such as capability-denied.' },
+            @{ Change = @{ CONNECTION_CAPTURE = "true`n::error::injected-capture" }; Message = 'The connection-capture input must be true or false.' },
+            @{ Change = @{ CONNECTION_CAPTURE = 'True' }; Message = 'The connection-capture input must be true or false.' },
             @{ Change = @{ CLIENT_VERSION = '9.9.9' }; Message = 'The retained-client plan has no job for client js/2024.1.0508.5/9.9.9.' },
             @{ Change = @{ CLIENT_VERSION = '0.4.0' }; Message = 'A soak run repeats an accepted client; the gate expects js/2024.1.0508.5/0.4.0 to be rejected.' },
             @{ Change = @{ SOAK_SCENARIO = 'no-such-scenario' }; Message = 'A soak run of js/2024.1.0508.5/0.5.1 can repeat only a scenario its job runs.' })) {
@@ -442,9 +459,9 @@ try {
     }
     # The summary of a soak whose preflight rejected its inputs: a fixed message only.
     $summaryDispatch = @{ ITERATIONS = '20'; LANGUAGE = 'js'; TARGET = '2024.1.0508.5'; CLIENT_VERSION = '0.5.1'; SCENARIO = ''
-        SOAK_RESULT = 'skipped'; DOWNLOAD = 'failure' }
+        CONNECTION_CAPTURE = 'true'; SOAK_RESULT = 'skipped'; DOWNLOAD = 'failure' }
     foreach ($change in @(@{ SCENARIO = "capability-denied`n::error::injected-scenario" }, @{ CLIENT_VERSION = '::error::injected-client-version' },
-            @{ ITERATIONS = '020' })) {
+            @{ ITERATIONS = '020' }, @{ CONNECTION_CAPTURE = "false`n::error::injected-capture" })) {
         $environment = $summaryDispatch.Clone()
         foreach ($name in $change.Keys) { $environment[$name] = $change[$name] }
         $summaryFile = Join-Path $stepRoot "summary-$([Guid]::NewGuid().ToString('N')).md"

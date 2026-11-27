@@ -317,6 +317,13 @@ jobs:
         shell: pwsh
         run: ./eng/Test-ProtocolArtifact.ps1 -Version 0.2.0-ci
 
+      # The conformance package tests check the soak's client connection capture
+      # module (#450) under the Node major the retained JavaScript jobs use.
+      - name: Install Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+
       - name: Build twice and verify client conformance artifact
         shell: pwsh
         run: ./eng/Test-ClientConformancePackage.ps1 -Version 0.2.0-ci

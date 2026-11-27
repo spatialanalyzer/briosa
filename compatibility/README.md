@@ -206,10 +206,22 @@ and runs it once per iteration, each iteration on its own runner. Each run also
 takes heap dumps of the .NET processes at a fixture timeout
 (`BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT=1`). The conformance runner always records
 the fixture's process tree at a timeout and turns on the server's Debug unary
-call records. It traces no client, for any language: a gRPC library's trace and a
-fixture's own output share one stream and cannot be separated reliably. The
-server records show which calls arrived and were answered, and the process tree
-shows which process was idle or busy.
+call records. The server records show which calls arrived and were answered, and
+the process tree shows which process was idle or busy. It never parses a
+fixture's stderr: a gRPC library's trace and a fixture's own output share that
+stream and cannot be separated reliably.
+
+By default the soak also records each scenario's HTTP/2 connection at both ends
+(`connection-capture`). Its package is built with `-ConnectionCapture`: the
+server logs ASP.NET Core's frame, connection and request records, reduced to
+fixed names and validated fields, and a JavaScript fixture preloads the runner's
+client module, which records Node's HTTP/2 stream events and grpc-js's transport
+and call trace inside the fixture process, without touching its stdout or
+stderr, to a file of its own. A failing scenario keeps both, with a merged
+`connection-timeline.txt`, so the next stall names the end that lost the call.
+The runner's guide (`targets/<target>/conformance/client/README.md`, Connection
+capture) describes what is kept and how one call is lined up across the records.
+A .NET or Python fixture gets the server's records only.
 
 A soak run is not compatibility evidence. It uploads none of the per-client
 `compatibility-<language>-<target>-<version>` evidence the gate uploads. When it
@@ -217,7 +229,10 @@ repeats one scenario it builds a soak package, whose runner runs only that
 scenario and ends every run with an error naming it, so the client's own test
 script never writes a compatibility report for a run that skipped the other
 scenarios; the iteration passes only with exactly one validated pass of that
-scenario and that error. It publishes, signs and releases nothing, and it uses
+scenario and that error. A connection capture package likewise ends a run of
+every scenario with its own error once every scenario has passed, and only a
+soak accepts that end, so the client's script never writes a report for a run
+with the capture module loaded into its fixture. It publishes, signs and releases nothing, and it uses
 no secrets and no environment. The release workflow policy check
 (`eng/Verify-ReleaseWorkflowPolicy.ps1`) reads both workflows as parsed YAML. It
 fails, with the file and line, on any construct outside the plain block style
@@ -235,6 +250,7 @@ Inputs:
 | `client-version` | `0.5.1` | a version `retained-clients.json` lists for that language and target; the gate must accept it |
 | `iterations` | `20` | a whole number from 1 to 50 |
 | `scenario` | empty | one scenario the job runs, such as `capability-denied`; empty runs every scenario of the job |
+| `connection-capture` | `true` | record each scenario's HTTP/2 connection at both ends, and keep it for a failing scenario |
 
 The workflow checks these inputs before it builds the package, and it plans
 the job exactly as the gate will.
@@ -257,4 +273,5 @@ A failing iteration keeps its diagnostics as the artifact
 `conformance-diagnostics-<language>-<target>-<version>-iteration-<n>`: for each
 failed scenario, the failure, the fixture's stderr and stdout, the server log
 digest and log files, the process tree at a timeout (`timeout-processes.txt`)
-and any heap dumps.
+and any heap dumps, and with the connection capture `client-connection.jsonl`
+and `connection-timeline.txt`.

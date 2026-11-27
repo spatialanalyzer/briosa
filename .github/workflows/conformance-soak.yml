@@ -2,7 +2,8 @@ name: Client conformance soak
 
 # Repeats one retained-client conformance job on hosted runners, against the server
 # built from the dispatched commit, with every timeout diagnostic on (#450). Each
-# iteration runs on its own runner. It publishes, signs and releases nothing, uses
+# iteration runs on its own runner. By default each scenario's HTTP/2 connection is
+# also recorded at both ends, and kept for a failing scenario. It publishes, signs and releases nothing, uses
 # no secrets and no environment, and calls only the retained-client workflow, never
 # the release workflow.
 on:
@@ -40,6 +41,11 @@ on:
         required: false
         type: string
         default: ''
+      connection-capture:
+        description: Record each scenario's HTTP/2 connection at both ends, and keep it for a failing scenario
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -71,6 +77,7 @@ jobs:
           TARGET: ${{ inputs.target }}
           CLIENT_VERSION: ${{ inputs.client-version }}
           SOAK_SCENARIO: ${{ inputs.scenario }}
+          CONNECTION_CAPTURE: ${{ inputs.connection-capture }}
         run: |
           if ($env:ITERATIONS -cnotmatch '\A(?:[1-9]|[1-4][0-9]|50)\z') {
             throw 'The iterations input must be a whole number from 1 to 50, without leading zeroes.'
@@ -83,6 +90,7 @@ jobs:
           if ($env:SOAK_SCENARIO -cnotmatch '\A(?:[a-z0-9]+(?:-[a-z0-9]+)*)?\z') {
             throw 'The scenario input must be empty or a scenario ID, such as capability-denied.'
           }
+          if ($env:CONNECTION_CAPTURE -cnotmatch '\A(?:true|false)\z') { throw 'The connection-capture input must be true or false.' }
           $client = "$($env:LANGUAGE)/$($env:TARGET)/$($env:CLIENT_VERSION)"
           Import-Module ./eng/RetainedClientPolicy.psm1
           $plan = Get-RetainedClientMatrix -Path compatibility/retained-clients.json -ServerVersion 0.2.0-soak -AllowSourceCandidates
@@ -98,14 +106,19 @@ jobs:
 
       # With a scenario, a soak package: its runner repeats that one scenario and ends
       # every run with an error, so no client script records it as compatibility evidence.
+      # With the connection capture, its runner also records each scenario's HTTP/2
+      # connection at both ends, keeps the records of a failing scenario with its
+      # diagnostics, and likewise ends every run with an error.
       - name: Build the client conformance package
         shell: pwsh
         working-directory: targets/${{ inputs.target }}
         env:
           SOAK_SCENARIO: ${{ inputs.scenario }}
+          CONNECTION_CAPTURE: ${{ inputs.connection-capture }}
         run: |
           $soak = @{}
           if (-not [string]::IsNullOrEmpty($env:SOAK_SCENARIO)) { $soak.SoakScenario = $env:SOAK_SCENARIO }
+          if ($env:CONNECTION_CAPTURE -ceq 'true') { $soak.ConnectionCapture = $true }
           ./eng/New-ClientConformancePackage.ps1 -Version 0.2.0-soak -SourceRevision $env:GITHUB_SHA -OutputDirectory artifacts/client-conformance-soak @soak
 
       - name: Keep the package for the soak jobs
@@ -151,6 +164,7 @@ jobs:
           TARGET: ${{ inputs.target }}
           CLIENT_VERSION: ${{ inputs.client-version }}
           SCENARIO: ${{ inputs.scenario }}
+          CONNECTION_CAPTURE: ${{ inputs.connection-capture }}
           SOAK_RESULT: ${{ needs.soak.result }}
           DOWNLOAD: ${{ steps.download.outcome }}
         run: |
@@ -162,7 +176,8 @@ jobs:
               $env:LANGUAGE -cnotmatch '\A(?:js|dotnet|py)\z' -or
               $env:TARGET -cnotmatch '\A[0-9]+(?:\.[0-9]+){3}\z' -or
               $env:CLIENT_VERSION -cnotmatch '\A[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?\z' -or
-              $env:SCENARIO -cnotmatch '\A(?:[a-z0-9]+(?:-[a-z0-9]+)*)?\z') {
+              $env:SCENARIO -cnotmatch '\A(?:[a-z0-9]+(?:-[a-z0-9]+)*)?\z' -or
+              $env:CONNECTION_CAPTURE -cnotmatch '\A(?:true|false)\z') {
             'The dispatch inputs were not valid, so no iteration ran.' | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
             throw 'The dispatch inputs were not valid; the package job names the input that failed.'
           }
@@ -185,6 +200,10 @@ jobs:
           $lines.Add('')
           $lines.Add(('Client {0} {1} on SA {2}, {3}; {4} of {5} iterations passed.' -f $env:LANGUAGE, $env:CLIENT_VERSION, $env:TARGET,
             $(if ($env:SCENARIO) { "scenario $($env:SCENARIO)" } else { 'every scenario of the job' }), $passed, $requested))
+          $lines.Add('')
+          $lines.Add($(if ($env:CONNECTION_CAPTURE -ceq 'true') {
+                'Each scenario''s HTTP/2 connection was recorded at both ends; a failing scenario keeps client-connection.jsonl, the server log and connection-timeline.txt.'
+              } else { 'The HTTP/2 connection was not recorded.' }))
           $lines.Add('')
           $lines.Add('| Iteration | Outcome | Failed scenarios |')
           $lines.Add('| ---: | --- | --- |')

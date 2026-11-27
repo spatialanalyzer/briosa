@@ -29,6 +29,36 @@ internal sealed class SafeLogState : IReadOnlyList<KeyValuePair<string, object?>
     public override string ToString() => EventId.Name + " " + string.Join(" ", _values.Where(pair => pair.Key != "{OriginalFormat}")
         .Select(pair => $"{pair.Key}={pair.Value}"));
 
+    /// <summary>
+    /// As <see cref="Create{TState}(string, EventId, TState, string)"/>, except that one of
+    /// ASP.NET Core's connection records below Warning keeps its reviewed fields
+    /// (<see cref="ConnectionLogProjection"/>). By default those records are never
+    /// created, and every other record is handled exactly as before.
+    /// </summary>
+    public static SafeLogState Create<TState>(string category, LogLevel level, EventId eventId, TState state,
+        string instanceId)
+    {
+        if (!ConnectionLogProjection.TryProject(category, level, eventId, state, out var label, out var fields))
+        {
+            return Create(category, eventId, state, instanceId);
+        }
+
+        var values = new List<KeyValuePair<string, object?>>(fields.Count + 5)
+        {
+            new("ServerInstanceId", instanceId),
+            new("SpatialAnalyzerTarget", SpatialAnalyzerApi.TargetVersion),
+            new("{OriginalFormat}", label)
+        };
+        values.AddRange(fields);
+        if (Activity.Current is { } activity)
+        {
+            values.Add(new("TraceId", activity.TraceId.ToHexString()));
+            values.Add(new("SpanId", activity.SpanId.ToHexString()));
+        }
+
+        return new SafeLogState(new EventId(eventId.Id, label), values);
+    }
+
     public static SafeLogState Create<TState>(string category, EventId eventId, TState state, string instanceId)
     {
         var trusted = category.StartsWith("Briosa.Server.", StringComparison.Ordinal) &&

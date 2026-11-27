@@ -87,7 +87,7 @@ internal sealed class BriosaLogProvider : ILoggerProvider
         {
             var readinessReport = IsExpectedReadinessReport(category, eventId, state, exception);
             var safe = readinessReport ? SafeLogState.Create("Briosa.Server.Readiness", new EventId(1500), Array.Empty<KeyValuePair<string, object?>>(), InstanceId)
-                : SafeLogState.Create(category, eventId, state, InstanceId);
+                : SafeLogState.Create(category, level, eventId, state, InstanceId);
             if (readinessReport) level = LogLevel.Information;
             try
             {

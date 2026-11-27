@@ -131,6 +131,38 @@ $unaryCallAuditLevel = $(if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvi
         [Environment]::GetEnvironmentVariable($unaryCallAuditLevelKey)
     })
 
+# A soak package built with -ConnectionCapture (#450) also records each scenario's
+# HTTP/2 connection at both ends. Its runner reads runner/connection-capture.json; a
+# release or CI package has no such file, and nothing in the environment turns the
+# capture on. Then:
+# - the server writes what ASP.NET Core's own HTTP stack logs about the connection, at
+#   these levels, reduced to fixed names and validated fields (ConnectionLogProjection
+#   in the server), with room in its log queue for them;
+# - a Node fixture preloads runner/connection-capture.cjs, which writes the client's
+#   HTTP/2 stream events and grpc-js's transport and call trace, reduced the same way,
+#   to client-connection.jsonl in the scenario's own directory. The fixture's stdout
+#   and stderr are untouched: no trace switch is set, and nothing reaches them.
+# Both stay in the scenario's temporary directory, which a passing scenario leaves
+# behind for deletion; a failing one keeps them with its diagnostics, with a merged
+# connection-timeline.txt. The run then always ends with an error, so no client's test
+# script records it as compatibility evidence.
+$connectionCaptureLevels = [ordered]@{
+    "Microsoft.AspNetCore.Server.Kestrel.Http2" = "Trace"
+    "Microsoft.AspNetCore.Server.Kestrel.Connections" = "Debug"
+    "Microsoft.AspNetCore.Server.Kestrel.BadRequests" = "Debug"
+    "Microsoft.AspNetCore.Server.Kestrel" = "Debug"
+    "Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets" = "Debug"
+    "Microsoft.AspNetCore.Hosting.Diagnostics" = "Information"
+}
+$connectionCaptureQueueCapacity = "65536"
+$connectionCaptureFile = "client-connection.jsonl"
+$connectionCaptureModule = Join-Path $PSScriptRoot "connection-capture.cjs"
+$connectionCapture = $false
+$connectionCaptureNodeOptions = $null
+# The latest entries the saved connection timeline keeps, and the latest of those printed.
+$connectionTimelineLimit = 20000
+$connectionTimelinePrinted = 150
+
 # Opt-in: append every DiagnosticCode or OperationId that a scenario's server log
 # holds but the digest vocabulary does not list to this file. The retained-client
 # gate uses it so that a newly produced value fails a check instead of being
@@ -239,6 +271,49 @@ $digestFields = [ordered]@{
     ExecutionDisposition = @{ Allowed = (New-OrdinalSet @("not_started", "started_outcome_unknown", "completed", "unspecified")) }
     MpResultCode = @{ Integer = $true }
     DiagnosticCode = @{ Allowed = $digestVocabulary["diagnostic_codes"] }
+    DroppedRecords = @{ Integer = $true }
+    SinkFailures = @{ Integer = $true }
+}
+# The server's HTTP/2 connection records (#450), written only by a connection capture.
+# Their names are ConnectionLogProjection's fixed names, and the server tests fail when
+# the two lists differ. They never enter the digest's tail of lower-severity records,
+# so a busy connection does not push the call records out of it; they are listed in the
+# connection timeline instead, with these fields. A count may also be the server's own
+# "unrecognized" for a value that did not validate.
+$connectionEventNames = New-OrdinalSet @(
+    "Http2ConnectionError", "Http2StreamError", "Http2HPackDecodingError", "Http2StreamResetAbort",
+    "Http2ConnectionClosing", "Http2FrameReceived", "Http2HPackEncodingError", "Http2MaxConcurrentStreamsReached",
+    "Http2ConnectionClosed", "Http2FrameSending", "Http2ConnectionQueueProcessingCompleted",
+    "Http2TooManyEnhanceYourCalms", "Http2FlowControlQueueOperationsExceeded", "ConnectionStart", "ConnectionStop",
+    "ConnectionPause", "ConnectionResume", "ConnectionKeepAlive", "ConnectionDisconnect",
+    "ConnectionAbortedByApplication", "ConnectionAccepted", "ConnectionBadRequest", "RequestProcessingError",
+    "RequestBodyMinimumDataRateNotSatisfied", "ResponseMinimumDataRateNotSatisfied", "RequestBodyStart",
+    "RequestBodyDone", "RequestBodyNotEntirelyRead", "RequestBodyDrainTimedOut", "RequestAborted",
+    "SocketConnectionPause", "SocketConnectionResume", "SocketConnectionReadFin", "SocketConnectionWriteFin",
+    "SocketConnectionWriteRst", "SocketConnectionError", "SocketConnectionReset", "HostingRequestStarting",
+    "HostingRequestFinished")
+$connectionCountPattern = '\A(?:[0-9]{1,10}|unrecognized)\z'
+$connectionFields = [ordered]@{
+    ConnectionId = @{ Pattern = '\A(?:[0-9A-V]{13}|unrecognized)\z' }
+    StreamId = @{ Pattern = $connectionCountPattern }
+    FrameType = @{ Allowed = (New-OrdinalSet @(
+                "DATA", "HEADERS", "PRIORITY", "RST_STREAM", "SETTINGS", "PUSH_PROMISE", "PING", "GOAWAY",
+                "WINDOW_UPDATE", "CONTINUATION", "unrecognized")) }
+    FrameLength = @{ Pattern = $connectionCountPattern }
+    FrameFlags = @{ Pattern = $connectionCountPattern }
+    HighestOpenedStreamId = @{ Pattern = $connectionCountPattern }
+    Http2ErrorCode = @{ Allowed = (New-OrdinalSet @(
+                "NO_ERROR", "PROTOCOL_ERROR", "INTERNAL_ERROR", "FLOW_CONTROL_ERROR", "SETTINGS_TIMEOUT",
+                "STREAM_CLOSED", "FRAME_SIZE_ERROR", "REFUSED_STREAM", "CANCEL", "COMPRESSION_ERROR", "CONNECT_ERROR",
+                "ENHANCE_YOUR_CALM", "INADEQUATE_SECURITY", "HTTP_1_1_REQUIRED", "unrecognized")) }
+    Count = @{ Pattern = $connectionCountPattern }
+    HttpProtocol = @{ Allowed = (New-OrdinalSet @("HTTP/1.0", "HTTP/1.1", "HTTP/2", "HTTP/3", "unrecognized")) }
+    HttpMethod = @{ Allowed = (New-OrdinalSet @(
+                "GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH", "unrecognized")) }
+    Rpc = @{ Allowed = (New-OrdinalSet (@($digestFields["Rpc"]["Allowed"]) + @("unrecognized"))) }
+    OperationId = $digestFields["OperationId"]
+    HttpStatusCode = @{ Pattern = '\A(?:[1-5][0-9]{2}|unrecognized)\z' }
+    RequestMilliseconds = @{ Pattern = '\A(?:[0-9]{1,9}(?:\.[0-9]{1,3})?|unrecognized)\z' }
 }
 # The digest keeps the latest 200 lower-severity records by timestamp, across all of
 # a scenario's log files, and every warning and error. A record is parsed, and its
@@ -1017,7 +1092,8 @@ function Get-CanonicalValue {
 function ConvertTo-DigestValue {
     param(
         [Parameter(Mandatory)][string]$Field,
-        [Parameter(Mandatory)][Text.Json.JsonElement]$Element
+        [Parameter(Mandatory)][Text.Json.JsonElement]$Element,
+        [Collections.IDictionary]$Rules = $digestFields
     )
 
     # The printable value, the withheld placeholder for a value that does not
@@ -1025,10 +1101,15 @@ function ConvertTo-DigestValue {
     if ($Element.ValueKind -eq [Text.Json.JsonValueKind]::Null) {
         return $null
     }
-    $rule = $digestFields[$Field]
+    $rule = $Rules[$Field]
     if ($rule.ContainsKey("Integer")) {
         $number = Get-JsonInteger $Element
         return $(if ($null -ne $number) { $number } else { $digestWithheld })
+    }
+    if ($rule.ContainsKey("Pattern")) {
+        # A number's own JSON text, or a string, printed only when it matches in full.
+        $text = $(if ($Element.ValueKind -eq [Text.Json.JsonValueKind]::Number) { $Element.GetRawText() } else { Get-JsonString $Element })
+        return $(if ($null -ne $text -and $text.Length -le 64 -and $text -cmatch $rule["Pattern"]) { $text } else { $digestWithheld })
     }
     $canonical = Get-CanonicalValue -Set $rule["Allowed"] -Value (Get-JsonString $Element)
     return $(if ($null -ne $canonical) { $canonical } else { $digestWithheld })
@@ -1082,6 +1163,8 @@ function ConvertFrom-ServerLogLine {
             Name = "LogRecordTooLarge"
             Instance = $null
             Fields = [ordered]@{}
+            Connection = $false
+            TraceId = $null
         }
     }
     try {
@@ -1106,15 +1189,24 @@ function ConvertFrom-ServerLogLine {
         # event keeps only its numeric ID.
         $name = "UnknownEvent"
         $eventNumber = $null
+        $connection = $false
         if ($properties.ContainsKey("EventId")) {
             $eventId = Get-JsonFields $properties["EventId"]
             $eventNumber = Get-JsonInteger $eventId["Id"]
             $label = Get-JsonString $eventId["Name"]
+            $connectionName = Get-CanonicalValue -Set $connectionEventNames -Value $label
             if ($null -ne $eventNumber -and $eventNumber -cmatch '\A[0-9]{1,9}\z' -and
                 $digestEventNames.ContainsKey([int]$eventNumber) -and
                 [string]::Equals($label, $digestEventNames[[int]$eventNumber], $ordinal)) {
                 $name = $digestEventNames[[int]$eventNumber]
                 $eventNumber = $null
+            }
+            elseif ($null -ne $connectionName -and $null -ne $eventNumber -and $eventNumber -cmatch '\A[0-9]{1,9}\z' -and
+                [int]$eventNumber -lt 1000) {
+                # ASP.NET Core's own event IDs are below Briosa's.
+                $name = $connectionName
+                $eventNumber = $null
+                $connection = $true
             }
             elseif ([string]::Equals($label, "FrameworkEvent", $ordinal)) {
                 $name = "FrameworkEvent"
@@ -1124,21 +1216,26 @@ function ConvertFrom-ServerLogLine {
         if ($null -ne $eventNumber) {
             $values["EventId"] = $eventNumber
         }
-        foreach ($field in $digestFields.Keys) {
+        $rules = $(if ($connection) { $connectionFields } else { $digestFields })
+        foreach ($field in $rules.Keys) {
             if ($properties.ContainsKey($field)) {
-                $value = ConvertTo-DigestValue -Field $field -Element $properties[$field]
+                $value = ConvertTo-DigestValue -Field $field -Element $properties[$field] -Rules $rules
                 if ($null -ne $value) {
                     $values[$field] = $value
                 }
             }
         }
         $instance = Get-JsonString $properties["ServerInstanceId"]
+        # Never printed: it joins a call's records to the stream that carried it.
+        $traceId = Get-JsonString $properties["TraceId"]
         return [pscustomobject]@{
             Ticks = $head.Ticks
             Level = $level
             Name = $name
             Instance = $(if ($null -ne $instance -and $instance -cmatch '\A[0-9a-f]{32}\z') { $instance })
             Fields = $values
+            Connection = $connection
+            TraceId = $(if ($null -ne $traceId -and $traceId -cmatch '\A[0-9a-f]{32}\z') { $traceId })
         }
     }
     finally {
@@ -1329,6 +1426,7 @@ function Read-ServerLog {
         Listening = $null
         Completed = @{}
         Unlisted = [ordered]@{ DiagnosticCode = 0; OperationId = 0 }
+        ConnectionRecords = 0
     }
     $files = @()
     try {
@@ -1393,6 +1491,11 @@ function Read-ServerLog {
                         }
                         $ticks = $record.Ticks
                         $previousTicks = $ticks
+                        if ($record.Connection) {
+                            # Listed in the connection timeline, never in the digest's tail.
+                            $log.ConnectionRecords++
+                            continue
+                        }
                         $important = $null -ne (Get-CanonicalValue -Set $digestImportantLevels -Value $record.Level)
                     }
                     if ($important) {
@@ -1548,6 +1651,9 @@ function Write-ServerLogDigest {
             if ($omitted -gt 0) {
                 Write-DigestLine $Writer "($omitted earlier lower-severity records omitted; every warning and error is kept)"
             }
+            if ($log.ConnectionRecords -gt 0) {
+                Write-DigestLine $Writer "($($log.ConnectionRecords) HTTP/2 connection records are listed in the connection timeline, not here)"
+            }
             foreach ($spoolPath in $log.Spools) {
                 $spoolReaders.Add([IO.StreamReader]::new($spoolPath, [Text.UTF8Encoding]::new($false)))
             }
@@ -1646,6 +1752,280 @@ function Write-ServerLogDigest {
         }
         Write-DigestLine $Writer "--- end server log digest for $ScenarioId ---"
     }
+}
+
+# --- Connection timeline: a failing scenario of a connection capture (#450). ---
+
+# The client capture's records, as connection-capture.cjs writes them. Every name and
+# value is checked again here before it is printed: a field that is not listed, or a
+# value that does not match, prints as <withheld>.
+$clientCaptureSources = New-OrdinalSet @("capture", "http2", "grpc")
+$clientCaptureFields = @{
+    session = 'Integer'; stream = 'Integer'; call = 'Integer'; channel = 'Integer'; subchannel = 'Integer'
+    transport = 'Integer'; child = 'Integer'; attempt = 'Integer'; index = 'Integer'; rstCode = 'Integer'
+    status = 'Integer'; grpcStatus = 'Integer'; length = 'Integer'; local = 'Integer'; remote = 'Integer'
+    lastStream = 'Integer'; frameType = 'Integer'; openStreams = 'Integer'; bytesRead = 'Integer'
+    bytesWritten = 'Integer'; timeoutMs = 'Integer'; delayMs = 'Integer'; idleMs = 'Integer'; inMs = 'Integer'
+    configQueue = 'Integer'; pickQueue = 'Integer'; instance = 'Integer'; schema = 'Integer'; openMs = 'Integer'
+    connecting = 'Boolean'; endStream = 'Boolean'; ref = 'Boolean'; closed = 'Boolean'; destroyed = 'Boolean'
+    socketDestroyed = 'Boolean'; hadError = 'Boolean'; oldConnection = 'Boolean'; afterMessage = 'Boolean'
+    tracer = '\A(?:channel|connectivity_state|subchannel|pick_first|transport|transport_flowctrl|transport_internals|keepalive|resolving_call|retrying_call|load_balancing_call|subchannel_call)\z'
+    from = '\A(?:IDLE|CONNECTING|READY|TRANSIENT_FAILURE|SHUTDOWN|unrecognized)\z'
+    to = '\A(?:IDLE|CONNECTING|READY|TRANSIENT_FAILURE|SHUTDOWN|unrecognized)\z'
+    state = '\A(?:[A-Z][A-Z_]{0,19}|unrecognized)\z'
+    progress = '\A(?:[A-Z][A-Z_]{0,19}|unrecognized)\z'
+    childState = '\A(?:[A-Z][A-Z_]{0,19}|unrecognized)\z'
+    pick = '\A(?:COMPLETE|QUEUE|TRANSIENT_FAILURE|DROP|unrecognized)\z'
+    method = '\A(?:/[A-Za-z_][A-Za-z0-9_.]{0,100}/[A-Za-z_][A-Za-z0-9_]{0,60}|unrecognized)\z'
+    address = '\A(?:(?:127\.0\.0\.1|localhost|\[::1\]):[0-9]{1,5}|non-loopback)\z'
+    deadline = '\A(?:none|unrecognized|[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z)\z'
+    node = '\A(?:[0-9]{1,4}\.[0-9]{1,4}\.[0-9]{1,4}|unrecognized)\z'
+    version = '\A(?:[0-9]{1,4}\.[0-9]{1,4}\.[0-9]{1,4}|unrecognized)\z'
+    source = '\A(?:http2|grpc|hook|sample)\z'
+    code = '\A(?:[0-9]{1,9}|[A-Z][A-Z0-9_]{0,63}|unrecognized)\z'
+}
+# Nested values: the HTTP/2 settings, the session's and a stream's state, and the open
+# streams of a sample.
+$clientCaptureNested = @{
+    settings = New-OrdinalSet @("headerTableSize", "enablePush", "initialWindowSize", "maxFrameSize",
+        "maxConcurrentStreams", "maxHeaderListSize", "maxHeaderSize", "enableConnectProtocol")
+    state = New-OrdinalSet @("effectiveLocalWindowSize", "effectiveRecvDataLength", "nextStreamID",
+        "localWindowSize", "lastProcStreamID", "remoteWindowSize", "outboundQueueSize", "state", "localClose",
+        "remoteClose")
+}
+
+function Format-ClientCaptureValue {
+    param(
+        [Parameter(Mandatory)][string]$Name,
+        [Parameter(Mandatory)][Text.Json.JsonElement]$Value,
+        [int]$Depth = 0
+    )
+
+    $kind = $Value.ValueKind
+    if ($kind -eq [Text.Json.JsonValueKind]::Null) { return "none" }
+    if ($Depth -lt 2 -and $kind -eq [Text.Json.JsonValueKind]::Object -and $clientCaptureNested.ContainsKey($Name)) {
+        $parts = foreach ($property in $Value.EnumerateObject()) {
+            $key = Get-CanonicalValue -Set $clientCaptureNested[$Name] -Value $property.Name
+            $inner = $property.Value
+            if ($null -eq $key) { "<withheld>" }
+            elseif ($inner.ValueKind -in @([Text.Json.JsonValueKind]::True, [Text.Json.JsonValueKind]::False)) { "$key=$($inner.GetRawText())" }
+            elseif ($null -ne (Get-JsonInteger $inner)) { "$key=$(Get-JsonInteger $inner)" }
+            else { "$key=$digestWithheld" }
+        }
+        return "{$(@($parts) -join ',')}"
+    }
+    if ($Depth -eq 0 -and $Name -ceq "streams" -and $kind -eq [Text.Json.JsonValueKind]::Array) {
+        $items = foreach ($item in $Value.EnumerateArray()) {
+            if ($item.ValueKind -ne [Text.Json.JsonValueKind]::Object) { $digestWithheld; continue }
+            $fields = foreach ($property in $item.EnumerateObject()) {
+                if ($property.Name -cin @("stream", "call", "method", "openMs", "state")) {
+                    "$($property.Name)=$(Format-ClientCaptureValue -Name $property.Name -Value $property.Value -Depth 1)"
+                }
+                else { "<withheld>" }
+            }
+            "{$(@($fields) -join ' ')}"
+        }
+        return "[$(@($items) -join '; ')]"
+    }
+    $rule = $clientCaptureFields[$Name]
+    if ($null -eq $rule) { return $digestWithheld }
+    if ($rule -ceq 'Integer') {
+        $number = Get-JsonInteger $Value
+        return $(if ($null -ne $number) { $number } else { $digestWithheld })
+    }
+    if ($rule -ceq 'Boolean') {
+        return $(if ($kind -in @([Text.Json.JsonValueKind]::True, [Text.Json.JsonValueKind]::False)) { $Value.GetRawText() } else { $digestWithheld })
+    }
+    $text = $(if ($kind -eq [Text.Json.JsonValueKind]::Number) { $Value.GetRawText() } else { Get-JsonString $Value })
+    return $(if ($null -ne $text -and $text.Length -le 200 -and $text -cmatch $rule) { $text } else { $digestWithheld })
+}
+
+function ConvertFrom-ClientCaptureLine {
+    param([Parameter(Mandatory)][string]$Line)
+
+    # The record's UTC time and its printable text, or $null for a line that is not one.
+    try {
+        $document = [Text.Json.JsonDocument]::Parse($Line)
+    }
+    catch {
+        return $null
+    }
+    try {
+        $root = $document.RootElement
+        if ($root.ValueKind -ne [Text.Json.JsonValueKind]::Object) { return $null }
+        $fields = Get-JsonFields $root
+        $time = [DateTimeOffset]::MinValue
+        $text = Get-JsonString $fields["t"]
+        if ($null -eq $text -or $text -cnotmatch '\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z\z' -or
+            -not [DateTimeOffset]::TryParse($text, $invariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal, [ref]$time)) {
+            return $null
+        }
+        $source = Get-CanonicalValue -Set $clientCaptureSources -Value (Get-JsonString $fields["src"])
+        $event = Get-JsonString $fields["ev"]
+        if ($null -eq $source -or $null -eq $event -or $event -cnotmatch '\A[a-z][a-z0-9-]{0,40}\z') { return $null }
+        $parts = [Collections.Generic.List[string]]::new()
+        foreach ($property in $root.EnumerateObject()) {
+            if ($property.Name -cin @("t", "ms", "src", "ev")) { continue }
+            if ($property.Name -cnotmatch '\A[A-Za-z]{1,30}\z') { $parts.Add("<withheld>"); continue }
+            $parts.Add("$($property.Name)=$(Format-ClientCaptureValue -Name $property.Name -Value $property.Value)")
+        }
+        return [pscustomobject]@{ Ticks = $time.UtcTicks; Text = ("$source $event $($parts -join ' ')").TrimEnd() }
+    }
+    finally {
+        $document.Dispose()
+    }
+}
+
+function Read-TimelineLines {
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [Parameter(Mandatory)][scriptblock]$OnLine
+    )
+
+    # Streams one file's lines through the digest's bounded reader.
+    $stream = [IO.FileStream]::new($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read,
+        [IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete)
+    try {
+        $reader = [IO.StreamReader]::new($stream, [Text.UTF8Encoding]::new($false))
+        try {
+            $buffer = [char[]]::new($digestReadBlockCharacters)
+            $pending = [Text.StringBuilder]::new()
+            $state = @{ Skipping = $false; Done = $false; LongLines = 0 }
+            while (-not $state.Done) {
+                foreach ($line in (Read-LogBlock -Reader $reader -Buffer $buffer -Pending $pending -State $state)) {
+                    if (-not [string]::IsNullOrWhiteSpace($line)) { & $OnLine $line }
+                }
+            }
+            return $state.LongLines
+        }
+        finally {
+            $reader.Dispose()
+        }
+    }
+    finally {
+        $stream.Dispose()
+    }
+}
+
+# One time-ordered list, relative to the fixture start, of what each end recorded about
+# the connection: the server's HTTP/2, connection, request-body and hosting records and
+# its unary call records (each call joined, through its trace, to the connection and
+# stream that carried it), and the client capture. It is saved whole up to its limit as
+# connection-timeline.txt beside the scenario's other diagnostics, and its latest lines
+# are printed. Diagnostics only: it never changes the scenario's result.
+function Write-ConnectionTimeline {
+    param(
+        [Parameter(Mandatory)][string]$ScenarioId,
+        [Parameter(Mandatory)][string]$ScenarioRoot,
+        [Parameter(Mandatory)][hashtable]$Timing
+    )
+
+    $reference = Get-TimingReference $Timing
+    $entries = [Collections.Generic.PriorityQueue[object, ValueTuple[long, long]]]::new()
+    $counts = [ordered]@{ Server = 0; Client = 0; Skipped = 0; LongLines = 0; Omitted = 0; ClientFiles = 0 }
+    $streams = [Collections.Generic.Dictionary[string, string]]::new([StringComparer]::Ordinal)
+    $calls = [Collections.Generic.List[object]]::new()
+    $add = {
+        param([long]$Ticks, [string]$Text)
+        $order = [ValueTuple]::Create($Ticks, $script:timelineSequence++)
+        if ($entries.Count -lt $connectionTimelineLimit) { $entries.Enqueue($Text, $order) }
+        else { [void]$entries.EnqueueDequeue($Text, $order); $counts.Omitted++ }
+    }
+    $script:timelineSequence = [long]0
+    $kept = @("UnaryCallStarted", "UnaryCallCompleted", "UnaryCallFaulted", "UnaryCallResponseEnded",
+        "UnaryCallResponseAbandoned", "LogSinkDegraded", "LogRecordTooLarge")
+    $instances = [Collections.Generic.List[string]]::new()
+    foreach ($file in @(Get-ServerLogFiles -ScenarioRoot $ScenarioRoot)) {
+        if ($file.Name -cmatch '\Abriosa-([0-9a-f]{32})-' -and -not $instances.Contains($Matches[1])) { $instances.Add($Matches[1]) }
+    }
+    foreach ($file in @(Get-ServerLogFiles -ScenarioRoot $ScenarioRoot)) {
+        try {
+            $counts.LongLines += Read-TimelineLines -Path $file.FullName -OnLine {
+                param([string]$Line)
+                $record = $null
+                try { $record = ConvertFrom-ServerLogLine $Line } catch { $record = $null }
+                if ($null -eq $record) { $counts.Skipped++; return }
+                if (-not $record.Connection -and $record.Name -cnotin $kept) { return }
+                if ($record.Name -cin @("RequestBodyStart", "RequestBodyDone") -and $null -ne $record.TraceId -and
+                    $record.Fields.Contains("ConnectionId") -and $record.Fields.Contains("StreamId") -and $streams.Count -lt 100000) {
+                    $streams[$record.TraceId] = "$($record.Fields["ConnectionId"])/$($record.Fields["StreamId"])"
+                }
+                $server = $(if ($instances.Count -gt 1 -and $null -ne $record.Instance) { " $($instances.IndexOf($record.Instance) + 1)" } else { "" })
+                $values = @($record.Fields.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" })
+                $text = ("server$server $($record.Name) $($values -join ' ')").TrimEnd()
+                if ($record.Name -clike "UnaryCall*" -or $record.Name -clike "HostingRequest*") {
+                    # Joined to its stream once every file has been read.
+                    $calls.Add([pscustomobject]@{ Ticks = $record.Ticks; Text = $text; TraceId = $record.TraceId })
+                }
+                else {
+                    & $add $record.Ticks $text
+                }
+                $counts.Server++
+            }
+        }
+        catch {
+            $counts.Skipped++
+        }
+    }
+    foreach ($call in $calls) {
+        $joined = $null
+        $stream = $(if ($null -ne $call.TraceId -and $streams.TryGetValue($call.TraceId, [ref]$joined)) { " stream=$joined" } else { "" })
+        & $add $call.Ticks "$($call.Text)$stream"
+    }
+    $clientFiles = @(Get-ChildItem -LiteralPath $ScenarioRoot -File -Filter "client-connection*.jsonl" -ErrorAction SilentlyContinue |
+            Sort-Object Name)
+    $counts.ClientFiles = $clientFiles.Count
+    foreach ($file in $clientFiles) {
+        $label = $(if ($file.Name -cmatch '\Aclient-connection\.([0-9])\.jsonl\z') { "client $($Matches[1])" } else { "client" })
+        try {
+            $counts.LongLines += Read-TimelineLines -Path $file.FullName -OnLine {
+                param([string]$Line)
+                $record = ConvertFrom-ClientCaptureLine $Line
+                if ($null -eq $record) { $counts.Skipped++; return }
+                & $add $record.Ticks "$label $($record.Text)"
+                $counts.Client++
+            }
+        }
+        catch {
+            $counts.Skipped++
+        }
+    }
+    foreach ($mark in @(
+            @("FixtureStarted", "FixtureStart"),
+            @("FixtureEnded", $(if ($Timing.TimedOut) { "FixtureTimedOut" } else { "FixtureEnd" })))) {
+        if ($null -ne $Timing[$mark[0]]) {
+            & $add ([DateTimeOffset]$Timing[$mark[0]]).UtcTicks "runner $($mark[1])"
+        }
+    }
+
+    $header = [Collections.Generic.List[string]]::new()
+    $header.Add("--- connection timeline for $ScenarioId (times from $($reference.Name)) ---")
+    $header.Add("($($counts.Server) server records, $($counts.Client) client records from $($counts.ClientFiles) client capture files)")
+    if ($counts.ClientFiles -eq 0) {
+        $header.Add("(no client capture file: the fixture is not a Node process, or it made no HTTP/2 call)")
+    }
+    if ($counts.Omitted -gt 0) { $header.Add("($($counts.Omitted) earlier entries omitted; the server log and client capture files hold them)") }
+    if ($counts.Skipped -gt 0) { $header.Add("($($counts.Skipped) records or files could not be read and were skipped)") }
+    if ($counts.LongLines -gt 0) { $header.Add("($($counts.LongLines) lines over 64 KiB skipped)") }
+    $body = [Collections.Generic.List[string]]::new()
+    $text = $null
+    $order = [ValueTuple]::Create([long]0, [long]0)
+    while ($entries.TryDequeue([ref]$text, [ref]$order)) {
+        $body.Add("$(Format-Offset $order.Item1 $reference.Ticks) $text")
+    }
+    $end = "--- end connection timeline for $ScenarioId ---"
+    try {
+        [IO.File]::WriteAllLines((Join-Path $ScenarioRoot "connection-timeline.txt"),
+            [string[]](@($header) + @($body) + @($end)), [Text.UTF8Encoding]::new($false))
+    }
+    catch {
+        Write-Host "(the connection timeline could not be saved for $ScenarioId)"
+    }
+    foreach ($line in $header) { Write-Host $line }
+    $first = [Math]::Max(0, $body.Count - $connectionTimelinePrinted)
+    if ($first -gt 0) { Write-Host "($first earlier timeline lines are in connection-timeline.txt)" }
+    for ($index = $first; $index -lt $body.Count; $index++) { Write-Host $body[$index] }
+    Write-Host $end
 }
 
 # Phase durations for a passed scenario, so CI logs accumulate a phase-level
@@ -1815,6 +2195,14 @@ function Publish-ScenarioFailure {
             }
         }
     }
+    if ($connectionCapture) {
+        try {
+            Write-ConnectionTimeline -ScenarioId $ScenarioId -ScenarioRoot $ScenarioRoot -Timing $Timing
+        }
+        catch {
+            Write-Host "(the connection timeline could not be produced)"
+        }
+    }
     try {
         Save-ScenarioDiagnostics -ScenarioId $ScenarioId -ScenarioRoot $ScenarioRoot -Failure $Failure
     }
@@ -1971,6 +2359,27 @@ if (Test-Path -LiteralPath $soakPath) {
     Write-Host "Running only conformance scenario '$soakScenario': this soak package repeats one scenario, and its runs are not compatibility evidence."
 }
 
+# A soak package built with -ConnectionCapture names it in runner/connection-capture.json
+# and carries the client capture module beside the runner (#450).
+$connectionCapturePath = Join-Path $PSScriptRoot "connection-capture.json"
+if (Test-Path -LiteralPath $connectionCapturePath) {
+    $capture = Get-Content -LiteralPath $connectionCapturePath -Raw | ConvertFrom-Json
+    if ($capture.schema_version -ne 1 -or @($capture.PSObject.Properties).Count -ne 1 -or
+        -not (Test-Path -LiteralPath $connectionCaptureModule -PathType Leaf)) {
+        throw "The soak package's connection capture file is invalid."
+    }
+    # Node splits NODE_OPTIONS at spaces outside double quotes and reads a backslash in
+    # quotes as an escape, so the module is named with forward slashes, in quotes. The
+    # fixture's own options come first.
+    $module = [IO.Path]::GetFullPath($connectionCaptureModule).Replace('\', '/')
+    if ($module.Contains('"')) {
+        throw "The soak package's connection capture module has a path Node cannot preload."
+    }
+    $connectionCaptureNodeOptions = ("$env:NODE_OPTIONS --require `"$module`"").Trim()
+    $connectionCapture = $true
+    Write-Host "Recording each scenario's HTTP/2 connection at both ends: this soak package's runs are not compatibility evidence."
+}
+
 [IO.Directory]::CreateDirectory($temporaryRoot) | Out-Null
 try {
     foreach ($scenarioDefinition in $selectedScenarios) {
@@ -2008,6 +2417,17 @@ try {
             # Keep the server's log files with this scenario's diagnostics.
             "Briosa__Logging__File__Directory" = (Join-Path $scenarioRoot "server-logs")
             $unaryCallAuditLevelKey = $unaryCallAuditLevel
+            # Set only by a connection capture; otherwise removed, so no inherited value
+            # can name a capture file.
+            "BRIOSA_CONFORMANCE_CLIENT_CAPTURE" = $null
+        }
+        if ($connectionCapture) {
+            foreach ($entry in $connectionCaptureLevels.GetEnumerator()) {
+                $environment["Logging__LogLevel__$($entry.Key)"] = $entry.Value
+            }
+            $environment["Briosa__Logging__QueueCapacity"] = $connectionCaptureQueueCapacity
+            $environment["BRIOSA_CONFORMANCE_CLIENT_CAPTURE"] = Join-Path $scenarioRoot $connectionCaptureFile
+            $environment["NODE_OPTIONS"] = $connectionCaptureNodeOptions
         }
         $scenarioFailure = $null
         try {
@@ -2121,6 +2541,9 @@ try {
     }
     if ($null -ne $soakScenario) {
         throw "This soak run repeated conformance scenario '$soakScenario' only, so it is not compatibility evidence."
+    }
+    if ($connectionCapture) {
+        throw "This soak run recorded the HTTP/2 connection of every scenario, so it is not compatibility evidence."
     }
 }
 finally {

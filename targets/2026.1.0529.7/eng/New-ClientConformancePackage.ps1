@@ -17,7 +17,13 @@ param(
     # one scenario and never reports a run as compatibility evidence. Release and CI
     # packages never set it.
     [ValidatePattern('^[a-z0-9]+(?:-[a-z0-9]+)*$')]
-    [string]$SoakScenario
+    [string]$SoakScenario,
+
+    # Only for the conformance soak workflow (#450): a package whose runner records each
+    # scenario's HTTP/2 connection at both ends, keeps the records of a failing scenario,
+    # and never reports a run as compatibility evidence. Release and CI packages never
+    # set it, and do not carry the client capture module.
+    [switch]$ConnectionCapture
 )
 
 Set-StrictMode -Version Latest
@@ -149,6 +155,13 @@ try {
     if (-not [string]::IsNullOrEmpty($SoakScenario)) {
         Write-Utf8File -Path (Join-Path $runnerRoot "soak-scenario.json") `
             -Content ((([ordered]@{ schema_version = 1; scenario = $SoakScenario }) | ConvertTo-Json -Compress) + "`n")
+    }
+    # A connection capture package's runner reads this marker and preloads the module
+    # into a Node fixture.
+    if ($ConnectionCapture) {
+        Copy-Item -LiteralPath (Join-Path $contractRoot "connection-capture.cjs") -Destination $runnerRoot
+        Write-Utf8File -Path (Join-Path $runnerRoot "connection-capture.json") `
+            -Content ((([ordered]@{ schema_version = 1 }) | ConvertTo-Json -Compress) + "`n")
     }
     # A scenario may declare minimum_contract_major. It ships only when this
     # target's compatibility contract has reached that major, and the gate field

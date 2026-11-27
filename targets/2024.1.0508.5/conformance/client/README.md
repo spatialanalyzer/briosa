@@ -287,18 +287,92 @@ accepted Connect, and its 5-second heartbeat timeout.
 
 ## Client-side tracing
 
-Client-side tracing is not part of this runner, for any language (#450). A gRPC
-library's trace output and a fixture's own output share one stream, the
+The runner never traces a client through its stderr, for any language (#450). A
+gRPC library's trace output and a fixture's own output share one stream, the
 fixture's stderr, and cannot be separated reliably: either writer can emit the
 same bytes. So the runner sets no gRPC library's trace switch, and it passes the
 fixture's stderr through unchanged, to the printed output, `fixture.stderr.txt`
-and the failure message.
+and the failure message. A connection capture package records a JavaScript
+client's transport from inside the fixture process instead, to a file of its
+own (below).
 
 What remains at a fixture timeout answers where a stall is. The process tree
 shows which process was idle or busy, and the server's unary call records in
 the server log digest show which calls arrived and which were answered. A stall
 where the server answered every call is therefore on the client or fixture
 side; one where a call arrived and was not answered is on the server side.
+
+The connection capture below follows a stalled call into the HTTP/2 connection
+at both ends. It never reads or changes the fixture's stdout or stderr either.
+
+## Connection capture
+
+The conformance soak workflow can record each scenario's HTTP/2 connection at
+both ends (#450). It builds a soak package with
+`eng/New-ClientConformancePackage.ps1 -ConnectionCapture`, which adds
+`runner/connection-capture.json` and the client module
+`runner/connection-capture.cjs`. A release or CI package has neither, and
+nothing in the environment turns the capture on: an ordinary run removes
+`BRIOSA_CONFORMANCE_CLIENT_CAPTURE` from the fixture's environment and leaves its
+`NODE_OPTIONS` as the caller set them.
+
+With the capture, each scenario's server and fixture get:
+
+- the six ASP.NET Core log categories that describe the connection, at the levels
+  listed in `docs/operations/server-observability.md`, and
+  `Briosa__Logging__QueueCapacity=65536`. The server reduces those records to
+  fixed names and validated fields: frames by type, stream, length and flags, the
+  connection, socket and request-body lifecycle, and the hosting layer's request
+  start and finish, named by RPC;
+- `NODE_OPTIONS` with `--require "<runner>/connection-capture.cjs"` after the
+  caller's own options, and `BRIOSA_CONFORMANCE_CLIENT_CAPTURE` naming
+  `client-connection.jsonl` in the scenario's own directory. Node runs the module
+  before the fixture. It subscribes to Node's own `http2.client.stream.*`
+  diagnostics channels and adds passive listeners to those streams and their
+  sessions, and it wraps grpc-js's exported `trace` and `isTracerEnabled` on the
+  logging module instance the client loads, as that module finishes loading, for
+  the transport, subchannel and call tracers. It sets no `GRPC_TRACE` or
+  `GRPC_VERBOSITY`, so grpc-js writes nothing to stderr that it would not write
+  without the capture, and each trace call reaches the module as one complete
+  text, never through a shared stream. The module keeps fixed event names and
+  validated values from it (call, channel and stream numbers, the method path,
+  status and reset codes, lengths, window sizes, settings values, connectivity
+  states and loopback endpoints) and records a text it does not recognise as
+  `other`, with its tracer and nothing of the text. While a stream stays open it
+  records the session's window sizes, outbound queue and byte counts every 5
+  seconds. A process that never makes an HTTP/2 call, such as the `tsx`
+  launcher, writes nothing. The file is bounded at 20,000 records or 8 MiB, and
+  records reach it at the end of each turn of Node's event loop. A fixture that
+  is not a Node process ignores both variables.
+
+A passing scenario's records stay in the runner's temporary directory and are
+deleted with it. A failing scenario keeps `client-connection.jsonl` and the
+server log with its other diagnostics, and the runner adds
+`connection-timeline.txt`: one time-ordered list, from the fixture start, of the
+server's connection and unary call records and the client's records, each
+printed only from reviewed names and validated values, with `<withheld>` for
+anything else. It joins each server call record, through its trace, to the
+connection and stream that carried it (`stream=<connection>/<stream>`), and the
+client's `call-stream` record joins a grpc-js call number to its HTTP/2 stream.
+The runner prints the timeline's latest 150 lines. The server log digest keeps
+the connection records out of its tail of lower-severity records, so they never
+push the call records out of it, and says how many it left to the timeline.
+
+The run always ends with the error
+`This soak run recorded the HTTP/2 connection of every scenario, so it is not compatibility evidence.`
+after every selected scenario passed, so a client's test script never records it
+as compatibility evidence. A capture package that also names one scenario ends
+with that scenario's soak error instead.
+
+To line up one call across the three records, find the client's `call-stream`
+record for the grpc-js call, which names its stream; the server's frames on the
+same stream number, which name the connection; and the server's
+`RequestBodyStart` on that connection and stream, whose call records the timeline
+marks with the same `stream=`. A stream the client started and finished writing
+(`request-write-end`) with no received HEADERS frame on the server was lost
+before the server read it. A call the server answered, with a sent HEADERS frame
+with END_STREAM (flags 5) on its stream, whose client stream has no
+`response-trailers` or `stream-close` was lost after the server wrote it.
 ## Repeating one scenario
 
 The conformance soak workflow can repeat one scenario. It builds a soak package

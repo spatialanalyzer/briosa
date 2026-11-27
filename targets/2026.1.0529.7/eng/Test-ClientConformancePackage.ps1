@@ -450,6 +450,222 @@ $json
         Remove-Item -LiteralPath $soakFile -Force -ErrorAction SilentlyContinue
     }
 
+    # A connection capture package (#450). A release or CI package carries neither the
+    # marker nor the client module, and its runner passes nothing of a capture to the
+    # fixture, whatever the caller's environment holds. A capture package's runner turns
+    # the server's connection records on, preloads the module into a Node fixture through
+    # NODE_OPTIONS after the caller's own options, names the scenario's own capture file,
+    # and always ends with its own error, so no client script records evidence from it.
+    # The package gets the marker and the module as New-ClientConformancePackage.ps1
+    # -ConnectionCapture writes them.
+    $captureMarker = Join-Path $packageRoot "runner\connection-capture.json"
+    $captureModule = Join-Path $packageRoot "runner\connection-capture.cjs"
+    Assert-Condition (-not (Test-Path -LiteralPath $captureMarker) -and -not (Test-Path -LiteralPath $captureModule)) `
+        "A release or CI conformance package must not capture the client connection."
+    $runnerText = [IO.File]::ReadAllText($runnerPath)
+    $captureLevels = [regex]::Match($runnerText, '\$connectionCaptureLevels = \[ordered\]@\{(?<entries>[^}]*)\}')
+    $levels = [ordered]@{}
+    foreach ($entry in [regex]::Matches($captureLevels.Groups["entries"].Value, '"(?<category>[A-Za-z0-9.]+)" = "(?<level>[A-Za-z]+)"')) {
+        $levels["Logging__LogLevel__$($entry.Groups['category'].Value)"] = $entry.Groups["level"].Value
+    }
+    Assert-Condition ($levels.Count -eq 6) "The conformance runner's connection capture levels did not parse."
+    $captureFixturePath = Join-Path $temporaryRoot "capture-fixture.ps1"
+    $captureFixtureSource = @'
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory)][string]$Scenario,
+    [Parameter(Mandatory)][string]$Contract
+)
+$logDirectory = $env:Briosa__Logging__File__Directory
+$scenarioRoot = Split-Path -Parent $logDirectory
+$expected = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('__EXPECTED__')) | ConvertFrom-Json
+$mismatches = [Collections.Generic.List[string]]::new()
+foreach ($entry in $expected.PSObject.Properties) {
+    $actual = [Environment]::GetEnvironmentVariable($entry.Name)
+    $want = $(if ($entry.Value -ceq '<capture-file>') { Join-Path $scenarioRoot 'client-connection.jsonl' } else { [string]$entry.Value })
+    if ([string]::IsNullOrEmpty($want)) {
+        if (-not [string]::IsNullOrEmpty($actual)) { $mismatches.Add("$($entry.Name) is set") }
+    }
+    elseif ($actual -cne $want) { $mismatches.Add("$($entry.Name) is '$actual'") }
+}
+if ($mismatches.Count -gt 0) {
+    [Console]::Error.WriteLine("capture-environment-mismatch: $($mismatches -join '; ')")
+    exit 9
+}
+if ('__MODE__' -eq 'fail') {
+    # What the server and the client module write, beside values that must never print.
+    [IO.Directory]::CreateDirectory($logDirectory) | Out-Null
+    $started = [DateTimeOffset]::UtcNow
+    $trace = '0123456789abcdef0123456789abcdef'
+    $server = [Collections.Generic.List[string]]::new()
+    function Add-Record([int]$Offset, [string]$Level, [int]$Id, [string]$Name, [hashtable]$Properties) {
+        $Properties['ServerInstanceId'] = 'fedcba9876543210fedcba9876543210'
+        $Properties['EventId'] = @{ Id = $Id; Name = $Name }
+        $server.Add(([ordered]@{ Timestamp = $started.AddMilliseconds($Offset).ToString('o'); Level = $Level
+            MessageTemplate = $Name; Properties = $Properties } | ConvertTo-Json -Compress -Depth 5))
+    }
+    Add-Record 1 'Debug' 39 'ConnectionAccepted' @{ ConnectionId = '0HNAAAAAAAAAA' }
+    Add-Record 2 'Verbose' 37 'Http2FrameReceived' @{ ConnectionId = '0HNAAAAAAAAAA'; StreamId = 1; FrameType = 'HEADERS'; FrameLength = 40; FrameFlags = 4 }
+    Add-Record 3 'Information' 1 'HostingRequestStarting' @{ HttpProtocol = 'HTTP/2'; HttpMethod = 'POST'; Rpc = 'GetServerInfo'; TraceId = $trace }
+    Add-Record 4 'Debug' 25 'RequestBodyStart' @{ ConnectionId = '0HNAAAAAAAAAA'; StreamId = 1; TraceId = $trace }
+    Add-Record 5 'Debug' 1600 'UnaryCallStarted' @{ Rpc = 'GetServerInfo'; TraceId = $trace }
+    Add-Record 6 'Debug' 1601 'UnaryCallCompleted' @{ Rpc = 'GetServerInfo'; GrpcStatus = 'OK'; ElapsedMilliseconds = 1; TraceId = $trace }
+    Add-Record 7 'Verbose' 49 'Http2FrameSending' @{ ConnectionId = '0HNAAAAAAAAAA'; StreamId = 1; FrameType = 'HEADERS'; FrameLength = 15; FrameFlags = 5 }
+    Add-Record 8 'Verbose' 37 'Http2FrameReceived' @{ ConnectionId = 'C:/Users/someone/secret'; StreamId = 'someone@example.com'
+        FrameType = 'secret-frame-type'; Host = 'secret-host.example.com'; FrameLength = 1 }
+    [IO.File]::WriteAllLines((Join-Path $logDirectory 'briosa-fedcba9876543210fedcba9876543210-20261127.jsonl'), $server)
+    $client = @(
+        [ordered]@{ t = $started.AddMilliseconds(2).UtcDateTime.ToString('yyyy-MM-ddTHH:mm:ss.fffZ'); ms = 1.5; src = 'http2'; ev = 'stream-start'
+            session = 1; stream = 1; method = '/briosa.DiscoveryService/GetServerInfo' },
+        [ordered]@{ t = $started.AddMilliseconds(8).UtcDateTime.ToString('yyyy-MM-ddTHH:mm:ss.fffZ'); ms = 7.5; src = 'grpc'; ev = 'ended'
+            tracer = 'subchannel_call'; call = 7; code = 0 },
+        [ordered]@{ t = $started.AddMilliseconds(9).UtcDateTime.ToString('yyyy-MM-ddTHH:mm:ss.fffZ'); ms = 8.5; src = 'http2'; ev = 'stream-start'
+            method = '/secret path/C:\Users\someone'; peer = '10.1.2.3:443'; address = 'secret-host.example.com:443'
+            settings = [ordered]@{ initialWindowSize = 1; secretKey = 5 }; code = 'someone@example.com' },
+        [ordered]@{ t = $started.AddMilliseconds(10).UtcDateTime.ToString('yyyy-MM-ddTHH:mm:ss.fffZ'); src = 'secret-source'; ev = 'x' }
+    ) | ForEach-Object { $_ | ConvertTo-Json -Compress -Depth 5 }
+    [IO.File]::WriteAllLines((Join-Path $scenarioRoot 'client-connection.jsonl'), [string[]](@($client) + 'not json secret-line'))
+    [Console]::Error.WriteLine('capture-fixture-failed')
+    exit 7
+}
+$definition = Get-Content -LiteralPath $Contract -Raw | ConvertFrom-Json
+[ordered]@{ schema_version = 1; contract_id = $definition.contract_id; scenario = $Scenario; success = $true } | ConvertTo-Json -Compress
+'@
+    $previousCaptureEnvironment = @{}
+    foreach ($name in @("NODE_OPTIONS", "BRIOSA_CONFORMANCE_CLIENT_CAPTURE", "Briosa__Logging__QueueCapacity") + @($levels.Keys)) {
+        $previousCaptureEnvironment[$name] = [Environment]::GetEnvironmentVariable($name)
+    }
+    try {
+        # The caller's own Node options, and a capture file it names itself.
+        Set-EnvironmentValue "NODE_OPTIONS" "--max-old-space-size=4096"
+        Set-EnvironmentValue "BRIOSA_CONFORMANCE_CLIENT_CAPTURE" (Join-Path $temporaryRoot "caller-capture.jsonl")
+        Set-EnvironmentValue "Briosa__Logging__QueueCapacity" $null
+        foreach ($name in $levels.Keys) { Set-EnvironmentValue $name $null }
+        $off = [ordered]@{ NODE_OPTIONS = "--max-old-space-size=4096"; BRIOSA_CONFORMANCE_CLIENT_CAPTURE = ""; Briosa__Logging__QueueCapacity = "" }
+        foreach ($name in $levels.Keys) { $off[$name] = "" }
+        $moduleOption = "--require `"$([IO.Path]::GetFullPath($captureModule).Replace('\', '/'))`""
+        $on = [ordered]@{ NODE_OPTIONS = "--max-old-space-size=4096 $moduleOption"; BRIOSA_CONFORMANCE_CLIENT_CAPTURE = "<capture-file>"
+            Briosa__Logging__QueueCapacity = "65536" }
+        foreach ($name in $levels.Keys) { $on[$name] = $levels[$name] }
+        function Invoke-CaptureRun([Collections.IDictionary]$Expected, [string]$Mode, [string]$Diagnostics) {
+            $source = $captureFixtureSource.Replace("__EXPECTED__",
+                [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($Expected | ConvertTo-Json -Compress)))).Replace("__MODE__", $Mode)
+            [IO.File]::WriteAllText($captureFixturePath, $source, [Text.UTF8Encoding]::new($false))
+            $output = [Collections.Generic.List[string]]::new()
+            $failure = $null
+            try {
+                $arguments = @{
+                    FixtureCommand = (Get-Process -Id $PID).Path
+                    FixtureArguments = @("-NoProfile", "-File", $captureFixturePath)
+                    Scenario = @("control-plane-only", "default-ready")
+                    FixtureTimeoutSeconds = 30
+                }
+                if ($Diagnostics) { $arguments.DiagnosticsDirectory = $Diagnostics }
+                & $runnerPath @arguments *>&1 | ForEach-Object { $output.Add([string]$_) }
+            }
+            catch {
+                $failure = "$_"
+            }
+            [pscustomobject]@{ Output = $output; Failure = $failure }
+        }
+
+        $ordinary = Invoke-CaptureRun $off "pass" $null
+        Assert-Condition ($null -eq $ordinary.Failure -and
+            @($ordinary.Output | Where-Object { $_ -like "Passed client conformance scenario: *" }).Count -eq 2 -and
+            $ordinary.Output -contains "All selected Briosa client conformance scenarios passed." -and
+            -not (Test-Path -LiteralPath (Join-Path $temporaryRoot "caller-capture.jsonl"))) `
+            "A release or CI conformance package passed part of a capture to the fixture: $($ordinary.Failure)"
+
+        [IO.File]::WriteAllText($captureMarker, '{"schema_version":1}', [Text.UTF8Encoding]::new($false))
+        Copy-Item -LiteralPath (Join-Path $targetRoot "conformance\client\v1\connection-capture.cjs") -Destination $captureModule
+        $captured = Invoke-CaptureRun $on "pass" $null
+        Assert-Condition ($captured.Failure -ceq "This soak run recorded the HTTP/2 connection of every scenario, so it is not compatibility evidence." -and
+            @($captured.Output | Where-Object { $_ -like "Passed client conformance scenario: *" }).Count -eq 2 -and
+            $captured.Output -notcontains "All selected Briosa client conformance scenarios passed." -and
+            $captured.Output -contains "Recording each scenario's HTTP/2 connection at both ends: this soak package's runs are not compatibility evidence.") `
+            "A connection capture package did not pass its scenarios and end without evidence: $($captured.Failure)"
+
+        # A failing scenario keeps both ends' records and a merged timeline, which prints
+        # only reviewed names and validated values. The digest's tail keeps the call
+        # records and points to the timeline for the connection records.
+        $captureDiagnostics = Join-Path $temporaryRoot "capture-diagnostics"
+        $failed = Invoke-CaptureRun $on "fail" $captureDiagnostics
+        $kept = Join-Path $captureDiagnostics "control-plane-only"
+        $timelinePath = Join-Path $kept "connection-timeline.txt"
+        Assert-Condition ($failed.Failure -like "*failed scenario 'control-plane-only' with exit code 7*" -and
+            (Test-Path -LiteralPath $timelinePath) -and (Test-Path -LiteralPath (Join-Path $kept "client-connection.jsonl")) -and
+            (Test-Path -LiteralPath (Join-Path $kept "server-logs\briosa-fedcba9876543210fedcba9876543210-20261127.jsonl"))) `
+            "A failing connection capture scenario did not keep both ends' records: $($failed.Failure)"
+        $timeline = [IO.File]::ReadAllText($timelinePath)
+        $digest = [IO.File]::ReadAllText((Join-Path $kept "server-log-digest.txt"))
+        $printed = $failed.Output -join "`n"
+        foreach ($line in @(
+                "client http2 stream-start session=1 stream=1 method=/briosa.DiscoveryService/GetServerInfo",
+                "client grpc ended tracer=subchannel_call call=7 code=0",
+                "server ConnectionAccepted ConnectionId=0HNAAAAAAAAAA",
+                "server Http2FrameReceived ConnectionId=0HNAAAAAAAAAA StreamId=1 FrameType=HEADERS FrameLength=40 FrameFlags=4",
+                "server HostingRequestStarting HttpProtocol=HTTP/2 HttpMethod=POST Rpc=GetServerInfo stream=0HNAAAAAAAAAA/1",
+                "server RequestBodyStart ConnectionId=0HNAAAAAAAAAA StreamId=1",
+                "server UnaryCallStarted Rpc=GetServerInfo stream=0HNAAAAAAAAAA/1",
+                "server UnaryCallCompleted Rpc=GetServerInfo GrpcStatus=OK ElapsedMilliseconds=1 stream=0HNAAAAAAAAAA/1",
+                "server Http2FrameSending ConnectionId=0HNAAAAAAAAAA StreamId=1 FrameType=HEADERS FrameLength=15 FrameFlags=5",
+                "server Http2FrameReceived ConnectionId=<withheld> StreamId=<withheld> FrameType=<withheld> FrameLength=1",
+                "client http2 stream-start method=<withheld> peer=<withheld> address=<withheld> settings={initialWindowSize=1,<withheld>} code=<withheld>",
+                "(2 records or files could not be read and were skipped)")) {
+            Assert-Condition ($timeline.Contains($line, [StringComparison]::Ordinal) -and $printed.Contains($line, [StringComparison]::Ordinal)) `
+                "The connection timeline does not show '$line'."
+        }
+        Assert-Condition ($digest.Contains("(6 HTTP/2 connection records are listed in the connection timeline, not here)", [StringComparison]::Ordinal) -and
+            $digest.Contains("Debug UnaryCallStarted Rpc=GetServerInfo", [StringComparison]::Ordinal) -and
+            -not $digest.Contains("Http2Frame", [StringComparison]::Ordinal)) `
+            "The server log digest did not keep its call records apart from the connection records."
+        foreach ($text in @($timeline, $digest, $printed)) {
+            foreach ($secret in @("secret", "someone", "example.com", "10.1.2.3")) {
+                Assert-Condition (-not $text.Contains($secret, [StringComparison]::OrdinalIgnoreCase)) `
+                    "The connection timeline or digest printed '$secret'."
+            }
+        }
+
+        foreach ($invalid in @('{"schema_version":2}', '{"schema_version":1,"scope":"all"}', 'missing-module')) {
+            if ($invalid -ceq 'missing-module') {
+                [IO.File]::WriteAllText($captureMarker, '{"schema_version":1}', [Text.UTF8Encoding]::new($false))
+                Remove-Item -LiteralPath $captureModule -Force
+            }
+            else {
+                [IO.File]::WriteAllText($captureMarker, $invalid, [Text.UTF8Encoding]::new($false))
+            }
+            $rejected = Invoke-CaptureRun $on "pass" $null
+            Assert-Condition ($rejected.Failure -ceq "The soak package's connection capture file is invalid.") `
+                "A connection capture package with an invalid marker ($invalid) ran: $($rejected.Failure)"
+        }
+
+        # The client module itself, under Node: it keeps the reviewed fields of grpc-js's
+        # trace and of Node's HTTP/2 events and none of the markers it was given, and the
+        # fixture's own output is unchanged. CI installs Node for this step; elsewhere a
+        # missing or older Node skips it and says so.
+        $node = Get-Command node -ErrorAction SilentlyContinue
+        $nodeVersion = $(if ($null -ne $node) { (& $node.Source -p "process.versions.node").Trim() })
+        if ($null -ne $nodeVersion -and [version]$nodeVersion -ge [version]"22.15.0") {
+            $moduleScratch = Join-Path $temporaryRoot "capture-module"
+            [IO.Directory]::CreateDirectory($moduleScratch) | Out-Null
+            & $node.Source (Join-Path $PSScriptRoot "Test-ConnectionCapture.mjs") `
+                (Join-Path $targetRoot "conformance\client\v1\connection-capture.cjs") $moduleScratch
+            Assert-Condition ($LASTEXITCODE -eq 0) "The client connection capture module failed its checks."
+        }
+        elseif ($env:GITHUB_ACTIONS -ceq "true") {
+            throw "The client connection capture module needs Node 22.15 or later on the CI runner."
+        }
+        else {
+            Write-Host "SKIPPED: the client connection capture module checks need Node 22.15 or later on PATH."
+        }
+    }
+    finally {
+        Remove-Item -LiteralPath $captureMarker, $captureModule -Force -ErrorAction SilentlyContinue
+        foreach ($entry in $previousCaptureEnvironment.GetEnumerator()) {
+            Set-EnvironmentValue $entry.Key $entry.Value
+        }
+    }
+
     # Runner functions on their own (#450), defined from the runner's own source: the
     # process tree walk on a synthetic snapshot larger than the display limit. The
     # census names each process by its executable only and reads no command line, so

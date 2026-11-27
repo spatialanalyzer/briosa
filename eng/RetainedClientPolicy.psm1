@@ -267,4 +267,13 @@ function Assert-SoakScenarioPass {
         throw "A soak of $Scenario must end with the soak package's own error, not: $RunEnd"
     }
 }
-Export-ModuleMember -Function Get-RetainedClientMatrix, Get-RetainedClientSoakMatrix, Assert-OptionalScenarioPasses, Assert-SoakScenarioPass
+# A soak of every scenario of a job may run a connection capture package (#450). Its runner runs
+# every scenario and, only after the last one passed, ends with this fixed error, so the client's
+# script writes no compatibility evidence. Any other error is the run's own failure.
+function Assert-SoakCaptureEnd {
+    param([AllowNull()][AllowEmptyString()][string]$RunEnd)
+    if ($RunEnd -cne 'This soak run recorded the HTTP/2 connection of every scenario, so it is not compatibility evidence.') {
+        throw "A soak of every scenario must pass them all, then end normally or with the connection capture's own error, not: $RunEnd"
+    }
+}
+Export-ModuleMember -Function Get-RetainedClientMatrix, Get-RetainedClientSoakMatrix, Assert-OptionalScenarioPasses, Assert-SoakScenarioPass, Assert-SoakCaptureEnd
