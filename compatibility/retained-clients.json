@@ -258,6 +258,34 @@
         "major": 3,
         "minimumRevision": 0
       }
+    },
+    {
+      "language": "js",
+      "repository": "spatialanalyzer/briosa-js",
+      "target": "2024.1.0508.5",
+      "version": "0.5.2",
+      "sourceRevision": "a4c3af8928db200f1912459362f6cfa6c0e67a96",
+      "url": "https://registry.npmjs.org/@spatialanalyzer/briosa-2024.1.0508.5/-/briosa-2024.1.0508.5-0.5.2.tgz",
+      "fileName": "briosa-2024.1.0508.5-0.5.2.tgz",
+      "sha256": "457b7592027d613c2d28657bdbcf33b51352a3d8d7e528034c7d364b4551a848",
+      "requiredContract": {
+        "major": 3,
+        "minimumRevision": 0
+      }
+    },
+    {
+      "language": "js",
+      "repository": "spatialanalyzer/briosa-js",
+      "target": "2026.1.0529.7",
+      "version": "0.5.2",
+      "sourceRevision": "a4c3af8928db200f1912459362f6cfa6c0e67a96",
+      "url": "https://registry.npmjs.org/@spatialanalyzer/briosa-2026.1.0529.7/-/briosa-2026.1.0529.7-0.5.2.tgz",
+      "fileName": "briosa-2026.1.0529.7-0.5.2.tgz",
+      "sha256": "263e5c541aa8b55903cbde81368d6001ee3dc08df367c71632db917ad704b8e9",
+      "requiredContract": {
+        "major": 3,
+        "minimumRevision": 0
+      }
     }
   ],
   "retiredClients": [
@@ -440,7 +468,7 @@
     },
     {
       "language": "js",
-      "sourceRevision": "4e5ab1ce03d3f5de77fc88e165e3f57a17d93e8e",
+      "sourceRevision": "a4c3af8928db200f1912459362f6cfa6c0e67a96",
       "optionalScenarios": [
         "large-result"
       ]
@@ -489,6 +517,13 @@
     {
       "language": "py",
       "sourceRevision": "6a04ff934d554be0767bea997f9517676674b8a4"
+    },
+    {
+      "language": "js",
+      "sourceRevision": "4e5ab1ce03d3f5de77fc88e165e3f57a17d93e8e",
+      "optionalScenarios": [
+        "large-result"
+      ]
     }
   ],
   "candidates": []

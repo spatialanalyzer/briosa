@@ -162,6 +162,25 @@ total to 162 evidence-backed pairs: 120 released-package pairs (36 with Server
 scenario runs) and 42 development-candidate pairs. No licensed-SA coverage is
 implied.
 
+The two published JavaScript `0.5.2` packages, one per exact target, now join
+the gate beside `0.5.1`. Client 0.5.2 has the same API as 0.5.1 and the same
+`requiredContract`, and raises the HTTP/2 receive window for the known issue in
+[#450](https://github.com/spatialanalyzer/briosa/issues/450). The packages were
+published from the briosa-js `v0.5.2` tag `a4c3af89`, which is now the current
+JavaScript fixture source. Since `4e5ab1ce`, the fixture's `eng/`, `tools/`,
+`conformance.lock.json` and `tests/fixtures/` files are unchanged and the
+package manifests changed only their version. `4e5ab1ce` moves to
+`historicalFixtureSources` with its `large-result` list, so the 2026-11-27
+JavaScript reports stay verifiable. Like the `0.5.1` packages before them, the
+`0.5.2` packages run on the current fixture without a pin of their own, and so
+do the JavaScript `0.5.0` and `0.5.1` packages. The
+`large-result` floor applies from client 0.5.0 on, so an accepted `0.5.2` job
+fails unless the packaged runner reports `large-result` as passed exactly once.
+The gate runs twenty jobs: six rejections and fourteen published accepts. The
+Server 0.10.1 release gate did not run client 0.5.2, so the matrix records no
+`0.5.2` pair and does not declare it until a release gate's reports for it are
+recorded.
+
 Each new tested pair records `expectedCompatibility`. An accepted pair passed
 the fake-SDK scenarios listed in its report; a rejected pair proves
 installation/startup rejection only. Its success flag must never be described as operation compatibility.
