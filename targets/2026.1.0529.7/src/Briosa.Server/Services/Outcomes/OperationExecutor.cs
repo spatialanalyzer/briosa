@@ -42,7 +42,8 @@ internal sealed class OperationExecutor(
             context.CancellationToken,
             context.Deadline,
             Guid.NewGuid(),
-            ClassifyActor(context.Peer));
+            ClassifyActor(context.Peer),
+            OperationCallerRestriction.Read(context.RequestHeaders));
     }
 
     // gRPC receives at most 64 KiB. Budget eight bytes of retained work per
@@ -63,7 +64,8 @@ internal sealed class OperationExecutor(
         CancellationToken cancellationToken,
         DateTime? deadline = null,
         Guid? correlationId = null,
-        string actorCategory = "internal-unattributed")
+        string actorCategory = "internal-unattributed",
+        OperationCallerRestrictionHeader callerRestriction = default)
         where TRequest : class
         where TResponse : class
     {
@@ -83,11 +85,22 @@ internal sealed class OperationExecutor(
         WorkerExecutionOutcome? outcome = null;
         try
         {
+            // A malformed caller restriction fails closed before policy, mapping, or
+            // dispatch. Neither the status text nor the trailer repeats the header.
+            if (callerRestriction.IsMalformed)
+            {
+                throw GrpcOperationOutcomeMapper.CreateValidationFailure(
+                    operation.OperationId,
+                    OperationCallerRestrictionHeader.InvalidDiagnosticCode,
+                    replaySafety: operation.ReplaySafety);
+            }
+
             try
             {
                 outcome = await _executor.ExecuteAsync(
                     new WorkerCommandSubmission(operation.OperationId, () => createCommand(request),
-                        RetainedRequestBudget(request), request as Google.Protobuf.IMessage),
+                        RetainedRequestBudget(request), request as Google.Protobuf.IMessage,
+                        CallerRestriction: callerRestriction.Restriction),
                     effectiveCorrelationId,
                     cancellationToken).ConfigureAwait(false);
             }

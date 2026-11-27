@@ -101,7 +101,7 @@ public sealed class DiscoveryServiceTests
 
         Assert.Equal("0.1.0-test", response.Version.BriosaVersion);
         Assert.Equal(3U, response.Compatibility.Major);
-        Assert.Equal(1U, response.Compatibility.Revision);
+        Assert.Equal(2U, response.Compatibility.Revision);
         Assert.Equal("briosa", response.Version.ProtocolPackage);
         Assert.Equal("2026.1.0529.7", response.Version.SpatialAnalyzerTarget);
         Assert.Equal(WorkerRuntimeState.Ready, response.WorkerState);

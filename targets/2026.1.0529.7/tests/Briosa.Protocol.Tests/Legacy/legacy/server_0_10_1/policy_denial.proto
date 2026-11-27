@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+// PolicyDenialRule, PolicyDenialDetails, and OperationError exactly as Server
+// 0.10.1 published them, frozen so that a test can read a newer server's caller
+// restriction denial with the older schema. Their other message and enum types
+// did not change, so it reuses them.
+package legacy.server_0_10_1;
+
+import "briosa/operation_outcomes.proto";
+
+option csharp_namespace = "Briosa.Protocol.Tests.Legacy.Server0101";
+
+enum PolicyDenialRule {
+  POLICY_DENIAL_RULE_UNSPECIFIED = 0;
+  POLICY_DENIAL_RULE_PROFILE = 1;
+  POLICY_DENIAL_RULE_FLAG = 2;
+  POLICY_DENIAL_RULE_OVERRIDE = 3;
+  POLICY_DENIAL_RULE_EXCLUSIVE = 4;
+  POLICY_DENIAL_RULE_UNREVIEWED = 5;
+}
+
+message PolicyDenialDetails {
+  PolicyDenialRule rule = 1;
+  optional string denied_flag = 2;
+  optional string request_option_field = 3;
+  optional string admission_profile = 4;
+}
+
+message OperationError {
+  reserved 4;
+  reserved "retry_guidance";
+
+  string operation_id = 1;
+  briosa.OperationFailureKind kind = 2;
+  string diagnostic_code = 3;
+  optional int32 worker_generation = 5;
+  optional briosa.MpExecutionDetails mp_execution = 6;
+  briosa.ExecutionDisposition execution_disposition = 7;
+  briosa.RecoveryGuidance recovery_guidance = 8;
+  briosa.ReplayGuidance replay_guidance = 9;
+  briosa.ReplaySafety replay_safety = 10;
+  optional PolicyDenialDetails policy_denial = 11;
+}

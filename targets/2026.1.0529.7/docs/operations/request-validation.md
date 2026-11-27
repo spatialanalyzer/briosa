@@ -69,8 +69,11 @@ than one invalid field, so a corrected request can fail again on another one.
 
 `request_validation` is absent when the failed check does not belong to one
 field. For example, a request that cannot be encoded for the worker fails with
-diagnostic `request-encoding-rejected` and no detail. A client must treat an
-absent detail as normal.
+diagnostic `request-encoding-rejected` and no detail. On Server 0.10.2 and
+later, a malformed `briosa-caller-restriction` header fails with diagnostic
+`caller-restriction-invalid` and no detail, because the header is not a request
+field; see [caller restriction](command-policy-and-auditing.md#caller-restriction).
+A client must treat an absent detail as normal.
 
 ## No request values
 

@@ -40,8 +40,10 @@ internal sealed class PolicyEnforcingWorkerCommandExecutor(
         var effectiveCorrelationId = correlationId != Guid.Empty
             ? correlationId
             : Guid.NewGuid();
-        // Classify the typed request before mapping, reservation, or dispatch.
-        var decision = _policy.EvaluateRequest(submission.OperationId, submission.Request);
+        // Classify the typed request before mapping, reservation, or dispatch. A caller
+        // restriction can only turn the server's admission into a denial.
+        var decision = _policy.EvaluateRequest(submission.OperationId, submission.Request,
+            submission.CallerRestriction);
         _auditLogger.PolicyEvaluated(effectiveCorrelationId, decision);
         return decision.Kind switch
         {
@@ -69,7 +71,8 @@ internal sealed class PolicyEnforcingWorkerCommandExecutor(
     {
         var command = submission.CreateCommand();
         if (command.OperationId != submission.OperationId ||
-            _policy.EvaluateRequest(command, submission.Request).Kind != OperationPolicyDecisionKind.Allowed)
+            _policy.EvaluateRequest(command, submission.Request, submission.CallerRestriction).Kind !=
+                OperationPolicyDecisionKind.Allowed)
         {
             throw new ArgumentException("The operation command does not match its registration.");
         }

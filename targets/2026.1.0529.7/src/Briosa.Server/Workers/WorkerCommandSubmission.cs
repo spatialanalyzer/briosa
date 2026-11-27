@@ -18,9 +18,15 @@ namespace Briosa.Server.Workers;
 /// The effective duration class policy assigned to the admitted request. Callers
 /// leave it unset; the policy enforcer sets it.
 /// </param>
+/// <param name="CallerRestriction">
+/// The caller's parsed <c>briosa-caller-restriction</c> (#443), or null. The policy
+/// enforcer passes it to both evaluations of the request; it can only narrow
+/// admission.
+/// </param>
 internal sealed record WorkerCommandSubmission(
     string OperationId,
     Func<WorkerMpCommand> CreateCommand,
     int RetainedBytes = 1024 * 1024,
     IMessage? Request = null,
-    OperationDurationClass? DurationClass = null);
+    OperationDurationClass? DurationClass = null,
+    OperationCallerRestriction? CallerRestriction = null);
