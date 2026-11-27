@@ -538,7 +538,7 @@ Only the documented exact 0.6.1 legacy entry permits absent contract metadata.
 Published exact-pinned clients retain their original checks. Clients 0.5.1 use
 minimum revision 0 for both installation selection and live discovery, so they
 still accept Server 0.10.0, which declares revision 0; Server 0.10.1 declares
-revision 1.
+revision 1, and Server 0.10.2 declares revision 2.
 
 The client captures the admitted capability set for each generation. Runtime
 policy may expose a supported subset, so startup does not infer that every RPC
@@ -650,6 +650,53 @@ first-party client may surface it; one that does:
 
 The detail does not move validation into the client: clients still do not
 pre-validate requests from it, and the server remains authoritative.
+
+### Caller restriction
+
+Server 0.10.2 also accepts a per-call caller restriction
+([#443](https://github.com/spatialanalyzer/briosa/issues/443); see the
+[policy guide](../../targets/2026.1.0529.7/docs/operations/command-policy-and-auditing.md#caller-restriction)).
+A caller that must keep a call within limits of its own, such as an agent tool
+that promises a query cannot change the job or open a dialog, sends one ASCII
+request metadata entry, `briosa-caller-restriction`. Its value names an
+admission profile, risk flags to deny, or both, for example
+`profile=read-only; deny=interactive_ui`. The policy guide defines the grammar
+exactly. The rules every client follows:
+
+- **The server decides.** The server evaluates the restriction in its one policy
+  evaluator, on the typed request and its effective classification, including
+  request options that turn on operator UI. A client never evaluates a
+  restriction itself, and never treats discovery as the restriction's answer:
+  `ListCapabilities` does not read the header.
+- **It only narrows.** A restriction can turn an admission into a denial and
+  nothing else. The operator's `allow` flags and overrides do not apply to it.
+  It never admits an exclusive workflow or an unreviewed operation, and a call
+  without it is decided as before.
+- **Check the server first.** Servers before 0.10.2 ignore the header, so the
+  call would run under the server's configuration alone. A client that sends a
+  restriction it relies on first requires compatibility major 3, revision 2 or
+  later, from live discovery. Against an older server it fails before sending
+  the call; it never sends the call unrestricted in its place.
+- **Fail closed.** A malformed, empty, repeated, or binary header rejects the
+  call before dispatch with a `VALIDATION` failure, diagnostic
+  `caller-restriction-invalid`, `NOT_STARTED`, and `DO_NOT_REPLAY`. It is a
+  client bug. A client builds the value from its handwritten profile and
+  risk-flag values, sends exactly one entry, and never copies caller-supplied
+  text into it.
+- **Caller denials are distinct.** A denial by the restriction is a
+  `POLICY_DENIED` failure whose `policy_denial.rule` is `CALLER_PROFILE` or
+  `CALLER_FLAG`. A client that exposes typed denial detail exposes these rules as
+  their own values, with `caller_admission_profile`, `caller_denied_flag`
+  (through the same flag mapping as `denied_flag`), and `request_option_field`.
+  It never presents a caller denial as the server's configuration, and never
+  reads `caller_admission_profile` as the server's profile. Any rule a client
+  does not recognize stays unknown metadata, never permission.
+- **Lifecycle is not covered.** Lifecycle, discovery, and health RPCs have no
+  operation policy and ignore the header.
+
+First-party clients need not send the header, and the published 0.5.x clients
+do not. A client that predates it reads a caller denial as a policy denial with
+a rule it does not recognize, and ignores the new fields.
 
 Package semantic version, Briosa server semantic version, exact SpatialAnalyzer
 target, protocol artifact identity, and runtime architecture remain separate

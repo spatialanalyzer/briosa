@@ -62,8 +62,8 @@ try {
     foreach ($target in $targets) {
         $directory = Join-Path $temporary "targets/$target"
         [IO.Directory]::CreateDirectory($directory) | Out-Null
-        # Mirrors the current servers: Server 0.10.1 declares 3.1, and clients requiring 3.0 still run.
-        '{"schemaVersion":1,"major":3,"revision":1}' | Set-Content (Join-Path $directory 'compatibility.json')
+        # Mirrors the current servers: Server 0.10.2 declares 3.2, and clients requiring 3.0 still run.
+        '{"schemaVersion":1,"major":3,"revision":2}' | Set-Content (Join-Path $directory 'compatibility.json')
         [IO.Directory]::CreateDirectory((Join-Path $directory 'conformance/client/v1')) | Out-Null
         $offeredScenarios | Set-Content (Join-Path $directory 'conformance/client/v1/scenarios.json')
     }
@@ -138,7 +138,7 @@ try {
         @{ message = $invalidIdentity; change = { param($p) $p.clients[0].requiredContract.major = 0 } }
         @{ message = 'Fixture sources must pin one immutable revision per language.'; change = { param($p) $p.fixtureSources[0].sourceRevision = 'main' } }
         @{ message = $invalidCandidate; change = { param($p) $p.candidates[0].sourceRevision = 'd' * 40 } }
-        @{ message = $invalidCandidate; change = { param($p) $p.candidates[0].requiredContract.minimumRevision = 2 } }
+        @{ message = $invalidCandidate; change = { param($p) $p.candidates[0].requiredContract.minimumRevision = 3 } }
         @{ message = $invalidCandidate; change = { param($p) $p.candidates[0].requiredContract.major = 2 } }
         # Retired records keep the published identity rules.
         @{ message = $invalidRegistry; change = { param($p) $p.retiredClients[0].sha256 = 'invalid' } }

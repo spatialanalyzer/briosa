@@ -152,6 +152,17 @@ earlier releases, the matrix keeps declaring the contract of its recorded
 release evidence, 3.0, and the published `0.5.0` clients until the 0.10.1
 release gate's reports are recorded.
 
+For the planned Server 0.10.2, each target's `compatibility.json` declares
+revision 2 of major 3, for the request validation detail
+([#442](https://github.com/spatialanalyzer/briosa/issues/442)), `mp_step` in
+discovery and the bundled descriptor set
+([#444](https://github.com/spatialanalyzer/briosa/issues/444)), and the caller
+restriction header ([#443](https://github.com/spatialanalyzer/briosa/issues/443)).
+The published `0.5.0` and `0.5.1` clients require revision 0, so the gate still
+runs them as compatible clients against Server 0.10.2, and the `0.4.0` packages
+still verify pre-launch rejection. The matrix keeps its current declaration
+until the 0.10.2 release gate's reports are recorded.
+
 Each new tested pair records `expectedCompatibility`. An accepted pair passed
 the fake-SDK scenarios listed in its report; a rejected pair proves
 installation/startup rejection only. Its success flag must never be described as operation compatibility.
