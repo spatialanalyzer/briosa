@@ -191,11 +191,14 @@ try {
     }
 
     $rebuiltDescriptor = Join-Path $temporaryRoot "rebuilt.protoset"
+    # Buf reads the text after '#' in an output path as options, so name the
+    # output relative to the bundle instead of by its absolute path.
+    $relativeRebuiltDescriptor = [IO.Path]::GetRelativePath($bundleRoot, $rebuiltDescriptor)
     Push-Location -LiteralPath $bundleRoot
     try {
         & $bufCommand.Source build `
             --as-file-descriptor-set `
-            --output $rebuiltDescriptor
+            --output $relativeRebuiltDescriptor
         if ($LASTEXITCODE -ne 0) {
             throw "Bundled protocol descriptor rebuild failed."
         }

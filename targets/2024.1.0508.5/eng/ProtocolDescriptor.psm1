@@ -72,11 +72,18 @@ function New-ProtocolDescriptorSet {
     # tree. Building from the working tree can produce a different descriptor on
     # Windows when Git checks text files out with CRLF line endings but the
     # artifact normalizes them to LF.
+    # Buf reads the text after '#' in an output path as options, so a build
+    # directory whose path contains '#' cannot be passed as an absolute path.
+    # Name the output relative to the build directory instead.
+    $relativeOutput = [IO.Path]::GetRelativePath([IO.Path]::GetFullPath($SourceRoot), $resolvedOutput)
+    if ($relativeOutput.Contains('#')) {
+        throw "The descriptor output path cannot be named relative to its build directory without '#'."
+    }
     Push-Location -LiteralPath $SourceRoot
     try {
         & $BufCommand build `
             --as-file-descriptor-set `
-            --output $resolvedOutput
+            --output $relativeOutput
         if ($LASTEXITCODE -ne 0) {
             throw "Buf descriptor generation failed with exit code $LASTEXITCODE."
         }
