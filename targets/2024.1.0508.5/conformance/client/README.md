@@ -181,15 +181,11 @@ not the one that stalled. Each line gives the role (`fixture`, `server`,
 parent's process ID, the start time from the fixture start, the CPU time and
 its growth over a one-second sample, and the thread count with how many threads
 run, wait or are suspended. A process that waits with no CPU growth is idle;
-one whose CPU grows is busy. For a known runtime the line also names, by file
-name only, the scripts and modules it was started with, read from the positions
-where that runtime takes them: Node's script and its `--require`, `--import` and
-`--loader` modules (for example `node.exe preflight.cjs loader.mjs
-conformance.ts`), Python's script, the assembly `dotnet` runs, and PowerShell's
-`-File` script. Arguments after the script belong to the script and are never
-read, and nothing is read for any other program, so an ordinary argument value
-never reaches the census. The command line itself, its paths and its values,
-and the environment are never printed. The census lists at most 200 processes
+one whose CPU grows is busy. The runner never reads a process's command line,
+so no script name, argument, path or value from it can reach the census, and it
+never prints the environment. Processes that share an executable are told apart
+by their parent and start time: the `node.exe` that runs a fixture under `tsx`,
+for example, is the child of the `node.exe` the runner started. The census lists at most 200 processes
 and says how many more the tree holds; membership, which decides the heap
 dumps, always covers the whole tree. A package process outside the tree is
 listed after it and marked as not a verified descendant of the fixture. The

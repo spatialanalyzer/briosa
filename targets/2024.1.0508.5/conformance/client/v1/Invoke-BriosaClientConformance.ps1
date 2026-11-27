@@ -447,13 +447,12 @@ function Get-ProcessTable {
     param([Parameter(Mandatory)][long]$DeadlineTicks)
 
     # One snapshot of every process, for the fixture's process tree and ownership
-    # checks. The path and command line identify package processes and script names;
-    # neither is ever printed.
+    # checks. The executable path identifies the package's own processes and is never
+    # printed. No command line is read, so no argument can reach the census.
     $seconds = [Math]::Max(1, [int]((Get-RemainingMilliseconds $DeadlineTicks) / 1000))
     $table = @{}
     foreach ($entry in @(Get-CimInstance -ClassName Win32_Process -Property ProcessId, ParentProcessId, CreationDate,
-                Name, ExecutablePath, CommandLine `
-                -OperationTimeoutSec $seconds -ErrorAction Stop)) {
+                Name, ExecutablePath -OperationTimeoutSec $seconds -ErrorAction Stop)) {
         $table[[int]$entry.ProcessId] = $entry
     }
     return $table
@@ -515,165 +514,6 @@ function Get-SafeProcessName {
     return $(if ($null -ne $Name -and $Name -cmatch '\A[A-Za-z0-9 ._()+-]{1,64}\z') { $Name } else { $digestWithheld })
 }
 
-function Split-CommandLine {
-    param([AllowNull()][string]$CommandLine)
-
-    # The arguments of a Windows command line, by the rules the C runtime uses:
-    # whitespace separates arguments outside double quotes, 2n backslashes before a
-    # quote are n backslashes, and 2n+1 are n and a literal quote.
-    $arguments = [Collections.Generic.List[string]]::new()
-    if ([string]::IsNullOrEmpty($CommandLine)) {
-        return , $arguments
-    }
-    $current = [Text.StringBuilder]::new()
-    $quoted = $false
-    $started = $false
-    for ($index = 0; $index -lt $CommandLine.Length; $index++) {
-        $character = $CommandLine[$index]
-        if ($character -eq '\') {
-            $slashes = 0
-            while ($index -lt $CommandLine.Length -and $CommandLine[$index] -eq '\') {
-                $slashes++
-                $index++
-            }
-            if ($index -lt $CommandLine.Length -and $CommandLine[$index] -eq '"') {
-                [void]$current.Append('\', [int][Math]::Floor($slashes / 2))
-                if ($slashes % 2 -eq 1) {
-                    [void]$current.Append('"')
-                }
-                else {
-                    $quoted = -not $quoted
-                }
-            }
-            else {
-                [void]$current.Append('\', $slashes)
-                $index--
-            }
-            $started = $true
-            continue
-        }
-        if ($character -eq '"') {
-            $quoted = -not $quoted
-            $started = $true
-            continue
-        }
-        if (-not $quoted -and [char]::IsWhiteSpace($character)) {
-            if ($started) {
-                $arguments.Add($current.ToString())
-                [void]$current.Clear()
-                $started = $false
-            }
-            continue
-        }
-        [void]$current.Append($character)
-        $started = $true
-    }
-    if ($started) {
-        $arguments.Add($current.ToString())
-    }
-    return , $arguments
-}
-
-function Get-ScriptNames {
-    param(
-        [AllowNull()][string]$Name,
-        [AllowNull()][string]$CommandLine
-    )
-
-    # The file names of the scripts, loaders or assembly a known runtime was started
-    # with, read only from the positions where that runtime takes them: Node's script
-    # and its --require, --import and --loader modules, Python's script, the
-    # assembly dotnet runs, and PowerShell's -File script. Arguments after the script
-    # are the script's own and are never read, and nothing is read for any other
-    # program, so an ordinary argument value never reaches the census. Each name must
-    # look like a script or an assembly file name; at most three are returned.
-    $names = [Collections.Generic.List[string]]::new()
-    $arguments = Split-CommandLine $CommandLine
-    $runtime = ([string]$Name).ToLowerInvariant()
-    $candidates = [Collections.Generic.List[string]]::new()
-    $valueOptions = @()
-    $moduleOptions = @()
-    $scriptOption = $null
-    switch -Exact ($runtime) {
-        "node.exe" {
-            $moduleOptions = @("--require", "-r", "--import", "--loader", "--experimental-loader")
-            $valueOptions = @("--eval", "-e", "--print", "-p", "--input-type", "--conditions", "-C", "--title",
-                "--inspect-port", "--max-old-space-size", "--stack-size", "--env-file", "--watch-path")
-        }
-        { $_ -in @("python.exe", "pythonw.exe", "py.exe") } {
-            $valueOptions = @("-W", "-X", "--check-hash-based-pycs")
-        }
-        "dotnet.exe" {
-            $valueOptions = @("--depsfile", "--runtimeconfig", "--additionalprobingpath", "--additional-deps",
-                "--fx-version", "--roll-forward", "--runtimeconfig")
-        }
-        { $_ -in @("pwsh.exe", "powershell.exe") } {
-            $scriptOption = @("-File", "-f")
-        }
-        default {
-            return , $names
-        }
-    }
-    for ($index = 1; $index -lt $arguments.Count; $index++) {
-        $argument = $arguments[$index]
-        if ($null -ne $scriptOption) {
-            # PowerShell: only the value of -File names a script; everything after it
-            # belongs to the script.
-            if ($argument -in $scriptOption -and $index + 1 -lt $arguments.Count) {
-                $candidates.Add($arguments[$index + 1])
-                break
-            }
-            if ($argument -in @("-Command", "-c", "-EncodedCommand", "-e", "-ec")) {
-                break
-            }
-            continue
-        }
-        $option = $argument
-        $value = $null
-        if ($argument.StartsWith("--", [StringComparison]::Ordinal) -and $argument.Contains("=")) {
-            $option = $argument.Substring(0, $argument.IndexOf("="))
-            $value = $argument.Substring($argument.IndexOf("=") + 1)
-        }
-        if ($option -in $moduleOptions) {
-            if ($null -eq $value -and $index + 1 -lt $arguments.Count) {
-                $index++
-                $value = $arguments[$index]
-            }
-            if ($null -ne $value) {
-                $candidates.Add($value)
-            }
-            continue
-        }
-        if ($runtime -in @("python.exe", "pythonw.exe", "py.exe") -and $argument -in @("-c", "-m")) {
-            # A command or a module, not a script file.
-            break
-        }
-        if ($option -in $valueOptions) {
-            if ($null -eq $value) {
-                $index++
-            }
-            continue
-        }
-        if ($argument.StartsWith("-", [StringComparison]::Ordinal)) {
-            continue
-        }
-        # The first argument that is not an option is the script or the assembly.
-        $candidates.Add($argument)
-        break
-    }
-    foreach ($candidate in $candidates) {
-        $leaf = ($candidate -split '[\\/]')[-1]
-        if ($leaf -cmatch '\A[A-Za-z0-9_-][A-Za-z0-9._-]{0,63}\.(?:mjs|cjs|js|mts|cts|ts|py|dll|ps1)\z' -and
-            -not $names.Contains($leaf)) {
-            $names.Add($leaf)
-        }
-        if ($names.Count -ge 3) {
-            break
-        }
-    }
-    return , $names
-}
-
 function Get-ThreadSummary {
     param([Parameter(Mandatory)][Diagnostics.Process]$Process)
 
@@ -719,7 +559,8 @@ function Write-FixtureProcessTree {
     )
 
     # One line per process in the fixture's tree, indented under its parent, for at
-    # most $processTreeDisplayLimit processes. CPU is read twice, a second apart, so a
+    # most $processTreeDisplayLimit processes: its role, process ID, executable name,
+    # parent, start time, CPU time and threads. CPU is read twice, a second apart, so a
     # busy process shows its growth and an idle one none. Returns the process IDs of
     # the whole tree, listed or not; a package process is checked against the
     # snapshot again before it is treated as a member.
@@ -766,10 +607,8 @@ function Write-FixtureProcessTree {
     $sampleSeconds = $sampleStarted.Elapsed.TotalSeconds
     foreach ($row in $rows) {
         $entry = $row.Node.Entry
-        $scripts = Get-ScriptNames -Name $entry.Name -CommandLine $entry.CommandLine
-        $label = (@(Get-SafeProcessName $entry.Name) + @($scripts)) -join " "
         $prefix = Format-Invariant "{0}{1} pid {2} ({3}): parent {4}, started {5}" @(
-            ("  " * $row.Node.Depth), $row.Role, $entry.ProcessId, $label, $entry.ParentProcessId,
+            ("  " * $row.Node.Depth), $row.Role, $entry.ProcessId, (Get-SafeProcessName $entry.Name), $entry.ParentProcessId,
             (Format-Offset $entry.CreationDate.ToUniversalTime().Ticks $TimeoutDiagnosticsReferenceTicks))
         if ($null -eq $row.Live) {
             Write-Host "$prefix, exited or unreadable"

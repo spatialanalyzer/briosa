@@ -486,10 +486,13 @@ $json
     }
 
     # Runner functions on their own (#450), defined from the runner's own source: the
-    # process tree walk on a synthetic snapshot larger than the display limit, and the
-    # script names read from command lines.
+    # process tree walk on a synthetic snapshot larger than the display limit. The
+    # census names each process by its executable only and reads no command line, so
+    # no argument can reach it.
     $runnerAst = [Management.Automation.Language.Parser]::ParseFile($runnerPath, [ref]$null, [ref]$null)
-    foreach ($functionName in @("Test-SameCreation", "Get-FixtureProcessTree", "Split-CommandLine", "Get-ScriptNames")) {
+    Assert-Condition (-not [IO.File]::ReadAllText($runnerPath).Contains("CommandLine", [StringComparison]::OrdinalIgnoreCase)) `
+        "The conformance runner reads a process command line."
+    foreach ($functionName in @("Test-SameCreation", "Get-FixtureProcessTree")) {
         $definition = $runnerAst.Find({
                 param($node)
                 $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq $functionName
@@ -509,27 +512,6 @@ $json
     Assert-Condition ($walked.Count -eq 301 -and $walkedIds[0] -eq 1000 -and $walkedIds -contains 2300 -and
         $walkedIds -notcontains 9000) `
         "The process tree walk did not visit every descendant and only descendants (it returned $($walked.Count))."
-    $scriptCases = [ordered]@{
-        '"C:\node\node.exe" C:\x\node_modules\tsx\dist\cli.mjs C:\fixture\conformance.ts --scenario capability-denied --label=review-only.ts' = "cli.mjs"
-        '"C:\node\node.exe" --require C:\x\preflight.cjs --import "file:///C:/x/loader.mjs" C:\fixture\conformance.ts --label=review-only.ts' = "preflight.cjs loader.mjs conformance.ts"
-        'node.exe --require=C:\x\a.cjs --title review-only.ts app.js --label=review-only.ts' = "a.cjs app.js"
-        '"C:\Program Files\nodejs\node.exe" "C:\my dir\cli.mjs" review-only.ts' = "cli.mjs"
-        'C:\venv\Scripts\python.exe -I C:\fixture\client_conformance.py --label review-only.py' = "client_conformance.py"
-        'python.exe -m pytest review-only.py' = ""
-        'python.exe -W ignore -X utf8 C:\f\fixture.py review-only.py' = "fixture.py"
-        'dotnet C:\fixture\Briosa.Client.Conformance.dll --label=review-only.dll' = "Briosa.Client.Conformance.dll"
-        'pwsh.exe -NoProfile -File C:\t\fixture.ps1 -Label review-only.ps1' = "fixture.ps1"
-        'pwsh.exe -NoProfile -Command "& C:\t\review-only.ps1 x.ps1"' = ""
-        'cmd.exe /c C:\t\review-only.ts' = ""
-    }
-    foreach ($commandLine in $scriptCases.Keys) {
-        $runtime = (Split-CommandLine $commandLine)[0] -split '[\\/]' | Select-Object -Last 1
-        if (-not $runtime.EndsWith(".exe", [StringComparison]::OrdinalIgnoreCase)) { $runtime += ".exe" }
-        $found = (Get-ScriptNames -Name $runtime -CommandLine $commandLine) -join " "
-        Assert-Condition ($found -ceq $scriptCases[$commandLine]) `
-            "Script names for '$commandLine' were '$found', expected '$($scriptCases[$commandLine])'."
-    }
-
     # Every rejected scenario prints the fixture's complete stderr and, when a
     # diagnostics directory is configured, keeps it with the scenario's server
     # logs (#302). Rejection by exit code and by report validation must behave
@@ -1020,18 +1002,20 @@ switch ("__MODE__") {
                         "The conformance runner did not fall back to the launched fixture when its process tree census failed."
                 }
                 else {
-                    $fixtureLine = @($census | Where-Object {
-                            $_ -cmatch "^fixture pid [0-9]+ \(pwsh\.exe failing-fixture-$([regex]::Escape($caseName))\.ps1\): parent [0-9]+, $lineTail" })
-                    Assert-Condition ($fixtureLine.Count -eq 1 -and $census -notcontains "(the fixture's process tree could not be recorded)") `
+                    # Each process is named by its executable alone: no script, argument
+                    # or path from its command line.
+                    $fixtureLine = @($census | Where-Object { $_ -cmatch "^fixture pid [0-9]+ \(pwsh\.exe\): parent [0-9]+, $lineTail" })
+                    Assert-Condition ($fixtureLine.Count -eq 1 -and $census -notcontains "(the fixture's process tree could not be recorded)" -and
+                        @($census | Where-Object { $_ -like "*.ps1*" -or $_ -like "*failing-fixture*" }).Count -eq 0) `
                         "The conformance runner did not record the fixture with its parent, CPU sample and threads for $caseName."
                     if ($case.Mode -eq "timeout-tree") {
-                        # The grandchild's script is named; its ordinary argument is not.
                         $fixturePid = [regex]::Match($fixtureLine[0], '^fixture pid ([0-9]+) ').Groups[1].Value
                         $childLine = @($census | Where-Object { $_ -cmatch "^  child pid [0-9]+ \(pwsh\.exe\): parent $fixturePid, $lineTail" })
                         $childPid = $(if ($childLine.Count -eq 1) { [regex]::Match($childLine[0], '^  child pid ([0-9]+) ').Groups[1].Value })
                         Assert-Condition ($childLine.Count -eq 1 -and
-                            @($census | Where-Object { $_ -cmatch "^    child pid [0-9]+ \(pwsh\.exe sleeper\.ps1\): parent $childPid, $lineTail" }).Count -eq 1) `
-                            "The conformance runner did not record the fixture's child and grandchild: $($census -join ' | ')"
+                            @($census | Where-Object { $_ -cmatch "^    child pid [0-9]+ \(pwsh\.exe\): parent $childPid, $lineTail" }).Count -eq 1 -and
+                            @($census | Where-Object { $_ -like "*sleeper*" -or $_ -like "*review-only*" }).Count -eq 0) `
+                            "The conformance runner did not record the fixture's child and grandchild by executable alone: $($census -join ' | ')"
                     }
                 }
                 $savedCensus = @(Get-Content -LiteralPath (Join-Path (Join-Path $diagnosticsRoot "default-ready") "timeout-processes.txt"))
