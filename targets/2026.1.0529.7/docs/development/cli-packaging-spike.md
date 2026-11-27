@@ -75,3 +75,23 @@ Five pairs of wall-clock `Briosa.Cli.exe --version` invocations per layout, via 
 | Full isolated | 375.36 (361.63–391.38) | 72.76 (70.34–75.30) |
 
 All three returned a stdio MCP `initialize` response and exited on EOF. A separate Core launch with `DOTNET_ROOT` unset reported packaged `hostfxr.dll` and `coreclr.dll` in `DOTNET_HOST_TRACE`.
+
+## 4. Third-party licenses and notices
+
+Inspected each restored `.nupkg` with Python `zipfile` and parsed the `.nuspec` license and repository elements. Compared each package payload's `licenses/index.json` to baseline, using the publish receipt ownership rather than counting build-only references or duplicate runtime files as new components.
+
+| New shipped package | Layout | Declared license | Nuspec repository and commit | Evidence and notice |
+| --- | --- | --- | --- | --- |
+| `ModelContextProtocol.Core/2.4.0` | All CLI variants | Expression `Apache-2.0` | `https://github.com/modelcontextprotocol/csharp-sdk` at `4cbf42ef107763f0bc75c358af8cb2dfe47a769a` | Identity row plus `MCP C# SDK 2.4.0 license` and `MCP C# SDK 2.4.0 notices`. The nupkg has neither text. Ship the reviewed source license and third-party notices. |
+| `ModelContextProtocol/2.4.0` | Full SDK variants | Expression `Apache-2.0` | Same MCP repository and commit | Separate identity row with the same two texts. The nupkg has neither text. |
+| `Microsoft.Extensions.AI.Abstractions/10.11.0` | All CLI variants | Expression `MIT` | `https://github.com/dotnet/extensions` at `25f07afa51034e37b334210642d7dc5f191c142d` | Identity row plus `.NET extensions AI 10.11.0 MIT`. The nupkg has neither a license nor a notice file. Ship the reviewed MIT text. No separate notice found in the nupkg. |
+| `Microsoft.Extensions.Caching.Abstractions/10.0.14`, `Microsoft.Extensions.Configuration.Abstractions/10.0.14`, `Microsoft.Extensions.DependencyInjection.Abstractions/10.0.14`, `Microsoft.Extensions.Diagnostics.Abstractions/10.0.14`, `Microsoft.Extensions.FileProviders.Abstractions/10.0.14`, `Microsoft.Extensions.Hosting.Abstractions/10.0.14`, `Microsoft.Extensions.Logging.Abstractions/10.0.14`, `Microsoft.Extensions.Options/10.0.14`, `Microsoft.Extensions.Primitives/10.0.14` | Full isolated | All expression `MIT` | All `https://github.com/dotnet/dotnet` at `0427b9abbead3fa64c6655eb4290c537397131fa` | One identity row per package pointing to the existing `.NET Foundation MIT` text. Each nupkg includes `THIRD-PARTY-NOTICES.TXT`. Stage that nupkg text and record the reference. |
+
+The three new reviewed text digests are `7c6a686d2b34b86ad8c726e0ac4d76903b525f251d73e617f8db3879fa8f11fc` (SDK license), `2f7f668d285953d085a0050b6350358ef490300298f2d712fdcdd0438d53a751` (SDK notices), and `47f0ad8ba753eae5de6178291cd8f38bbb42d2368b177f8e11714ad17c701275` (AI MIT). The SDK notice uses normalized LF. All nine isolated extension packages referenced the same nupkg notice digest, `c6926930d0181fa515076603e1305461b1bce5275a8b35337d75d2eef3acad4a`.
+
+The MCP source license describes an MIT-to-Apache-2.0 transition. It preserves MIT terms and applies CC-BY-4.0 to non-specification documentation. The Windows ZIP adds the MCP DLLs and rights texts. Any later redistribution of upstream documentation needs a separate review. The SDK notice includes MIT mcpdotnet and polyfill attributions and an Apache-2.0 URI Template Tests attribution. The only licenses declared by the added nupkgs are MIT and Apache-2.0.
+
+The inherited isolated build first failed with `No committed license text for 'MIT' required by Microsoft.Extensions.AI.Abstractions/10.11.0. Review the resolved package before packaging.` The per-identity evidence resolves the missing primary texts. `WindowsPackageNotices.psm1` also needed to accept and hash-check optional reviewed notice supplements alongside the existing nupkg notice extraction. Otherwise the MCP source third-party notice has no package entry from which it can be attached. Provenance is checked against the nupkg expression, repository and commit before reading these texts.
+
+Both variants of the 2026 package smoke passed the notice checks. The current Core run also rejected a fixture with the reviewed MCP notice reference removed. A cached `2024.1.0508.5` `./eng/New-WindowsPackage.ps1 -Version 0.0.0-spike441 -OutputDirectory $output -PassNoticeExpectation` followed by `Assert-WindowsPackageNotices` and `../../eng/Test-WindowsPackageNoticeGates.ps1` passed on the resulting 2024 tree. Its ZIP SHA-256 was `5bb1f76a2cb39a5be5535a17fa3463e7f35b67af8f22cdc2138cd8e422fe16b8`. The shared evidence is selected from resolved publish identities, so unused 2026 records do not add components to the 2024 package.
+

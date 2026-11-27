@@ -129,6 +129,13 @@ try {
         param($Index)
         ($Index.components | Where-Object component -Like 'OpenTelemetry.Api/*').noticeFiles = @()
     }
+    $components = ([Text.Encoding]::UTF8.GetString($originalIndex) | ConvertFrom-Json).components
+    if ($components.component -ccontains 'ModelContextProtocol.Core/2.4.0') {
+        Test-IndexMutation 'missing reviewed MCP notice reference' {
+            param($Index)
+            ($Index.components | Where-Object component -CEQ 'ModelContextProtocol.Core/2.4.0').noticeFiles = @()
+        }
+    }
     Test-IndexMutation 'missing runtime pack paths' {
         param($Index)
         ($Index.components | Where-Object component -Like 'Microsoft.AspNetCore.App.Runtime.win-x64/*').files = @()
