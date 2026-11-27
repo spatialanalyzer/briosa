@@ -57,23 +57,37 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # A bad dispatch fails here, before anything is built. A number input reaches the
-      # workflow as text and can hold a sign, a fraction or an exponent, so the run
-      # count must be written as a whole number. The client and scenario are then
-      # planned exactly as the called workflow plans them, which also bounds the count.
+      # workflow as text and can hold a sign, a fraction, an exponent or leading zeroes,
+      # which fromJSON rejects or reads differently, so the run count must be written as
+      # a plain whole number from 1 to 50. Each input must pass a strict pattern before
+      # anything prints it, since the runner reads workflow commands from this log: a
+      # failure names the input, never its value. The client and scenario are then
+      # planned exactly as the called workflow plans them.
       - name: Check the dispatch inputs
         shell: pwsh
         env:
           ITERATIONS: ${{ inputs.iterations }}
-          SOAK_CLIENT: ${{ inputs.language }}/${{ inputs.target }}/${{ inputs.client-version }}
+          LANGUAGE: ${{ inputs.language }}
+          TARGET: ${{ inputs.target }}
+          CLIENT_VERSION: ${{ inputs.client-version }}
           SOAK_SCENARIO: ${{ inputs.scenario }}
         run: |
-          if ($env:ITERATIONS -cnotmatch '\A[0-9]{1,4}\z') {
-            throw "The iterations input must be a whole number from 1 to 50, not '$($env:ITERATIONS)'."
+          if ($env:ITERATIONS -cnotmatch '\A(?:[1-9]|[1-4][0-9]|50)\z') {
+            throw 'The iterations input must be a whole number from 1 to 50, without leading zeroes.'
           }
+          if ($env:LANGUAGE -cnotmatch '\A(?:js|dotnet|py)\z') { throw 'The language input must be js, dotnet or py.' }
+          if ($env:TARGET -cnotmatch '\A[0-9]+(?:\.[0-9]+){3}\z') { throw 'The target input must be an exact SpatialAnalyzer target.' }
+          if ($env:CLIENT_VERSION -cnotmatch '\A[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?\z') {
+            throw 'The client-version input must be a version, such as 0.5.1.'
+          }
+          if ($env:SOAK_SCENARIO -cnotmatch '\A(?:[a-z0-9]+(?:-[a-z0-9]+)*)?\z') {
+            throw 'The scenario input must be empty or a scenario ID, such as capability-denied.'
+          }
+          $client = "$($env:LANGUAGE)/$($env:TARGET)/$($env:CLIENT_VERSION)"
           Import-Module ./eng/RetainedClientPolicy.psm1
           $plan = Get-RetainedClientMatrix -Path compatibility/retained-clients.json -ServerVersion 0.2.0-soak -AllowSourceCandidates
-          $soak = Get-RetainedClientSoakMatrix -Plan $plan -Client $env:SOAK_CLIENT -Iterations ([int]$env:ITERATIONS) -Scenario $env:SOAK_SCENARIO
-          Write-Host "The soak will run $(@($soak.include).Count) iterations of $($env:SOAK_CLIENT)."
+          $soak = Get-RetainedClientSoakMatrix -Plan $plan -Client $client -Iterations ([int]$env:ITERATIONS) -Scenario $env:SOAK_SCENARIO
+          Write-Host "The soak will run $(@($soak.include).Count) iterations of $client."
 
       - name: Install .NET SDK
         uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
@@ -141,10 +155,16 @@ jobs:
           DOWNLOAD: ${{ steps.download.outcome }}
         run: |
           # One valid result per requested iteration; a missing, unreadable, repeated or
-          # unsuccessful one fails the soak.
-          if ($env:ITERATIONS -cnotmatch '\A[0-9]{1,4}\z') {
-            'The iterations input was not a whole number, so no iteration ran.' | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-            throw "The iterations input must be a whole number from 1 to 50, not '$($env:ITERATIONS)'."
+          # unsuccessful one fails the soak. The inputs are printed only once they pass
+          # the package job's strict patterns; a rejected value is never echoed, since the
+          # runner reads workflow commands from this log.
+          if ($env:ITERATIONS -cnotmatch '\A(?:[1-9]|[1-4][0-9]|50)\z' -or
+              $env:LANGUAGE -cnotmatch '\A(?:js|dotnet|py)\z' -or
+              $env:TARGET -cnotmatch '\A[0-9]+(?:\.[0-9]+){3}\z' -or
+              $env:CLIENT_VERSION -cnotmatch '\A[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?\z' -or
+              $env:SCENARIO -cnotmatch '\A(?:[a-z0-9]+(?:-[a-z0-9]+)*)?\z') {
+            'The dispatch inputs were not valid, so no iteration ran.' | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+            throw 'The dispatch inputs were not valid; the package job names the input that failed.'
           }
           $requested = [int]$env:ITERATIONS
           $results = @{}

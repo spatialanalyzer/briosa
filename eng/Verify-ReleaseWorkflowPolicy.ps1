@@ -288,40 +288,71 @@ function Get-ReusableWorkflowFindings([string]$Name, [string[]]$Triggers, [strin
     , $findings
 }
 
-function Get-PassedValueType([object]$Scalar, [object]$DispatchInputs) {
-    # The type a value in a job's with: mapping reaches the called workflow as, from its
-    # YAML form and, for an expression, from what it names; $null when it cannot be
-    # told. A workflow_dispatch number input reaches the inputs context as a string,
-    # so only fromJSON() of one is a number.
-    if ($null -eq $Scalar -or $Scalar -isnot [pscustomobject]) { return $null }
-    if ($Scalar.Style -cne 'plain') { return 'string' }
-    $text = [string]$Scalar.Text
-    $expression = [regex]::Match($text, '\A\$\{\{\s*(?<body>(?:(?!\}\}).)*?)\s*\}\}\z')
-    if ($expression.Success) {
-        $body = $expression.Groups['body'].Value
-        $direct = [regex]::Match($body, '\Ainputs\.(?<name>[A-Za-z_][A-Za-z0-9_-]*)\z')
-        $parsed = [regex]::Match($body, '\A(?i:fromJSON)\(\s*inputs\.(?<name>[A-Za-z_][A-Za-z0-9_-]*)\s*\)\z')
-        $name = $(if ($direct.Success) { $direct.Groups['name'].Value } elseif ($parsed.Success) { $parsed.Groups['name'].Value })
-        if ($null -eq $name -or $DispatchInputs -isnot [Collections.Specialized.OrderedDictionary] -or -not $DispatchInputs.Contains($name)) {
-            return $null
+function Get-ExpressionSpans([string]$Text) {
+    # Each ${{ }} in a scalar's text, found as Get-ExpressionTexts finds them: its start,
+    # its end after the closing braces (or the end of the text) and its body.
+    $spans = [Collections.Generic.List[object]]::new()
+    $index = 0
+    while (($start = $Text.IndexOf('${{', $index, [StringComparison]::Ordinal)) -ge 0) {
+        $position = $start + 3
+        $quoted = $false
+        while ($position -lt $Text.Length) {
+            if ($Text[$position] -eq "'") { $quoted = -not $quoted }
+            elseif (-not $quoted -and $Text[$position] -eq '}' -and $position + 1 -lt $Text.Length -and $Text[$position + 1] -eq '}') { break }
+            $position++
         }
-        $declared = $DispatchInputs[$name]
-        $type = $(if ($declared -is [Collections.Specialized.OrderedDictionary] -and $declared.Contains('type')) { [string]$declared['type'].Text } else { 'string' })
-        if ($direct.Success) {
-            return @{ string = 'string'; choice = 'string'; number = 'string'; boolean = 'boolean' }[$type]
-        }
-        return @{ number = 'number'; boolean = 'boolean' }[$type]
+        $end = [Math]::Min($Text.Length, $position + 2)
+        $spans.Add([pscustomobject]@{ Start = $start; End = $end; Body = $Text.Substring($start + 3, $position - $start - 3).Trim() })
+        $index = $end
     }
-    # Text around an expression makes a string.
-    if ($text.Contains('${{')) { return 'string' }
-    if ($text -match '\A(?:true|false)\z') { return 'boolean' }
+    , $spans
+}
+
+function Get-ExpressionType([string]$Body, [object]$DispatchInputs) {
+    # The type of one supported expression over a dispatch input, or $null for any other
+    # expression. A workflow_dispatch number input reaches the inputs context as a
+    # string, so only fromJSON() of a number or Boolean input gives that type.
+    $direct = [regex]::Match($Body, '\Ainputs\.(?<name>[A-Za-z_][A-Za-z0-9_-]*)\z')
+    $parsed = [regex]::Match($Body, '\A(?i:fromJSON)\(\s*inputs\.(?<name>[A-Za-z_][A-Za-z0-9_-]*)\s*\)\z')
+    $name = $(if ($direct.Success) { $direct.Groups['name'].Value } elseif ($parsed.Success) { $parsed.Groups['name'].Value })
+    if ($null -eq $name -or $DispatchInputs -isnot [Collections.Specialized.OrderedDictionary] -or -not $DispatchInputs.Contains($name)) {
+        return $null
+    }
+    $declared = $DispatchInputs[$name]
+    $type = $(if ($declared -is [Collections.Specialized.OrderedDictionary] -and $declared.Contains('type')) { [string]$declared['type'].Text } else { 'string' })
+    if ($direct.Success) {
+        return @{ string = 'string'; choice = 'string'; number = 'string'; boolean = 'boolean' }[$type]
+    }
+    @{ number = 'number'; boolean = 'boolean' }[$type]
+}
+
+function Get-PassedValueType([object]$Scalar, [object]$DispatchInputs) {
+    # The type a value in a job's with: mapping reaches the called workflow as; $null
+    # when it cannot be told. Actions evaluates the expressions in a scalar of any YAML
+    # style, so they are read first, and each must be a supported expression over a
+    # dispatch input. A plain or quoted scalar that is one expression alone has that
+    # expression's type; any other text with expressions is a string, as is a block
+    # scalar. A scalar without expressions has its YAML type, a quoted one a string.
+    if ($null -eq $Scalar -or $Scalar -isnot [pscustomobject]) { return $null }
+    $text = [string]$Scalar.Text
+    $spans = Get-ExpressionSpans $text
+    if ($spans.Count -gt 0) {
+        $types = @(foreach ($span in $spans) { Get-ExpressionType $span.Body $DispatchInputs })
+        if ($types.Count -ne $spans.Count -or @($types | Where-Object { $null -eq $_ }).Count -gt 0) { return $null }
+        if ($spans.Count -eq 1 -and $spans[0].Start -eq 0 -and $spans[0].End -eq $text.Length -and $Scalar.Style -cne 'block') {
+            return $types[0]
+        }
+        return 'string'
+    }
+    if ($Scalar.Style -cne 'plain') { return 'string' }
+    # Actions reads these spellings, and only these, as Booleans.
+    if ($text -cin @('true', 'True', 'TRUE', 'false', 'False', 'FALSE')) { return 'boolean' }
     if ($text -cmatch '\A(?:[-+]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?|0x[0-9A-Fa-f]+|0o[0-7]+|[-+]?\.(?:inf|Inf|INF)|\.(?:nan|NaN|NAN))\z') {
         return 'number'
     }
     if ($text -cmatch '\A(?:null|Null|NULL|~)\z') { return $null }
     'string'
 }
-
 function Get-ReusableCallTypeFindings([string]$Name) {
     # Each value a job of this dispatch-only workflow passes to a reusable workflow in
     # this repository must reach it with the type the called workflow declares, and

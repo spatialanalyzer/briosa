@@ -131,6 +131,7 @@ try {
     $gate = "  gate:`n    needs:`n      - policy`n      - conformance`n"
     $iterations = "          ITERATIONS: `${{ inputs.iterations }}`n"
     $iterationsCall = "      soak-iterations: `${{ fromJSON(inputs.iterations) }}`n"
+    $serverVersion = "      server-version: 0.2.0-soak`n"
     $firstStep = "    steps:`n      - name: Download the iteration results`n"
     # A backslash, written so that no tool decodes the escapes below.
     $escape = [char]92
@@ -153,6 +154,13 @@ try {
             @{ Name = 'soak passing an undeclared input'; File = $soakFile; Old = "      server-version: 0.2.0-soak`n"; New = "      server-version: 0.2.0-soak`n      soak-extra: x`n"; Rule = "$soakRule.*passes 'soak-extra', which retained-client-compatibility\.yml does not declare" },
             @{ Name = 'soak leaving out a required input'; File = $soakFile; Old = "      server-version: 0.2.0-soak`n"; New = ''; Rule = "$soakRule.*does not pass the input 'server-version' that retained-client-compatibility\.yml requires" },
             @{ Name = 'soak parsing a secret'; File = $soakFile; Old = $iterationsCall; New = "      soak-iterations: `${{ fromJSON(secrets.ITERATIONS) }}`n"; Rule = "$soakRule.*an expression refers to secrets" },
+            # Actions evaluates expressions in a scalar of any style, so a quoted, folded
+            # or prefixed value is checked for them first; and only true, True and TRUE
+            # (or false, False and FALSE) are Booleans.
+            @{ Name = 'soak parsing a string input in a quoted value'; File = $soakFile; Old = $serverVersion; New = "      server-version: `"`${{ fromJSON(inputs.client-version) }}`"`n"; Rule = "$soakRule.*passes 'server-version' at conformance-soak\.yml line [0-9]+ a value whose type the policy cannot tell" },
+            @{ Name = 'soak parsing a string input in a folded value'; File = $soakFile; Old = $serverVersion; New = "      server-version: >-`n        `${{ fromJSON(inputs.client-version) }}`n"; Rule = "$soakRule.*passes 'server-version' at conformance-soak\.yml line [0-9]+ a value whose type the policy cannot tell" },
+            @{ Name = 'soak parsing a string input after a literal prefix'; File = $soakFile; Old = $serverVersion; New = "      server-version: v`${{ fromJSON(inputs.client-version) }}`n"; Rule = "$soakRule.*passes 'server-version' at conformance-soak\.yml line [0-9]+ a value whose type the policy cannot tell" },
+            @{ Name = 'soak passing a mixed-case Boolean'; File = $soakFile; Old = "      allow-source-candidates: true`n"; New = "      allow-source-candidates: tRuE`n"; Rule = "$soakRule.*passes a string to the boolean input 'allow-source-candidates'" },
             @{ Name = 'gate with a workflow-wide scalar write grant'; File = $gateFile; Old = "permissions:`n  contents: read"; New = 'permissions: write-all'; Rule = $gateRule },
             @{ Name = 'gate declaring secrets'; File = $gateFile; Old = "permissions:`n  contents: read`njobs:"; New = "    secrets:`n      token:`n        required: false`npermissions:`n  contents: read`njobs:"; Rule = $gateRule },
             @{ Name = 'gate calling a workflow'; File = $gateFile; Old = $gate; New = "  extra:`n    uses: ./.github/workflows/release.yml`n$gate"; Rule = $gateRule },
@@ -192,6 +200,15 @@ try {
         Assert-ReaderRejected $mutation $(if ($mutation.File -eq $gateFile) { $gateRule } else { $soakRule })
     }
 
+    # Spellings Actions reads as the declared type pass: a capitalised Boolean, and a
+    # quoted numeric literal, which stays a string.
+    foreach ($mutation in @(
+            @{ Name = 'soak passing a capitalised Boolean'; Old = "      allow-source-candidates: true`n"; New = "      allow-source-candidates: True`n" },
+            @{ Name = 'soak passing a quoted numeric server version'; Old = $serverVersion; New = "      server-version: '20'`n" })) {
+        $directory = New-WorkflowCopy $mutation.Name
+        Set-WorkflowText $directory $soakFile $mutation.Old $mutation.New
+        & $checker -WorkflowDirectory $directory 6>$null | Out-Null
+    }
     Write-Host 'Release workflow policy rejects tag triggers, unreviewed environments, wider signing refs, OIDC without an environment, misplaced R2 credentials, executable signing in the R2 environment, non-draft releases, a soak or retained-client gate that could reach credentials or release jobs, a soak that passes the gate an input of another type than the gate declares, and either written in YAML outside the plain block subset, by file and line.'
 }
 finally {
