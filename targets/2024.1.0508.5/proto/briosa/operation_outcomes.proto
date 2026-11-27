@@ -153,13 +153,14 @@ message PolicyDenialDetails {
 // know; such a client can still use field_path.
 enum RequestFieldConstraint {
   REQUEST_FIELD_CONSTRAINT_UNSPECIFIED = 0;
-  // The field must be set. It is a message field, or a scalar or enum field
-  // with explicit presence (proto3 optional), and it is absent. Some fields
-  // are required only when another field of the request turns on the
-  // behavior that uses them.
+  // The field must be set, and it is absent. It is a message field, or a
+  // field with explicit presence (proto3 optional) whose presence the
+  // operation checks. Some fields are required only when another field of the
+  // request turns on the behavior that uses them.
   REQUEST_FIELD_CONSTRAINT_REQUIRED = 1;
-  // The string must contain a character other than whitespace. An absent
-  // string without explicit presence reads as empty, so it fails this check.
+  // The string must contain a character other than whitespace. An operation
+  // that does not check a string's presence reads an absent string as empty,
+  // so an absent string can fail this check instead of REQUIRED.
   REQUEST_FIELD_CONSTRAINT_NOT_BLANK = 2;
   // The repeated field must have at least one element.
   REQUEST_FIELD_CONSTRAINT_NOT_EMPTY = 3;
