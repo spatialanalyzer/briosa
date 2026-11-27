@@ -231,6 +231,8 @@ public sealed class CallerRestrictionGrpcTests
         Assert.Single(exception.Trailers, entry => entry.Key.StartsWith("briosa", StringComparison.Ordinal));
 
         await host.StopAsync().ConfigureAwait(true);
+        // The log queue is asynchronous; disposing the provider drains it.
+        provider.Dispose();
         var rejected = Assert.Single(sink.Events, logEvent => EventId(logEvent) == 2003);
         Assert.Equal(PolicyEventProperties, Names(rejected));
         Assert.Equal("option.show_results_dialog/profile.standard", Text(rejected, "PolicyRule"));
@@ -260,6 +262,8 @@ public sealed class CallerRestrictionGrpcTests
             .DeleteGeneralFileAsync(new Api.DeleteGeneralFileRequest(), new Metadata { { HeaderName, header } }).ResponseAsync)
             .ConfigureAwait(true);
         await host.StopAsync().ConfigureAwait(true);
+        // The log queue is asynchronous; disposing the provider drains it.
+        provider.Dispose();
 
         var events = sink.Events.Where(logEvent => EventId(logEvent) is 2002 or 2003).ToArray();
         Assert.Equal(3, events.Length);
@@ -324,6 +328,8 @@ public sealed class CallerRestrictionGrpcTests
         }
 
         await host.StopAsync().ConfigureAwait(true);
+        // The log queue is asynchronous; disposing the provider drains it.
+        provider.Dispose();
         await using var running = host.ConfigureAwait(true);
         Assert.Equal(0, host.Dispatcher.Submissions);
         foreach (var failure in failures)
