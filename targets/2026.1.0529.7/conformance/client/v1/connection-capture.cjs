@@ -209,7 +209,7 @@ function sessionNumber(session) {
     record('http2', 'session-local-settings', { session: number, settings: pickNumbers(settings, SETTINGS) })));
   session.once('close', () => guard('http2', () => {
     liveSessions.delete(session);
-    record('http2', 'session-close', { session: number, ...socketCounts(session) });
+    record('http2', 'session-close', { session: number });
   }));
   return number;
 }
@@ -227,15 +227,6 @@ function pickNumbers(source, keys) {
     else if (number(value) !== null) result[key] = value;
   }
   return result;
-}
-
-function socketCounts(session) {
-  try {
-    const socket = session.socket;
-    return { bytesRead: number(socket && socket.bytesRead), bytesWritten: number(socket && socket.bytesWritten) };
-  } catch {
-    return {};
-  }
 }
 
 function track(stream, headers) {
@@ -301,8 +292,9 @@ if (!disabled) {
     record('http2', 'stream-close', { session: info.session, stream: number(stream.id), rstCode: number(stream.rstCode) });
   });
 
-  // While a stream stays open, the session's windows, queue and byte counts every
-  // few seconds: what a stalled call's connection held.
+  // While a stream stays open, the session's windows and outbound queue every few
+  // seconds, from nghttp2's own state: what a stalled call's connection held. The
+  // socket's byte counters are not used: HTTP/2 writes bypass them.
   setInterval(() => guard('sample', () => {
     const now = performance.now();
     for (const session of liveSessions) {
@@ -319,7 +311,7 @@ if (!disabled) {
         sessionState = {};
       }
       record('http2', 'session-sample', {
-        session: entry.number, openStreams: open.length, state: sessionState, ...socketCounts(session),
+        session: entry.number, openStreams: open.length, state: sessionState,
         streams: open.slice(0, 8).map((stream) => {
           let streamState = {};
           try {

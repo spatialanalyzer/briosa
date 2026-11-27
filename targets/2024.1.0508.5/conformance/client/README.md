@@ -339,8 +339,7 @@ With the capture, each scenario's server and fixture get:
   status and reset codes, lengths, window sizes, settings values, connectivity
   states and loopback endpoints) and records a text it does not recognise as
   `other`, with its tracer and nothing of the text. While a stream stays open it
-  records the session's window sizes, outbound queue and byte counts every 5
-  seconds. A process that never makes an HTTP/2 call, such as the `tsx`
+  records the session's window sizes and outbound queue every 5 seconds. A process that never makes an HTTP/2 call, such as the `tsx`
   launcher, writes nothing. The file is bounded at 20,000 records or 8 MiB, and
   records reach it at the end of each turn of Node's event loop. A fixture that
   is not a Node process ignores both variables.
