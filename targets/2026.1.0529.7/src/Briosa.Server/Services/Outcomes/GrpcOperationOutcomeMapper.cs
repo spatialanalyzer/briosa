@@ -460,7 +460,7 @@ internal static class GrpcOperationOutcomeMapper
         };
     }
 
-    private static RpcException CreateInternalFailure(
+    public static RpcException CreateInternalFailure(
         string operationId,
         ReplaySafety replaySafety,
         int generation,

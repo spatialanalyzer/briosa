@@ -16,6 +16,7 @@ using Grpc.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -87,8 +88,10 @@ public sealed class RequestValidationDetailGrpcTests
         Assert.Null(error.MpExecution);
     }
 
+    // The mapping throws each failure for a real ScaleObjectsRequest, so only the server's
+    // own path check stands between a bad path and the trailer.
     [Fact]
-    public async Task AnArgumentFailureThatNamesNoFieldHasNoDetailAndNoText()
+    public async Task AnArgumentFailureThatNamesNoFieldOfTheRequestHasNoDetailAndNoText()
     {
         var operation = ScaleObjectsOperation.Descriptor;
         var logs = new RecordingLogger();
@@ -98,17 +101,29 @@ public sealed class RequestValidationDetailGrpcTests
             new ArgumentException(Sentinel, Sentinel),
             new ArgumentOutOfRangeException(Sentinel, NumberSentinel, Sentinel),
             new ArgumentNullException(Sentinel, Sentinel),
-            // A typed violation whose path is not a schema path, such as one built from a value.
+            // Value-shaped paths, such as text built from a request value.
             RequestFieldViolation.Required(Sentinel),
             RequestFieldViolation.NotBlank($"objects.{Sentinel}"),
-            RequestFieldViolation.Range("objects.object_name\n")
+            RequestFieldViolation.Range("objects.object_name\n"),
+            // Identifier-shaped paths that do not resolve to a field of this request: a
+            // caller's object name, an unknown nested field, a field of a scalar, the
+            // C# property name.
+            RequestFieldViolation.Required("project_alpha"),
+            RequestFieldViolation.NotBlank("objects.project_alpha"),
+            RequestFieldViolation.Required("scale_factor.value"),
+            RequestFieldViolation.NotEmpty("Objects"),
+            // Real fields with a constraint that cannot apply to them.
+            RequestFieldViolation.NotBlank("scale_factor"),
+            RequestFieldViolation.Required("objects"),
+            RequestFieldViolation.ElementCount("objects.object_name"),
+            RequestFieldViolation.OneofRequired("objects")
         ];
 
         foreach (var failure in failures)
         {
-            var exception = await Assert.ThrowsAsync<RpcException>(() => executor.ExecuteAsync<object, object>(
-                new object(), operation, _ => throw failure, [], _ => new object(), CancellationToken.None))
-                .ConfigureAwait(true);
+            var exception = await Assert.ThrowsAsync<RpcException>(() => executor.ExecuteAsync(
+                new Api.ScaleObjectsRequest { ScaleFactor = 2 }, operation, _ => throw failure, [],
+                _ => new Api.ScaleObjectsResult(), CancellationToken.None)).ConfigureAwait(true);
 
             Assert.Equal(StatusCode.InvalidArgument, exception.StatusCode);
             Assert.Equal("The request is invalid.", exception.Status.Detail);
@@ -123,6 +138,72 @@ public sealed class RequestValidationDetailGrpcTests
         }
 
         AssertNoSentinel(logs.AllText);
+    }
+
+    [Fact]
+    public void AViolationMessageIsFixedText()
+    {
+        foreach (var violation in new[]
+                 {
+                     RequestFieldViolation.Required("project_alpha"),
+                     RequestFieldViolation.NotBlank(Sentinel),
+                     RequestFieldViolation.SupportedChoice("objects.object_type")
+                 })
+        {
+            Assert.Equal("A request field failed validation.", violation.Message);
+            Assert.Null(violation.ParamName);
+            Assert.DoesNotContain(violation.FieldPath, violation.ToString(), StringComparison.Ordinal);
+        }
+    }
+
+    // Detail follows the origin, not the exception type: only the violation that the
+    // request mapping threw names a field.
+    [Fact]
+    public async Task AViolationTheRequestMappingDidNotThrowHasNoFieldDetail()
+    {
+        var operation = ScaleObjectsOperation.Descriptor;
+        var valid = new Api.ScaleObjectsRequest
+        {
+            Objects = { new Api.CollectionObjectName { ObjectName = "Plane" } },
+            ScaleFactor = 2
+        };
+        Task<Api.ScaleObjectsResult> Run(IWorkerCommandExecutor worker, Api.ScaleObjectsRequest request) =>
+            new OperationExecutor(worker, new OperationAuditLogger(new RecordingLogger()), TimeProvider.System)
+                .ExecuteAsync(request, operation, ScaleObjectsOperation.CreateCommand,
+                    ScaleObjectsOperation.OutputContracts, ScaleObjectsOperation.CreateResult, CancellationToken.None);
+
+        // Thrown after the command was mapped and handed on: possibly started, so neither
+        // a validation failure nor NOT_STARTED.
+        var afterDispatch = new ThrowingWorker(mapFirst: true, RequestFieldViolation.Required("scale_factor"));
+        var late = await Assert.ThrowsAsync<RpcException>(() => Run(afterDispatch, valid)).ConfigureAwait(true);
+        Assert.True(afterDispatch.Mapped);
+        Assert.Equal(StatusCode.Internal, late.StatusCode);
+        var lateError = Api.OperationError.Parser.ParseFrom(Assert.Single(late.Trailers).ValueBytes);
+        Assert.Equal(Api.OperationFailureKind.Internal, lateError.Kind);
+        Assert.Equal("request-violation-after-mapping", lateError.DiagnosticCode);
+        Assert.Equal(Api.ExecutionDisposition.StartedOutcomeUnknown, lateError.ExecutionDisposition);
+        Assert.NotEqual(Api.ReplayGuidance.MayReplay, lateError.ReplayGuidance);
+        Assert.Null(lateError.RequestValidation);
+
+        // Thrown before the request was mapped: provably not started, but no field detail.
+        var beforeMapping = new ThrowingWorker(mapFirst: false, RequestFieldViolation.Required("scale_factor"));
+        var early = await Assert.ThrowsAsync<RpcException>(() => Run(beforeMapping, valid)).ConfigureAwait(true);
+        Assert.False(beforeMapping.Mapped);
+        Assert.Equal(StatusCode.InvalidArgument, early.StatusCode);
+        Assert.Equal(
+            Assert.Single(GrpcOperationOutcomeMapper.CreateValidationFailure(operation.OperationId,
+                "request-validation-failed", replaySafety: operation.ReplaySafety).Trailers).ValueBytes,
+            Assert.Single(early.Trailers).ValueBytes);
+
+        // The mapping's own violation, with the same worker shape, does name the field.
+        var own = await Assert.ThrowsAsync<RpcException>(() => Run(new ThrowingWorker(mapFirst: true, null),
+            new Api.ScaleObjectsRequest { Objects = { valid.Objects } })).ConfigureAwait(true);
+        Assert.Equal(StatusCode.InvalidArgument, own.StatusCode);
+        Assert.Equal(new Api.RequestValidationDetails
+        {
+            FieldPath = "scale_factor",
+            Constraint = Api.RequestFieldConstraint.Required
+        }, Api.OperationError.Parser.ParseFrom(Assert.Single(own.Trailers).ValueBytes).RequestValidation);
     }
 
     [Fact]
@@ -165,12 +246,13 @@ public sealed class RequestValidationDetailGrpcTests
 
     // Sentinel text and numbers in every value the requests carry, through the production
     // gRPC registration, the policy enforcer, the audit logger and the telemetry, with
-    // every log category at Debug.
+    // every log category at Trace and the log pipeline drained before it is read.
     [Fact]
     public async Task NoRequestValueReachesTheTrailersStatusLogsAuditOrTelemetry()
     {
         var sink = new ObservabilityTests.CaptureSink();
-        using var provider = new BriosaLogProvider(ObservabilityTests.Options(), new BriosaLogHealth(), sink);
+        var logHealth = new BriosaLogHealth();
+        using var provider = new BriosaLogProvider(ObservabilityTests.Options(), logHealth, sink);
         using var telemetry = new BriosaTelemetry(new BriosaLogHealth());
         var activities = new ConcurrentQueue<Activity>();
         using var activityListener = new ActivityListener
@@ -199,6 +281,13 @@ public sealed class RequestValidationDetailGrpcTests
 
         var dispatcher = new MappingDispatcher();
         var builder = WebApplication.CreateSlimBuilder();
+        // The server's appsettings.json in the test output would hold categories at
+        // Information; the check needs every category, Debug audit records included.
+        builder.Configuration.Sources.Clear();
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Logging:LogLevel:Default"] = "Trace"
+        });
         builder.Logging.ClearProviders();
         builder.Logging.SetMinimumLevel(LogLevel.Trace);
         builder.Logging.AddProvider(provider);
@@ -234,6 +323,12 @@ public sealed class RequestValidationDetailGrpcTests
         }).ResponseAsync.ConfigureAwait(true);
         await app.StopAsync().ConfigureAwait(true);
         meterListener.RecordObservableInstruments();
+        // Drain the asynchronous log pipeline before reading what it wrote, so the check
+        // below cannot pass on a partial log.
+        provider.Dispose();
+        Assert.Equal(0, logHealth.Dropped);
+        Assert.Equal(0, logHealth.Failures);
+        var logEvents = sink.Events.ToArray();
 
         Assert.Equal(SentinelRequests().Count, failures.Count);
         Assert.Equal(SentinelRequests().Count + 1, dispatcher.Submissions);
@@ -255,10 +350,25 @@ public sealed class RequestValidationDetailGrpcTests
             }
         }
 
-        Assert.NotEmpty(sink.Events);
-        Assert.Contains(sink.Events, logEvent => logEvent.Properties.TryGetValue("DiagnosticCode", out var code) &&
-            code.ToString().Contains("request-validation-failed", StringComparison.Ordinal));
-        foreach (var logEvent in sink.Events)
+        // Every audit record of these calls arrived: a start and a policy decision for each
+        // call, a failure for each invalid one, and a completion for the valid one.
+        string? Property(LogEvent logEvent, string name) =>
+            logEvent.Properties.TryGetValue(name, out var value) ? (value as ScalarValue)?.Value?.ToString() : null;
+        LogEvent[] Named(string name) =>
+            logEvents.Where(logEvent => logEvent.MessageTemplate.Text == name).ToArray();
+        var calls = SentinelRequests().Count + 1;
+        Assert.Equal(calls, Named("RequestStarted").Length);
+        Assert.Equal(calls, Named("PolicyAllowed").Length);
+        var validationFailures = Named("RpcFailed");
+        Assert.Equal(SentinelRequests().Count, validationFailures.Length);
+        Assert.All(validationFailures, logEvent =>
+            Assert.Equal("request-validation-failed", Property(logEvent, "DiagnosticCode")));
+        Assert.Equal(
+            SentinelRequests().Values.Select(expected => expected.Operation.OperationId).Order(StringComparer.Ordinal),
+            validationFailures.Select(logEvent => Property(logEvent, "OperationId")).Order(StringComparer.Ordinal));
+        Assert.Equal(ScaleObjectsOperation.Descriptor.OperationId,
+            Property(Assert.Single(Named("RpcCompleted")), "OperationId"));
+        foreach (var logEvent in logEvents)
         {
             AssertNoSentinel(Render(logEvent));
         }
@@ -321,11 +431,12 @@ public sealed class RequestValidationDetailGrpcTests
         return text.ToString();
     }
 
+    // Every value these requests send is a sentinel that the leak checks search for; the
+    // object type is left to the operation's default instead of a fixed choice.
     private static Api.CollectionObjectName SentinelObject() => new()
     {
         CollectionName = Sentinel,
-        ObjectName = Sentinel,
-        ObjectType = Api.ObjectType.Plane
+        ObjectName = Sentinel
     };
 
     private static Api.Transform SentinelTransform(int count)
@@ -379,7 +490,16 @@ public sealed class RequestValidationDetailGrpcTests
         ["unknown enum"] = new(ScaleObjectsOperation.Descriptor,
             channel => Utility(channel).ScaleObjectsAsync(new()
             {
-                Objects = { new Api.CollectionObjectName { CollectionName = Sentinel, ObjectName = Sentinel, ObjectType = (Api.ObjectType)9999 } },
+                // The rejected enum value is itself the numeric sentinel.
+                Objects =
+                {
+                    new Api.CollectionObjectName
+                    {
+                        CollectionName = Sentinel,
+                        ObjectName = Sentinel,
+                        ObjectType = (Api.ObjectType)RequestValidationDetailTests.NumberSentinel
+                    }
+                },
                 ScaleFactor = NumberSentinel
             }).ResponseAsync,
             "objects.object_type", Api.RequestFieldConstraint.SupportedChoice),
@@ -429,6 +549,30 @@ public sealed class RequestValidationDetailGrpcTests
             var execution = WorkerMpExecutionResult.FromEvidence(true, true, true, 2, 1, [], "completed");
             return Task.FromResult(new WorkerExecutionOutcome(WorkerExecutionStatus.Completed,
                 WorkerExecutionDisposition.Completed, execution, null, "completed", 1, correlationId));
+        }
+    }
+
+    /// <summary>
+    /// Throws a typed violation from the dispatch side, after mapping the request or
+    /// without mapping it; with no violation it only maps.
+    /// </summary>
+    private sealed class ThrowingWorker(bool mapFirst, RequestFieldViolation? violation) : IWorkerCommandExecutor
+    {
+        public bool Mapped { get; private set; }
+
+        public Task<WorkerExecutionOutcome> ExecuteAsync(WorkerMpCommand command, CancellationToken cancellationToken = default) =>
+            throw new InvalidOperationException("The submission overload is the one under test.");
+
+        public Task<WorkerExecutionOutcome> ExecuteAsync(
+            WorkerCommandSubmission submission, Guid correlationId, CancellationToken cancellationToken = default)
+        {
+            if (mapFirst)
+            {
+                submission.CreateCommand();
+                Mapped = true;
+            }
+
+            throw (Exception?)violation ?? new InvalidOperationException("The request mapped.");
         }
     }
 
