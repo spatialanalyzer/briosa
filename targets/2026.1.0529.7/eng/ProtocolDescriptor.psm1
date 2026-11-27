@@ -9,11 +9,24 @@ $ErrorActionPreference = 'Stop'
 function Resolve-BufCommand {
     param([Parameter(Mandatory)][string]$BufPath)
 
-    $command = Get-Command -Name $BufPath -CommandType Application -ErrorAction SilentlyContinue |
+    $notFound = "Buf was not found as '$BufPath'. Building descriptor/briosa.protoset, which the " +
+        'protocol artifact and the Windows package ship, requires Buf. Install Buf or pass -BufPath.'
+
+    # A value with a directory part names one file. Get-Command would read it as
+    # a wildcard pattern, where a directory named tool[1] matches tool1 instead.
+    if ($BufPath.IndexOfAny([char[]]@([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)) -ge 0) {
+        $file = [IO.Path]::GetFullPath($BufPath, (Get-Location).ProviderPath)
+        if (-not [IO.File]::Exists($file)) {
+            throw $notFound
+        }
+
+        return $file
+    }
+
+    $command = Get-Command -Name ([WildcardPattern]::Escape($BufPath)) -CommandType Application -ErrorAction SilentlyContinue |
         Select-Object -First 1
     if ($null -eq $command) {
-        throw ("Buf was not found as '$BufPath'. Building descriptor/briosa.protoset, which the " +
-            'protocol artifact and the Windows package ship, requires Buf. Install Buf or pass -BufPath.')
+        throw $notFound
     }
 
     return $command.Source
@@ -79,6 +92,9 @@ function New-ProtocolDescriptorSet {
     if ($relativeOutput.Contains('#')) {
         throw "The descriptor output path cannot be named relative to its build directory without '#'."
     }
+    if ([IO.File]::Exists($resolvedOutput)) {
+        [IO.File]::Delete($resolvedOutput)
+    }
     Push-Location -LiteralPath $SourceRoot
     try {
         & $BufCommand build `
@@ -90,6 +106,12 @@ function New-ProtocolDescriptorSet {
     }
     finally {
         Pop-Location
+    }
+    # A build directory that Buf cannot start in, for example one whose path is
+    # too long, can leave Buf running somewhere else and exiting with success.
+    # Only a descriptor at the requested path counts.
+    if (-not [IO.File]::Exists($resolvedOutput)) {
+        throw "Buf reported success but did not write '$resolvedOutput'. Check that the build directory path is usable, for example not too long."
     }
 }
 

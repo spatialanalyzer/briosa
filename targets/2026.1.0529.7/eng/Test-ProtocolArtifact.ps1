@@ -18,7 +18,9 @@ $temporaryRoot = Join-Path $temporaryBase "briosa-protocol-test-$([Guid]::NewGui
 $firstOutput = [IO.Path]::GetFullPath($OutputDirectory, $repositoryRoot)
 $secondOutput = Join-Path $temporaryRoot "second"
 $extractRoot = Join-Path $temporaryRoot "extracted"
-$bufCommand = Get-Command -Name $BufPath -CommandType Application -ErrorAction Stop
+# Resolved the way the artifact and package builds resolve it.
+Import-Module (Join-Path $PSScriptRoot "ProtocolDescriptor.psm1") -Force
+$bufCommand = [pscustomobject]@{ Source = Resolve-BufCommand $BufPath }
 $artifactBase = "briosa-protocol-$Version-sa-2026.1.0529.7"
 $zipName = "$artifactBase.zip"
 $firstZip = Join-Path $firstOutput $zipName
