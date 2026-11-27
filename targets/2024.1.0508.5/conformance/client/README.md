@@ -354,6 +354,9 @@ printed only from reviewed names and validated values, with `<withheld>` for
 anything else. It joins each server call record, through its trace, to the
 connection and stream that carried it (`stream=<connection>/<stream>`), and the
 client's `call-stream` record joins a grpc-js call number to its HTTP/2 stream.
+Both ends read the same machine clock, but the client's times have millisecond
+resolution, so within one millisecond the order of a client record and a server
+record is not meaningful; within each end the order is the order of writing.
 The runner prints the timeline's latest 150 lines. The server log digest keeps
 the connection records out of its tail of lower-severity records, so they never
 push the call records out of it, and says how many it left to the timeline.
