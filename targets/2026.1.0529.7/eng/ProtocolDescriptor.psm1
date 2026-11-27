@@ -72,7 +72,7 @@ function New-ProtocolDescriptorSet {
     # tree. Building from the working tree can produce a different descriptor on
     # Windows when Git checks text files out with CRLF line endings but the
     # artifact normalizes them to LF.
-    Push-Location $SourceRoot
+    Push-Location -LiteralPath $SourceRoot
     try {
         & $BufCommand build `
             --as-file-descriptor-set `

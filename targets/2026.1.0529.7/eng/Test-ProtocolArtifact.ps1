@@ -191,7 +191,7 @@ try {
     }
 
     $rebuiltDescriptor = Join-Path $temporaryRoot "rebuilt.protoset"
-    Push-Location $bundleRoot
+    Push-Location -LiteralPath $bundleRoot
     try {
         & $bufCommand.Source build `
             --as-file-descriptor-set `
