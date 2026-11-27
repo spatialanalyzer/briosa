@@ -651,6 +651,22 @@ first-party client may surface it; one that does:
 The detail does not move validation into the client: clients still do not
 pre-validate requests from it, and the server remains authoritative.
 
+Server 0.10.2 adds `OperationCapability.mp_step`, the exact name of the
+SpatialAnalyzer MP command that the operation executes
+([MP step](../../targets/2026.1.0529.7/docs/operations/health-and-discovery.md#mp-step)).
+The server sets it on every listed capability, admitted or denied; earlier
+servers leave it empty. Clients that predate the field ignore it and keep
+working. A client may surface it:
+
+- expose it with each capability exactly as the server reports it, without
+  normalizing, translating, or deriving it from the client's own operation
+  name. A client may use it to find an operation by its MP command name, as
+  [command identity](#command-identity-and-discovery) requires of the client's
+  own names;
+- treat an empty value as "not reported", never as an error; and
+- keep it descriptive. It never changes admission, never selects which RPC a
+  call uses, and never makes an operation callable.
+
 Package semantic version, Briosa server semantic version, exact SpatialAnalyzer
 target, protocol artifact identity, and runtime architecture remain separate
 coordinates as described by the

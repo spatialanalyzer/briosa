@@ -616,8 +616,11 @@ public sealed class PolicyDenialDetailTests
             var expected = capability.Clone();
             expected.PolicyDenial = null;
             expected.RequestOptions = null;
+            // mp_step (14) is unknown to Server 0.10.0 and set on every capability.
+            Assert.NotEmpty(capability.MpStep);
+            expected.MpStep = string.Empty;
 
-            int[] unknownFields = capability.PolicyDenial is null ? [13] : [12, 13];
+            int[] unknownFields = capability.PolicyDenial is null ? [13, 14] : [12, 13, 14];
             Assert.Equal(expected, Api.OperationCapability.Parser.ParseFrom(known));
             Assert.Equal(unknownFields, unknown);
         }

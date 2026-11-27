@@ -62,7 +62,11 @@ try {
     foreach ($leaf in @('Briosa.Server.exe','Briosa.Worker.exe','ThirdParty.dll')) { [IO.File]::WriteAllText((Join-Path $tree $leaf), 'Inert signing test fixture.') }
     $null = [IO.Directory]::CreateDirectory((Join-Path $tree 'support files'))
     [IO.File]::WriteAllText((Join-Path $tree 'support files/readme.txt'), 'Nested archive fixture.')
-    $manifest = @{schemaVersion=2;artifactName=$name;briosaVersion='0.0.0-signing-test';spatialAnalyzerTarget='2099.1.0101.1';runtimeIdentifier='win-x64'} | ConvertTo-Json
+    # The server package's descriptor set is data: never signed, kept byte for byte.
+    $null = [IO.Directory]::CreateDirectory((Join-Path $tree 'descriptor'))
+    $descriptorBytes = [byte[]](0x0a, 0x0c, 0x0a, 0x0a, 0x62, 0x72, 0x69, 0x6f, 0x73, 0x61, 0x0d, 0x0a, 0x00, 0xff)
+    [IO.File]::WriteAllBytes((Join-Path $tree 'descriptor/briosa.protoset'), $descriptorBytes)
+    $manifest =@{schemaVersion=2;artifactName=$name;briosaVersion='0.0.0-signing-test';spatialAnalyzerTarget='2099.1.0101.1';runtimeIdentifier='win-x64'} | ConvertTo-Json
     [IO.File]::WriteAllText((Join-Path $tree 'manifest.json'), $manifest)
     $lines = Get-ChildItem $tree -File -Recurse | ForEach-Object { "$((Get-FileHash -LiteralPath $_.FullName).Hash)  $([IO.Path]::GetRelativePath($tree, $_.FullName).Replace('\', '/'))" }
     [IO.File]::WriteAllText((Join-Path $tree 'files.sha256'), ($lines -join "`n") + "`n")
@@ -73,7 +77,7 @@ try {
     $staging = Join-Path $root 'staging'
     & "$PSScriptRoot/Prepare-SignedPackage.ps1" -PackagePath $zip -OutputDirectory $staging
     $selected = @(Get-Content (Join-Path $staging 'authenticode-files.txt'))
-    if ($selected.Count -ne 2 -or ($selected -match 'ThirdParty')) { throw 'Signing included third-party content or omitted entry points.' }
+    if ($selected.Count -ne 2 -or ($selected -match 'ThirdParty|protoset')) { throw 'Signing included third-party content or data, or omitted entry points.' }
     Assert-Fails { & "$PSScriptRoot/Complete-SignedPackage.ps1" -PackageRoot (Join-Path $staging $name) -OutputDirectory (Join-Path $root 'signed') -ExpectedPublisher 'Fixture' } 'Unsigned product could be finalized.'
     # Exercise archive finalization separately from production certificate access.
     Import-Module "$PSScriptRoot/ReleasePackageSigning.psm1" -Force
@@ -82,7 +86,15 @@ try {
     New-ReleaseArchive -PackageRoot $tree -ArchivePath $repacked
     $archive = [IO.Compression.ZipFile]::OpenRead($repacked)
     try {
-        if ($archive.Entries.Count -ne 6) { throw 'Repacked archive omitted files.' }
+        if ($archive.Entries.Count -ne 7) { throw 'Repacked archive omitted files.' }
+        $descriptorEntry = $archive.GetEntry("$name/descriptor/briosa.protoset")
+        if (-not $descriptorEntry) { throw 'Repacked archive omitted the descriptor set.' }
+        $descriptorStream = $descriptorEntry.Open()
+        try {
+            $copied = [IO.MemoryStream]::new()
+            $descriptorStream.CopyTo($copied)
+            if ([Convert]::ToHexString($copied.ToArray()) -cne [Convert]::ToHexString($descriptorBytes)) { throw 'Repacking changed the descriptor set.' }
+        } finally { $descriptorStream.Dispose() }
         foreach ($entry in $archive.Entries) {
             if ($entry.LastWriteTime.ToString('yyyy-MM-dd HH:mm:ss') -cne '1980-01-01 00:00:00') { throw 'Archive timestamp is not normalized.' }
         }

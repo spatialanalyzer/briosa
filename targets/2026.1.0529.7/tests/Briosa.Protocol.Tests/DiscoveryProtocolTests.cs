@@ -1,5 +1,7 @@
 using global::Briosa;
 using Google.Protobuf;
+using Google.Protobuf.Reflection;
+using Server0100 = Briosa.Protocol.Tests.Legacy.Server0100;
 
 namespace Briosa.Protocol.Tests;
 
@@ -219,6 +221,50 @@ public sealed class DiscoveryProtocolTests
         // The added fields follow the earlier ones on the wire, so an earlier
         // reader sees the same leading bytes and skips the rest as unknown fields.
         Assert.Equal(earlier.ToByteArray(), bytes.Take(earlier.CalculateSize()));
+    }
+
+    [Fact]
+    public void CapabilityMpStepIsAPlainStringThatEarlierReadersSkip()
+    {
+        Assert.Equal(14, OperationCapability.MpStepFieldNumber);
+        var field = OperationCapability.Descriptor.FindFieldByNumber(14);
+        Assert.Equal("mp_step", field.Name);
+        Assert.Equal(FieldType.String, field.FieldType);
+        Assert.False(field.IsRepeated);
+        // Every registered operation has a step, so an empty value already means
+        // "not reported" and the field needs no explicit presence.
+        Assert.False(field.HasPresence);
+
+        // A server that predates the field never writes it.
+        Assert.Empty(OperationCapability.Parser.ParseFrom(
+            new OperationCapability { OperationId = "file_operations.get_working_directory" }.ToByteArray()).MpStep);
+
+        var current = new OperationCapability
+        {
+            OperationId = "file_operations.get_working_directory",
+            GrpcService = "briosa.FileOperations",
+            Rpc = "GetWorkingDirectory",
+            FullyQualifiedMethod = "/briosa.FileOperations/GetWorkingDirectory",
+            Effect = OperationEffect.ReadOnly,
+            ReplaySafety = ReplaySafety.Safe,
+            ExecutionScope = OperationExecutionScope.GlobalStateRead,
+            Admission = OperationAdmission.Admitted,
+            RequestOptions = new OperationRequestOptions(),
+            MpStep = "Get Working Directory"
+        };
+
+        // A Server 0.10.0 reader keeps every field it knows and carries the step
+        // as an unknown field, which it writes back unchanged.
+        var old = Server0100.OperationCapability.Parser.ParseFrom(current.ToByteArray());
+        Assert.Equal(current.OperationId, old.OperationId);
+        Assert.Equal(current.GrpcService, old.GrpcService);
+        Assert.Equal(current.Rpc, old.Rpc);
+        Assert.Equal(current.FullyQualifiedMethod, old.FullyQualifiedMethod);
+        Assert.Equal(current.Effect, old.Effect);
+        Assert.Equal(current.ReplaySafety, old.ReplaySafety);
+        Assert.Equal(current.ExecutionScope, old.ExecutionScope);
+        Assert.Equal(current.Admission, old.Admission);
+        Assert.Equal(current, OperationCapability.Parser.ParseFrom(old.ToByteArray()));
     }
 
     [Fact]
