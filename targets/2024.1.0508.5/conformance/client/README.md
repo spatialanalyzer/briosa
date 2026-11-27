@@ -143,7 +143,20 @@ log still holds its events after a forced kill. The digest is also saved as
 
 The server's lifecycle records give the digest its phase timeline: when the
 endpoint started listening, each worker start sub-phase, and each lifecycle
-RPC's arrival and completion with its elapsed time. A scenario that passes
+RPC's arrival and completion with its elapsed time. The runner also turns on
+the server's Debug records of every unary call (#450), by setting
+`Logging__LogLevel__Briosa.Server.Services.UnaryCallAuditInterceptor=Debug` for
+the fixture and so for the server it starts; a caller that sets the key keeps
+its value. For each call the digest then shows `UnaryCallStarted` when it
+arrived, `UnaryCallCompleted` with the status its handler returned or threw,
+or `UnaryCallFaulted` when the handler ended without one, and
+`UnaryCallResponseEnded` with the gRPC status the server committed to the
+response, or `UnaryCallResponseAbandoned` when the response ended without one,
+as when the client resets the stream. A call is named by the endpoint it was
+routed to: `Rpc`, or `OperationId` for an MP operation.
+Discovery and state reads have no other record, so these show whether a call
+after the last lifecycle event arrived and whether it was answered. A
+scenario that passes
 prints the same phases on its result line, for example
 `Passed client conformance scenario: default-ready (fixture 5.1 s; server listening +1.2 s; worker start 1140 ms; launch 520 ms; connect 300 ms)`.
 A phase that the scenario does not reach is left out.
@@ -158,9 +171,29 @@ client waits up to 180 seconds to start the SDK, launch SpatialAnalyzer, and
 connect. Client 0.5.0 waits 120 seconds. The remaining 60 seconds is room for
 fixture setup and error reporting, so a slow start or a hang ends in the
 client's own typed startup timeout, and that error is printed before the
-runner kills the fixture. If the fixture still times out, the runner first prints the processes that are still
-alive (fixture, server, worker, and fake application), with their start times
-and CPU times, and marks any that is not a verified descendant of the fixture.
+runner kills the fixture. If the fixture still times out, the runner first prints the fixture's whole
+process tree: the process it started and every descendant, each indented under
+its parent. A launcher matters here: `tsx` starts the Node process that runs a
+JavaScript fixture, and a Python virtual environment's `python.exe` starts the
+interpreter that runs a Python one, so the process the runner started is often
+not the one that stalled. Each line gives the role (`fixture`, `server`,
+`worker`, `application` or `child`), the process ID, the executable name, the
+parent's process ID, the start time from the fixture start, the CPU time and
+its growth over a one-second sample, and the thread count with how many threads
+run, wait or are suspended. A process that waits with no CPU growth is idle;
+one whose CPU grows is busy. The runner never reads a process's command line,
+so no script name, argument, path or value from it can reach the census, and it
+never prints the environment. Processes that share an executable are told apart
+by their parent and start time: the `node.exe` that runs a fixture under `tsx`,
+for example, is the child of the `node.exe` the runner started. The census lists at most 200 processes
+and says how many more the tree holds; membership, which decides the heap
+dumps, always covers the whole tree. A package process outside the tree is
+listed after it and marked as not a verified descendant of the fixture. The
+census is also saved as `timeout-processes.txt` with the scenario's
+diagnostics. If the census fails, the runner says so and lists the launched
+fixture and the package processes instead; the scenario still fails with its
+timeout.
+
 These timeout diagnostics run in a separate copy of the runner under one
 120-second deadline that covers every step, including the process query and
 any file system work. The runner kills that copy if it overruns, and reports
@@ -173,13 +206,12 @@ diagnostics directory to also write heap dumps to `<directory>/<scenario>/dumps`
 before the kill:
 
 - Only this scenario's own processes are dumped: the fixture the runner
-  started, and a server only when its parent chain reaches that fixture. Each
+  started, and a server only when it is in the fixture's process tree. Each
   process is held open while it is checked, and the process snapshot must
   name the same process: its creation time, in UTC, must match the live
-  process at the snapshot's microsecond precision, each parent must be older
-  than its child, and the chain must end at the fixture within four steps. A
-  server it cannot verify, for example one started by another caller sharing
-  the package extraction, is reported and skipped.
+  process at the snapshot's microsecond precision, and no child may be older
+  than its parent. A server it cannot verify, for example one started by
+  another caller sharing the package extraction, is reported and skipped.
 - Nothing needs installing. The runner sends each process's .NET runtime the
   same dump request that `dotnet-dump collect` sends over the runtime's
   diagnostics channel, and the runtime writes the dump with the
@@ -253,6 +285,32 @@ and the second Connect then has about 2 seconds before the hold ends. The hold
 stays well inside the server's `StartupTimeout`, 30 seconds here, which bounds an
 accepted Connect, and its 5-second heartbeat timeout.
 
+## Client-side tracing
+
+Client-side tracing is not part of this runner, for any language (#450). A gRPC
+library's trace output and a fixture's own output share one stream, the
+fixture's stderr, and cannot be separated reliably: either writer can emit the
+same bytes. So the runner sets no gRPC library's trace switch, and it passes the
+fixture's stderr through unchanged, to the printed output, `fixture.stderr.txt`
+and the failure message.
+
+What remains at a fixture timeout answers where a stall is. The process tree
+shows which process was idle or busy, and the server's unary call records in
+the server log digest show which calls arrived and which were answered. A stall
+where the server answered every call is therefore on the client or fixture
+side; one where a call arrived and was not answered is on the server side.
+## Repeating one scenario
+
+The conformance soak workflow can repeat one scenario. It builds a soak package
+with `eng/New-ClientConformancePackage.ps1 -SoakScenario <scenario>`, whose
+runner reads that scenario from `runner/soak-scenario.json`. Of the scenarios a
+run selects, it runs only that one, then always ends with the error
+`This soak run repeated conformance scenario '<scenario>' only, so it is not compatibility evidence.`,
+even when the scenario passed, so a client's test script never records the run
+as compatibility evidence. The soak counts an iteration as passed only when the
+runner printed exactly one pass, for that scenario, and then ended with that
+error. A release or CI package has no such file, and nothing in the
+environment can narrow a run.
 ## Optional scenarios
 
 `optional_scenarios` in the contract lists scenarios that a fixture runs only

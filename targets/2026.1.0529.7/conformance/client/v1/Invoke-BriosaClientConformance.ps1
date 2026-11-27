@@ -116,6 +116,20 @@ $workerStartupTimeout = $(if ([string]::IsNullOrWhiteSpace($env:Briosa__Worker__
 $dumpOnTimeout = [string]::Equals($env:BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT, "1", $ordinal)
 # One deadline for all diagnostics taken before a timed-out fixture is killed.
 $timeoutDiagnosticsMilliseconds = 120000
+# The process tree census lists at most this many processes; membership, which decides
+# the heap dumps, always covers the whole tree.
+$processTreeDisplayLimit = 200
+
+# The server records every unary call's arrival and end at Debug (#450). It is off
+# by default; the conformance server turns it on for that one category, so a stalled
+# scenario's digest shows which calls arrived and which were answered. A caller that
+# sets the key itself keeps its value.
+$unaryCallAuditLevelKey = "Logging__LogLevel__Briosa.Server.Services.UnaryCallAuditInterceptor"
+$unaryCallAuditLevel = $(if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($unaryCallAuditLevelKey))) {
+        "Debug"
+    } else {
+        [Environment]::GetEnvironmentVariable($unaryCallAuditLevelKey)
+    })
 
 # Opt-in: append every DiagnosticCode or OperationId that a scenario's server log
 # holds but the digest vocabulary does not list to this file. The retained-client
@@ -135,6 +149,8 @@ $digestEventNames = @{
     1303 = "LifecycleRpcStarted"; 1304 = "LifecycleRpcCompleted"; 1305 = "LifecycleRpcFaulted"
     1400 = "ApplicationTransition"; 1401 = "LogSinkDegraded"; 1402 = "LaunchPreconditionSlow"
     1500 = "ReadinessNotReady"
+    1600 = "UnaryCallStarted"; 1601 = "UnaryCallCompleted"; 1602 = "UnaryCallFaulted"; 1603 = "UnaryCallResponseEnded"
+    1604 = "UnaryCallResponseAbandoned"
     2000 = "PolicyLoaded"; 2001 = "RequestStarted"; 2002 = "PolicyAllowed"; 2003 = "PolicyRejected"
     2004 = "RpcCompleted"; 2005 = "RpcFailed"
 }
@@ -196,12 +212,15 @@ try {
 catch {
     Write-Host "(the digest vocabulary is missing or invalid; diagnostic codes and operation IDs print as $digestWithheld)"
 }
+# Rpc names every server RPC that is not an MP operation; an MP operation is named by
+# its OperationId. The server tests fail when a unary RPC is missing from this list.
 $digestFields = [ordered]@{
     Rpc = @{ Allowed = (New-OrdinalSet @(
                 "StartSpatialAnalyzerSdk", "ConnectToSpatialAnalyzer", "ReconnectToSpatialAnalyzer",
                 "StopSpatialAnalyzerSdk", "RecoverSpatialAnalyzerSdk", "LaunchSpatialAnalyzer",
                 "CloseOwnedSpatialAnalyzer", "DesktopStartSdk", "DesktopConnect", "DesktopReconnect",
-                "DesktopStopSdk", "DesktopRecoverSdk")) }
+                "DesktopStopSdk", "DesktopRecoverSdk", "GetServerInfo", "ListCapabilities",
+                "GetSpatialAnalyzerSdkState", "GetSpatialAnalyzerState", "Check")) }
     GrpcStatus = @{ Allowed = (New-OrdinalSet @(
                 "OK", "Cancelled", "Unknown", "InvalidArgument", "DeadlineExceeded", "NotFound",
                 "AlreadyExists", "PermissionDenied", "ResourceExhausted", "FailedPrecondition", "Aborted",
@@ -385,14 +404,195 @@ function Get-RemainingMilliseconds {
 function Get-ProcessTable {
     param([Parameter(Mandatory)][long]$DeadlineTicks)
 
-    # One snapshot of every process's parent and creation time, for ownership checks.
+    # One snapshot of every process, for the fixture's process tree and ownership
+    # checks. The executable path identifies the package's own processes and is never
+    # printed. No command line is read, so no argument can reach the census.
     $seconds = [Math]::Max(1, [int]((Get-RemainingMilliseconds $DeadlineTicks) / 1000))
     $table = @{}
-    foreach ($entry in @(Get-CimInstance -ClassName Win32_Process -Property ProcessId, ParentProcessId, CreationDate `
-                -OperationTimeoutSec $seconds -ErrorAction Stop)) {
+    foreach ($entry in @(Get-CimInstance -ClassName Win32_Process -Property ProcessId, ParentProcessId, CreationDate,
+                Name, ExecutablePath -OperationTimeoutSec $seconds -ErrorAction Stop)) {
         $table[[int]$entry.ProcessId] = $entry
     }
     return $table
+}
+
+function Get-FixtureProcessTree {
+    param(
+        [Parameter(Mandatory)][int]$RootId,
+        [Parameter(Mandatory)][long]$RootStartTicks,
+        [Parameter(Mandatory)][hashtable]$ProcessTable
+    )
+
+    # The fixture the runner started and every process descended from it, each parent
+    # before its children, oldest child first. A child is never older than its parent,
+    # so a parent ID reused by a later process cannot adopt an unrelated one. The
+    # runner and this copy hold the fixture open, so its own ID cannot be reused. The
+    # walk visits each snapshot entry at most once, so it always ends; the display
+    # limit applies only to printing.
+    $root = $ProcessTable[$RootId]
+    if ($null -eq $root -or -not (Test-SameCreation -LiveUtcTicks $RootStartTicks -Entry $root)) {
+        throw "The fixture is not in the process snapshot."
+    }
+    $children = @{}
+    foreach ($entry in $ProcessTable.Values) {
+        $parentId = [int]$entry.ParentProcessId
+        if ($parentId -eq [int]$entry.ProcessId) {
+            continue
+        }
+        if (-not $children.ContainsKey($parentId)) {
+            $children[$parentId] = [Collections.Generic.List[object]]::new()
+        }
+        $children[$parentId].Add($entry)
+    }
+    $tree = [Collections.Generic.List[object]]::new()
+    $seen = [Collections.Generic.HashSet[int]]::new()
+    $pending = [Collections.Generic.Stack[object]]::new()
+    $pending.Push([pscustomobject]@{ Entry = $root; Depth = 0 })
+    while ($pending.Count -gt 0) {
+        $node = $pending.Pop()
+        if (-not $seen.Add([int]$node.Entry.ProcessId)) {
+            continue
+        }
+        $tree.Add($node)
+        $own = $children[[int]$node.Entry.ProcessId]
+        if ($null -eq $own) {
+            continue
+        }
+        foreach ($child in @($own | Where-Object { $_.CreationDate -ge $node.Entry.CreationDate } |
+                Sort-Object -Property CreationDate -Descending)) {
+            $pending.Push([pscustomobject]@{ Entry = $child; Depth = $node.Depth + 1 })
+        }
+    }
+    return , $tree
+}
+
+function Get-SafeProcessName {
+    param([AllowNull()][string]$Name)
+
+    return $(if ($null -ne $Name -and $Name -cmatch '\A[A-Za-z0-9 ._()+-]{1,64}\z') { $Name } else { $digestWithheld })
+}
+
+function Get-ThreadSummary {
+    param([Parameter(Mandatory)][Diagnostics.Process]$Process)
+
+    # The thread count and how many threads run, wait or are suspended.
+    $states = [ordered]@{}
+    $count = 0
+    foreach ($thread in $Process.Threads) {
+        $count++
+        $state = "other"
+        try {
+            $state = switch ([string]$thread.ThreadState) {
+                "Running" { "running" }
+                "Ready" { "ready" }
+                "Wait" { $(if ([string]$thread.WaitReason -eq "Suspended") { "suspended" } else { "waiting" }) }
+                default { "other" }
+            }
+        }
+        catch {
+        }
+        $states[$state] = 1 + [int]$states[$state]
+    }
+    $parts = @($states.GetEnumerator() | ForEach-Object { "$($_.Value) $($_.Key)" })
+    return "threads $count ($($parts -join ', '))"
+}
+
+function Get-PackageRoleForPath {
+    param([AllowNull()][string]$Path)
+
+    foreach ($role in @(@("server", $serverPath), @("worker", $workerPath), @("application", $applicationPath))) {
+        if (-not [string]::IsNullOrWhiteSpace($role[1]) -and
+            [string]::Equals($Path, $role[1], [StringComparison]::OrdinalIgnoreCase)) {
+            return $role[0]
+        }
+    }
+    return $null
+}
+
+function Write-FixtureProcessTree {
+    param(
+        [Parameter(Mandatory)][Diagnostics.Process]$Fixture,
+        [Parameter(Mandatory)][hashtable]$ProcessTable,
+        [Parameter(Mandatory)][long]$DeadlineTicks
+    )
+
+    # One line per process in the fixture's tree, indented under its parent, for at
+    # most $processTreeDisplayLimit processes: its role, process ID, executable name,
+    # parent, start time, CPU time and threads. CPU is read twice, a second apart, so a
+    # busy process shows its growth and an idle one none. Returns the process IDs of
+    # the whole tree, listed or not; a package process is checked against the
+    # snapshot again before it is treated as a member.
+    $tree = Get-FixtureProcessTree -RootId $Fixture.Id -RootStartTicks $TimeoutDiagnosticsFixtureStartTicks `
+        -ProcessTable $ProcessTable
+    $members = [Collections.Generic.HashSet[int]]::new()
+    foreach ($node in $tree) {
+        [void]$members.Add([int]$node.Entry.ProcessId)
+    }
+    $rows = [Collections.Generic.List[object]]::new()
+    foreach ($node in @($tree | Select-Object -First $processTreeDisplayLimit)) {
+        $entry = $node.Entry
+        $processId = [int]$entry.ProcessId
+        $live = $null
+        try {
+            $candidate = $(if ($processId -eq $Fixture.Id) { $Fixture } else { [Diagnostics.Process]::GetProcessById($processId) })
+            # Reading the handle keeps the process object, and so its ID, alive.
+            [void]$candidate.Handle
+            if (Test-SameCreation -LiveUtcTicks $candidate.StartTime.ToUniversalTime().Ticks -Entry $entry) {
+                $live = $candidate
+            }
+        }
+        catch {
+        }
+        $firstCpu = $null
+        if ($null -ne $live) {
+            try {
+                $firstCpu = $live.TotalProcessorTime
+            }
+            catch {
+            }
+        }
+        $role = $(if ($node.Depth -eq 0) { "fixture" } else {
+                $packageRole = Get-PackageRoleForPath $entry.ExecutablePath
+                $(if ($null -ne $packageRole) { $packageRole } else { "child" })
+            })
+        $rows.Add([pscustomobject]@{ Node = $node; Live = $live; FirstCpu = $firstCpu; Role = $role })
+    }
+    $sampleMilliseconds = [Math]::Min(1000, [Math]::Max(0, (Get-RemainingMilliseconds $DeadlineTicks) - 10000))
+    $sampleStarted = [Diagnostics.Stopwatch]::StartNew()
+    if ($sampleMilliseconds -gt 0) {
+        Start-Sleep -Milliseconds $sampleMilliseconds
+    }
+    $sampleSeconds = $sampleStarted.Elapsed.TotalSeconds
+    foreach ($row in $rows) {
+        $entry = $row.Node.Entry
+        $prefix = Format-Invariant "{0}{1} pid {2} ({3}): parent {4}, started {5}" @(
+            ("  " * $row.Node.Depth), $row.Role, $entry.ProcessId, (Get-SafeProcessName $entry.Name), $entry.ParentProcessId,
+            (Format-Offset $entry.CreationDate.ToUniversalTime().Ticks $TimeoutDiagnosticsReferenceTicks))
+        if ($null -eq $row.Live) {
+            Write-Host "$prefix, exited or unreadable"
+            continue
+        }
+        try {
+            $row.Live.Refresh()
+            if ($row.Live.HasExited) {
+                Write-Host "$prefix, exited during the census"
+                continue
+            }
+            $cpu = $row.Live.TotalProcessorTime
+            $growth = $(if ($null -ne $row.FirstCpu) {
+                    Format-Invariant " (+{0:0.00} s in {1:0.0} s)" @(($cpu - $row.FirstCpu).TotalSeconds, $sampleSeconds)
+                })
+            Write-Host (Format-Invariant "{0}, CPU {1:0.00} s{2}, {3}" @(
+                    $prefix, $cpu.TotalSeconds, $growth, (Get-ThreadSummary $row.Live)))
+        }
+        catch {
+            Write-Host "$prefix, exited or unreadable"
+        }
+    }
+    if ($tree.Count -gt $rows.Count) {
+        Write-Host "($($tree.Count - $rows.Count) more processes in the fixture's tree are not listed)"
+    }
+    return , $members
 }
 
 function Test-SameCreation {
@@ -412,48 +612,28 @@ function Test-SameCreation {
     }
 }
 
-function Test-FixtureDescendant {
+function Test-TreeMember {
     param(
-        [Parameter(Mandatory)][long]$LiveUtcTicks,
-        [Parameter(Mandatory)][int]$ProcessId,
-        [Parameter(Mandatory)][Diagnostics.Process]$Fixture,
+        [Parameter(Mandatory)][Diagnostics.Process]$Process,
+        [Parameter(Mandatory)][AllowEmptyCollection()][Collections.Generic.HashSet[int]]$Members,
         [AllowNull()][hashtable]$ProcessTable
     )
 
-    # A process belongs to this scenario when its parent chain reaches the fixture the
-    # runner started. The snapshot entry must be the same process as the live one, by
-    # creation time; each parent must be older than its child; and the chain must end
-    # at the fixture's own entry, also matched by creation time. The runner and this
-    # copy hold the fixture open, so its process ID cannot be reused meanwhile. Two
-    # callers sharing one package extraction never see each other's processes as
-    # their own.
-    if ($null -eq $ProcessTable) { return $false }
+    # A package process belongs to this scenario when it is in the fixture's process
+    # tree and is still the process the snapshot saw, by creation time. Two callers
+    # sharing one package extraction never see each other's processes as their own.
+    if ($null -eq $ProcessTable -or -not $Members.Contains($Process.Id)) {
+        return $false
+    }
     try {
-        if ($Fixture.HasExited) { return $false }
-        $current = $ProcessTable[$ProcessId]
-        if ($null -eq $current -or -not (Test-SameCreation -LiveUtcTicks $LiveUtcTicks -Entry $current)) {
-            return $false
-        }
-        $fixtureEntry = $ProcessTable[$Fixture.Id]
-        if ($null -eq $fixtureEntry -or
-            -not (Test-SameCreation -LiveUtcTicks $TimeoutDiagnosticsFixtureStartTicks -Entry $fixtureEntry)) {
-            return $false
-        }
-        for ($depth = 0; $depth -lt 4; $depth++) {
-            $parentId = [int]$current.ParentProcessId
-            $parent = $ProcessTable[$parentId]
-            if ($null -eq $parent -or $parent.CreationDate -gt $current.CreationDate) {
-                return $false
-            }
-            if ($parentId -eq $Fixture.Id) {
-                return $true
-            }
-            $current = $parent
-        }
+        [void]$Process.Handle
+        $entry = $ProcessTable[$Process.Id]
+        return $null -ne $entry -and
+            (Test-SameCreation -LiveUtcTicks $Process.StartTime.ToUniversalTime().Ticks -Entry $entry)
     }
     catch {
+        return $false
     }
-    return $false
 }
 
 function Get-PipeServerProcessId {
@@ -601,22 +781,39 @@ function Invoke-TimeoutDiagnosticsCollection {
     }
     $scenarioId = $TimeoutDiagnosticsScenario
     Write-Host "--- processes alive at the fixture timeout in $scenarioId (start times from fixture start) ---"
-    $entries = [Collections.Generic.List[object]]::new()
-    $entries.Add([pscustomobject]@{ Role = "fixture"; Process = $fixture; Package = $false; Owned = $false })
-    foreach ($process in @(Get-PackageProcesses)) {
-        $entries.Add([pscustomobject]@{ Role = (Get-PackageProcessRole $process); Process = $process; Package = $true; Owned = $false })
-    }
-    foreach ($entry in $entries) {
+    # The fixture's whole tree: for a launcher such as tsx or a Python virtual
+    # environment, the process that runs the fixture is a child of the one the runner
+    # started. A failed census is reported and never ends the diagnostics.
+    $members = [Collections.Generic.HashSet[int]]::new()
+    $treeRecorded = $false
+    if ($null -ne $processTable) {
         try {
-            # Reading the handle keeps the process object, and so its ID, alive.
+            $members = Write-FixtureProcessTree -Fixture $fixture -ProcessTable $processTable -DeadlineTicks $deadline
+            $treeRecorded = $true
+        }
+        catch {
+            Write-Host "(the fixture's process tree could not be recorded)"
+        }
+    }
+    $entries = [Collections.Generic.List[object]]::new()
+    $entries.Add([pscustomobject]@{ Role = "fixture"; Process = $fixture; Package = $false; Owned = $true })
+    foreach ($process in @(Get-PackageProcesses)) {
+        $entries.Add([pscustomobject]@{ Role = (Get-PackageProcessRole $process); Process = $process; Package = $true
+                Owned = (Test-TreeMember -Process $process -Members $members -ProcessTable $processTable) })
+    }
+    # Package processes outside the tree, or every process the runner knows of when
+    # the tree is unavailable.
+    foreach ($entry in $entries) {
+        if ($treeRecorded -and ($entry.Owned -or -not $entry.Package)) {
+            continue
+        }
+        try {
             [void]$entry.Process.Handle
             $startTicks = $entry.Process.StartTime.ToUniversalTime().Ticks
-            $entry.Owned = -not $entry.Package -or (Test-FixtureDescendant -LiveUtcTicks $startTicks `
-                    -ProcessId $entry.Process.Id -Fixture $fixture -ProcessTable $processTable)
             Write-Host (Format-Invariant "{0} pid {1}: started {2}, CPU {3:0.00} s{4}" @(
                 $entry.Role, $entry.Process.Id, (Format-Offset $startTicks $TimeoutDiagnosticsReferenceTicks),
                 $entry.Process.TotalProcessorTime.TotalSeconds,
-                $(if (-not $entry.Owned) { ", not a verified descendant of the fixture" })))
+                $(if ($entry.Package) { ", not a verified descendant of the fixture" })))
         }
         catch {
             Write-Host "$($entry.Role) pid $($entry.Process.Id): exited or unreadable"
@@ -677,12 +874,14 @@ function Invoke-TimeoutDiagnostics {
     param(
         [Parameter(Mandatory)][string]$ScenarioId,
         [Parameter(Mandatory)][Diagnostics.Process]$Fixture,
-        [Parameter(Mandatory)][hashtable]$Timing
+        [Parameter(Mandatory)][hashtable]$Timing,
+        [Parameter(Mandatory)][string]$ScenarioRoot
     )
 
     # The runner side. Every step before the kill, including the process query and the
     # file system work, runs in a child copy of this script, which is killed at the
-    # deadline. The runner keeps its own handle to the fixture meanwhile.
+    # deadline. The runner keeps its own handle to the fixture meanwhile. The printed
+    # lines are also kept with the scenario's diagnostics, as timeout-processes.txt.
     $deadlineTicks = [DateTime]::UtcNow.AddMilliseconds($timeoutDiagnosticsMilliseconds).Ticks
     # The copy stops its own work a few seconds earlier, so it can still report why.
     $collectionDeadlineTicks = $deadlineTicks - 5 * [TimeSpan]::TicksPerSecond
@@ -727,19 +926,30 @@ function Invoke-TimeoutDiagnostics {
             }
         }
         [void][Threading.Tasks.Task]::WaitAll(@($outputTask, $errorTask), 5000)
+        $printed = [Collections.Generic.List[string]]::new()
         if ($outputTask.IsCompletedSuccessfully) {
             foreach ($line in ($outputTask.Result -split "\r?\n")) {
                 if (-not [string]::IsNullOrEmpty($line)) {
-                    Write-Host $line
+                    $printed.Add((Get-SafeText $line))
                 }
             }
         }
         if (-not $finished) {
-            Write-Host "(the timeout diagnostics stopped at the $($timeoutDiagnosticsMilliseconds / 1000)-second deadline)"
+            $printed.Add("(the timeout diagnostics stopped at the $($timeoutDiagnosticsMilliseconds / 1000)-second deadline)")
         }
         elseif ($collector.ExitCode -ne 0 -or ($errorTask.IsCompletedSuccessfully -and
                 -not [string]::IsNullOrWhiteSpace($errorTask.Result))) {
-            Write-Host "(the timeout diagnostics ended with an error)"
+            $printed.Add("(the timeout diagnostics ended with an error)")
+        }
+        foreach ($line in $printed) {
+            Write-Host $line
+        }
+        try {
+            [IO.File]::WriteAllLines((Join-Path $ScenarioRoot "timeout-processes.txt"), [string[]]$printed.ToArray(),
+                [Text.UTF8Encoding]::new($false))
+        }
+        catch {
+            Write-Host "(the processes alive at the fixture timeout could not be saved)"
         }
     }
     finally {
@@ -1647,7 +1857,8 @@ function Invoke-Fixture {
             # client-owned server and its worker. The kill and the cleanup run
             # whether or not these diagnostics succeed, and a failed kill is reported.
             try {
-                Invoke-TimeoutDiagnostics -ScenarioId ([string]$ScenarioDefinition.id) -Fixture $process -Timing $Timing
+                Invoke-TimeoutDiagnostics -ScenarioId ([string]$ScenarioDefinition.id) -Fixture $process -Timing $Timing `
+                    -ScenarioRoot $ScenarioRoot
             }
             catch {
                 Write-Host "(the processes alive at the fixture timeout could not be recorded)"
@@ -1739,6 +1950,27 @@ foreach ($requested in $requestedOptional) {
 }
 $selectedScenarios += @($optionalDefinitions | Where-Object { $_.id -in $requestedOptional })
 
+# A soak package, built only by the conformance soak workflow (#450), names one
+# scenario in runner/soak-scenario.json. Of the scenarios this run selected, it runs
+# only that one, then always ends with an error, even when the scenario passed, so a
+# client's test script never records the run as compatibility evidence. A release or
+# CI package has no such file, and nothing in the environment can narrow a run.
+$soakScenario = $null
+$soakPath = Join-Path $PSScriptRoot "soak-scenario.json"
+if (Test-Path -LiteralPath $soakPath) {
+    $soak = Get-Content -LiteralPath $soakPath -Raw | ConvertFrom-Json
+    if ($soak.schema_version -ne 1 -or $soak.scenario -isnot [string] -or
+        $soak.scenario -cnotmatch '\A[a-z0-9]+(?:-[a-z0-9]+)*\z') {
+        throw "The soak package's scenario file is invalid."
+    }
+    $selectedScenarios = @($selectedScenarios | Where-Object { [string]::Equals([string]$_.id, $soak.scenario, $ordinal) })
+    if ($selectedScenarios.Count -ne 1) {
+        throw "The soak package names a scenario that this run did not select."
+    }
+    $soakScenario = [string]$selectedScenarios[0].id
+    Write-Host "Running only conformance scenario '$soakScenario': this soak package repeats one scenario, and its runs are not compatibility evidence."
+}
+
 [IO.Directory]::CreateDirectory($temporaryRoot) | Out-Null
 try {
     foreach ($scenarioDefinition in $selectedScenarios) {
@@ -1775,6 +2007,7 @@ try {
             "Briosa__SpatialAnalyzer__Identity__ConnectedSpatialAnalyzer__OperatorAttestation__Reference" = "portable-conformance-host"
             # Keep the server's log files with this scenario's diagnostics.
             "Briosa__Logging__File__Directory" = (Join-Path $scenarioRoot "server-logs")
+            $unaryCallAuditLevelKey = $unaryCallAuditLevel
         }
         $scenarioFailure = $null
         try {
@@ -1885,6 +2118,9 @@ try {
 
         $phaseSummary = Get-ScenarioPhaseSummary -ScenarioRoot $scenarioRoot -Timing $timing
         Write-Host "Passed client conformance scenario: $($scenarioDefinition.id)$(if ($phaseSummary) { " ($phaseSummary)" })"
+    }
+    if ($null -ne $soakScenario) {
+        throw "This soak run repeated conformance scenario '$soakScenario' only, so it is not compatibility evidence."
     }
 }
 finally {

@@ -87,6 +87,9 @@ ServerInstanceId, SpatialAnalyzerTarget, and applicable event metadata.
 | 1400 | ApplicationTransition | Information; Warning for faulted application |
 | 1401 | LogSinkDegraded | Warning |
 | 1402 | LaunchPreconditionSlow (Phase, ElapsedMilliseconds) | Warning |
+| 1600 | UnaryCallStarted (Rpc or OperationId) | Debug |
+| 1601 / 1602 | UnaryCallCompleted (Rpc or OperationId, GrpcStatus, ElapsedMilliseconds) / UnaryCallFaulted (Rpc or OperationId, ElapsedMilliseconds) | Debug |
+| 1603 / 1604 | UnaryCallResponseEnded (Rpc or OperationId, GrpcStatus, ElapsedMilliseconds) / UnaryCallResponseAbandoned (Rpc or OperationId, ElapsedMilliseconds) | Debug |
 | 2000 | PolicyLoaded | Information |
 | 2001 / 2002 | RequestStarted / PolicyAllowed | Debug |
 | 2003 | PolicyRejected | Warning |
@@ -122,8 +125,8 @@ be placed from the log alone:
   Reconnect, Stop, Recover, Launch, and Close) records its arrival
   (LifecycleRpcStarted) and exactly one exit: LifecycleRpcCompleted,
   LifecycleRejected, or, for an exception without a typed lifecycle detail,
-  LifecycleRpcFaulted. The state queries are not recorded, so polling does not
-  fill the log.
+  LifecycleRpcFaulted. The state queries are not recorded at Information, so
+  polling does not fill the log; the Debug call records below cover them.
 - LaunchPreconditionSlow warns when a launch precondition step takes more than
   2 seconds. The steps run on the request thread before the launch is
   accepted: `process-scan` (the eligible-process scan) and
@@ -131,14 +134,62 @@ be placed from the log alone:
   checks). A launch whose arrival is recorded but whose ApplicationTransition
   to `spatial-analyzer-starting` never follows stalled in these steps.
 
+When the Debug level is enabled for the
+`Briosa.Server.Services.UnaryCallAuditInterceptor` category at startup, every
+unary call, including discovery, state reads, health checks and MP operations,
+passes one gRPC interceptor that records it (#450):
+
+- UnaryCallStarted when it arrives;
+- UnaryCallCompleted when its handler returns, with the status the handler
+  assigned (OK unless it set another) or the status of the `RpcException` it
+  threw, or UnaryCallFaulted when the handler ends without a status, for
+  example with an unexpected exception or when a deadline or cancellation
+  unwinds it;
+- UnaryCallResponseEnded with the gRPC status the server committed to the
+  response, from its trailers or the headers of a trailers-only response, or
+  UnaryCallResponseAbandoned when the response ended without one, for example
+  when the client reset the stream.
+
+A call ended by a deadline is recorded as UnaryCallFaulted (1602) followed by
+either UnaryCallResponseEnded (1603) with `DeadlineExceeded` or
+UnaryCallResponseAbandoned (1604), depending on whether the server or the client
+ends the stream first. A client and the server usually share one deadline, so
+either can happen.
+
+The response records come from the end of the server's response processing.
+They show what the server committed, not that the client received it. A call
+whose handler returned but whose response never ended stalled in the server's
+transport, not in its handler. A call is named by the endpoint gRPC routed it
+to: by `OperationId` for an MP operation, otherwise by `Rpc`, the method's name
+in the server's protocol descriptors. The caller's spelling of the request path,
+the request, the response, status messages and metadata are never recorded.
+
+Enable the records with
+`--Logging:LogLevel:Briosa.Server.Services.UnaryCallAuditInterceptor=Debug`, or
+the environment variable
+`Logging__LogLevel__Briosa.Server.Services.UnaryCallAuditInterceptor=Debug`. gRPC
+reads its interceptors once, as it builds its endpoints at startup, so the
+setting takes effect only when the server starts; like the other logging
+settings, a change needs a restart. A server run with a broad Debug or Trace
+default log level, such as `Logging:LogLevel:Default=Debug` or Debug for the
+`Briosa.Server` category, turns these call records on without naming their
+category, and a level change takes effect only after a restart. The longest
+matching category applies, so a setting above Debug for
+`Briosa.Server.Services.UnaryCallAuditInterceptor` keeps them off. At the default
+level the interceptor is not registered with gRPC at all, and gRPC builds the
+same call path as without it.
+With the records on, each call adds three records of about 500 bytes, which
+matters for a client that polls state. The client conformance runner turns them
+on for its scenarios.
 These timing records are best effort. A clock or logger failure loses the record
 and nothing else: it cannot skip a worker's cleanup, replace an RPC's response,
 or hide the exception that ended a call. As in the worker supervisor, an
 `OutOfMemoryException` is not contained. `ElapsedMilliseconds` is `-1` when the
 time could not be measured. EndpointListening, WorkerStartPhase,
-LifecycleRpcStarted, LifecycleRpcCompleted, LifecycleRpcFaulted and
-LaunchPreconditionSlow carry only fixed names, enum values and numbers;
-LifecycleRejected also carries the lifecycle error's diagnostic code.
+LifecycleRpcStarted, LifecycleRpcCompleted, LifecycleRpcFaulted,
+LaunchPreconditionSlow and the unary call records carry only fixed names,
+operation IDs, enum values and numbers; LifecycleRejected also carries the
+lifecycle error's diagnostic code.
 
 The metadata boundary discards raw messages, exceptions and ambient scopes from
 framework logs, preserving their category, ID, severity and a FrameworkEvent

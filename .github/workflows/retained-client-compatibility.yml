@@ -8,6 +8,19 @@ on:
       allow-source-candidates:
         default: false
         type: boolean
+      # The soak run (conformance-soak.yml) repeats one job of this plan with every
+      # diagnostic on (#450). Zero, the default, is the gate.
+      soak-iterations:
+        default: 0
+        type: number
+      # language/target/version of the one job a soak run repeats.
+      soak-client:
+        default: ''
+        type: string
+      # One scenario a soak run repeats, or empty for every scenario of the job.
+      soak-scenario:
+        default: ''
+        type: string
 permissions:
   contents: read
 jobs:
@@ -22,9 +35,18 @@ jobs:
         env:
           SERVER_VERSION: ${{ inputs.server-version }}
           ALLOW_SOURCE_CANDIDATES: ${{ inputs.allow-source-candidates }}
+          SOAK_ITERATIONS: ${{ inputs.soak-iterations }}
+          SOAK_CLIENT: ${{ inputs.soak-client }}
+          SOAK_SCENARIO: ${{ inputs.soak-scenario }}
         run: |
           Import-Module ./eng/RetainedClientPolicy.psm1
           $plan = Get-RetainedClientMatrix -Path compatibility/retained-clients.json -ServerVersion $env:SERVER_VERSION -AllowSourceCandidates:($env:ALLOW_SOURCE_CANDIDATES -eq 'true')
+          if ([int]$env:SOAK_ITERATIONS -ne 0) {
+            $plan = Get-RetainedClientSoakMatrix -Plan $plan -Client $env:SOAK_CLIENT -Iterations ([int]$env:SOAK_ITERATIONS) -Scenario $env:SOAK_SCENARIO
+          }
+          elseif ($env:SOAK_CLIENT -or $env:SOAK_SCENARIO) {
+            throw 'A soak client or scenario needs soak iterations.'
+          }
           "matrix=$(@{ include = @($plan.include) } | ConvertTo-Json -Depth 8 -Compress)" >> $env:GITHUB_OUTPUT
   conformance:
     needs: policy
@@ -90,6 +112,7 @@ jobs:
             default { throw 'Unknown client language.' }
           }
       - name: Verify and exercise package
+        id: verify
         shell: pwsh
         env:
           CLIENT_URL: ${{ matrix.url }}
@@ -111,6 +134,12 @@ jobs:
           # IDs that the digest vocabulary does not list, the runner appends the
           # scenario, the property and a count, never the value.
           BRIOSA_CONFORMANCE_DIGEST_AUDIT: ${{ github.workspace }}/conformance-digest-audit.txt
+          # A soak run also takes heap dumps of the .NET processes at a fixture
+          # timeout; the gate leaves them off. A soak of one scenario runs a soak
+          # package, whose runner repeats that scenario only and ends every run with
+          # an error, so no compatibility evidence is written.
+          BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT: ${{ inputs.soak-iterations > 0 && '1' || '' }}
+          SOAK_SCENARIO: ${{ inputs.soak-iterations > 0 && inputs.soak-scenario || '' }}
         run: |
           Import-Module ./eng/RetainedClientPolicy.psm1
           if ($env:CLIENT_PUBLISHED -eq 'true') {
@@ -161,11 +190,23 @@ jobs:
           # large-result. A rejection lists none.
           try {
             $runnerOutput = [Collections.Generic.List[string]]::new()
-            & ./eng/Test-PublishedClientConformance.ps1 @arguments 6>&1 | ForEach-Object {
-              $runnerOutput.Add([string]$_)
-              $_
+            $soakEnd = $null
+            try {
+              & ./eng/Test-PublishedClientConformance.ps1 @arguments 6>&1 | ForEach-Object {
+                $runnerOutput.Add([string]$_)
+                $_
+              }
             }
-            Assert-OptionalScenarioPasses -RequiredScenarioJson $env:REQUIRED_OPTIONAL_SCENARIOS -RunnerOutput $runnerOutput.ToArray() -ClientVersion $env:CLIENT_VERSION -ExpectIncompatible $arguments.ExpectIncompatible
+            catch {
+              if ([string]::IsNullOrEmpty($env:SOAK_SCENARIO)) { throw }
+              $soakEnd = "$_"
+            }
+            if ([string]::IsNullOrEmpty($env:SOAK_SCENARIO)) {
+              Assert-OptionalScenarioPasses -RequiredScenarioJson $env:REQUIRED_OPTIONAL_SCENARIOS -RunnerOutput $runnerOutput.ToArray() -ClientVersion $env:CLIENT_VERSION -ExpectIncompatible $arguments.ExpectIncompatible
+            }
+            else {
+              Assert-SoakScenarioPass -Scenario $env:SOAK_SCENARIO -RunnerOutput $runnerOutput.ToArray() -RunEnd $soakEnd
+            }
           }
           finally { Pop-Location }
       - name: Check the conformance digest vocabulary
@@ -184,7 +225,9 @@ jobs:
               'Review each missing value and add it to the vocabulary in both targets. If a producer writes sensitive data into DiagnosticCode ' +
               'or OperationId, correct the producer instead.')
           }
+      # A soak run is not compatibility evidence.
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: inputs.soak-iterations == 0
         with:
           name: compatibility-${{ matrix.language }}-${{ matrix.target }}-${{ matrix.version }}
           path: compatibility-evidence.json
@@ -193,12 +236,43 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: failure()
         with:
-          name: conformance-diagnostics-${{ matrix.language }}-${{ matrix.target }}-${{ matrix.version }}
+          name: conformance-diagnostics-${{ matrix.language }}-${{ matrix.target }}-${{ matrix.version }}${{ matrix.iteration && format('-iteration-{0}', matrix.iteration) || '' }}
           path: conformance-diagnostics
           if-no-files-found: ignore
           retention-days: 14
+      # The job's status so far covers every step before this one, the vocabulary
+      # check included.
+      - name: Record the soak iteration
+        if: always() && inputs.soak-iterations > 0
+        shell: pwsh
+        env:
+          ITERATION: ${{ matrix.iteration }}
+          STATUS: ${{ job.status }}
+          VERIFY: ${{ steps.verify.outcome }}
+        run: |
+          # Each failing scenario's diagnostics are in a directory named after it; a
+          # timeout also left the census of the fixture's process tree.
+          $diagnostics = Join-Path $env:GITHUB_WORKSPACE 'conformance-diagnostics'
+          $failed = @(if (Test-Path -LiteralPath $diagnostics) {
+              Get-ChildItem -LiteralPath $diagnostics -Directory | Sort-Object Name | ForEach-Object {
+                [ordered]@{ scenario = $_.Name; timedOut = Test-Path -LiteralPath (Join-Path $_.FullName 'timeout-processes.txt') }
+              }
+            })
+          $result = [ordered]@{ iteration = [int]$env:ITERATION; status = $env:STATUS; verify = $env:VERIFY; failed = $failed }
+          $result | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $env:GITHUB_WORKSPACE 'soak-result.json') -Encoding utf8
+          $scenarios = ($failed | ForEach-Object { "$($_.scenario)$(if ($_.timedOut) { ' (timed out)' })" }) -join ', '
+          "Iteration $($env:ITERATION): $($env:STATUS) (verification $($env:VERIFY))$(if ($scenarios) { ", failed: $scenarios" })" >> $env:GITHUB_STEP_SUMMARY
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always() && inputs.soak-iterations > 0
+        with:
+          name: soak-result-${{ matrix.iteration }}
+          path: soak-result.json
+          if-no-files-found: error
+          retention-days: 14
   gate:
-    needs: [policy, conformance]
+    needs:
+      - policy
+      - conformance
     if: always()
     runs-on: windows-latest
     steps:

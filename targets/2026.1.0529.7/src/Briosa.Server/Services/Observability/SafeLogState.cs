@@ -33,7 +33,7 @@ internal sealed class SafeLogState : IReadOnlyList<KeyValuePair<string, object?>
     {
         var trusted = category.StartsWith("Briosa.Server.", StringComparison.Ordinal) &&
             eventId.Id is 1000 or 1001 or 1201 or 1202 or 1203 or 1300 or 1301 or 1302 or 1303 or 1304 or 1305 or 1400 or 1401 or 1402 or 1500 or
-                2000 or 2001 or 2002 or 2003 or 2004 or 2005;
+                1600 or 1601 or 1602 or 1603 or 1604 or 2000 or 2001 or 2002 or 2003 or 2004 or 2005;
         var name = trusted ? eventId.Id switch
         {
             1000 => "ControlPlaneReady",
@@ -51,6 +51,11 @@ internal sealed class SafeLogState : IReadOnlyList<KeyValuePair<string, object?>
             1401 => "LogSinkDegraded",
             1402 => "LaunchPreconditionSlow",
             1500 => "ReadinessNotReady",
+            1600 => "UnaryCallStarted",
+            1601 => "UnaryCallCompleted",
+            1602 => "UnaryCallFaulted",
+            1603 => "UnaryCallResponseEnded",
+            1604 => "UnaryCallResponseAbandoned",
             2000 => "PolicyLoaded",
             2001 => "RequestStarted",
             2002 => "PolicyAllowed",

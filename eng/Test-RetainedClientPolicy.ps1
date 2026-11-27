@@ -307,7 +307,62 @@ try {
         Assert-GateRejected $job @() "The retained-client plan for accepted client $($job.version) must require large-result." -Json '[]'
         Assert-GateRejected $job @() "Client $($job.version) must pass large-result exactly once."
     }
-    Write-Host "Verified the #250 support window, retired-client identities, per-entry fixture pins, fixture optional scenarios, the large-result floor and its gate, compatible coverage, the published-client release gate, and the $($expectedJobs.Count) jobs the committed inventory plans for Server 0.10.1."
+    # #450: a soak run repeats one accepted job of the committed plan, unchanged, once per
+    # iteration, optionally narrowed to one scenario that the job runs.
+    $soakSource = @($committed.include | Where-Object { $_.language -ceq 'js' -and $_.target -ceq '2024.1.0508.5' -and $_.version -ceq '0.5.1' })
+    $soak = Get-RetainedClientSoakMatrix -Plan $committed -Client 'js/2024.1.0508.5/0.5.1' -Iterations 3 -Scenario 'capability-denied' -RepositoryRoot $repositoryRoot
+    if ($soakSource.Count -ne 1 -or $soak.include.Count -ne 3 -or (@($soak.include | ForEach-Object { $_.iteration }) -join ',') -cne '1,2,3' -or
+        @($soak.include | Where-Object { $_.soakScenario -cne 'capability-denied' }).Count -ne 0 -or
+        @($soak.include | Where-Object {
+                $item = $_
+                @($soakSource[0].Keys | Where-Object {
+                        (ConvertTo-Json -InputObject $item[$_] -Compress -Depth 8) -cne (ConvertTo-Json -InputObject $soakSource[0][$_] -Compress -Depth 8)
+                    }).Count -ne 0 }).Count -ne 0) {
+        throw 'A soak plan must repeat the committed job unchanged, once per iteration.'
+    }
+    $whole = Get-RetainedClientSoakMatrix -Plan $committed -Client 'py/2026.1.0529.7/0.5.1' -Iterations 50 -RepositoryRoot $repositoryRoot
+    $optional = Get-RetainedClientSoakMatrix -Plan $committed -Client 'dotnet/2024.1.0508.5/0.5.0' -Iterations 1 -Scenario 'large-result' -RepositoryRoot $repositoryRoot
+    if ($whole.include.Count -ne 50 -or @($whole.include | Where-Object { $_.soakScenario -cne '' }).Count -ne 0 -or $optional.include.Count -ne 1) {
+        throw 'A soak plan must run every scenario of the job, or an optional scenario its fixture requests.'
+    }
+    foreach ($case in @(
+            @{ Client = 'js/2024.1.0508.5/0.5.1'; Iterations = 0; Message = 'A soak run takes 1 to 50 iterations.' },
+            @{ Client = 'js/2024.1.0508.5/0.5.1'; Iterations = 51; Message = 'A soak run takes 1 to 50 iterations.' },
+            @{ Client = 'js/2024.1.0508.5'; Iterations = 1; Message = 'A soak run names one client as language/target/version.' },
+            @{ Client = 'js/2024.1.0508.5/9.9.9'; Iterations = 1; Message = 'The retained-client plan has no job for client js/2024.1.0508.5/9.9.9.' },
+            @{ Client = 'js/2024.1.0508.5/0.4.0'; Iterations = 1; Message = 'A soak run repeats an accepted client; the gate expects js/2024.1.0508.5/0.4.0 to be rejected.' },
+            @{ Client = 'js/2024.1.0508.5/0.5.1'; Iterations = 1; Scenario = 'no-such-scenario'; Message = 'A soak run of js/2024.1.0508.5/0.5.1 can repeat only a scenario its job runs.' },
+            @{ Client = 'js/2024.1.0508.5/0.5.1'; Iterations = 1; Scenario = 'Capability-Denied'; Message = 'A soak run of js/2024.1.0508.5/0.5.1 can repeat only a scenario its job runs.' })) {
+        $failure = $null
+        try {
+            Get-RetainedClientSoakMatrix -Plan $committed -Client $case.Client -Iterations $case.Iterations `
+                -Scenario $(if ($case.ContainsKey('Scenario')) { $case.Scenario } else { '' }) -RepositoryRoot $repositoryRoot | Out-Null
+        }
+        catch { $failure = $_.Exception.Message }
+        if ($failure -cne $case.Message) { throw "Expected the soak rejection '$($case.Message)', got '$failure'." }
+    }
+    # A soak of one scenario passes only with one validated pass of it and the soak package's
+    # own end, so a run that reported more, or that ended normally and could have written
+    # evidence, fails.
+    $soakEnd = "This soak run repeated conformance scenario 'capability-denied' only, so it is not compatibility evidence."
+    Assert-SoakScenarioPass -Scenario 'capability-denied' -RunEnd $soakEnd `
+        -RunnerOutput @('Running only conformance scenario', 'Passed client conformance scenario: capability-denied (fixture 3.6 s)')
+    foreach ($case in @(
+            @{ Output = @(); End = $soakEnd; Message = 'A soak of capability-denied must pass exactly that one scenario; the runner passed 0.' },
+            @{ Output = @('Passed client conformance scenario: capability-denied (fixture 3.6 s)', 'Passed client conformance scenario: default-ready (fixture 1.0 s)')
+                End = $soakEnd; Message = 'A soak of capability-denied must pass exactly that one scenario; the runner passed 2.' },
+            @{ Output = @('Passed client conformance scenario: default-ready (fixture 1.0 s)'); End = $soakEnd
+                Message = 'A soak of capability-denied must pass exactly that one scenario; the runner passed 1.' },
+            @{ Output = @('Passed client conformance scenario: capability-denied (fixture 3.6 s)'); End = $null
+                Message = 'A soak of capability-denied must end with the soak package''s own error, not: ' },
+            @{ Output = @('Passed client conformance scenario: capability-denied (fixture 3.6 s)'); End = 'The client fixture timed out.'
+                Message = 'A soak of capability-denied must end with the soak package''s own error, not: The client fixture timed out.' })) {
+        $failure = $null
+        try { Assert-SoakScenarioPass -Scenario 'capability-denied' -RunnerOutput $case.Output -RunEnd $case.End }
+        catch { $failure = $_.Exception.Message }
+        if ($failure -cne $case.Message) { throw "Expected the soak check '$($case.Message)', got '$failure'." }
+    }
+    Write-Host "Verified the #250 support window, retired-client identities, per-entry fixture pins, fixture optional scenarios, the large-result floor and its gate, compatible coverage, the published-client release gate, the $($expectedJobs.Count) jobs the committed inventory plans for Server 0.10.1, and the soak plan."
 }
 finally {
     $resolved = [IO.Path]::GetFullPath($temporary)

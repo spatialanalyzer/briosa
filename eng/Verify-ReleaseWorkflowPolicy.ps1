@@ -183,7 +183,122 @@ if ($publish.Text -notmatch ':refs/tags/\$tag' -or $publish.Text -notmatch 'Re-r
     throw "The release.yml publish job must write the maintainer's recovery for the signed commit when the draft release is refused."
 }
 
+# The conformance soak (#450) is dispatched by hand and repeats the retained-client gate's
+# own jobs. It may call only that reusable workflow, which runs only when called, and
+# neither may use secrets, an environment, a write permission or an OIDC token, so a soak
+# can never reach a release, signing or registry job. Both files are read as parsed YAML
+# in the plain block subset WorkflowYaml.psm1 accepts. A construct outside it fails the
+# check, with its file and line, before any rule below runs, so no spelling of a
+# permission, a call or a secret escapes them.
+Import-Module (Join-Path $PSScriptRoot 'WorkflowYaml.psm1') -Force
+
+function Test-ReadOnlyPermissions([object]$Permissions, [switch]$Required) {
+    # Only a mapping of scopes to read or none; a scalar such as write-all, read-all or
+    # an empty value is not accepted.
+    if ($null -eq $Permissions) { return -not $Required }
+    if ($Permissions -isnot [Collections.Specialized.OrderedDictionary] -or $Permissions.Count -eq 0) { return $false }
+    foreach ($entry in $Permissions.GetEnumerator()) {
+        if ($entry.Value -isnot [string] -or $entry.Value -cnotin @('read', 'none') -or
+            ($entry.Key -ceq 'id-token' -and $entry.Value -cne 'none')) {
+            return $false
+        }
+    }
+    $true
+}
+
+function Get-ExpressionTexts([object]$Node, [switch]$Condition) {
+    # The text of every expression in the parsed workflow: each ${{ }} in a scalar, up to
+    # its closing braces outside a string literal or to the end of the scalar, and the
+    # whole value of an if condition, which Actions evaluates without the braces.
+    if ($Node -is [string]) {
+        if ($Condition) { return , $Node }
+        $index = 0
+        while (($start = $Node.IndexOf('${{', $index, [StringComparison]::Ordinal)) -ge 0) {
+            $position = $start + 3
+            $quoted = $false
+            while ($position -lt $Node.Length) {
+                if ($Node[$position] -eq "'") { $quoted = -not $quoted }
+                elseif (-not $quoted -and $Node[$position] -eq '}' -and $position + 1 -lt $Node.Length -and $Node[$position + 1] -eq '}') { break }
+                $position++
+            }
+            $Node.Substring($start + 3, $position - $start - 3)
+            $index = $position + 2
+        }
+        return
+    }
+    if ($Node -is [Collections.Specialized.OrderedDictionary]) {
+        foreach ($entry in $Node.GetEnumerator()) { Get-ExpressionTexts $entry.Value -Condition:($entry.Key -eq 'if') }
+        return
+    }
+    if ($Node -is [Collections.IEnumerable]) { foreach ($item in $Node) { Get-ExpressionTexts $item } }
+}
+
+function Get-ReusableWorkflowFindings([string]$Name, [string[]]$Triggers, [string[]]$AllowedCalls) {
+    # The ways a workflow could reach credentials or another workflow, as messages.
+    $findings = [Collections.Generic.List[string]]::new()
+    try {
+        $yaml = ConvertFrom-WorkflowYaml -Path (Join-Path $resolvedDirectory $Name)
+    }
+    catch {
+        $findings.Add("it uses a YAML form the policy does not read ($($_.Exception.Message))")
+        return , $findings
+    }
+    foreach ($key in $yaml.Keys) {
+        if ($key -cnotin @('name', 'run-name', 'on', 'permissions', 'concurrency', 'env', 'jobs')) { $findings.Add("it has a top-level '$key'") }
+    }
+    $on = $yaml['on']
+    if ($on -isnot [Collections.Specialized.OrderedDictionary] -or (@($on.Keys) -join ',') -cne ($Triggers -join ',')) {
+        $findings.Add("its triggers are not exactly $($Triggers -join ', ')")
+    }
+    elseif ($on[$Triggers[0]] -is [Collections.Specialized.OrderedDictionary] -and $on[$Triggers[0]].Contains('secrets')) {
+        $findings.Add('it declares secrets')
+    }
+    if (-not (Test-ReadOnlyPermissions $yaml['permissions'] -Required)) { $findings.Add('its workflow permissions are not a read-only mapping') }
+    $calls = [Collections.Generic.List[string]]::new()
+    $jobs = $yaml['jobs']
+    if ($jobs -isnot [Collections.Specialized.OrderedDictionary] -or $jobs.Count -eq 0) {
+        $findings.Add('it has no jobs mapping')
+        $jobs = [ordered]@{}
+    }
+    foreach ($entry in $jobs.GetEnumerator()) {
+        $job = $entry.Value
+        if ($job -isnot [Collections.Specialized.OrderedDictionary]) { $findings.Add("job '$($entry.Key)' is not a mapping"); continue }
+        if ($job.Contains('permissions') -and -not (Test-ReadOnlyPermissions $job['permissions'] -Required)) {
+            $findings.Add("job '$($entry.Key)' asks for more than read permissions")
+        }
+        foreach ($forbidden in @('environment', 'secrets')) {
+            if ($job.Contains($forbidden)) { $findings.Add("job '$($entry.Key)' has $forbidden") }
+        }
+        if ($job.Contains('uses')) { $calls.Add([string]$job['uses']) }
+        foreach ($step in @(if ($job['steps'] -is [Collections.IEnumerable] -and $job['steps'] -isnot [string]) { $job['steps'] })) {
+            if ($step -is [Collections.Specialized.OrderedDictionary] -and $step['uses'] -is [string] -and
+                $step['uses'].Contains('.github/workflows/', [StringComparison]::OrdinalIgnoreCase)) {
+                $findings.Add("a step of job '$($entry.Key)' calls a workflow")
+            }
+        }
+    }
+    if ((@($calls) -join ',') -cne ($AllowedCalls -join ',')) {
+        $findings.Add("its workflow calls are not exactly $(if ($AllowedCalls.Count) { $AllowedCalls -join ', ' } else { 'none' })")
+    }
+    # Actions resolves context names without regard to case, so the name is matched the
+    # same way, anywhere in an expression, string literals included.
+    if (@(Get-ExpressionTexts $yaml | Where-Object { $_ -match '(?i)\bsecrets\b' }).Count -gt 0) {
+        $findings.Add('an expression refers to secrets')
+    }
+    , $findings
+}
+
+$soakFindings = Get-ReusableWorkflowFindings 'conformance-soak.yml' @('workflow_dispatch') @('./.github/workflows/retained-client-compatibility.yml')
+if ($soakFindings.Count -gt 0) {
+    throw "conformance-soak.yml must run only from workflow_dispatch, call only retained-client-compatibility.yml, and use no secrets, environment, write permissions or OIDC token: $($soakFindings -join '; ')."
+}
+$gateFindings = Get-ReusableWorkflowFindings 'retained-client-compatibility.yml' @('workflow_call') @()
+if ($gateFindings.Count -gt 0) {
+    throw "retained-client-compatibility.yml must run only when called, call no other workflow, and use no secrets, environment, write permissions or OIDC token: $($gateFindings -join '; ')."
+}
+
 Write-Host (
     'Release workflows never run on tag pushes, name environments only in reviewed jobs, ' +
     'limit signing to main or a release line, keep R2 credentials in the R2 environment, ' +
-    'and leave tag creation to the published draft release.')
+    'and leave tag creation to the published draft release. The conformance soak runs only ' +
+    'by dispatch and only the retained-client gate''s jobs, without secrets or write permissions.')
