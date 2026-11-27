@@ -120,47 +120,35 @@ $timeoutDiagnosticsMilliseconds = 120000
 # the heap dumps, always covers the whole tree.
 $processTreeDisplayLimit = 200
 
-# Opt-in client-side gRPC tracing for one fixture language, through the switches its
-# gRPC library reads from the environment: js (@grpc/grpc-js), py (grpcio) or dotnet
-# (Grpc.Net.Client through an EventPipe file). The fixture is unchanged. A rejected
-# scenario keeps the trace with its diagnostics; a passing one discards it. Tracing
-# adds log volume and some time to each call, so the ordinary gate leaves it off.
-# Tracing is diagnostics only: a trace that cannot be set up, split or saved is
-# reported and never changes a scenario's result or replaces its error.
-$clientTraceLanguages = @("js", "py", "dotnet")
+# Opt-in client-side gRPC tracing for a JavaScript fixture, through the switches
+# @grpc/grpc-js reads from the environment; the fixture is unchanged. Python and .NET
+# client tracing are not offered: their trace output could not be reduced to names and
+# statuses reliably. A rejected scenario keeps the trace with its diagnostics; a passing
+# one discards it. Tracing adds log volume and some time to each call, so the ordinary
+# gate leaves it off. Tracing is diagnostics only: a trace that cannot be split or
+# saved is reported and never changes a scenario's result or replaces its error.
 $clientTrace = $env:BRIOSA_CONFORMANCE_CLIENT_TRACE
 if ([string]::IsNullOrEmpty($clientTrace)) {
     $clientTrace = $null
 }
-elseif ($clientTrace -cnotin $clientTraceLanguages) {
-    Write-Host "Client gRPC tracing is off: BRIOSA_CONFORMANCE_CLIENT_TRACE must be js, py or dotnet."
+elseif ($clientTrace -cne "js") {
+    Write-Host "Client gRPC tracing is off: BRIOSA_CONFORMANCE_CLIENT_TRACE must be js, the only language it traces."
     $clientTrace = $null
 }
-# grpc-js prefers its GRPC_NODE_ names, so a JavaScript trace never turns on the
-# grpcio trace of another process.
-$clientTraceJavaScriptTracers = "channel,resolving_call,subchannel,subchannel_call,transport"
-# Without grpcio's channel tracer, which writes about 170 lines for each call.
-$clientTracePythonTracers = "api,call_error,client_channel_call,connectivity_state,http,subchannel"
-# Only the gRPC client's own event source: its events carry method names and status
-# codes, and no address, header, message or exception text.
-$clientTraceDotNetProviders = "Grpc.Net.Client:0xFFFFFFFFFFFFFFFF:5"
-# The library records the runner takes out of the fixture's stderr: a grpc-js trace
-# record (always Debug) from one of the tracers above, the header lines that follow a
-# "Received server headers:" or "Received server trailers:" record, and a grpcio (C-core)
-# record at Info, which these tracers write and the default verbosity hides. Anything
-# else, including library warnings and errors, stays in the fixture's stderr. The raw
-# records are never saved: the runner keeps only the events it can render from
-# validated names, numbers and times, and counts the rest.
-$clientTraceJavaScriptRecord = '\AD (?<time>[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z) \| v[0-9]+\.[0-9]+\.[0-9]+ (?<pid>[0-9]{1,10}) \| (?<tracer>channel|resolving_call|subchannel|subchannel_call|transport) \| (?<text>.*)\z'
-$clientTraceJavaScriptHeaderLine = '\A\t\t(?<name>:?[a-z0-9-]{1,64}): '
-$clientTracePythonRecord = '\AI(?<date>[0-9]{4}) (?<time>[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{6}) +(?<thread>[0-9]{1,10}) (?<file>[a-z0-9_]{1,64}\.cc):[0-9]{1,6}\] (?<text>.*)\z'
+# The tracers whose records give each call's method, status and end, and each stream's
+# trailers and status. grpc-js prefers its GRPC_NODE_ names over GRPC_TRACE, so this
+# never turns on another library's trace.
+$clientTraceTracers = "channel,resolving_call,subchannel_call"
+# A grpc-js trace record from one of those tracers. grpc-js writes each record with one
+# console.error call, so a record whose text has line breaks continues on the lines
+# after it; Split-ClientTrace takes each record out of the fixture's stderr whole. The
+# two lines the library's Debug verbosity adds outside its tracers go with them.
+$clientTraceRecord = '\AD (?<time>[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z) \| v[0-9]+\.[0-9]+\.[0-9]+ (?<pid>[0-9]{1,10}) \| (?<tracer>channel|resolving_call|subchannel_call) \| (?<text>.*)\z'
+$clientTraceLibraryLines = @('\AD Config parsing failed with error(?: |\z)', '\AI userinfo found in proxy URI\z')
 $clientTraceMethod = '/[A-Za-z][A-Za-z0-9_.]{0,127}/[A-Za-z][A-Za-z0-9_]{0,127}'
-$clientTraceTrailerNames = New-OrdinalSet @("grpc-status", "grpc-message", "briosa-operation-error-bin",
+# The trailers whose presence the trace records, by name; never their values.
+$clientTraceTrailerNames = @("grpc-status", "grpc-message", "briosa-operation-error-bin",
     "briosa-spatial-analyzer-sdk-lifecycle-error-bin", "briosa-spatial-analyzer-lifecycle-error-bin")
-$clientTraceCoreStatuses = New-OrdinalSet @("OK", "CANCELLED", "UNKNOWN", "INVALID_ARGUMENT", "DEADLINE_EXCEEDED",
-    "NOT_FOUND", "ALREADY_EXISTS", "PERMISSION_DENIED", "RESOURCE_EXHAUSTED", "FAILED_PRECONDITION", "ABORTED",
-    "OUT_OF_RANGE", "UNIMPLEMENTED", "INTERNAL", "UNAVAILABLE", "DATA_LOSS", "UNAUTHENTICATED")
-$clientTraceSubchannelStates = '(?:IDLE|CONNECTING|READY|TRANSIENT_FAILURE|SHUTDOWN)'
 
 # The server records every unary call's arrival and end at Debug (#450). It is off
 # by default; the conformance server turns it on for that one category, so a stalled
@@ -1726,140 +1714,153 @@ function Get-ScenarioPhaseSummary {
 }
 
 function Get-ClientTraceEnvironment {
-    param(
-        [Parameter(Mandatory)][string]$ScenarioId,
-        [Parameter(Mandatory)][string]$ScenarioRoot
-    )
-
-    # The fixture inherits these, and so do the processes it starts. Each library
-    # reads only its own names, except EventPipe, which every .NET process in the
-    # tree reads; its {pid} gives each process its own file. A trace that cannot be
-    # set up is reported and left off; the scenario runs as it would without it.
-    try {
-        switch -CaseSensitive ($clientTrace) {
-            "js" {
-                return @{ GRPC_NODE_VERBOSITY = "DEBUG"; GRPC_NODE_TRACE = $clientTraceJavaScriptTracers }
-            }
-            "py" {
-                return @{ GRPC_VERBOSITY = "DEBUG"; GRPC_TRACE = $clientTracePythonTracers }
-            }
-            "dotnet" {
-                $traceRoot = Join-Path $ScenarioRoot "client-trace"
-                [IO.Directory]::CreateDirectory($traceRoot) | Out-Null
-                return @{
-                    DOTNET_EnableEventPipe = "1"
-                    DOTNET_EventPipeOutputPath = (Join-Path $traceRoot "dotnet-{pid}.nettrace")
-                    DOTNET_EventPipeConfig = $clientTraceDotNetProviders
-                    # Written as it is produced, so a killed fixture still leaves its events.
-                    DOTNET_EventPipeOutputStreaming = "1"
-                    DOTNET_EventPipeRundown = "0"
-                }
-            }
-        }
-    }
-    catch {
-        Write-Host "(client gRPC tracing is off for $($ScenarioId): its trace could not be set up)"
+    # The fixture inherits these, and so do the processes it starts; only grpc-js reads them.
+    if ($clientTrace -ceq "js") {
+        return @{ GRPC_NODE_VERBOSITY = "DEBUG"; GRPC_NODE_TRACE = $clientTraceTracers }
     }
     return @{}
 }
 
 function ConvertFrom-JavaScriptTraceRecord {
-    param(
-        [Parameter(Mandatory)][Text.RegularExpressions.Match]$Record,
-        [Parameter(Mandatory)][AllowEmptyCollection()][Collections.Generic.List[object]]$Calls
-    )
+    param([Parameter(Mandatory)][Text.RegularExpressions.Match]$Record)
 
-    # One grpc-js record as an event built only from validated numbers, method names
-    # and its time, or $null for a record whose shape is not on this list.
+    # The event a grpc-js record's first line gives, built only from a validated method
+    # name, numbers and the record's time: a call's creation with its method and its end
+    # with its status code, and a stream's trailers and its end with its status code.
+    # $null for any other record.
     $head = "$($Record.Groups['time'].Value) pid $($Record.Groups['pid'].Value)"
     $text = $Record.Groups["text"].Value
-    $match = $null
     switch -CaseSensitive ($Record.Groups["tracer"].Value) {
         "channel" {
             $match = [regex]::Match($text, "\A\([0-9]{1,10}\) [^ ]+ createResolvingCall \[(?<call>[0-9]{1,10})\] method=`"(?<method>$clientTraceMethod)`", deadline=")
             if ($match.Success) {
-                $Calls.Add([pscustomobject]@{
-                    Process = $Record.Groups["pid"].Value; Number = $match.Groups["call"].Value
-                    Method = $match.Groups["method"].Value; Created = $Record.Groups["time"].Value; Ended = $null; Code = $null
-                })
                 return "$head call $($match.Groups['call'].Value) created $($match.Groups['method'].Value)"
             }
         }
         "resolving_call" {
-            $match = [regex]::Match($text, '\A\[(?<call>[0-9]{1,10})\] Created child \[(?<child>[0-9]{1,10})\]\z')
+            $match = [regex]::Match($text, '\A\[(?<call>[0-9]{1,10})\] ended with status: code=(?<code>[0-9]{1,2}) details="')
             if ($match.Success) {
-                return "$head call $($match.Groups['call'].Value) uses stream $($match.Groups['child'].Value)"
-            }
-            $match = [regex]::Match($text, '\A\[(?<call>[0-9]{1,10})\] ended with status: code=(?<code>[0-9]{1,2}) details=')
-            if ($match.Success) {
-                foreach ($call in $Calls) {
-                    if ($call.Process -ceq $Record.Groups["pid"].Value -and $call.Number -ceq $match.Groups["call"].Value -and
-                        $null -eq $call.Ended) {
-                        $call.Ended = $Record.Groups["time"].Value
-                        $call.Code = [int]$match.Groups["code"].Value
-                    }
-                }
                 return "$head call $($match.Groups['call'].Value) ended with status $($match.Groups['code'].Value)"
             }
         }
         "subchannel_call" {
-            foreach ($shape in @(
-                    @('\A\[(?<stream>[0-9]{1,10})\] Received server headers:\z', 'received headers'),
-                    @('\A\[(?<stream>[0-9]{1,10})\] Received server trailers:\z', 'received trailers'),
-                    @('\A\[(?<stream>[0-9]{1,10})\] received status code (?<code>[0-9]{1,2}) from server\z', 'received status {0}'),
-                    @('\A\[(?<stream>[0-9]{1,10})\] HTTP/2 stream closed with code (?<code>[0-9]{1,3})\z', 'closed with HTTP/2 code {0}'),
-                    @('\A\[(?<stream>[0-9]{1,10})\] ended with status: code=(?<code>[0-9]{1,2}) details=', 'ended with status {0}'))) {
-                $match = [regex]::Match($text, $shape[0])
-                if ($match.Success) {
-                    return "$head stream $($match.Groups['stream'].Value) $([string]::Format($invariantCulture, $shape[1], $match.Groups['code'].Value))"
-                }
-            }
-        }
-        "subchannel" {
-            $match = [regex]::Match($text, "\A\((?<id>[0-9]{1,10})\) [^ ]+ (?<from>$clientTraceSubchannelStates) -> (?<to>$clientTraceSubchannelStates)\z")
+            $match = [regex]::Match($text, '\A\[(?<stream>[0-9]{1,10})\] Received server trailers:\z')
             if ($match.Success) {
-                return "$head subchannel $($match.Groups['id'].Value) $($match.Groups['from'].Value) -> $($match.Groups['to'].Value)"
+                return "$head stream $($match.Groups['stream'].Value) received trailers"
             }
-        }
-        "transport" {
-            foreach ($shape in @(
-                    @(' Established TCP connection\z', 'connection established'),
-                    @(' session closed\z', 'session closed'),
-                    @(' connection closed by GOAWAY with code (?<code>[0-9]{1,3})\z', 'connection closed by GOAWAY with code {0}'),
-                    @(' connection closed with error ', 'connection closed with an error'),
-                    @(' connection closed\. hadError=(?<code>true|false)\z', 'connection closed, error {0}'))) {
-                $match = [regex]::Match($text, $shape[0])
-                if ($match.Success) {
-                    return "$head transport $([string]::Format($invariantCulture, $shape[1], $match.Groups['code'].Value))"
-                }
+            $match = [regex]::Match($text, '\A\[(?<stream>[0-9]{1,10})\] ended with status: code=(?<code>[0-9]{1,2}) details="')
+            if ($match.Success) {
+                return "$head stream $($match.Groups['stream'].Value) ended with status $($match.Groups['code'].Value)"
             }
         }
     }
     return $null
 }
 
-function ConvertFrom-PythonTraceRecord {
-    param([Parameter(Mandatory)][Text.RegularExpressions.Match]$Record)
+function ConvertFrom-GrpcMessage {
+    param([Parameter(Mandatory)][AllowEmptyString()][string]$Value)
 
-    # One grpcio record as an event built only from a validated method name, a status
-    # name and its local time, or $null for any other record.
-    $head = "$($Record.Groups['date'].Value) $($Record.Groups['time'].Value) local thread $($Record.Groups['thread'].Value)"
-    $text = $Record.Groups["text"].Value
-    switch -CaseSensitive ($Record.Groups["file"].Value) {
-        "client_channel_filter.cc" {
-            $match = [regex]::Match($text, "batch started from above: +SEND_INITIAL_METADATA\{:path: (?<method>$clientTraceMethod)[,}]")
-            if ($match.Success) {
-                return "$head call started $($match.Groups['method'].Value)"
+    # The status message grpc-js takes from a grpc-message trailer: the value decoded as
+    # JavaScript's decodeURI decodes it, or the value itself when decodeURI rejects it.
+    # The runner uses it only to find where a trace record that repeats the message
+    # ends; the message is never kept or printed.
+    $escape = [regex]::new('\G%(?<hex>[0-9A-Fa-f]{2})')
+    $strict = [Text.UTF8Encoding]::new($false, $true)
+    $builder = [Text.StringBuilder]::new()
+    $index = 0
+    try {
+        while ($index -lt $Value.Length) {
+            if ($Value[$index] -ne [char]'%') {
+                [void]$builder.Append($Value[$index])
+                $index++
+                continue
             }
+            $match = $escape.Match($Value, $index)
+            if (-not $match.Success) {
+                return $Value
+            }
+            $first = [Convert]::ToByte($match.Groups["hex"].Value, 16)
+            if ($first -lt 0x80) {
+                # decodeURI keeps the escape of a character that is reserved in a URI.
+                if (';/?:@&=+$,#'.IndexOf([char]$first) -ge 0) {
+                    [void]$builder.Append($Value, $index, 3)
+                }
+                else {
+                    [void]$builder.Append([char]$first)
+                }
+                $index += 3
+                continue
+            }
+            $length = $(if (($first -band 0xE0) -eq 0xC0) { 2 } elseif (($first -band 0xF0) -eq 0xE0) { 3 }
+                elseif (($first -band 0xF8) -eq 0xF0) { 4 } else { 0 })
+            if ($length -eq 0) {
+                return $Value
+            }
+            $bytes = [byte[]]::new($length)
+            for ($byte = 0; $byte -lt $length; $byte++) {
+                $match = $escape.Match($Value, $index)
+                if (-not $match.Success) {
+                    return $Value
+                }
+                $bytes[$byte] = [Convert]::ToByte($match.Groups["hex"].Value, 16)
+                if ($byte -gt 0 -and ($bytes[$byte] -band 0xC0) -ne 0x80) {
+                    return $Value
+                }
+                $index += 3
+            }
+            # Overlong forms, surrogates and values past U+10FFFF throw, as in decodeURI.
+            [void]$builder.Append($strict.GetString($bytes))
         }
-        "filter_stack_call.cc" {
-            $match = [regex]::Match($text, '\Aset_final_status CLI (?<status>[A-Z_]{2,32})(?::|\z)')
-            if ($match.Success -and $clientTraceCoreStatuses.Contains($match.Groups["status"].Value)) {
-                return "$head call ended with status $($match.Groups['status'].Value)"
+    }
+    catch {
+        return $Value
+    }
+    return $builder.ToString()
+}
+
+function Get-TraceMessageEnd {
+    param(
+        [Parameter(Mandatory)][AllowEmptyString()][string[]]$Lines,
+        [Parameter(Mandatory)][int]$Index,
+        [Parameter(Mandatory)][AllowEmptyString()][string]$First,
+        [Parameter(Mandatory)][string]$Closing,
+        [AllowNull()][Collections.Generic.List[string]]$Messages
+    )
+
+    # For a record that ends with a quoted status message, whose first line ends with
+    # $First, the index of the line after the record. A message with line breaks
+    # continues on the lines after the first. One that a grpc-message trailer of the
+    # same process announced is matched line by line; any other ends at the first line
+    # that closes it, so none of its text is left in the stderr.
+    if ($null -ne $Messages) {
+        for ($candidate = $Messages.Count - 1; $candidate -ge 0; $candidate--) {
+            $parts = $Messages[$candidate] -split "\r?\n"
+            if ($First -cne $parts[0] -or $Index + $parts.Count - 1 -gt $Lines.Count) {
+                continue
+            }
+            $matched = $true
+            for ($part = 1; $part -lt $parts.Count; $part++) {
+                $expected = $(if ($part -eq $parts.Count - 1) { $parts[$part] + $Closing } else { $parts[$part] })
+                if ($Lines[$Index + $part - 1] -cne $expected) {
+                    $matched = $false
+                    break
+                }
+            }
+            if ($matched) {
+                return $Index + $parts.Count - 1
             }
         }
     }
-    return $null
+    if ($First.EndsWith($Closing, [StringComparison]::Ordinal)) {
+        return $Index
+    }
+    while ($Index -lt $Lines.Count) {
+        $Index++
+        if ($Lines[$Index - 1].EndsWith($Closing, [StringComparison]::Ordinal)) {
+            break
+        }
+    }
+    return $Index
 }
 
 function Split-ClientTrace {
@@ -1868,81 +1869,95 @@ function Split-ClientTrace {
         [Parameter(Mandatory)][string]$ScenarioId
     )
 
-    # With client tracing on, the gRPC library's records leave the fixture's stderr,
-    # so the stderr printed and kept, and the failure message, stay the fixture's own.
-    # Only proven library records are taken; an ambiguous line stays in the stderr.
-    # The trace keeps only events rendered from validated fields, never a record's
-    # text, so no address, header value or status message reaches it.
+    # With client tracing on, every grpc-js trace record leaves the fixture's stderr
+    # whole, so the stderr printed and kept, and the failure message, are the fixture's
+    # own. A record continues past its first line where its text does: a header list,
+    # as tab-indented lines up to the empty line that ends it, whatever the header names;
+    # channel options, as indented JSON up to its closing brace; and a status message
+    # with line breaks, which a server can encode in its grpc-message trailer. A line
+    # outside a record stays in the stderr as it was. The trace keeps only events
+    # rendered from validated fields, never a record's text, and counts the records it
+    # does not render, so no address, header value or status message reaches it.
     $result = [pscustomobject]@{ ErrorOutput = $ErrorOutput; Trace = $null }
-    if ($null -eq $clientTrace -or $clientTrace -ceq "dotnet") {
+    if ($null -eq $clientTrace) {
         return $result
     }
     try {
+        $lines = [string[]]($ErrorOutput -split "\r?\n")
         $kept = [Collections.Generic.List[string]]::new()
         $events = [Collections.Generic.List[string]]::new()
-        $calls = [Collections.Generic.List[object]]::new()
+        # Each process's status messages that have line breaks, from its grpc-message trailers.
+        $messages = @{}
         $other = 0
-        # A trailers record waits for its header lines, whose allow-listed names it lists.
-        $headers = $null
-        foreach ($line in ($ErrorOutput -split "\r?\n")) {
-            if ($null -ne $headers) {
-                # grpc-js ends a header list with an empty line.
-                if ($line.Length -eq 0) {
-                    $headers.Ended = $true
-                    continue
-                }
-                $header = $(if ($headers.Ended) { [regex]::Match('', '\A\z(?!)') } else {
-                        [regex]::Match($line, $clientTraceJavaScriptHeaderLine) })
-                if ($header.Success) {
-                    if ($headers.Trailers -and $clientTraceTrailerNames.Contains($header.Groups["name"].Value)) {
-                        $headers.Names.Add($header.Groups["name"].Value)
-                    }
-                    continue
-                }
-                if ($headers.Trailers) {
-                    $events[$headers.Index] += $(if ($headers.Names.Count -gt 0) { ": " + ($headers.Names -join ", ") } else { "" })
-                }
-                $headers = $null
-            }
-            if ($clientTrace -ceq "js") {
-                $record = [regex]::Match($line, $clientTraceJavaScriptRecord)
-                if (-not $record.Success) {
-                    $kept.Add($line)
-                    continue
-                }
-                # A recognized record leaves the stderr even if it cannot be rendered.
-                $event = $null
-                try {
-                    $event = ConvertFrom-JavaScriptTraceRecord -Record $record -Calls $calls
-                }
-                catch {
-                }
-                if ($null -eq $event) {
-                    $other++
-                    continue
-                }
-                $events.Add($event)
-                if ($event.EndsWith(" received headers", [StringComparison]::Ordinal) -or
-                    $event.EndsWith(" received trailers", [StringComparison]::Ordinal)) {
-                    $headers = [pscustomobject]@{
-                        Index = $events.Count - 1
-                        Trailers = $event.EndsWith(" received trailers", [StringComparison]::Ordinal)
-                        Names = [Collections.Generic.List[string]]::new()
-                        Ended = $false
-                    }
-                }
-                continue
-            }
-            $record = [regex]::Match($line, $clientTracePythonRecord)
+        $index = 0
+        while ($index -lt $lines.Count) {
+            $line = $lines[$index]
+            $index++
+            $record = [regex]::Match($line, $clientTraceRecord)
             if (-not $record.Success) {
-                $kept.Add($line)
+                if (@($clientTraceLibraryLines | Where-Object { $line -cmatch $_ }).Count -gt 0) {
+                    $other++
+                }
+                else {
+                    $kept.Add($line)
+                }
                 continue
             }
             $event = $null
             try {
-                $event = ConvertFrom-PythonTraceRecord -Record $record
+                $event = ConvertFrom-JavaScriptTraceRecord -Record $record
             }
             catch {
+            }
+            $tracer = $record.Groups["tracer"].Value
+            $text = $record.Groups["text"].Value
+            $processId = $record.Groups["pid"].Value
+            if ($tracer -ceq "subchannel_call" -and $text -cmatch '\A\[[0-9]{1,10}\] Received server (?:headers|trailers):\z') {
+                $names = [Collections.Generic.List[string]]::new()
+                while ($index -lt $lines.Count -and $lines[$index].StartsWith("`t`t", [StringComparison]::Ordinal)) {
+                    $header = $lines[$index]
+                    $index++
+                    foreach ($name in $clientTraceTrailerNames) {
+                        if ($header.StartsWith("`t`t$($name): ", [StringComparison]::Ordinal) -and -not $names.Contains($name)) {
+                            $names.Add($name)
+                        }
+                    }
+                    if ($header.StartsWith("`t`tgrpc-message: ", [StringComparison]::Ordinal)) {
+                        $message = ConvertFrom-GrpcMessage $header.Substring(16)
+                        if ($message.Contains("`n")) {
+                            if (-not $messages.ContainsKey($processId)) {
+                                $messages[$processId] = [Collections.Generic.List[string]]::new()
+                            }
+                            $messages[$processId].Add($message)
+                            if ($messages[$processId].Count -gt 64) {
+                                $messages[$processId].RemoveAt(0)
+                            }
+                        }
+                    }
+                }
+                # The empty line that ends the list.
+                if ($index -lt $lines.Count -and $lines[$index].Length -eq 0) {
+                    $index++
+                }
+                if ($null -ne $event -and $names.Count -gt 0) {
+                    $event += ": " + ($names -join ", ")
+                }
+            }
+            elseif ($tracer -ceq "channel" -and $text -cmatch '\A\([0-9]{1,10}\) [^ ]+ Channel constructed with options \{\z') {
+                while ($index -lt $lines.Count -and $lines[$index].StartsWith("  ", [StringComparison]::Ordinal)) {
+                    $index++
+                }
+                if ($index -lt $lines.Count -and $lines[$index] -ceq "}") {
+                    $index++
+                }
+            }
+            else {
+                $quoted = [regex]::Match($text, '\A\[[0-9]{1,10}\] (?:ended with status: code=[^ ]* details="|cancelWithStatus code: [^ ]* details: "|(?<received>received status details string "))(?<first>.*)\z')
+                if ($quoted.Success) {
+                    $index = Get-TraceMessageEnd -Lines $lines -Index $index -First $quoted.Groups["first"].Value `
+                        -Closing $(if ($quoted.Groups["received"].Success) { '" from server' } else { '"' }) `
+                        -Messages $messages[$processId]
+                }
             }
             if ($null -eq $event) {
                 $other++
@@ -1951,20 +1966,17 @@ function Split-ClientTrace {
                 $events.Add($event)
             }
         }
-        if ($null -ne $headers -and $headers.Trailers -and $headers.Names.Count -gt 0) {
-            $events[$headers.Index] += ": " + ($headers.Names -join ", ")
-        }
-        $library = $(if ($clientTrace -ceq "js") { "@grpc/grpc-js" } else { "grpcio" })
-        $lines = [Collections.Generic.List[string]]::new()
-        $lines.Add("# Client gRPC events from the $library trace. Only validated method names, numbers, states and times are kept.")
-        $lines.AddRange($events)
-        $lines.Add("($other other library trace records were not kept)")
-        $result.ErrorOutput = ($kept -join [Environment]::NewLine).Trim()
-        $result.Trace = ($lines -join [Environment]::NewLine) + [Environment]::NewLine
+        $traceLines = [Collections.Generic.List[string]]::new()
+        $traceLines.Add("# Client gRPC events from the @grpc/grpc-js trace: each call's method and status code, and each stream's trailer names and status code. No record's text is kept.")
+        $traceLines.AddRange($events)
+        $traceLines.Add("($other other library trace records were not kept)")
+        $result.ErrorOutput = ($kept -join [Environment]::NewLine).Trim([char[]]"`r`n")
+        $result.Trace = ($traceLines -join [Environment]::NewLine) + [Environment]::NewLine
     }
     catch {
-        Write-Host "(the client gRPC trace of $ScenarioId could not be separated from the fixture's stderr; the stderr is kept whole)"
-        $result.ErrorOutput = $ErrorOutput
+        # The stderr cannot be shown without the library's text, so it is withheld.
+        Write-Host "(the client gRPC trace of $ScenarioId could not be separated from the fixture's stderr, so the stderr is withheld)"
+        $result.ErrorOutput = "(withheld: the client gRPC trace could not be separated from the fixture's stderr)"
         $result.Trace = $null
     }
     return $result
@@ -1984,9 +1996,8 @@ function Save-FixtureOutput {
         (Join-Path $ScenarioRoot "fixture.stdout.txt"), (Get-SafeText $Output), $encoding)
     [IO.File]::WriteAllText(
         (Join-Path $ScenarioRoot "fixture.stderr.txt"), (Get-SafeText $ErrorOutput), $encoding)
-    # A [string] parameter turns $null into an empty string, so the language decides.
     # The trace is optional: a file that cannot be written is reported and nothing else.
-    if ($null -ne $clientTrace -and $clientTrace -cne "dotnet") {
+    if ($null -ne $clientTrace) {
         try {
             [IO.File]::WriteAllText((Join-Path $ScenarioRoot "client-trace.txt"), $Trace, $encoding)
         }
@@ -2007,12 +2018,6 @@ function Write-ClientCallSummary {
     # when it was created, and its status and when it ended, or that it had not ended
     # when the fixture stopped.
     if ($null -eq $clientTrace) {
-        return
-    }
-    if ($clientTrace -cne "js") {
-        $saved = @(Get-ChildItem -LiteralPath $ScenarioRoot -Recurse -File -Force -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name -ceq "client-trace.txt" -or $_.Directory.Name -ceq "client-trace" })
-        Write-Host "(client gRPC trace: $($saved.Count) files are kept with the diagnostics of $ScenarioId)"
         return
     }
     $tracePath = Join-Path $ScenarioRoot "client-trace.txt"
@@ -2431,8 +2436,7 @@ try {
             "Briosa__Logging__File__Directory" = (Join-Path $scenarioRoot "server-logs")
             $unaryCallAuditLevelKey = $unaryCallAuditLevel
         }
-        foreach ($entry in (Get-ClientTraceEnvironment -ScenarioId ([string]$scenarioDefinition.id) `
-                    -ScenarioRoot $scenarioRoot).GetEnumerator()) {
+        foreach ($entry in (Get-ClientTraceEnvironment).GetEnumerator()) {
             $environment[$entry.Key] = $entry.Value
         }
         $scenarioFailure = $null

@@ -203,11 +203,14 @@ dispatched commit and uploads it as the workflow's input package,
 this directory's retained-client workflow in soak mode. That takes the job from
 the same plan as the gate (the same pinned package, fixture revision and checks)
 and runs it once per iteration, each iteration on its own runner. Each run also
-traces the client's gRPC calls (`BRIOSA_CONFORMANCE_CLIENT_TRACE` set to the
-client's language) and takes heap dumps of the .NET processes at a fixture
-timeout (`BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT=1`). The conformance runner always
-records the fixture's process tree at a timeout and turns on the server's Debug
-unary call records.
+takes heap dumps of the .NET processes at a fixture timeout
+(`BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT=1`), and for a JavaScript client it traces
+the client's gRPC calls (`BRIOSA_CONFORMANCE_CLIENT_TRACE=js`). Python and .NET
+client tracing are not offered, because their trace output could not be reduced
+to names and statuses reliably; for those clients the server's unary call records
+and the process tree are the evidence. The conformance runner always records the
+fixture's process tree at a timeout and turns on the server's Debug unary call
+records.
 
 A soak run is not compatibility evidence. It uploads none of the per-client
 `compatibility-<language>-<target>-<version>` evidence the gate uploads. When it
@@ -249,7 +252,6 @@ result fails it, and results that could not be downloaded are reported as such.
 A failing iteration keeps its diagnostics as the artifact
 `conformance-diagnostics-<language>-<target>-<version>-iteration-<n>`: for each
 failed scenario, the failure, the fixture's stderr and stdout, the server log
-digest and log files, the client trace (`client-trace.txt`, or
-`client-trace/*.nettrace` for .NET), the JavaScript call summary
-(`client-calls.txt`), the process tree at a timeout (`timeout-processes.txt`)
-and any heap dumps.
+digest and log files, for a JavaScript client its trace (`client-trace.txt`)
+and call summary (`client-calls.txt`), the process tree at a timeout
+(`timeout-processes.txt`) and any heap dumps.

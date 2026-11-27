@@ -1,8 +1,8 @@
 name: Client conformance soak
 
 # Repeats one retained-client conformance job on hosted runners, against the server
-# built from the dispatched commit, with every timeout diagnostic and the client's
-# gRPC trace on (#450). Each iteration runs on its own runner. It publishes, signs
+# built from the dispatched commit, with every timeout diagnostic on and, for a
+# JavaScript client, its gRPC trace (#450). Each iteration runs on its own runner. It publishes, signs
 # and releases nothing, uses no secrets and no environment, and calls only the
 # retained-client workflow, never the release workflow.
 on:

@@ -134,11 +134,11 @@ jobs:
           # IDs that the digest vocabulary does not list, the runner appends the
           # scenario, the property and a count, never the value.
           BRIOSA_CONFORMANCE_DIGEST_AUDIT: ${{ github.workspace }}/conformance-digest-audit.txt
-          # A soak run also traces the client's gRPC calls and takes heap dumps of the
-          # .NET processes at a fixture timeout; the gate leaves both off. A soak of one
+          # A soak run also takes heap dumps of the .NET processes at a fixture timeout and,
+          # for a JavaScript client, traces its gRPC calls; the gate leaves both off. A soak of one
           # scenario runs a soak package, whose runner repeats that scenario only and
           # ends every run with an error, so no compatibility evidence is written.
-          BRIOSA_CONFORMANCE_CLIENT_TRACE: ${{ inputs.soak-iterations > 0 && matrix.language || '' }}
+          BRIOSA_CONFORMANCE_CLIENT_TRACE: ${{ inputs.soak-iterations > 0 && matrix.language == 'js' && 'js' || '' }}
           BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT: ${{ inputs.soak-iterations > 0 && '1' || '' }}
           SOAK_SCENARIO: ${{ inputs.soak-iterations > 0 && inputs.soak-scenario || '' }}
         run: |
