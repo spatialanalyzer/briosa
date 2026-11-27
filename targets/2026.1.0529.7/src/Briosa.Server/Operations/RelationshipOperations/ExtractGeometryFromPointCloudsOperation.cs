@@ -20,9 +20,9 @@ internal static class ExtractGeometryFromPointCloudsOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         if (!request.HasGeometryType)
-            throw new ArgumentException("Request field 'geometry_type' is required.", nameof(request));
+            throw RequestFieldViolation.Required("geometry_type");
         var boundingPoints = request.BoundingPoints?.Values ??
-            throw new ArgumentException("Request field 'bounding_points' is required.", nameof(request));
+            throw RequestFieldViolation.Required("bounding_points");
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [
                 new("Relationship Name", WorkerMpValueKind.CollectionItemName,
@@ -32,7 +32,7 @@ internal static class ExtractGeometryFromPointCloudsOperation
                 new("Cloud Name", WorkerMpValueKind.CollectionObjectName,
                     CollectionObjectNameMapper.Required(request.CloudName, "cloud_name", WorkerObjectTypeValue.Cloud), "SetCollectionObjectNameArg2"),
                 new("Bounding Points", WorkerMpValueKind.PointNameList,
-                    PointNameMapper.RequiredList(boundingPoints, "bounding_points"), "SetPointNameRefListArg"),
+                    PointNameMapper.RequiredList(boundingPoints, "bounding_points.values"), "SetPointNameRefListArg"),
                 new("Seed Points", WorkerMpValueKind.PointNameList,
                     PointNameMapper.RequiredList(request.SeedPoints, "seed_points"), "SetPointNameRefListArg"),
                 new("Tolerance", WorkerMpValueKind.FloatingPoint,

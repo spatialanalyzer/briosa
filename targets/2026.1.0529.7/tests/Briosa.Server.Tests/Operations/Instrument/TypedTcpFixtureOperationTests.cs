@@ -42,7 +42,7 @@ public sealed class TypedTcpFixtureOperationTests
         Assert.Equal(string.Empty, addPoint.InputArguments[1].RequireValue<WorkerTextValue>().Value);
         Assert.Equal(0, addPoint.InputArguments[3].RequireValue<WorkerDoubleValue>().Value);
         Assert.Equal(0, addPoint.InputArguments[8].RequireValue<WorkerDoubleValue>().Value);
-        Assert.Throws<ArgumentException>(() => AddNominalPointToTcpFixtureOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => AddNominalPointToTcpFixtureOperation.CreateCommand(new()
         {
             TcpFixture = Fixture()
         }));

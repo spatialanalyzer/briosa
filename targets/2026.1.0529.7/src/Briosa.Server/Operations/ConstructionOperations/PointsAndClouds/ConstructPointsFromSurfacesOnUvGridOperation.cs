@@ -23,7 +23,7 @@ internal static class ConstructPointsFromSurfacesOnUvGridOperation
             Api.EdgePointMode.IncludeEdges => WorkerEdgeModeValue.IncludeEdges,
             Api.EdgePointMode.ExcludeEdges => WorkerEdgeModeValue.ExcludeEdges,
             Api.EdgePointMode.EdgesOnly => WorkerEdgeModeValue.EdgesOnly,
-            _ => throw new ArgumentException("A supported edge_point_mode is required.", nameof(request))
+            _ => throw RequestFieldViolation.SupportedChoice("edge_point_mode")
         };
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [

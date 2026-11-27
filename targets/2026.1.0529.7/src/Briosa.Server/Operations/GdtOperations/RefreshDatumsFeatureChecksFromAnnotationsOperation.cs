@@ -19,7 +19,7 @@ internal static class RefreshDatumsFeatureChecksFromAnnotationsOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [new("Collection", WorkerMpValueKind.CollectionName,
-                GdtCollectionNameMapper.Required(request.Collection), "SetCollectionNameArg")], []);
+                GdtCollectionNameMapper.Required(request.Collection, "collection"), "SetCollectionNameArg")], []);
     }
 
     public static Api.RefreshDatumsFeatureChecksFromAnnotationsResult CreateResult(SuccessfulOperationExecution completed) =>

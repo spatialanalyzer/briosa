@@ -38,7 +38,7 @@ internal static class EditGeometryRelationshipPointListOperation
         Api.GeometryRelationshipPointEditMode.PointList => "Point List",
         Api.GeometryRelationshipPointEditMode.PointGraph => "Point Graph",
         Api.GeometryRelationshipPointEditMode.SubSamplerSettings => "Sub-Sampler Settings",
-        _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "Point edit mode is not supported by this SA target.")
+        _ => throw RequestFieldViolation.SupportedChoice("point_edit_mode")
     };
 
     public static Api.EditGeometryRelationshipPointListResult CreateResult(SuccessfulOperationExecution completed) =>

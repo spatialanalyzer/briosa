@@ -32,8 +32,8 @@ internal static class FilterCloudsToPlaneOperation
             new("Proximity", WorkerMpValueKind.FloatingPoint,
                 new WorkerDoubleValue(request.HasProximity ? request.Proximity : 0), "SetDoubleArg"),
             new("Allowable Offset Dir", WorkerMpValueKind.OffsetDirectionType,
-                OffsetDirectionTypeMapper.ToMpValue(direction), "SetOffsetDirectionTypeArg"),
-            new("Output Type", WorkerMpValueKind.Text, PointOutputTypeMapper.ToMpValue(outputType), "SetStringArg")
+                OffsetDirectionTypeMapper.ToMpValue(direction, "allowable_offset_direction"), "SetOffsetDirectionTypeArg"),
+            new("Output Type", WorkerMpValueKind.Text, PointOutputTypeMapper.ToMpValue(outputType, "output_type"), "SetStringArg")
         ], []);
     }
 

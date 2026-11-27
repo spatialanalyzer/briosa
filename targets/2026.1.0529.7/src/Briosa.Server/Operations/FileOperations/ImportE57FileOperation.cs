@@ -32,7 +32,7 @@ internal static class ImportE57FileOperation
             new("Import Scan Blocks As Separate Clouds", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.HasImportScanBlocksAsSeparateClouds && request.ImportScanBlocksAsSeparateClouds), "SetBoolArg"),
             new("Units", WorkerMpValueKind.DistanceUnit, DistanceUnitMapper.OrDefault(
-                request.HasUnits ? request.Units : null, Api.DistanceUnits.Inches), "SetDistanceUnitsArg")
+                request.HasUnits ? request.Units : null, Api.DistanceUnits.Inches, "units"), "SetDistanceUnitsArg")
         ], []);
     }
 

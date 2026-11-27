@@ -35,7 +35,7 @@ public sealed class TypedViewVisibilityOperationTests
     [Fact]
     public void VisibilityMappingsPreserveBindingsDefaultsAndRequiredReferences()
     {
-        Assert.Throws<ArgumentException>(() => HideObjectsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => HideObjectsOperation.CreateCommand(new()));
         var hidden = HideObjectsOperation.CreateCommand(new()
         {
             ObjectsToHide = { Object("Part") }
@@ -44,7 +44,7 @@ public sealed class TypedViewVisibilityOperationTests
         Assert.Equal("Part", hidden.InputArguments[0].RequireValue<WorkerCollectionObjectNameListValue>()
             .Values[0].ObjectName);
 
-        Assert.Throws<ArgumentException>(() => ShowHideByObjectTypeOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ShowHideByObjectTypeOperation.CreateCommand(new()));
         var byType = ShowHideByObjectTypeOperation.CreateCommand(new()
         {
             SpecificCollection = new Api.CollectionName { Name = "Parts" }
@@ -53,13 +53,13 @@ public sealed class TypedViewVisibilityOperationTests
         Assert.Equal(WorkerObjectTypeValue.Any,
             byType.InputArguments[2].RequireValue<WorkerChoiceValue<WorkerObjectTypeValue>>().Value);
         Assert.True(byType.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => ShowHideByObjectTypeOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ShowHideByObjectTypeOperation.CreateCommand(new()
         {
             SpecificCollection = new Api.CollectionName { Name = "Parts" },
             ObjectTypeToShowHide = Api.ObjectType.Unspecified
         }));
 
-        Assert.Throws<ArgumentException>(() => ShowHideDimensionOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ShowHideDimensionOperation.CreateCommand(new()));
         var dimension = ShowHideDimensionOperation.CreateCommand(new()
         {
             DimensionName = new Api.CollectionItemName { CollectionName = "Parts", ItemName = "Diameter" }
@@ -67,7 +67,7 @@ public sealed class TypedViewVisibilityOperationTests
         Assert.Equal("SetCollectionObjectNameArg2", dimension.InputArguments[0].SdkBinding);
         Assert.True(dimension.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => ShowHidePointsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ShowHidePointsOperation.CreateCommand(new()));
         var points = ShowHidePointsOperation.CreateCommand(new()
         {
             PointNames = { new Api.PointName { CollectionName = "Parts", GroupName = "Targets", TargetName = "P1" } }
@@ -76,7 +76,7 @@ public sealed class TypedViewVisibilityOperationTests
         Assert.Equal("P1", points.InputArguments[0].RequireValue<WorkerPointNameListValue>().Values[0].TargetName);
         Assert.False(points.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => ShowByObjectTypeOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ShowByObjectTypeOperation.CreateCommand(new()));
         var shownByType = ShowByObjectTypeOperation.CreateCommand(new()
         {
             ObjectTypeToShow = Object("Surface", Api.ObjectType.Surface)
@@ -87,13 +87,13 @@ public sealed class TypedViewVisibilityOperationTests
 
         var labels = ShowLabelsOperation.CreateCommand(new());
         Assert.All(labels.InputArguments, argument => Assert.False(argument.RequireValue<WorkerBooleanValue>().Value));
-        Assert.Throws<ArgumentException>(() => ShowObjectsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ShowObjectsOperation.CreateCommand(new()));
         Assert.Equal("SetCollectionObjectNameRefListArg", ShowObjectsOperation.CreateCommand(new()
         {
             ObjectsToShow = { Object("Part") }
         }).InputArguments[0].SdkBinding);
 
-        Assert.Throws<ArgumentException>(() => ShowHideAnnotationsForDatumsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ShowHideAnnotationsForDatumsOperation.CreateCommand(new()));
         var datumAnnotations = ShowHideAnnotationsForDatumsOperation.CreateCommand(new()
         {
             DatumNameList = { Object("Datum", Api.ObjectType.Datum) }
@@ -101,7 +101,7 @@ public sealed class TypedViewVisibilityOperationTests
         Assert.All(datumAnnotations.InputArguments.Skip(1), argument =>
             Assert.False(argument.RequireValue<WorkerBooleanValue>().Value));
 
-        Assert.Throws<ArgumentException>(() => ShowHideAnnotationsForFeatureChecksOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ShowHideAnnotationsForFeatureChecksOperation.CreateCommand(new()));
         var featureAnnotations = ShowHideAnnotationsForFeatureChecksOperation.CreateCommand(new()
         {
             FeatureCheckNameList = { new Api.CollectionItemName { CollectionName = "Parts", ItemName = "FC1" } }
@@ -110,7 +110,7 @@ public sealed class TypedViewVisibilityOperationTests
         Assert.All(featureAnnotations.InputArguments.Skip(1), argument =>
             Assert.False(argument.RequireValue<WorkerBooleanValue>().Value));
 
-        Assert.Throws<ArgumentException>(() => ShowHideInstrumentsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ShowHideInstrumentsOperation.CreateCommand(new()));
         var instruments = ShowHideInstrumentsOperation.CreateCommand(new()
         {
             InstrumentIDs = { new Api.CollectionInstrumentId { CollectionName = "Parts", InstrumentId = 7 } }
@@ -119,7 +119,7 @@ public sealed class TypedViewVisibilityOperationTests
         Assert.Equal(7, instruments.InputArguments[0].RequireValue<WorkerCollectionInstrumentIdListValue>()
             .Values[0].InstrumentId);
         Assert.False(instruments.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => ShowHideInstrumentsOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ShowHideInstrumentsOperation.CreateCommand(new()
         {
             InstrumentIDs = { new Api.CollectionInstrumentId { InstrumentId = 7 } }
         }));

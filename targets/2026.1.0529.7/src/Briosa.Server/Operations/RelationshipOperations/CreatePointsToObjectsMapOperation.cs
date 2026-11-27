@@ -20,15 +20,15 @@ internal static class CreatePointsToObjectsMapOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         var points = request.Points?.Values ??
-            throw new ArgumentException("Request field 'points' is required.", nameof(request));
+            throw RequestFieldViolation.Required("points");
         var groups = request.Groups?.Values ??
-            throw new ArgumentException("Request field 'groups' is required.", nameof(request));
+            throw RequestFieldViolation.Required("groups");
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [
                 new("Points", WorkerMpValueKind.PointNameList,
-                    PointNameMapper.RequiredList(points, "points"), "SetPointNameRefListArg"),
+                    PointNameMapper.RequiredList(points, "points.values"), "SetPointNameRefListArg"),
                 new("Groups", WorkerMpValueKind.CollectionObjectNameList,
-                    CollectionObjectNameMapper.RequiredList(groups, "groups"), "SetCollectionObjectNameRefListArg"),
+                    CollectionObjectNameMapper.RequiredList(groups, "groups.values"), "SetCollectionObjectNameRefListArg"),
                 new("Objects", WorkerMpValueKind.CollectionObjectNameList,
                     CollectionObjectNameMapper.RequiredList(request.Objects, "objects"), "SetCollectionObjectNameRefListArg"),
                 new("Proximity Tolerance", WorkerMpValueKind.FloatingPoint,

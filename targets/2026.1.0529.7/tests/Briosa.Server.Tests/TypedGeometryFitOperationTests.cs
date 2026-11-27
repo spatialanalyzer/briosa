@@ -51,11 +51,11 @@ public sealed class TypedGeometryFitOperationTests
         Assert.False(command.InputArguments[4].RequireValue<WorkerBooleanValue>().Value);
         Assert.Equal(-1d, command.InputArguments[5].RequireValue<WorkerDoubleValue>().Value);
         Assert.False(command.InputArguments[6].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => FitGeometryToPointGroupOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => FitGeometryToPointGroupOperation.CreateCommand(new()
         {
             GeometryType = Api.GeometryType.Circle
         }));
-        Assert.Throws<ArgumentOutOfRangeException>(() => FitGeometryToPointGroupOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => FitGeometryToPointGroupOperation.CreateCommand(new()
         {
             GeometryType = Api.GeometryType.Unspecified,
             GroupToFit = group,
@@ -99,8 +99,8 @@ public sealed class TypedGeometryFitOperationTests
             Assert.Equal("SetCollectionObjectNameArg2", sent.SdkBinding);
             Assert.Equal("seed", sent.RequireValue<WorkerCollectionObjectNameValue>().ObjectName);
 
-            Assert.Throws<ArgumentException>(() => create(new() { CollectionName = "A", ObjectName = string.Empty }));
-            Assert.Throws<ArgumentException>(() => create(new() { CollectionName = "A", ObjectName = "  " }));
+            Assert.Throws<RequestFieldViolation>(() => create(new() { CollectionName = "A", ObjectName = string.Empty }));
+            Assert.Throws<RequestFieldViolation>(() => create(new() { CollectionName = "A", ObjectName = "  " }));
         }
     }
 
@@ -127,7 +127,7 @@ public sealed class TypedGeometryFitOperationTests
             ResultingObjectName = new Api.CollectionObjectName { ObjectName = "fit" },
             StartingConditionGeometry = new Api.CollectionObjectName { ObjectName = "seed" }
         };
-        Assert.Throws<ArgumentException>(() => FitGeometryToPointsOperation.CreateCommand(pointsRequest));
+        Assert.Throws<RequestFieldViolation>(() => FitGeometryToPointsOperation.CreateCommand(pointsRequest));
         pointsRequest.PointsToFit.Add(new Api.PointName { TargetName = "P1" });
         var points = FitGeometryToPointsOperation.CreateCommand(pointsRequest);
         Assert.Equal("SetPointNameRefListArg", points.InputArguments[1].SdkBinding);
@@ -148,7 +148,7 @@ public sealed class TypedGeometryFitOperationTests
         Assert.Equal(0d, command.InputArguments[3].RequireValue<WorkerDoubleValue>().Value);
         Assert.True(command.InputArguments[6].RequireValue<WorkerBooleanValue>().Value);
         Assert.Equal("SetFilePathArg", command.InputArguments[14].SdkBinding);
-        Assert.Throws<ArgumentException>(() => BestFitTransformationGroupToGroupOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => BestFitTransformationGroupToGroupOperation.CreateCommand(new()));
 
         var matrix = Enumerable.Range(0, 16).Select(i => (double)i).ToArray();
         var result = BestFitTransformationGroupToGroupOperation.CreateResult(Completed(

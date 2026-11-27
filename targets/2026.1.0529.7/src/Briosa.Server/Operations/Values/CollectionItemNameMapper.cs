@@ -8,6 +8,7 @@ internal static class CollectionItemNameMapper
 {
     private static WorkerCollectionItemNameValue ToWorker(
         Api.CollectionItemName value,
+        string fieldName,
         WorkerItemTypeValue itemTypeWhenOmitted = WorkerItemTypeValue.Any)
     {
         // A reviewed operation-specific fallback may be supplied; other omissions use Any.
@@ -15,7 +16,7 @@ internal static class CollectionItemNameMapper
         var type = value.HasItemType ? (WorkerItemTypeValue)value.ItemType : itemTypeWhenOmitted;
         if (type == WorkerItemTypeValue.Unspecified || !Enum.IsDefined(type))
         {
-            throw new ArgumentException("Item type is not supported by this SA target.", nameof(value));
+            throw RequestFieldViolation.SupportedChoice(RequestFieldViolation.Path(fieldName, "item_type"));
         }
 
         return new(value.CollectionName, value.ItemName, type);
@@ -26,9 +27,12 @@ internal static class CollectionItemNameMapper
         string fieldName,
         WorkerItemTypeValue itemTypeWhenOmitted = WorkerItemTypeValue.Any)
     {
-        if (value is null || string.IsNullOrWhiteSpace(value.ItemName))
-            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(value));
-        return ToWorker(value, itemTypeWhenOmitted);
+        if (value is null)
+            throw RequestFieldViolation.Required(fieldName);
+        if (string.IsNullOrWhiteSpace(value.ItemName))
+            throw RequestFieldViolation.NotBlank(RequestFieldViolation.Path(fieldName, "item_name"));
+
+        return ToWorker(value, fieldName, itemTypeWhenOmitted);
     }
 
     public static WorkerCollectionItemNameListValue RequiredList(
@@ -37,14 +41,15 @@ internal static class CollectionItemNameMapper
     {
         if (values.Count == 0)
         {
-            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(values));
+            throw RequestFieldViolation.NotEmpty(fieldName);
         }
 
-        return new(values.Select(value => ToWorker(value, itemTypeWhenOmitted)).ToImmutableArray());
+        return new(values.Select(value => ToWorker(value, fieldName, itemTypeWhenOmitted)).ToImmutableArray());
     }
 
-    public static WorkerCollectionItemNameListValue AllowEmptyList(IReadOnlyList<Api.CollectionItemName> values) =>
-        new(values.Select(value => ToWorker(value)).ToImmutableArray());
+    public static WorkerCollectionItemNameListValue AllowEmptyList(
+        IReadOnlyList<Api.CollectionItemName> values, string fieldName) =>
+        new(values.Select(value => ToWorker(value, fieldName)).ToImmutableArray());
 
     public static Api.CollectionItemName ToProtocol(WorkerCollectionItemNameValue value) => new()
     {

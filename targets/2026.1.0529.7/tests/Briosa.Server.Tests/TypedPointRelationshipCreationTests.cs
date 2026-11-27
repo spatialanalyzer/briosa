@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -30,7 +31,7 @@ public sealed class TypedPointRelationshipCreationTests
             .RequireValue<WorkerPointNameValue>().TargetName);
         Assert.Equal("P-nominal", withOptionalNames.InputArguments[3]
             .RequireValue<WorkerPointNameValue>().TargetName);
-        Assert.Throws<ArgumentException>(() => MakeAveragePointRelationshipOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => MakeAveragePointRelationshipOperation.CreateCommand(new()
         {
             RelationshipName = Relationship()
         }));
@@ -47,7 +48,7 @@ public sealed class TypedPointRelationshipCreationTests
             command.InputArguments[3].RequireValue<WorkerToleranceVectorOptionsValue>().HighX);
         Assert.Equal(new WorkerToleranceLimit(true, 0),
             command.InputArguments[4].RequireValue<WorkerToleranceVectorOptionsValue>().LowZ);
-        Assert.Throws<ArgumentException>(() => MakePointToPointRelationshipOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => MakePointToPointRelationshipOperation.CreateCommand(new()
         {
             RelationshipName = Relationship(), FirstPointName = Point("P1"), SecondPointName = Point("P2")
         }));

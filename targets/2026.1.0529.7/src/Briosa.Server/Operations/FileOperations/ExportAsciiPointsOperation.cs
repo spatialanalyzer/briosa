@@ -19,14 +19,14 @@ internal static class ExportAsciiPointsOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.GroupNamesToExport.Count == 0)
-            throw new ArgumentException("Request field 'group_names_to_export' is required.", nameof(request));
+            throw RequestFieldViolation.NotEmpty("group_names_to_export");
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("ASCII File Path", WorkerMpValueKind.FileReference, FileReferenceMapper.Required(request.AsciiFilePath, "ascii_file_path"), "SetFilePathArg"),
             new("Group Names to export", WorkerMpValueKind.CollectionGroupNameList, new WorkerCollectionGroupNameListValue(request.GroupNamesToExport.Select(value => new WorkerCollectionGroupNameValue(value.CollectionName, value.GroupName)).ToImmutableArray()), "SetCollectionGroupNameRefListArg"),
             new("Data Delimiter", WorkerMpValueKind.ExportDataDelimiterType, AsciiFileOperationValueMapper.RequiredDelimiter(request.HasDataDelimiter ? request.DataDelimiter : null, "data_delimiter"), "SetExportDataDelimeterTypeArg"),
             new("Target Name Format", WorkerMpValueKind.ExportTargetNameFormat, AsciiFileOperationValueMapper.RequiredTargetNameFormat(request.HasTargetNameFormat ? request.TargetNameFormat : null, "target_name_format"), "SetExportTargetNameFormatArg"),
-            new("Desired Coordinate System", WorkerMpValueKind.CoordinateSystemType, new WorkerChoiceValue<WorkerCoordinateSystemTypeValue>(CoordinateSystemTypeMapper.OrDefault(request.HasDesiredCoordinateSystem ? request.DesiredCoordinateSystem : null, Api.CoordinateSystemType.Unspecified)), "SetCoordinateSystemTypeArg"),
+            new("Desired Coordinate System", WorkerMpValueKind.CoordinateSystemType, new WorkerChoiceValue<WorkerCoordinateSystemTypeValue>(CoordinateSystemTypeMapper.OrDefault(request.HasDesiredCoordinateSystem ? request.DesiredCoordinateSystem : null, Api.CoordinateSystemType.Unspecified, "desired_coordinate_system")), "SetCoordinateSystemTypeArg"),
             new("Include Target Offsets?", WorkerMpValueKind.Logical, new WorkerBooleanValue(request.HasIncludeTargetOffsets && request.IncludeTargetOffsets), "SetBoolArg"),
             new("Include Target Comments?", WorkerMpValueKind.Logical, new WorkerBooleanValue(request.HasIncludeTargetComments && request.IncludeTargetComments), "SetBoolArg"),
             new("Include Timestamps?", WorkerMpValueKind.Logical, new WorkerBooleanValue(request.HasIncludeTimestamps && request.IncludeTimestamps), "SetBoolArg"),

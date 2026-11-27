@@ -33,11 +33,11 @@ public sealed class TypedFrameQueryOperationTests
     [Fact]
     public void RequiredFramesAndFrameSetIndexDefaultsMatchTheBindings()
     {
-        Assert.Throws<ArgumentException>(() => GetEulerParametersForFrameOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetEulerParametersForIthFrameInFrameSetOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetNumberOfFramesInFrameSetOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetTimestampForIthFrameInFrameSetOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetTransformForIthFrameInFrameSetOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetEulerParametersForFrameOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetEulerParametersForIthFrameInFrameSetOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetNumberOfFramesInFrameSetOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetTimestampForIthFrameInFrameSetOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetTransformForIthFrameInFrameSetOperation.CreateCommand(new()));
 
         var frameSet = new Api.CollectionObjectName { ObjectName = "frames" };
         WorkerMpCommand[] indexedQueries =

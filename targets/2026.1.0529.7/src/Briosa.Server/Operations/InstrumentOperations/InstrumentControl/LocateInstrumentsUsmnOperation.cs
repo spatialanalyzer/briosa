@@ -24,7 +24,7 @@ internal static class LocateInstrumentsUsmnOperation
         ArgumentNullException.ThrowIfNull(request);
         var showDialog = request.HasShowUsmnDialog
             ? MapShowUsmnDialog(request.ShowUsmnDialog)
-            : throw new ArgumentException("Request field 'show_usmn_dialog' is required.", nameof(request));
+            : throw RequestFieldViolation.Required("show_usmn_dialog");
 
         var inputs = new List<WorkerMpInputArgument>
         {
@@ -64,7 +64,7 @@ internal static class LocateInstrumentsUsmnOperation
         if (request.ExcludedGroups.Count > 0)
         {
             inputs.Add(new("Groups to be Excluded", WorkerMpValueKind.CollectionObjectNameList,
-                CollectionObjectNameMapper.AllowEmptyList(request.ExcludedGroups), "SetCollectionObjectNameRefListArg"));
+                CollectionObjectNameMapper.AllowEmptyList(request.ExcludedGroups, "excluded_groups"), "SetCollectionObjectNameRefListArg"));
         }
 
         inputs.AddRange(
@@ -90,7 +90,7 @@ internal static class LocateInstrumentsUsmnOperation
         Api.ShowUsmnDialog.No => WorkerShowUsmnDialogTypeValue.No,
         Api.ShowUsmnDialog.Yes => WorkerShowUsmnDialogTypeValue.Yes,
         Api.ShowUsmnDialog.OnToleranceViolation => WorkerShowUsmnDialogTypeValue.OnToleranceViolation,
-        _ => throw new ArgumentException("Request field 'show_usmn_dialog' has an unsupported value.", nameof(value))
+        _ => throw RequestFieldViolation.SupportedChoice("show_usmn_dialog")
     };
 
     public static Api.LocateInstrumentsUsmnResult CreateResult(SuccessfulOperationExecution completed)

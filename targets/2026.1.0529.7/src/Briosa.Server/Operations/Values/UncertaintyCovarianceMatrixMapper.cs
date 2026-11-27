@@ -10,7 +10,7 @@ internal static class UncertaintyCovarianceMatrixMapper
         string fieldName)
     {
         if (covarianceMatrix is null)
-            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(covarianceMatrix));
+            throw RequestFieldViolation.Required(fieldName);
 
         return
         [
@@ -45,8 +45,11 @@ internal static class UncertaintyCovarianceMatrixMapper
         string fieldName,
         string rowName)
     {
-        if (row is null || row.Values.Count == 0)
-            throw new ArgumentException($"Request field '{fieldName}.{rowName}' is required.", nameof(row));
+        if (row is null)
+            throw RequestFieldViolation.Required(RequestFieldViolation.Path(fieldName, rowName));
+        if (row.Values.Count == 0)
+            throw RequestFieldViolation.NotEmpty(
+                RequestFieldViolation.Path(RequestFieldViolation.Path(fieldName, rowName), "values"));
 
         return new(row.Values.ToArray());
     }

@@ -36,8 +36,8 @@ internal static class SetInteractionModeOperation
             Api.SaInteractionMode.Manual => WorkerSaInteractionModeValue.Manual,
             Api.SaInteractionMode.Automatic => WorkerSaInteractionModeValue.Automatic,
             Api.SaInteractionMode.Silent => WorkerSaInteractionModeValue.Silent,
-            _ => throw new ArgumentOutOfRangeException(nameof(value), value, "SA interaction mode is required.")
-        } : throw new ArgumentException("Request field 'sa_interaction_mode' is required.", nameof(value));
+            _ => throw RequestFieldViolation.SupportedChoice("sa_interaction_mode")
+        } : throw RequestFieldViolation.Required("sa_interaction_mode");
 
     private static WorkerMpInteractionModeValue ToWorker(Api.MpInteractionMode value, bool supplied) =>
         supplied ? value switch
@@ -45,14 +45,14 @@ internal static class SetInteractionModeOperation
             Api.MpInteractionMode.HaltOnFailureOnly => WorkerMpInteractionModeValue.HaltOnFailureOnly,
             Api.MpInteractionMode.HaltOnFailureOrPartialSuccess => WorkerMpInteractionModeValue.HaltOnFailureOrPartialSuccess,
             Api.MpInteractionMode.NeverHalt => WorkerMpInteractionModeValue.NeverHalt,
-            _ => throw new ArgumentOutOfRangeException(nameof(value), value, "MP interaction mode is required.")
-        } : throw new ArgumentException("Request field 'measurement_plan_interaction_mode' is required.", nameof(value));
+            _ => throw RequestFieldViolation.SupportedChoice("measurement_plan_interaction_mode")
+        } : throw RequestFieldViolation.Required("measurement_plan_interaction_mode");
 
     private static WorkerMpDialogInteractionModeValue ToWorker(Api.MpDialogInteractionMode value, bool supplied) =>
         supplied ? value switch
         {
             Api.MpDialogInteractionMode.BlockApplicationInteraction => WorkerMpDialogInteractionModeValue.BlockApplicationInteraction,
             Api.MpDialogInteractionMode.AllowApplicationInteraction => WorkerMpDialogInteractionModeValue.AllowApplicationInteraction,
-            _ => throw new ArgumentOutOfRangeException(nameof(value), value, "MP dialog interaction mode is required.")
-        } : throw new ArgumentException("Request field 'measurement_plan_dialog_interaction_mode' is required.", nameof(value));
+            _ => throw RequestFieldViolation.SupportedChoice("measurement_plan_dialog_interaction_mode")
+        } : throw RequestFieldViolation.Required("measurement_plan_dialog_interaction_mode");
 }

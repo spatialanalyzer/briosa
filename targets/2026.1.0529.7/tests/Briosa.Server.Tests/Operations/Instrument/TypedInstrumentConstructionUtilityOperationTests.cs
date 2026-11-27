@@ -39,7 +39,7 @@ public sealed class TypedInstrumentConstructionUtilityOperationTests
         Assert.Equal("SetColInstIdArg,SetPointNameArg,SetPointNameArg,SetToleranceVectorOptionsArg",
             string.Join(',', build.InputArguments.Select(input => input.SdkBinding)));
         Assert.Equal(4, build.InputArguments.Count);
-        Assert.Throws<ArgumentException>(() => BuildTargetOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => BuildTargetOperation.CreateCommand(new()
             { Instrument = instrument, OutputTargetName = point, NominalPoint = point }));
         var withPrompt = BuildTargetOperation.CreateCommand(new()
         {
@@ -53,13 +53,13 @@ public sealed class TypedInstrumentConstructionUtilityOperationTests
         Assert.Equal("SetCollectionObjectNameRefListArg", combine.InputArguments[0].SdkBinding);
         Assert.Equal(WorkerObjectTypeValue.PointGroup,
             combine.InputArguments[1].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
-        Assert.Throws<ArgumentException>(() => CombinePointGroupsOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => CombinePointGroupsOperation.CreateCommand(new()
             { CombinedPointGroup = group }));
 
         var plane = ConstructMirrorFromPlaneOperation.CreateCommand(new()
             { Instrument = instrument, Plane = group });
         Assert.Equal(string.Empty, plane.InputArguments[1].RequireValue<WorkerTextValue>().Value);
-        Assert.Throws<ArgumentException>(() => ConstructMirrorFromPlaneOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ConstructMirrorFromPlaneOperation.CreateCommand(new()
             { Instrument = instrument }));
         var twoPoints = ConstructMirrorFromTwoPointsOperation.CreateCommand(new()
         {
@@ -67,7 +67,7 @@ public sealed class TypedInstrumentConstructionUtilityOperationTests
         });
         Assert.True(twoPoints.InputArguments[4].RequireValue<WorkerBooleanValue>().Value);
         Assert.Equal("GetCollectionObjectNameArg", Assert.Single(twoPoints.OutputArguments).SdkBinding);
-        Assert.Throws<ArgumentException>(() => ConstructMirrorFromTwoPointsOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ConstructMirrorFromTwoPointsOperation.CreateCommand(new()
             { Instrument = instrument, PointMeasuredDirectly = point }));
 
         var perimeters = ConstructPerimetersFromSurfaceFaceListOperation.CreateCommand(new());
@@ -76,7 +76,7 @@ public sealed class TypedInstrumentConstructionUtilityOperationTests
         var dynamicReference = CreateNewDynamicReferenceOperation.CreateCommand(new()
             { Instrument = instrument, PointsDefiningDynamicReference = { point } });
         Assert.Equal("SetPointNameRefListArg", dynamicReference.InputArguments[1].SdkBinding);
-        Assert.Throws<ArgumentException>(() => CreateNewDynamicReferenceOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => CreateNewDynamicReferenceOperation.CreateCommand(new()
             { Instrument = instrument }));
 
         var usmn = CreateTemplatedInstrumentUsmnOperation.CreateCommand(new()
@@ -86,13 +86,13 @@ public sealed class TypedInstrumentConstructionUtilityOperationTests
         Assert.True(usmn.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
         Assert.False(usmn.InputArguments[10].RequireValue<WorkerBooleanValue>().Value);
         Assert.Equal(1d, usmn.InputArguments[14].RequireValue<WorkerDoubleValue>().Value);
-        Assert.Throws<ArgumentException>(() => CreateTemplatedInstrumentUsmnOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => CreateTemplatedInstrumentUsmnOperation.CreateCommand(new()
             { Instrument = instrument }));
         var dissect = DissectPointGroupOperation.CreateCommand(new() { GroupToDissect = group });
         Assert.Equal(WorkerObjectTypeValue.PointGroup,
             dissect.InputArguments[0].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
         Assert.Equal(string.Empty, dissect.InputArguments[1].RequireValue<WorkerTextValue>().Value);
-        Assert.Throws<ArgumentException>(() => DissectPointGroupOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DissectPointGroupOperation.CreateCommand(new()));
     }
 
     [Fact]

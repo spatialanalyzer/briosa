@@ -10,17 +10,16 @@ namespace Briosa.Server.Operations.Values;
 internal static class RequiredValueMapper
 {
     public static WorkerDoubleValue Double(bool present, double value, string fieldName) =>
-        present ? new(value) : throw Missing(fieldName);
+        present ? new(value) : throw RequestFieldViolation.Required(fieldName);
 
     public static WorkerIntegerValue Integer(bool present, int value, string fieldName) =>
-        present ? new(value) : throw Missing(fieldName);
+        present ? new(value) : throw RequestFieldViolation.Required(fieldName);
 
     public static WorkerBooleanValue Boolean(bool present, bool value, string fieldName) =>
-        present ? new(value) : throw Missing(fieldName);
+        present ? new(value) : throw RequestFieldViolation.Required(fieldName);
 
     public static WorkerTextValue NonEmptyText(bool present, string value, string fieldName) =>
-        present && !string.IsNullOrWhiteSpace(value) ? new(value) : throw Missing(fieldName);
-
-    private static ArgumentException Missing(string fieldName) =>
-        new($"Request field '{fieldName}' is required.", fieldName);
+        !present ? throw RequestFieldViolation.Required(fieldName)
+        : string.IsNullOrWhiteSpace(value) ? throw RequestFieldViolation.NotBlank(fieldName)
+        : new(value);
 }

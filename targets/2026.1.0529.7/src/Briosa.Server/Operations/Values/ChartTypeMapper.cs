@@ -10,6 +10,7 @@ internal static class ChartTypeMapper
         Api.ChartType.RunChart => WorkerChartTypeValue.RunChart,
         Api.ChartType.IndividualXMovingRange => WorkerChartTypeValue.IndividualXMovingRange,
         Api.ChartType.BullseyeChart => WorkerChartTypeValue.BullseyeChart,
-        _ => throw new ArgumentException($"Request field '{fieldName}' is required or unsupported.", nameof(value))
+        null => throw RequestFieldViolation.Required(fieldName),
+        _ => throw RequestFieldViolation.SupportedChoice(fieldName)
     };
 }

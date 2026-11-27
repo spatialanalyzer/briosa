@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -29,7 +30,7 @@ public sealed class TypedRelationshipStatusTests
             ["Dormant", "Success", "Measured", "Failed", "Unmeasured"],
             command.OutputArguments.Select(output => output.Name));
         Assert.All(command.OutputArguments, output => Assert.Equal("GetBoolArg", output.SdkBinding));
-        Assert.Throws<ArgumentException>(() => GetRelationshipStatusOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetRelationshipStatusOperation.CreateCommand(new()));
     }
 
     [Fact]

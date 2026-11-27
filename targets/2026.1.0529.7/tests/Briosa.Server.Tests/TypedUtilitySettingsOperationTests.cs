@@ -65,7 +65,7 @@ public sealed class TypedUtilitySettingsOperationTests
         var font = languageSet.InputArguments[1].RequireValue<WorkerFontValue>();
         Assert.Equal("MS Shell Dlg", font.FontName);
         Assert.Equal((byte)8, font.Size);
-        Assert.Throws<ArgumentException>(() => SetActiveCustomLanguageOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetActiveCustomLanguageOperation.CreateCommand(new()));
 
         var units = SetActiveUnitsOperation.CreateCommand(new());
         Assert.Equal(WorkerDistanceUnitValue.Inches,
@@ -105,13 +105,13 @@ public sealed class TypedUtilitySettingsOperationTests
             interaction.InputArguments[1].RequireValue<WorkerChoiceValue<WorkerMpInteractionModeValue>>().Value);
         Assert.Equal(WorkerMpDialogInteractionModeValue.AllowApplicationInteraction,
             interaction.InputArguments[2].RequireValue<WorkerChoiceValue<WorkerMpDialogInteractionModeValue>>().Value);
-        Assert.Throws<ArgumentException>(() => SetInteractionModeOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetInteractionModeOperation.CreateCommand(new()));
 
         // #243 D2: the profile file is optional. An absent file omits its setter, and an
         // explicit empty path is rejected.
         var profileOnly = SetUserInterfaceProfileOperation.CreateCommand(new());
         Assert.Equal("Profile Name", Assert.Single(profileOnly.InputArguments).Name);
-        Assert.Throws<ArgumentException>(() => SetUserInterfaceProfileOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetUserInterfaceProfileOperation.CreateCommand(new()
         {
             ProfileFileName = new Api.FileReference { Path = " " }
         }));
@@ -121,7 +121,7 @@ public sealed class TypedUtilitySettingsOperationTests
         });
         Assert.Equal("Default", profile.InputArguments[0].RequireValue<WorkerTextValue>().Value);
         Assert.Equal("profile.sa", profile.InputArguments[1].RequireValue<WorkerFileReferenceValue>().Path);
-        Assert.Throws<ArgumentException>(() => SetWorkingFrameOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetWorkingFrameOperation.CreateCommand(new()));
         var status = StatusDialogOperation.CreateCommand(new());
         Assert.Equal(["", "", "0", "0", "True", "False"], status.InputArguments.Select(argument => argument.Value switch
         {

@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -32,7 +33,7 @@ public sealed class TypedSetRelationshipAssociatedDataTests
 
         var missingLists = Request();
         missingLists.PointGroups = null;
-        Assert.Throws<ArgumentException>(() => SetRelationshipAssociatedDataOperation.CreateCommand(missingLists));
+        Assert.Throws<RequestFieldViolation>(() => SetRelationshipAssociatedDataOperation.CreateCommand(missingLists));
     }
 
     [Fact]

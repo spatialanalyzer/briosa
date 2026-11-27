@@ -20,7 +20,7 @@ internal static class MakeAnnotationRefListFromCollectionOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [new("Collection Name", WorkerMpValueKind.CollectionName,
-                GdtCollectionNameMapper.Required(request.Collection), "SetCollectionNameArg")],
+                GdtCollectionNameMapper.Required(request.Collection, "collection"), "SetCollectionNameArg")],
             [new("Resultant Annotation Reference List", WorkerMpValueKind.CollectionItemNameList,
                 "GetCollectionObjectNameRefListArg")]);
     }

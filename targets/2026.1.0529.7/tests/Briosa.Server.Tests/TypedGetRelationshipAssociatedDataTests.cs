@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -32,7 +33,7 @@ public sealed class TypedGetRelationshipAssociatedDataTests
         Assert.Equal(Api.ObjectType.PointGroup, Assert.Single(result.AssociatedData.PointGroups).ObjectType);
         Assert.Equal(Api.ObjectType.Cloud, Assert.Single(result.AssociatedData.PointClouds).ObjectType);
         Assert.Equal(Api.ObjectType.Sphere, Assert.Single(result.AssociatedData.Objects).ObjectType);
-        Assert.Throws<ArgumentException>(() => GetRelationshipAssociatedDataOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetRelationshipAssociatedDataOperation.CreateCommand(new()));
     }
 
     [Fact]

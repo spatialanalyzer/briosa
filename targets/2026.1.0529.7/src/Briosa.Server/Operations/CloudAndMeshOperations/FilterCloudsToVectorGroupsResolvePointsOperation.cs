@@ -34,7 +34,7 @@ internal static class FilterCloudsToVectorGroupsResolvePointsOperation
                 new WorkerDoubleValue(request.HasMaximumDistanceFromVectorBegin ? request.MaximumDistanceFromVectorBegin : 0), "SetDoubleArg"),
             new("Minimum number of required points", WorkerMpValueKind.WholeNumber,
                 new WorkerIntegerValue(request.HasMinimumNumberOfRequiredPoints ? request.MinimumNumberOfRequiredPoints : 0), "SetIntegerArg"),
-            new("Output Type", WorkerMpValueKind.Text, PointOutputTypeMapper.ToMpValue(outputType), "SetStringArg"),
+            new("Output Type", WorkerMpValueKind.Text, PointOutputTypeMapper.ToMpValue(outputType, "output_type"), "SetStringArg"),
             new("Include Proximity Points?", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.HasIncludeProximityPoints && request.IncludeProximityPoints), "SetBoolArg")
         ], []);

@@ -22,15 +22,17 @@ internal static class AskForStringPullDownVersionOperation
     public static WorkerMpCommand CreateCommand(Api.AskForStringPullDownVersionRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.QuestionOrStatement.Count == 0 || request.PossibleAnswers.Count == 0)
-            throw new ArgumentException("Question and possible answers are required.", nameof(request));
+        if (request.QuestionOrStatement.Count == 0)
+            throw RequestFieldViolation.NotEmpty("question_or_statement");
+        if (request.PossibleAnswers.Count == 0)
+            throw RequestFieldViolation.NotEmpty("possible_answers");
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Question or Statement", WorkerMpValueKind.StringList,
                 new WorkerStringListValue(request.QuestionOrStatement), "SetStringRefListArg"),
             new("Possible Answers", WorkerMpValueKind.StringList,
                 new WorkerStringListValue(request.PossibleAnswers), "SetStringRefListArg"),
-            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font), "SetFontTypeArg")
+            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font, "font"), "SetFontTypeArg")
         ],
         [
             new("Answer", WorkerMpValueKind.Text, "GetStringArg"),

@@ -5,7 +5,7 @@ namespace Briosa.Server.Operations.Values;
 
 internal static class FontMapper
 {
-    public static WorkerFontValue WithDefaults(Api.Font? value)
+    public static WorkerFontValue WithDefaults(Api.Font? value, string fieldName)
     {
         if (value is null)
         {
@@ -14,13 +14,13 @@ internal static class FontMapper
 
         if (value.Size > byte.MaxValue)
         {
-            throw new ArgumentOutOfRangeException(nameof(value), "Font size must be in 0..255.");
+            throw RequestFieldViolation.Range(RequestFieldViolation.Path(fieldName, "size"));
         }
 
         var color = value.Color;
-        if (color is not null && (color.Red > byte.MaxValue || color.Green > byte.MaxValue || color.Blue > byte.MaxValue))
+        if (color is not null)
         {
-            throw new ArgumentOutOfRangeException(nameof(value), "Color channels must be in 0..255.");
+            ColorChannelRange.Require(color, RequestFieldViolation.Path(fieldName, "color"));
         }
 
         return new(value.HasFontName ? value.FontName : "MS Shell Dlg",

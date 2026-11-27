@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Security;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -90,12 +91,15 @@ internal sealed class OperationExecutor(
                     effectiveCorrelationId,
                     cancellationToken).ConfigureAwait(false);
             }
-            catch (ArgumentException)
+            catch (ArgumentException exception)
             {
+                // Only a typed violation names its field and constraint. Any other
+                // argument failure, and every exception message, stays out of the error.
                 throw GrpcOperationOutcomeMapper.CreateValidationFailure(
                     operation.OperationId,
                     "request-validation-failed",
-                    replaySafety: operation.ReplaySafety);
+                    replaySafety: operation.ReplaySafety,
+                    requestValidation: (exception as RequestFieldViolation)?.ToDetails());
             }
 
             var completed = GrpcOperationOutcomeMapper.RequireSuccess(

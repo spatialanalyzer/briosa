@@ -41,10 +41,10 @@ public sealed class TypedTransformConstructionOperationTests
     [Fact]
     public void TransformInputsAndOutputsPreserveExactBindings()
     {
-        Assert.Throws<ArgumentException>(() => InvertTransformOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => InvertTransformOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => InvertTransformOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => InvertTransformOperation.CreateCommand(new()
             { Transform = new Api.Transform { Values = { 1d } } }));
-        Assert.Throws<ArgumentException>(() => GetWorkingTransformOfObjectFixedXyzOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetWorkingTransformOfObjectFixedXyzOperation.CreateCommand(new()));
         var working = GetWorkingTransformOfObjectFixedXyzOperation.CreateCommand(new()
             { ObjectName = new Api.CollectionObjectName { CollectionName = "C", ObjectName = "O" } });
         Assert.Equal("SetCollectionObjectNameArg2", Assert.Single(working.InputArguments).SdkBinding);
@@ -87,7 +87,7 @@ public sealed class TypedTransformConstructionOperationTests
         var axes = DecomposeTransformIntoVectorsOriginAndAxesOperation.CreateCommand(new() { Transform = matrix });
         Assert.Equal(["Origin", "X Axis", "Y Axis", "Z Axis"],
             axes.OutputArguments.Select(output => output.Name));
-        Assert.Throws<ArgumentException>(() => DecomposeWorldTransformOperatorIntoDoublesFixedXyzInWorldOperation
+        Assert.Throws<RequestFieldViolation>(() => DecomposeWorldTransformOperatorIntoDoublesFixedXyzInWorldOperation
             .CreateCommand(new()));
         var world = new Api.WorldTransform { Transform = matrix };
         var worldDoubles = DecomposeWorldTransformOperatorIntoDoublesFixedXyzInWorldOperation.CreateCommand(new()

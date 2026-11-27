@@ -46,7 +46,7 @@ internal static class RGBCloudPointFilterOperation
             new("Gray Scale High Threshold", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(request.HasGrayScaleHighThreshold ? request.GrayScaleHighThreshold : 255), "SetIntegerArg"),
             new("Gray Scale Low Enabled", WorkerMpValueKind.Logical, new WorkerBooleanValue(request.HasGrayScaleLowEnabled && request.GrayScaleLowEnabled), "SetBoolArg"),
             new("Gray Scale Low Threshold", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(request.HasGrayScaleLowThreshold ? request.GrayScaleLowThreshold : 0), "SetIntegerArg"),
-            new("RGB Filter Operation", WorkerMpValueKind.Text, RgbFilterOperationMapper.ToMpValue(filterOperation), "SetStringArg")
+            new("RGB Filter Operation", WorkerMpValueKind.Text, RgbFilterOperationMapper.ToMpValue(filterOperation, "rgb_filter_operation"), "SetStringArg")
         ], []);
     }
 

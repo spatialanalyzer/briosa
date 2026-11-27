@@ -21,7 +21,7 @@ internal static class GenerateQuickReportFromTabOrderOperation
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Report Output Options", WorkerMpValueKind.ReportOutputOptions,
-                ReportOutputOptionsMapper.WithDefault(request.ReportOutputOptions), "SetReportOutputOptionsArg"),
+                ReportOutputOptionsMapper.WithDefault(request.ReportOutputOptions, "report_output_options"), "SetReportOutputOptionsArg"),
             new("Open Report?", WorkerMpValueKind.Logical, new WorkerBooleanValue(request.OpenReport), "SetBoolArg")
         ], []);
     }

@@ -33,10 +33,10 @@ internal static class DefineReportTemplateOperation
                 CollectionItemNameMapper.RequiredList(request.EventsToReport, "events_to_report"),
                 "SetCollectionObjectNameRefListArg"),
             new("Report Output Options", WorkerMpValueKind.ReportOutputOptions,
-                ReportOutputOptionsMapper.WithDefault(request.ReportOutputOptions), "SetReportOutputOptionsArg"),
+                ReportOutputOptionsMapper.WithDefault(request.ReportOutputOptions, "report_output_options"), "SetReportOutputOptionsArg"),
             new("Report Page Settings ( SA Report only )", WorkerMpValueKind.ReportPageOrientation,
                 new WorkerChoiceValue<WorkerReportPageOrientationValue>(ReportPageSettingsMapper.WithDefault(
-                    request.HasReportPageSettings ? request.ReportPageSettings : null)), "SetReportPageSettingsArg"),
+                    request.HasReportPageSettings ? request.ReportPageSettings : null, "report_page_settings")), "SetReportPageSettingsArg"),
             new("Generate Now?", WorkerMpValueKind.Logical, new WorkerBooleanValue(request.GenerateNow), "SetBoolArg"),
             new("Show Generated Report?", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.ShowGeneratedReport), "SetBoolArg")

@@ -21,7 +21,7 @@ internal static class MakeCollectionObjectNameRefListByTypeOperation
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Collection", WorkerMpValueKind.Text, new WorkerTextValue(request.Collection), "SetStringArg"),
-            new("Object Type", WorkerMpValueKind.ObjectType, ObjectTypeMapper.Required(request.ObjectType), "SetObjectTypeArg")
+            new("Object Type", WorkerMpValueKind.ObjectType, ObjectTypeMapper.RequiredChoice(request.ObjectType, "object_type"), "SetObjectTypeArg")
         ], [new("Resultant Collection Object Name List", WorkerMpValueKind.CollectionObjectNameList, "GetCollectionObjectNameRefListArg")]);
     }
 

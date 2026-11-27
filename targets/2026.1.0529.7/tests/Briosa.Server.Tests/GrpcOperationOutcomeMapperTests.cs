@@ -246,6 +246,8 @@ public sealed class GrpcOperationOutcomeMapperTests
                 ? new PolicyDenialDetails { Rule = PolicyDenialRule.Override }
                 : null,
             error.PolicyDenial);
+        // A worker-side rejection, like every transport failure, names no request field.
+        Assert.Null(error.RequestValidation);
     }
 
     [Fact]
@@ -259,7 +261,9 @@ public sealed class GrpcOperationOutcomeMapperTests
             "operation-unsupported");
 
         Assert.Equal(StatusCode.InvalidArgument, invalid.StatusCode);
+        Assert.Equal("The request is invalid.", invalid.Status.Detail);
         Assert.Equal(OperationFailureKind.Validation, Error(invalid).Kind);
+        Assert.Null(Error(invalid).RequestValidation);
         Assert.Equal(ExecutionDisposition.NotStarted, Error(invalid).ExecutionDisposition);
         Assert.Equal(ReplayGuidance.DoNotReplay, Error(invalid).ReplayGuidance);
         Assert.Equal(StatusCode.Unimplemented, unsupported.StatusCode);

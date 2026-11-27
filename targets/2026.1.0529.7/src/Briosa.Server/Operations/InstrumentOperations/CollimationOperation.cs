@@ -19,12 +19,15 @@ internal static class CollimationOperation
     public static WorkerMpCommand CreateCommand(Api.CollimationRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (!request.HasTiltMode || request.TiltMode == Api.CollimationTiltMode.Unspecified ||
-            !Enum.IsDefined(request.TiltMode))
-            throw new ArgumentException("Request field 'tilt_mode' requires a supported choice.", nameof(request));
-        if (!request.HasBaselineMethod || request.BaselineMethod == Api.CollimationBaselineMethod.Unspecified ||
+        if (!request.HasTiltMode)
+            throw RequestFieldViolation.Required("tilt_mode");
+        if (request.TiltMode == Api.CollimationTiltMode.Unspecified || !Enum.IsDefined(request.TiltMode))
+            throw RequestFieldViolation.SupportedChoice("tilt_mode");
+        if (!request.HasBaselineMethod)
+            throw RequestFieldViolation.Required("baseline_method");
+        if (request.BaselineMethod == Api.CollimationBaselineMethod.Unspecified ||
             !Enum.IsDefined(request.BaselineMethod))
-            throw new ArgumentException("Request field 'baseline_method' requires a supported choice.", nameof(request));
+            throw RequestFieldViolation.SupportedChoice("baseline_method");
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [
                 new("Stationary Instrument ID", WorkerMpValueKind.CollectionInstrumentId,

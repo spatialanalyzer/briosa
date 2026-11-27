@@ -7,9 +7,14 @@ internal static class TransformMapper
 {
     public static WorkerTransformValue Required(Api.Transform? value, string fieldName)
     {
-        if (value is null || value.Values.Count != 16)
+        if (value is null)
         {
-            throw new ArgumentException($"Request field '{fieldName}' must contain exactly 16 transform values.", nameof(value));
+            throw RequestFieldViolation.Required(fieldName);
+        }
+
+        if (value.Values.Count != 16)
+        {
+            throw RequestFieldViolation.ElementCount(RequestFieldViolation.Path(fieldName, "values"));
         }
 
         return new(value.Values);

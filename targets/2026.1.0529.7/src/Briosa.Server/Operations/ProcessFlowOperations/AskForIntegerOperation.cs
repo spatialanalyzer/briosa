@@ -25,7 +25,7 @@ internal static class AskForIntegerOperation
             new("Enforce Min/Max Values?", WorkerMpValueKind.Logical, new WorkerBooleanValue(request.EnforceMinMaxValues), "SetBoolArg"),
             new("Min Value", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(request.MinValue), "SetIntegerArg"),
             new("Max Value", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(request.MaxValue), "SetIntegerArg"),
-            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font), "SetFontTypeArg")
+            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font, "font"), "SetFontTypeArg")
         ], [new("Answer", WorkerMpValueKind.WholeNumber, "GetIntegerArg")]);
     }
 

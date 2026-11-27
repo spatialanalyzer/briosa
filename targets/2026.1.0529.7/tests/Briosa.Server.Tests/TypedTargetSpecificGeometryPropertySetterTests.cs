@@ -70,9 +70,9 @@ public sealed class TypedTargetSpecificGeometryPropertySetterTests
         Assert.Empty(ellipse.OutputArguments);
         Assert.Empty(line.OutputArguments);
 
-        Assert.Throws<ArgumentException>(() => SetConePropertiesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetEllipsePropertiesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetLinePropertiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetConePropertiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetEllipsePropertiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetLinePropertiesOperation.CreateCommand(new()));
     }
 
     [Fact]

@@ -43,7 +43,7 @@ public sealed class TypedReportGenerationOperationTests
         Assert.Equal(new WorkerEmbeddedReportFileValue(string.Empty, "My Report"), output.EmbeddedFile);
         Assert.False(quickFromTabs.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => GenerateStandardHtmlReportOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GenerateStandardHtmlReportOperation.CreateCommand(new()));
         var standardHtml = GenerateStandardHtmlReportOperation.CreateCommand(new()
         {
             HtmlOutputFile = File("report.html")
@@ -51,13 +51,13 @@ public sealed class TypedReportGenerationOperationTests
         Assert.Equal("report.html", standardHtml.InputArguments[0].RequireValue<WorkerFileReferenceValue>().Path);
         Assert.Equal(0, standardHtml.InputArguments[1].RequireValue<WorkerIntegerValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => GenerateUpdateTemplatedReportOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GenerateUpdateTemplatedReportOperation.CreateCommand(new()));
         Assert.Equal("Template", GenerateUpdateTemplatedReportOperation.CreateCommand(new()
         {
             ReportTemplate = Object("Template")
         }).InputArguments[0].RequireValue<WorkerCollectionObjectNameValue>().ObjectName);
 
-        Assert.Throws<ArgumentException>(() => HtmlDisplayBoardOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => HtmlDisplayBoardOperation.CreateCommand(new()));
         var board = HtmlDisplayBoardOperation.CreateCommand(new() { InputHtmlFile = File("board.html") });
         Assert.True(board.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
         board = HtmlDisplayBoardOperation.CreateCommand(new()
@@ -66,20 +66,20 @@ public sealed class TypedReportGenerationOperationTests
         });
         Assert.False(board.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => OutputSaReportToExcelOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => OutputSaReportToExcelOperation.CreateCommand(new()));
         var excel = OutputSaReportToExcelOperation.CreateCommand(new()
         {
             ReportName = Object("Report"), FileName = File("report.xlsx")
         });
         Assert.False(excel.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => OutputSaReportToPdfOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => OutputSaReportToPdfOperation.CreateCommand(new()));
         var pdf = OutputSaReportToPdfOperation.CreateCommand(new()
         {
             ReportName = Object("Report"), FileName = File("report.pdf")
         });
         Assert.False(pdf.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => QuickReportOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => QuickReportOperation.CreateCommand(new()));
         var quick = QuickReportOperation.CreateCommand(new() { ItemName = Object("Part") });
         Assert.Equal(string.Empty, quick.InputArguments[1].RequireValue<WorkerTextValue>().Value);
         Assert.False(quick.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);

@@ -37,6 +37,6 @@ internal static class SetTargetComputationOptionsOperation
             Api.TargetComputationMethod.ForceNewPointForEachMeasurement => WorkerTargetComputationMethodValue.ForceNewPointForEachMeasurement,
             Api.TargetComputationMethod.RemoveAllPriorShots => WorkerTargetComputationMethodValue.RemoveAllPriorShots,
             Api.TargetComputationMethod.DeactivateAllPriorShots => WorkerTargetComputationMethodValue.DeactivateAllPriorShots,
-            _ => throw new ArgumentException("Request field 'computation_method' is not supported by this SA target.", nameof(request))
-        } : throw new ArgumentException("Request field 'computation_method' is required.", nameof(request));
+            _ => throw RequestFieldViolation.SupportedChoice("computation_method")
+        } : throw RequestFieldViolation.Required("computation_method");
 }

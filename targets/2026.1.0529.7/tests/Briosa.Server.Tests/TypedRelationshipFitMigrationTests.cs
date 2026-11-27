@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -15,14 +16,14 @@ public sealed class TypedRelationshipFitMigrationTests
             new() { RelationshipName = Item() });
         Assert.Equal("SetCollectionObjectNameArg2", uncertainty.InputArguments[0].SdkBinding);
         Assert.False(uncertainty.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => ComputeGeometryRelationshipUncertaintiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ComputeGeometryRelationshipUncertaintiesOperation.CreateCommand(new()));
 
         var summary = new Api.GenerateGeometryRelationshipSummaryRequest();
         summary.RelationshipRefList.Add(Item());
         var command = GenerateGeometryRelationshipSummaryOperation.CreateCommand(summary);
         Assert.Equal(WorkerMpValueKind.CollectionObjectNameList, command.InputArguments[0].Kind);
         Assert.Equal("Geometry Relationship Summary", command.InputArguments[1].RequireValue<WorkerTextValue>().Value);
-        Assert.Throws<ArgumentException>(() => GenerateGeometryRelationshipSummaryOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GenerateGeometryRelationshipSummaryOperation.CreateCommand(new()));
     }
 
     [Fact]
@@ -43,7 +44,7 @@ public sealed class TypedRelationshipFitMigrationTests
         Assert.Equal(["GetTransformArg", "GetWorldTransformArg", "GetWorldTransformArg", "GetDoubleArg"],
             command.OutputArguments.Select(argument => argument.SdkBinding));
         request.InstrumentsToMove.Clear();
-        Assert.Throws<ArgumentException>(() => DoRelationshipFitOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => DoRelationshipFitOperation.CreateCommand(request));
     }
 
     [Fact]
@@ -54,7 +55,7 @@ public sealed class TypedRelationshipFitMigrationTests
         Assert.Equal(3d, command.InputArguments[1].RequireValue<WorkerDoubleValue>().Value);
         Assert.Equal(10, command.OutputArguments.Count);
         Assert.Equal("GetIntegerArg", command.OutputArguments[9].SdkBinding);
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             FilterGeometryRelationshipOutlierCloudPointsOperation.CreateCommand(new()));
     }
 
@@ -70,11 +71,11 @@ public sealed class TypedRelationshipFitMigrationTests
         Assert.Empty(command.InputArguments[0].RequireValue<WorkerStringListValue>().Values);
         Assert.Equal("Direct Search", command.InputArguments[2].RequireValue<WorkerTextValue>().Value);
         request.SolverMode = (Api.SolverMode)999;
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             MoveCollectionsByMinimizingRelationshipsOperation.CreateCommand(request));
         request.SolverMode = Api.SolverMode.GaussNewton;
         request.RelationshipsToMinimize.Clear();
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             MoveCollectionsByMinimizingRelationshipsOperation.CreateCommand(request));
     }
     [Fact]
@@ -92,7 +93,7 @@ public sealed class TypedRelationshipFitMigrationTests
         Assert.Equal(0.1, command.InputArguments[5].RequireValue<WorkerDoubleValue>().Value);
         Assert.Equal(1000, command.InputArguments[7].RequireValue<WorkerIntegerValue>().Value);
         request.GeometryType = (Api.GeometryType)999;
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             ExtractGeometryFromPointCloudsOperation.CreateCommand(request));
     }
 

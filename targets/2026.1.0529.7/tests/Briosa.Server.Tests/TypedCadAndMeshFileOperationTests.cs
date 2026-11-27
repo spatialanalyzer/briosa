@@ -67,7 +67,7 @@ public sealed class TypedCadAndMeshFileOperationTests
         Assert.True(cadResult.ImportWarnings);
         Assert.Equal("warnings", cadResult.ImportWarningMessages);
         Assert.Equal(new Api.Vector { X = 1, Y = 2, Z = 3 }, cadResult.ExtentsMin);
-        Assert.Throws<ArgumentException>(() => DirectCadAccessOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DirectCadAccessOperation.CreateCommand(new()));
 
         var file = new Api.FileReference { Path = "model.dxf" };
         var point = new Api.PointName { CollectionName = "c", GroupName = "g", TargetName = "p" };
@@ -79,7 +79,7 @@ public sealed class TypedCadAndMeshFileOperationTests
         Assert.Equal("SetPointNameRefListArg", dxf.InputArguments[1].SdkBinding);
         Assert.Equal("SetCollectionObjectNameRefListArg", dxf.InputArguments[2].SdkBinding);
         Assert.True(dxf.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => ExportDxfOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ExportDxfOperation.CreateCommand(new()));
 
         var partialObject = new Api.CollectionObjectName { CollectionName = "c", ObjectName = "surface" };
         var iges = ExportIgesFilePartialModelOperation.CreateCommand(new()
@@ -97,14 +97,14 @@ public sealed class TypedCadAndMeshFileOperationTests
             VdaFsFilePath = file, ObjectNameList = { partialObject }
         });
         Assert.Single(vda.InputArguments[1].RequireValue<WorkerCollectionObjectNameListValue>().Values);
-        Assert.Throws<ArgumentException>(() => ExportIgesFilePartialModelOperation.CreateCommand(new() { IgesFilePath = file }));
+        Assert.Throws<RequestFieldViolation>(() => ExportIgesFilePartialModelOperation.CreateCommand(new() { IgesFilePath = file }));
 
         var mesh = ExportScanStripeMeshToStlFileOperation.CreateCommand(new()
         {
             StlFilePath = file, Mesh = partialObject
         });
         Assert.Equal("SetCollectionObjectNameArg2", mesh.InputArguments[1].SdkBinding);
-        Assert.Throws<ArgumentException>(() => ExportScanStripeMeshToStlFileOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ExportScanStripeMeshToStlFileOperation.CreateCommand(new()));
         Assert.Equal("SetFilePathArg", ExportIgesFileEntireModelOperation.CreateCommand(new()
             { IgesFilePath = file }).InputArguments[0].SdkBinding);
         Assert.Equal("SetFilePathArg", ExportStepFileEntireModelOperation.CreateCommand(new()

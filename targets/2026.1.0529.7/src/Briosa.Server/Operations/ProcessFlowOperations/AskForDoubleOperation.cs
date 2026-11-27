@@ -25,7 +25,7 @@ internal static class AskForDoubleOperation
             new("Enforce Min/Max Values?", WorkerMpValueKind.Logical, new WorkerBooleanValue(request.EnforceMinMaxValues), "SetBoolArg"),
             new("Min Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(request.MinValue), "SetDoubleArg"),
             new("Max Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(request.MaxValue), "SetDoubleArg"),
-            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font), "SetFontTypeArg")
+            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font, "font"), "SetFontTypeArg")
         ], [new("Answer", WorkerMpValueKind.FloatingPoint, "GetDoubleArg")]);
     }
 

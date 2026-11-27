@@ -21,7 +21,7 @@ internal static class SetNamedDoubleListVariableOperation
         // field cannot distinguish absence from an explicitly empty list.
         if (request.DoubleListVariable.Count == 0)
         {
-            throw new ArgumentException("Double List Variable is required.", nameof(request));
+            throw RequestFieldViolation.NotEmpty("double_list_variable");
         }
 
         return new(Descriptor.OperationId, Descriptor.MpStep,

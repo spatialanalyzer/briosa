@@ -32,10 +32,10 @@ public sealed class TypedRadialGeometryPropertyOperationTests
     [Fact]
     public void GeometryQueriesRequireTheirObjectAndRetainSdkBindings()
     {
-        Assert.Throws<ArgumentException>(() => GetCirclePropertiesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetEllipsePropertiesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetSpherePropertiesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetTorusPropertiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetCirclePropertiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetEllipsePropertiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetSpherePropertiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetTorusPropertiesOperation.CreateCommand(new()));
 
         var circle = GetCirclePropertiesOperation.CreateCommand(new()
             { CircleName = new Api.CollectionObjectName { ObjectName = "circle" } });

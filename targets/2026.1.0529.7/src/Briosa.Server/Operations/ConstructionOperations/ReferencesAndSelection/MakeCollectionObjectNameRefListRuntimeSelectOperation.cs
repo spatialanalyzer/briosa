@@ -21,7 +21,7 @@ internal static class MakeCollectionObjectNameRefListRuntimeSelectOperation
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("User Prompt", WorkerMpValueKind.Text, new WorkerTextValue(request.UserPrompt), "SetStringArg"),
-            new("Object Type", WorkerMpValueKind.ObjectType, ObjectTypeMapper.Required(request.ObjectType), "SetObjectTypeArg")
+            new("Object Type", WorkerMpValueKind.ObjectType, ObjectTypeMapper.RequiredChoice(request.ObjectType, "object_type"), "SetObjectTypeArg")
         ], [new("Resultant Collection Object Name Reference List", WorkerMpValueKind.CollectionObjectNameList, "GetCollectionObjectNameRefListArg")]);
     }
 

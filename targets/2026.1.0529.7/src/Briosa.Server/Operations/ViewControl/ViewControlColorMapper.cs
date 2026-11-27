@@ -1,3 +1,4 @@
+using Briosa.Server.Operations.Values;
 using Briosa.Worker.Control;
 using Api = global::Briosa;
 
@@ -5,13 +6,10 @@ namespace Briosa.Server.Operations.ViewControl;
 
 internal static class ViewControlColorMapper
 {
-    public static WorkerRgbColorValue WithDefault(Api.Color? value)
+    public static WorkerRgbColorValue WithDefault(Api.Color? value, string fieldName)
     {
         value ??= new Api.Color { Red = byte.MaxValue };
-        if (value.Red > byte.MaxValue || value.Green > byte.MaxValue || value.Blue > byte.MaxValue)
-        {
-            throw new ArgumentOutOfRangeException(nameof(value), "Color channels must be in 0..255.");
-        }
+        ColorChannelRange.Require(value, fieldName);
 
         return new((byte)value.Red, (byte)value.Green, (byte)value.Blue);
     }

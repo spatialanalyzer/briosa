@@ -17,12 +17,16 @@ internal static class SetRobotMachineBaseTransformOperation
     public static WorkerMpCommand CreateCommand(Api.SetRobotMachineBaseTransformRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.MachineId is null || string.IsNullOrWhiteSpace(request.MachineId.CollectionName))
-            throw new ArgumentException("Machine ID is required.", nameof(request));
-        if (request.ReferenceFrame is null || string.IsNullOrWhiteSpace(request.ReferenceFrame.ObjectName))
-            throw new ArgumentException("Reference Frame is required.", nameof(request));
+        if (request.MachineId is null)
+            throw RequestFieldViolation.Required("machine_id");
+        if (string.IsNullOrWhiteSpace(request.MachineId.CollectionName))
+            throw RequestFieldViolation.NotBlank("machine_id.collection_name");
+        if (request.ReferenceFrame is null)
+            throw RequestFieldViolation.Required("reference_frame");
+        if (string.IsNullOrWhiteSpace(request.ReferenceFrame.ObjectName))
+            throw RequestFieldViolation.NotBlank("reference_frame.object_name");
         if (!Enum.IsDefined(request.ReferenceFrame.ObjectType))
-            throw new ArgumentException("Reference Frame type is not supported by this SA target.", nameof(request));
+            throw RequestFieldViolation.SupportedChoice("reference_frame.object_type");
 
         var objectType = request.ReferenceFrame.ObjectType == Api.ObjectType.Unspecified
             ? WorkerObjectTypeValue.Frame

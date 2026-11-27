@@ -29,7 +29,7 @@ internal static class MakePointsToObjectsRelationshipOperation
                     CollectionObjectNameMapper.RequiredList(request.ObjectsInRelationship, "objects_in_relationship"), "SetCollectionObjectNameRefListArg"),
                 new("Projection Options", WorkerMpValueKind.ProjectionOptions,
                     ProjectionOptionsMapper.FromRequest(request.ProjectionOptions ??
-                        throw new ArgumentException("Request field 'projection_options' is required.", nameof(request))), "SetProjectionOptionsArg"),
+                        throw RequestFieldViolation.Required("projection_options")), "SetProjectionOptionsArg"),
                 new("Auto Update a Vector Group?", WorkerMpValueKind.Logical,
                     new WorkerBooleanValue(request.HasAutoUpdateAVectorGroup && request.AutoUpdateAVectorGroup), "SetBoolArg")
             ], []);

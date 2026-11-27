@@ -36,30 +36,30 @@ public sealed class TypedPictureOperationTests
     [Fact]
     public void PictureMappingsPreserveBindingsDefaultsAndPresence()
     {
-        Assert.Throws<ArgumentException>(() => AddPicturesToReportBarOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => AddPicturesToReportBarOperation.CreateCommand(new()));
         var add = AddPicturesToReportBarOperation.CreateCommand(new() { Pictures = { Item("Top") } });
         Assert.Equal("Top", add.InputArguments[0].RequireValue<WorkerCollectionItemNameListValue>().Values[0].ItemName);
         Assert.False(add.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => CaptureCurrentViewOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => CaptureCurrentViewOperation.CreateCommand(new()));
         Assert.Equal("SetCollectionObjectNameArg2", CaptureCurrentViewOperation.CreateCommand(new()
         {
             PictureName = Item("View")
         }).InputArguments[0].SdkBinding);
 
-        Assert.Throws<ArgumentException>(() => CaptureScreenToFileBmpJpgPngGifTiffOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => CaptureScreenToFileBmpJpgPngGifTiffOperation.CreateCommand(new()));
         Assert.Equal("image.png", CaptureScreenToFileBmpJpgPngGifTiffOperation.CreateCommand(new()
         {
             FileToSaveTo = File("image.png")
         }).InputArguments[0].RequireValue<WorkerFileReferenceValue>().Path);
 
-        Assert.Throws<ArgumentException>(() => DeletePictureOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DeletePictureOperation.CreateCommand(new()));
         Assert.Equal("SetCollectionObjectNameArg2", DeletePictureOperation.CreateCommand(new()
         {
             PictureName = Item("Old")
         }).InputArguments[0].SdkBinding);
 
-        Assert.Throws<ArgumentException>(() => RenamePictureOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => RenamePictureOperation.CreateCommand(new()));
         var rename = RenamePictureOperation.CreateCommand(new()
         {
             OriginalPictureName = Item("Old"),
@@ -69,7 +69,7 @@ public sealed class TypedPictureOperationTests
             .Select(argument => argument.RequireValue<WorkerCollectionItemNameValue>().ItemName));
         Assert.False(rename.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => SaveCurrentViewBmpJpgPngGifTiffOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SaveCurrentViewBmpJpgPngGifTiffOperation.CreateCommand(new()));
         var saveDefault = SaveCurrentViewBmpJpgPngGifTiffOperation.CreateCommand(new()
         {
             FileToSaveTo = File("view.png")
@@ -82,7 +82,7 @@ public sealed class TypedPictureOperationTests
         });
         Assert.Equal(0d, saveZero.InputArguments[1].RequireValue<WorkerDoubleValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => SetScaleForPictureOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetScaleForPictureOperation.CreateCommand(new()));
         var scaleDefault = SetScaleForPictureOperation.CreateCommand(new() { PictureName = Item("View") });
         Assert.Equal(100d, scaleDefault.InputArguments[1].RequireValue<WorkerDoubleValue>().Value);
         var scaleZero = SetScaleForPictureOperation.CreateCommand(new()

@@ -22,7 +22,7 @@ internal static class SetObjectsColorOperation
             new("Objects to change", WorkerMpValueKind.CollectionObjectNameList,
                 CollectionObjectNameMapper.RequiredList(request.ObjectsToChange, "objects_to_change"), "SetCollectionObjectNameRefListArg"),
             new("New Working Color Name", WorkerMpValueKind.RgbColor,
-                ViewControlColorMapper.WithDefault(request.NewWorkingColorName), "SetColorArg"),
+                ViewControlColorMapper.WithDefault(request.NewWorkingColorName, "new_working_color_name"), "SetColorArg"),
             new("Auto Increment", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.AutoIncrement), "SetBoolArg")
         ], []);

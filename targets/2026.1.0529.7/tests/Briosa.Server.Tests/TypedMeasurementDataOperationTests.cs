@@ -38,11 +38,11 @@ public sealed class TypedMeasurementDataOperationTests
     [Fact]
     public void RequiredPointAndFrameNamesAndOptionalDefaultsMatchCatalog()
     {
-        Assert.Throws<ArgumentException>(() => GetMeasurementAuxiliaryDataOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetMeasurementInfoDataOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetMeasurementWeatherDataOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetMeasurementAuxiliaryDataOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => TemperatureCompensateAGroupOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetMeasurementAuxiliaryDataOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetMeasurementInfoDataOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetMeasurementWeatherDataOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetMeasurementAuxiliaryDataOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => TemperatureCompensateAGroupOperation.CreateCommand(new()));
 
         var point = new Api.PointName { CollectionName = "collection", GroupName = "group", TargetName = "P1" };
         var auxiliary = GetMeasurementAuxiliaryDataOperation.CreateCommand(new() { PointName = point });

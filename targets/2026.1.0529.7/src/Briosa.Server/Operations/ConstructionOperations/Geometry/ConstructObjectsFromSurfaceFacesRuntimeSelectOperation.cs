@@ -31,7 +31,7 @@ internal static class ConstructObjectsFromSurfaceFacesRuntimeSelectOperation
             Api.ConstructObjectType.CenterPoints => "Center Points",
             Api.ConstructObjectType.SurfacePoints => "Surface Points",
             Api.ConstructObjectType.VertexPoints => "Vertex Points",
-            _ => throw new ArgumentException("A supported object_type is required.", nameof(request))
+            _ => throw RequestFieldViolation.SupportedChoice("object_type")
         };
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [

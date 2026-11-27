@@ -32,7 +32,7 @@ public sealed class TypedReportOptionsOperationTests
     [Fact]
     public void ReportOptionMappingsPreserveDefaultsAndNestedValues()
     {
-        Assert.Throws<ArgumentException>(() => SetPointGroupReportOptionsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetPointGroupReportOptionsOperation.CreateCommand(new()));
         var pointGroup = SetPointGroupReportOptionsOperation.CreateCommand(new()
         {
             PointGroup = Object("Targets"),
@@ -46,12 +46,12 @@ public sealed class TypedReportOptionsOperationTests
             pointGroup.InputArguments[1].RequireValue<WorkerChoiceValue<WorkerCoordinateSystemTypeValue>>().Value);
         Assert.Equal([false, true, true, true, true, false, false, false, false, true, true, false],
             pointGroup.InputArguments.Skip(2).Select(argument => argument.RequireValue<WorkerBooleanValue>().Value));
-        Assert.Throws<ArgumentException>(() => SetPointGroupReportOptionsOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetPointGroupReportOptionsOperation.CreateCommand(new()
         {
             PointGroup = Object("Targets"), CoordinateSystem = Api.CoordinateSystemType.Unspecified
         }));
 
-        Assert.Throws<ArgumentException>(() => SetRelationshipReportOptionsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetRelationshipReportOptionsOperation.CreateCommand(new()));
         var relationship = SetRelationshipReportOptionsOperation.CreateCommand(new()
         {
             RelationshipName = Object("Alignment")
@@ -75,12 +75,12 @@ public sealed class TypedReportOptionsOperationTests
             true, true, true, true, true, false),
             customRelationship.InputArguments[1].RequireValue<WorkerPointDeltaReportOptionsValue>());
 
-        Assert.Throws<ArgumentException>(() => SetReportOptionsForObjectOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetReportOptionsForObjectOperation.CreateCommand(new()));
         Assert.Equal("Object", SetReportOptionsForObjectOperation.CreateCommand(new()
         {
             Object = Object("Plane")
         }).InputArguments[0].Name);
-        Assert.Throws<ArgumentException>(() => SetVectorGroupReportOptionsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetVectorGroupReportOptionsOperation.CreateCommand(new()));
         var vectorGroup = SetVectorGroupReportOptionsOperation.CreateCommand(new()
         {
             VectorGroup = Object("Vectors"),

@@ -41,7 +41,7 @@ public sealed class TypedReportNotificationOperationTests
         Assert.Equal([0, 0], doubleNotice.InputArguments.Skip(3)
             .Select(argument => argument.RequireValue<WorkerIntegerValue>().Value));
 
-        Assert.Throws<ArgumentException>(() => NotifyUserHtmlOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => NotifyUserHtmlOperation.CreateCommand(new()));
         Assert.Equal("message.html", NotifyUserHtmlOperation.CreateCommand(new()
         {
             HtmlFile = File("message.html")
@@ -53,7 +53,7 @@ public sealed class TypedReportNotificationOperationTests
         Assert.Equal([0, 0], integerNotice.InputArguments.Skip(2)
             .Select(argument => argument.RequireValue<WorkerIntegerValue>().Value));
 
-        Assert.Throws<ArgumentException>(() => NotifyUserTextArrayOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => NotifyUserTextArrayOperation.CreateCommand(new()));
         var textNotice = NotifyUserTextArrayOperation.CreateCommand(new()
         {
             NotificationText = { "First line", "Second line" }

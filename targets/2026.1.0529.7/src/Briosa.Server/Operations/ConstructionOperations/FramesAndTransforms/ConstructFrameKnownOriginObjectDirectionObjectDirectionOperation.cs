@@ -29,12 +29,12 @@ internal static class ConstructFrameKnownOriginObjectDirectionObjectDirectionOpe
                 CollectionObjectNameMapper.Required(request.PrimaryAxisObject, "primary_axis_object"),
                 "SetCollectionObjectNameArg2"),
             new("Primary Axis Defines Which Axis", WorkerMpValueKind.AxisIdentifier,
-                FrameConstructionChoiceMapper.Axis(request.PrimaryAxisDefinesWhichAxis), "SetAxisNameArg"),
+                FrameConstructionChoiceMapper.Axis(request.PrimaryAxisDefinesWhichAxis, "primary_axis_defines_which_axis"), "SetAxisNameArg"),
             new("Secondary Axis Object", WorkerMpValueKind.CollectionObjectName,
                 CollectionObjectNameMapper.Required(request.SecondaryAxisObject, "secondary_axis_object"),
                 "SetCollectionObjectNameArg2"),
             new("Secondary Axis Defines Which Axis", WorkerMpValueKind.AxisIdentifier,
-                FrameConstructionChoiceMapper.Axis(request.SecondaryAxisDefinesWhichAxis), "SetAxisNameArg")
+                FrameConstructionChoiceMapper.Axis(request.SecondaryAxisDefinesWhichAxis, "secondary_axis_defines_which_axis"), "SetAxisNameArg")
         };
         if (request.FrameName is not null)
             inputs.Add(new("Frame Name (Optional)", WorkerMpValueKind.CollectionObjectName,

@@ -63,8 +63,8 @@ public sealed class TypedSharedGeometryPropertySetterTests
         Assert.Equal(0d, cylinder.InputArguments[8].RequireValue<WorkerDoubleValue>().Value);
         Assert.Equal(360d, cylinder.InputArguments[9].RequireValue<WorkerDoubleValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => SetCirclePropertiesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetCylinderPropertiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetCirclePropertiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetCylinderPropertiesOperation.CreateCommand(new()));
         Assert.Empty(circle.OutputArguments);
         Assert.Empty(cylinder.OutputArguments);
     }

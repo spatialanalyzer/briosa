@@ -50,7 +50,7 @@ public sealed class TypedRobotMotionAndCalibrationOperationTests
         Assert.Equal(3, importedFrames.InputArguments.Count);
         Assert.Equal("", importedFrames.InputArguments[1].RequireValue<WorkerTextValue>().Value);
         Assert.Single(importedFrames.InputArguments[2].RequireValue<WorkerCollectionObjectNameListValue>().Values);
-        Assert.Throws<ArgumentException>(() => ImportPosesMatchToFramesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ImportPosesMatchToFramesOperation.CreateCommand(new()));
 
         var importedPoints = ImportPosesMatchToMeasurementsOperation.CreateCommand(new()
         {
@@ -77,7 +77,7 @@ public sealed class TypedRobotMotionAndCalibrationOperationTests
         Assert.Single(toFrame.OutputArguments);
 
         // #243 D2 (R1): every joint is required; an omitted joint is rejected instead of sent as 0.
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             MoveRobotMachineToJointPoseSixDofOperation.CreateCommand(new() { MachineId = machine }));
         var jointPose = MoveRobotMachineToJointPoseSixDofOperation.CreateCommand(new()
         {

@@ -82,9 +82,9 @@ public sealed class StringSetterOperationTests
     [Fact]
     public void RequiredChoicesRejectOmission()
     {
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             MakeCollectionItemNameRefListWildcardSelectionOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetGdtOptionsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetGdtOptionsOperation.CreateCommand(new()));
     }
 
     private sealed class RecordingWorker : IWorkerCommandExecutor

@@ -18,8 +18,10 @@ internal static class ConstructVectorGroupFromRelationshipOperation
     public static WorkerMpCommand CreateCommand(Api.ConstructVectorGroupFromRelationshipRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.VectorGroupName is null || string.IsNullOrWhiteSpace(request.VectorGroupName.VectorGroupName))
-            throw new ArgumentException("Vector group name is required.", nameof(request));
+        if (request.VectorGroupName is null)
+            throw RequestFieldViolation.Required("vector_group_name");
+        if (string.IsNullOrWhiteSpace(request.VectorGroupName.VectorGroupName))
+            throw RequestFieldViolation.NotBlank("vector_group_name.vector_group_name");
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Relationship Name", WorkerMpValueKind.CollectionObjectName,

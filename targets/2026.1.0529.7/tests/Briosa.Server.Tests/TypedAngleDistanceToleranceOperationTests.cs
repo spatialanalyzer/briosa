@@ -53,12 +53,12 @@ public sealed class TypedAngleDistanceToleranceOperationTests
     [Fact]
     public void RequiredObjectsAndZeroNominalDefaultsMatchTheReviewedContracts()
     {
-        Assert.Throws<ArgumentException>(() => AngleBetweenLineAndPlaneOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => AngleBetweenTwoLinesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => AngleBetweenTwoPlanesNormalsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetPointToLineDistanceOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetPointToPointDistanceOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetPointToleranceOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => AngleBetweenLineAndPlaneOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => AngleBetweenTwoLinesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => AngleBetweenTwoPlanesNormalsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetPointToLineDistanceOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetPointToPointDistanceOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetPointToleranceOperation.CreateCommand(new()));
         Assert.Equal("Angle Between Two Planes' normals", AngleBetweenTwoPlanesNormalsOperation.Descriptor.MpStep);
 
         var line = new Api.CollectionObjectName { ObjectName = "line" };

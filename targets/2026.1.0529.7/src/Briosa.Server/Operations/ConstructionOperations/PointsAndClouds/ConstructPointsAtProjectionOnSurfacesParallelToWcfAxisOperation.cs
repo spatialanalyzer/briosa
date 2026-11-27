@@ -24,7 +24,7 @@ internal static class ConstructPointsAtProjectionOnSurfacesParallelToWcfAxisOper
             Api.WcfAxis.X => WorkerAxisIdentifierValue.PositiveX,
             Api.WcfAxis.Y => WorkerAxisIdentifierValue.PositiveY,
             Api.WcfAxis.Z => WorkerAxisIdentifierValue.PositiveZ,
-            _ => throw new ArgumentException("A supported axis is required.", nameof(request))
+            _ => throw RequestFieldViolation.SupportedChoice("axis")
         };
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [

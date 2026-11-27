@@ -37,9 +37,14 @@ internal static class SetRelationshipWeightsNormalizedOperation
 
     private static string RequiredCollectionName(Api.CollectionName? value)
     {
-        if (value is null || string.IsNullOrWhiteSpace(value.Name))
+        if (value is null)
         {
-            throw new ArgumentException("Request field 'collection_name' is required.", nameof(value));
+            throw RequestFieldViolation.Required("collection_name");
+        }
+
+        if (string.IsNullOrWhiteSpace(value.Name))
+        {
+            throw RequestFieldViolation.NotBlank("collection_name.name");
         }
 
         return value.Name;
@@ -52,6 +57,6 @@ internal static class SetRelationshipWeightsNormalizedOperation
         Api.RelWeightingMode.ResetAllWeights => WorkerRelationshipWeightingModeValue.ResetAllWeights,
         Api.RelWeightingMode.NormalizeSquareRootEquationCount => WorkerRelationshipWeightingModeValue.NormalizeSquareRootEquationCount,
         Api.RelWeightingMode.NormalizeSquareRootAndToleranceWidth => WorkerRelationshipWeightingModeValue.NormalizeSquareRootAndToleranceWidth,
-        _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Relationship weighting mode is not supported.")
+        _ => throw RequestFieldViolation.SupportedChoice("pick_weighting_mode")
     };
 }

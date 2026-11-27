@@ -40,7 +40,7 @@ public sealed class TypedReportLifecycleOperationTests
         Assert.Empty(CloseAllReportsOperation.CreateCommand(new()).InputArguments);
         Assert.Empty(CloseHtmlDisplayBoardOperation.CreateCommand(new()).InputArguments);
 
-        Assert.Throws<ArgumentException>(() => CombineSaReportsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => CombineSaReportsOperation.CreateCommand(new()));
         var combine = CombineSaReportsOperation.CreateCommand(new()
         {
             SaReportsToCombine = { Item("One"), Item("Two") },
@@ -52,7 +52,7 @@ public sealed class TypedReportLifecycleOperationTests
             .RequireValue<WorkerCollectionObjectNameValue>().ObjectName);
         Assert.False(combine.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => DefineReportTemplateOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DefineReportTemplateOperation.CreateCommand(new()));
         var define = DefineReportTemplateOperation.CreateCommand(DefineTemplateRequest());
         Assert.Equal("Template", define.InputArguments[0]
             .RequireValue<WorkerCollectionObjectNameValue>().ObjectName);
@@ -74,13 +74,13 @@ public sealed class TypedReportLifecycleOperationTests
         Assert.False(define.InputArguments[8].RequireValue<WorkerBooleanValue>().Value);
         Assert.False(define.InputArguments[9].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => DeleteSaDocOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DeleteSaDocOperation.CreateCommand(new()));
         Assert.Equal("Document", DeleteSaDocOperation.CreateCommand(new() { DocName = Object("Document") })
             .InputArguments[0].RequireValue<WorkerCollectionObjectNameValue>().ObjectName);
-        Assert.Throws<ArgumentException>(() => DeleteSaReportOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => DeleteSaReportTemplateOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DeleteSaReportOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DeleteSaReportTemplateOperation.CreateCommand(new()));
 
-        Assert.Throws<ArgumentException>(() => MakeNewSaReportOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => MakeNewSaReportOperation.CreateCommand(new()));
         var reportWithoutTemplate = MakeNewSaReportOperation.CreateCommand(new()
         {
             NewSaReportName = Object("New Report")
@@ -93,12 +93,12 @@ public sealed class TypedReportLifecycleOperationTests
         Assert.Equal("Template", reportWithTemplate.InputArguments[1]
             .RequireValue<WorkerCollectionObjectNameValue>().ObjectName);
 
-        Assert.Throws<ArgumentException>(() => ReportViewOptionsMapper.Required(
+        Assert.Throws<RequestFieldViolation>(() => ReportViewOptionsMapper.Required(
             new Api.ReportViewOptions(), "graphical_view_options"));
-        Assert.Throws<ArgumentException>(() => ReportOutputOptionsMapper.WithDefault(new Api.ReportOutputOptions()));
-        Assert.Throws<ArgumentException>(() => ReportPageSettingsMapper.WithDefault(Api.ReportPageSettings.Unspecified));
+        Assert.Throws<RequestFieldViolation>(() => ReportOutputOptionsMapper.WithDefault(new Api.ReportOutputOptions(), "report_output_options"));
+        Assert.Throws<RequestFieldViolation>(() => ReportPageSettingsMapper.WithDefault(Api.ReportPageSettings.Unspecified, "report_page_settings"));
         Assert.Equal(WorkerReportPageOrientationValue.Landscape,
-            ReportPageSettingsMapper.WithDefault(Api.ReportPageSettings.Landscape));
+            ReportPageSettingsMapper.WithDefault(Api.ReportPageSettings.Landscape, "report_page_settings"));
     }
 
     [Fact]

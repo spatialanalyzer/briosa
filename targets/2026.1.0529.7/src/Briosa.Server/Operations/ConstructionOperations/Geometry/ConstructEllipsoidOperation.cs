@@ -18,8 +18,8 @@ internal static class ConstructEllipsoidOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         var color = request.EllipseColor;
-        if (color is not null && (color.Red > byte.MaxValue || color.Green > byte.MaxValue || color.Blue > byte.MaxValue))
-            throw new ArgumentOutOfRangeException(nameof(request), "Color channels must be in 0..255.");
+        if (color is not null)
+            ColorChannelRange.Require(color, "ellipse_color");
 
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [

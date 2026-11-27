@@ -65,7 +65,7 @@ public sealed class TypedInstrumentTransformOperationTests
         Assert.Equal(WorkerObjectTypeValue.Frame,
             getTransform.InputArguments[1].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
         Assert.Equal("GetTransformArg", Assert.Single(getTransform.OutputArguments).SdkBinding);
-        Assert.Throws<ArgumentException>(() => SetInstrumentTransformOperation.CreateCommand(new() { Instrument = instrument }));
+        Assert.Throws<RequestFieldViolation>(() => SetInstrumentTransformOperation.CreateCommand(new() { Instrument = instrument }));
     }
 
     [Fact]

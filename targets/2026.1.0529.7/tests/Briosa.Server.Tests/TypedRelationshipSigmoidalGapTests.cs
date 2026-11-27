@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -32,7 +33,7 @@ public sealed class TypedRelationshipSigmoidalGapTests
         Assert.Equal(
             ["GetBoolArg", "GetDoubleArg", "GetDoubleArg", "GetDoubleArg", "GetDoubleArg", "GetDoubleArg", "GetDoubleArg", "GetDoubleArg"],
             command.OutputArguments.Select(output => output.SdkBinding));
-        Assert.Throws<ArgumentException>(() => GetRelationshipSigmoidalGapFitConstraintsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetRelationshipSigmoidalGapFitConstraintsOperation.CreateCommand(new()));
     }
 
     [Fact]

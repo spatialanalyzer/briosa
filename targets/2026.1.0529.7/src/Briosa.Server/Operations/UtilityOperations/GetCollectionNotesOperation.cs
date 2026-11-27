@@ -17,8 +17,10 @@ internal static class GetCollectionNotesOperation
     public static WorkerMpCommand CreateCommand(Api.GetCollectionNotesRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.Collection is null || string.IsNullOrWhiteSpace(request.Collection.Name))
-            throw new ArgumentException("Collection is required.", nameof(request));
+        if (request.Collection is null)
+            throw RequestFieldViolation.Required("collection");
+        if (string.IsNullOrWhiteSpace(request.Collection.Name))
+            throw RequestFieldViolation.NotBlank("collection.name");
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [new("Collection", WorkerMpValueKind.CollectionName,
                 new WorkerTextValue(request.Collection.Name), "SetCollectionNameArg")],

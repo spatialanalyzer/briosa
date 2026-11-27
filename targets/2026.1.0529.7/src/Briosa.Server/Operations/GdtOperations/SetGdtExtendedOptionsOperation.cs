@@ -56,8 +56,7 @@ internal static class SetGdtExtendedOptionsOperation
 
         var sdkValue = ToSdkValue(value, argumentName);
         if (!IsSupportedFor(value, family))
-            throw new ArgumentOutOfRangeException(argumentName, value,
-                $"The selected GD&T evaluation method is not supported for '{argumentName}'.");
+            throw RequestFieldViolation.SupportedChoice(argumentName);
         return new(sdkValue);
     }
 
@@ -74,8 +73,7 @@ internal static class SetGdtExtendedOptionsOperation
         Api.GdtExtendedEvaluationMethod.MinimumSeparationHighPoint => "Minimum Separation High Point",
         Api.GdtExtendedEvaluationMethod.EqualizedHighPoint => "Equalized High Point",
         Api.GdtExtendedEvaluationMethod.EqualizedLsqHighPoint => "Equalized LSQ High Point",
-        _ => throw new ArgumentOutOfRangeException(argumentName, value,
-            "The GD&T evaluation method is not supported by this SpatialAnalyzer target.")
+        _ => throw RequestFieldViolation.SupportedChoice(argumentName)
     };
 
     private static bool IsSupportedFor(Api.GdtExtendedEvaluationMethod value, ExtendedOptionFamily family) => family switch

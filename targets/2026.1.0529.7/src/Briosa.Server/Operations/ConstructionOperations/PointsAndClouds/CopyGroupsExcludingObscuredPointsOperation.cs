@@ -18,8 +18,10 @@ internal static class CopyGroupsExcludingObscuredPointsOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         var instrument = request.InstrumentId;
-        if (instrument is null || string.IsNullOrWhiteSpace(instrument.CollectionName))
-            throw new ArgumentException("Request field 'instrument_id' is required.", nameof(request));
+        if (instrument is null)
+            throw RequestFieldViolation.Required("instrument_id");
+        if (string.IsNullOrWhiteSpace(instrument.CollectionName))
+            throw RequestFieldViolation.NotBlank("instrument_id.collection_name");
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Instrument ID", WorkerMpValueKind.CollectionInstrumentId,

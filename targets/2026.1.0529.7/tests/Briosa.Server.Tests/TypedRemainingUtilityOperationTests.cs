@@ -42,7 +42,7 @@ public sealed class TypedRemainingUtilityOperationTests
         Assert.Equal(3, GetScreenResolutionOperation.CreateCommand(new() { Display = 3 })
             .InputArguments[0].RequireValue<WorkerIntegerValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => MoveInstrumentsDragGraphicallyOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => MoveInstrumentsDragGraphicallyOperation.CreateCommand(new()));
         var instruments = MoveInstrumentsDragGraphicallyOperation.CreateCommand(new()
         {
             Instruments = { new Api.CollectionInstrumentId { CollectionName = "C", InstrumentId = 7 } }
@@ -51,8 +51,8 @@ public sealed class TypedRemainingUtilityOperationTests
         Assert.Equal(7, Assert.Single(instruments.InputArguments[0]
             .RequireValue<WorkerCollectionInstrumentIdListValue>().Values).InstrumentId);
 
-        Assert.Throws<ArgumentException>(() => MoveObjectsDragGraphicallyOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => ScaleObjectsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => MoveObjectsDragGraphicallyOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ScaleObjectsOperation.CreateCommand(new()));
         var moved = MoveObjectsDragGraphicallyOperation.CreateCommand(new()
         {
             Objects = { new Api.CollectionObjectName { CollectionName = "C", ObjectName = "O" } }

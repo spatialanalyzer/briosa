@@ -23,7 +23,7 @@ internal static class AskForStringOperation
             new("Question to ask", WorkerMpValueKind.Text, new WorkerTextValue(request.QuestionToAsk), "SetStringArg"),
             new("Password Entry?", WorkerMpValueKind.Logical, new WorkerBooleanValue(request.PasswordEntry), "SetBoolArg"),
             new("Initial Answer", WorkerMpValueKind.Text, new WorkerTextValue(request.InitialAnswer), "SetStringArg"),
-            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font), "SetFontTypeArg")
+            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font, "font"), "SetFontTypeArg")
         ], [new("Answer", WorkerMpValueKind.Text, "GetStringArg")]);
     }
 

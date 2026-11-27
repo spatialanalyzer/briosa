@@ -7,10 +7,19 @@ internal static class ReportViewOptionsMapper
 {
     public static WorkerReportViewOptionsValue Required(Api.ReportViewOptions? value, string fieldName)
     {
-        ArgumentNullException.ThrowIfNull(value, fieldName);
-        if (!value.HasViewType || value.ViewType == Api.ReportViewType.Unspecified || !Enum.IsDefined(value.ViewType))
+        if (value is null)
         {
-            throw new ArgumentException($"Request field '{fieldName}.view_type' must specify a supported value.", nameof(value));
+            throw RequestFieldViolation.Required(fieldName);
+        }
+
+        if (!value.HasViewType)
+        {
+            throw RequestFieldViolation.Required(RequestFieldViolation.Path(fieldName, "view_type"));
+        }
+
+        if (value.ViewType == Api.ReportViewType.Unspecified || !Enum.IsDefined(value.ViewType))
+        {
+            throw RequestFieldViolation.SupportedChoice(RequestFieldViolation.Path(fieldName, "view_type"));
         }
 
         return new((int)value.ViewType - 1, value.CollectionName, value.CalloutName);

@@ -96,10 +96,10 @@ public sealed class TypedXmlAndSurveyFileOperationTests
             explicitUnits.InputArguments[6].RequireValue<WorkerDistanceUnitChoice>().Value);
         Assert.False(explicitUnits.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => ExportHiddenPointBarXmlFileOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => ImportLeicaGsiFileOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => ImportE57FileOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => ImportE57FileOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ExportHiddenPointBarXmlFileOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ImportLeicaGsiFileOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ImportE57FileOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ImportE57FileOperation.CreateCommand(new()
         {
             E57FilePath = new() { Path = "scan.e57" }, Units = Api.DistanceUnits.Unspecified
         }));
