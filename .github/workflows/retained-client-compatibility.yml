@@ -271,7 +271,9 @@ jobs:
           if-no-files-found: error
           retention-days: 14
   gate:
-    needs: [policy, conformance]
+    needs:
+      - policy
+      - conformance
     if: always()
     runs-on: windows-latest
     steps:

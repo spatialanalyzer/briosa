@@ -220,10 +220,12 @@ script never writes a compatibility report for a run that skipped the other
 scenarios; the iteration passes only with exactly one validated pass of that
 scenario and that error. It publishes, signs and releases nothing, and it uses
 no secrets and no environment. The release workflow policy check
-(`eng/Verify-ReleaseWorkflowPolicy.ps1`) reads both workflows as parsed YAML and
-fails if the soak could run from anything but a dispatch or call anything but
-the retained-client workflow, or if either could reach secrets, an environment,
-a write permission or an OIDC token.
+(`eng/Verify-ReleaseWorkflowPolicy.ps1`) reads both workflows as parsed YAML. It
+fails, with the file and line, on any construct outside the plain block style
+they are written in, such as a quoted key, a flow collection or an anchor. It
+also fails if the soak could run from anything but a dispatch or call anything
+but the retained-client workflow, or if either could reach secrets, an
+environment, a write permission or an OIDC token.
 
 Inputs:
 

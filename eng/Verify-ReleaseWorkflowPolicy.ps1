@@ -187,8 +187,9 @@ if ($publish.Text -notmatch ':refs/tags/\$tag' -or $publish.Text -notmatch 'Re-r
 # own jobs. It may call only that reusable workflow, which runs only when called, and
 # neither may use secrets, an environment, a write permission or an OIDC token, so a soak
 # can never reach a release, signing or registry job. Both files are read as parsed YAML
-# in the strict subset WorkflowYaml.psm1 accepts, so no spelling of a permission, a call
-# or a secret escapes the check; a form outside that subset fails it.
+# in the plain block subset WorkflowYaml.psm1 accepts. A construct outside it fails the
+# check, with its file and line, before any rule below runs, so no spelling of a
+# permission, a call or a secret escapes them.
 Import-Module (Join-Path $PSScriptRoot 'WorkflowYaml.psm1') -Force
 
 function Test-ReadOnlyPermissions([object]$Permissions, [switch]$Required) {
@@ -205,13 +206,31 @@ function Test-ReadOnlyPermissions([object]$Permissions, [switch]$Required) {
     $true
 }
 
-function Get-Scalars([object]$Node) {
-    if ($Node -is [string]) { return , $Node }
-    if ($Node -is [Collections.Specialized.OrderedDictionary]) {
-        foreach ($entry in $Node.GetEnumerator()) { $entry.Key; Get-Scalars $entry.Value }
+function Get-ExpressionTexts([object]$Node, [switch]$Condition) {
+    # The text of every expression in the parsed workflow: each ${{ }} in a scalar, up to
+    # its closing braces outside a string literal or to the end of the scalar, and the
+    # whole value of an if condition, which Actions evaluates without the braces.
+    if ($Node -is [string]) {
+        if ($Condition) { return , $Node }
+        $index = 0
+        while (($start = $Node.IndexOf('${{', $index, [StringComparison]::Ordinal)) -ge 0) {
+            $position = $start + 3
+            $quoted = $false
+            while ($position -lt $Node.Length) {
+                if ($Node[$position] -eq "'") { $quoted = -not $quoted }
+                elseif (-not $quoted -and $Node[$position] -eq '}' -and $position + 1 -lt $Node.Length -and $Node[$position + 1] -eq '}') { break }
+                $position++
+            }
+            $Node.Substring($start + 3, $position - $start - 3)
+            $index = $position + 2
+        }
         return
     }
-    if ($Node -is [Collections.IEnumerable]) { foreach ($item in $Node) { Get-Scalars $item } }
+    if ($Node -is [Collections.Specialized.OrderedDictionary]) {
+        foreach ($entry in $Node.GetEnumerator()) { Get-ExpressionTexts $entry.Value -Condition:($entry.Key -eq 'if') }
+        return
+    }
+    if ($Node -is [Collections.IEnumerable]) { foreach ($item in $Node) { Get-ExpressionTexts $item } }
 }
 
 function Get-ReusableWorkflowFindings([string]$Name, [string[]]$Triggers, [string[]]$AllowedCalls) {
@@ -261,7 +280,9 @@ function Get-ReusableWorkflowFindings([string]$Name, [string[]]$Triggers, [strin
     if ((@($calls) -join ',') -cne ($AllowedCalls -join ',')) {
         $findings.Add("its workflow calls are not exactly $(if ($AllowedCalls.Count) { $AllowedCalls -join ', ' } else { 'none' })")
     }
-    if (@(Get-Scalars $yaml | Where-Object { $_ -cmatch '\$\{\{[^}]*\bsecrets\b' }).Count -gt 0) {
+    # Actions resolves context names without regard to case, so the name is matched the
+    # same way, anywhere in an expression, string literals included.
+    if (@(Get-ExpressionTexts $yaml | Where-Object { $_ -match '(?i)\bsecrets\b' }).Count -gt 0) {
         $findings.Add('an expression refers to secrets')
     }
     , $findings
