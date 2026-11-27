@@ -20,7 +20,7 @@ internal static class MakeDatumRefListFromCollectionOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [new("Collection Name", WorkerMpValueKind.CollectionName,
-                GdtCollectionNameMapper.Required(request.Collection), "SetCollectionNameArg")],
+                GdtCollectionNameMapper.Required(request.Collection, "collection"), "SetCollectionNameArg")],
             [new("Datum Ref List", WorkerMpValueKind.CollectionObjectNameList,
                 "GetCollectionObjectNameRefListArg")]);
     }

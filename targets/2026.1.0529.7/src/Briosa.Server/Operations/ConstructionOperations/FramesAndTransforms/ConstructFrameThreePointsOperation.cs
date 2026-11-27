@@ -21,7 +21,7 @@ internal static class ConstructFrameThreePointsOperation
         var inputs = new List<WorkerMpInputArgument>
         {
             new("Construction Method", WorkerMpValueKind.Text,
-                new WorkerTextValue(FrameConstructionChoiceMapper.Method(request.ConstructionMethod)), "SetStringArg"),
+                new WorkerTextValue(FrameConstructionChoiceMapper.Method(request.ConstructionMethod, "construction_method")), "SetStringArg"),
             new("Origin Point", WorkerMpValueKind.PointName,
                 PointNameMapper.Required(request.OriginPoint, "origin_point"), "SetPointNameArg"),
             new("Primary Axis Point", WorkerMpValueKind.PointName,

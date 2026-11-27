@@ -38,6 +38,7 @@
 
 - [Health and discovery](health-and-discovery.md)
 - [Command policy and auditing](command-policy-and-auditing.md)
+- [Request validation](request-validation.md)
 - [Control center](control-center.md)
 - [Endpoint security](endpoint-security.md)
 - [Server observability](server-observability.md)

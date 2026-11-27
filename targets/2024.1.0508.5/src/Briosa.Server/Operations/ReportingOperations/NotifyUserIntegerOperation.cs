@@ -20,7 +20,7 @@ internal static class NotifyUserIntegerOperation
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Leading Text", WorkerMpValueKind.Text, new WorkerTextValue(request.LeadingText), "SetStringArg"),
-            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font), "SetFontTypeArg"),
+            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font, "font"), "SetFontTypeArg"),
             new("Reported Value", WorkerMpValueKind.WholeNumber,
                 new WorkerIntegerValue(request.ReportedValue), "SetIntegerArg"),
             new("Display Timeout", WorkerMpValueKind.WholeNumber,

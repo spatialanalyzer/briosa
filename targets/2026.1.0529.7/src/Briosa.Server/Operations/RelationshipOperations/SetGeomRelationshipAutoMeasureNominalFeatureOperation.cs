@@ -22,7 +22,7 @@ internal static class SetGeomRelationshipAutoMeasureNominalFeatureOperation
         ArgumentNullException.ThrowIfNull(request);
         var relationship = CollectionObjectNameMapper.Required(request.RelationshipName, "relationship_name");
         var instrument = request.InstrumentId ??
-            throw new ArgumentException("Request field 'instrument_id' is required.", nameof(request));
+            throw RequestFieldViolation.Required("instrument_id");
 
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [

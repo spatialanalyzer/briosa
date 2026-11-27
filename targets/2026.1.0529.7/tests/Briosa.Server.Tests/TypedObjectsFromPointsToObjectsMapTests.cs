@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -28,7 +29,7 @@ public sealed class TypedObjectsFromPointsToObjectsMapTests
         Assert.Equal(new WorkerPointNameValue("collection", "group", "point"),
             command.InputArguments[1].RequireValue<WorkerPointNameListValue>().Values[0]);
         Assert.Equal("GetCollectionObjectNameRefListArg", command.OutputArguments[0].SdkBinding);
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             GetObjectsFromPointsToObjectsMapPointListOperation.CreateCommand(new()));
     }
 

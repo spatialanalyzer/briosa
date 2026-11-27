@@ -26,7 +26,7 @@ internal static class DoRelationshipFitOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         if (string.IsNullOrWhiteSpace(request.CollectionContainingRelationships))
-            throw new ArgumentException("Request field 'collection_containing_relationships' is required.", nameof(request));
+            throw RequestFieldViolation.NotBlank("collection_containing_relationships");
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [
                 new("Collection Containing Relationships", WorkerMpValueKind.CollectionName,
@@ -36,7 +36,7 @@ internal static class DoRelationshipFitOperation
                 new("Instruments to Move", WorkerMpValueKind.CollectionInstrumentIdList,
                     CollectionInstrumentIdMapper.RequiredList(request.InstrumentsToMove, "instruments_to_move"), "SetColInstIdRefListArg"),
                 new("Solver Mode", WorkerMpValueKind.Text,
-                    RelationshipOperationValueMapper.Solver(request.HasSolverMode ? request.SolverMode : null), "SetStringArg"),
+                    RelationshipOperationValueMapper.Solver(request.HasSolverMode ? request.SolverMode : null, "solver_mode"), "SetStringArg"),
                 new("Motion to allow", WorkerMpValueKind.FitDegreeOfFreedomOptions,
                     RelationshipOperationValueMapper.RequiredMotion(request.MotionToAllow, "motion_to_allow"), "SetFitDofOptionsArg"),
                 new("Enable Randomized Start", WorkerMpValueKind.Logical,

@@ -37,7 +37,7 @@ public sealed class TypedGdtEvaluateFeatureChecksTests
         var result = EvaluateFeatureChecksOperation.CreateResult(new SuccessfulOperationExecution(execution, details));
         Assert.Equal([3, 2, 1], [result.TotalPassed, result.TotalFailed, result.TotalIncomplete]);
         Assert.Same(details, result.Execution);
-        Assert.Throws<ArgumentException>(() => EvaluateFeatureChecksOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => EvaluateFeatureChecksOperation.CreateCommand(new()));
 
         var id = EvaluateFeatureChecksOperation.Descriptor.OperationId;
         Assert.Single(SpatialAnalyzerApi.Operations, operation => operation.OperationId == id);

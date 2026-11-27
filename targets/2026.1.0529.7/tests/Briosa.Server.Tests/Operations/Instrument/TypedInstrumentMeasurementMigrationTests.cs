@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.InstrumentOperations;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -22,7 +23,7 @@ public sealed class TypedInstrumentMeasurementMigrationTests
             command.InputArguments.Select(argument => argument.SdkBinding));
         Assert.True(command.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
         request.ActualsGroup = null;
-        Assert.Throws<ArgumentException>(() => AutoCorrespondClosestPointOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => AutoCorrespondClosestPointOperation.CreateCommand(request));
     }
 
     [Fact]
@@ -40,7 +41,7 @@ public sealed class TypedInstrumentMeasurementMigrationTests
         Assert.Equal(12d, command.InputArguments[6].RequireValue<WorkerDoubleValue>().Value);
         Assert.Equal("SetVectorGroupNameArg", command.InputArguments[8].SdkBinding);
         request.ClearDeviationVectorGroupName();
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             AutoCorrespondWithProximityTriggerOperation.CreateCommand(request));
     }
 
@@ -62,7 +63,7 @@ public sealed class TypedInstrumentMeasurementMigrationTests
         Assert.Equal("SetCollimationBaselineTypeArg", command.InputArguments[5].SdkBinding);
         Assert.Equal(0d, command.InputArguments[6].RequireValue<WorkerDoubleValue>().Value);
         request.TiltMode = (Api.CollimationTiltMode)999;
-        Assert.Throws<ArgumentException>(() => CollimationOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => CollimationOperation.CreateCommand(request));
     }
 
     [Fact]
@@ -77,7 +78,7 @@ public sealed class TypedInstrumentMeasurementMigrationTests
         Assert.Equal(["GetDoubleArg", "GetDoubleArg", "GetBoolArg", "GetColInstIdArg"],
             command.OutputArguments.Select(argument => argument.SdkBinding));
         request.ReferenceGroup = null;
-        Assert.Throws<ArgumentException>(() => DriftCheckOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => DriftCheckOperation.CreateCommand(request));
     }
 
     [Fact]
@@ -94,7 +95,7 @@ public sealed class TypedInstrumentMeasurementMigrationTests
             command.InputArguments.Select(argument => argument.SdkBinding));
         Assert.Equal(string.Empty, command.InputArguments[3].RequireValue<WorkerTextValue>().Value);
         request.PointNearEdge = null;
-        Assert.Throws<ArgumentException>(() => EdgeScanMeasurementOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => EdgeScanMeasurementOperation.CreateCommand(request));
     }
 
     [Fact]

@@ -48,11 +48,11 @@ public sealed class TypedInstrumentWorldDeltaOperationTests
         var instruments = multiple.InputArguments[0].RequireValue<WorkerCollectionInstrumentIdListValue>();
         Assert.Equal([4, 5], instruments.Values.Select(value => value.InstrumentId));
         Assert.Equal(2.5d, multiple.InputArguments[1].RequireValue<WorkerWorldTransformValue>().ScaleFactor);
-        Assert.Throws<ArgumentException>(() => TransformMultipleInstrumentsByDeltaOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => TransformMultipleInstrumentsByDeltaOperation.CreateCommand(new()
         {
             DeltaTransform = new() { Transform = new() { Values = { TransformValues } } }
         }));
-        Assert.Throws<ArgumentException>(() => TransformInstrumentByDeltaOperation.CreateCommand(new() { Instrument = instrument }));
+        Assert.Throws<RequestFieldViolation>(() => TransformInstrumentByDeltaOperation.CreateCommand(new() { Instrument = instrument }));
     }
 
     [Fact]

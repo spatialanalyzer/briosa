@@ -19,7 +19,7 @@ internal static class SetCloudDefaultClippingPlaneOperation
         ArgumentNullException.ThrowIfNull(request);
         var enabled = request.HasEnableCloudClipping && request.EnableCloudClipping;
         if (enabled && request.ReferenceObject is null)
-            throw new ArgumentException("Request field 'reference_object' is required when cloud clipping is enabled.", nameof(request));
+            throw RequestFieldViolation.Required("reference_object");
 
         var inputs = new List<WorkerMpInputArgument>
         {

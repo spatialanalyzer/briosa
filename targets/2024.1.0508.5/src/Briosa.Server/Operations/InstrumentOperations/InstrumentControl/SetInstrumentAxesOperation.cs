@@ -16,7 +16,7 @@ internal static class SetInstrumentAxesOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.AxisValues.Count == 0)
-            throw new ArgumentException("Request field 'axis_values' is required.", nameof(request));
+            throw RequestFieldViolation.NotEmpty("axis_values");
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [
                 new("Instrument to Adjust", WorkerMpValueKind.CollectionInstrumentId,

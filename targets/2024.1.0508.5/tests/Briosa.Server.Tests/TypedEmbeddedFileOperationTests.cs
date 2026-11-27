@@ -67,13 +67,13 @@ public sealed class TypedEmbeddedFileOperationTests
         Assert.Equal(string.Empty, explicitEmpty.InputArguments[0].RequireValue<WorkerTextValue>().Value);
         Assert.Equal(string.Empty, explicitEmpty.InputArguments[1].RequireValue<WorkerTextValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => ExportEmbeddedFileOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => ExportEmbeddedFileOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ExportEmbeddedFileOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ExportEmbeddedFileOperation.CreateCommand(new()
         {
             EmbeddedFileCollectionName = new() { Name = "Docs" }
         }));
-        Assert.Throws<ArgumentException>(() => ImportFileAsEmbeddedFileOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => ImportMpFileAsEmbeddedMpOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ImportFileAsEmbeddedFileOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ImportMpFileAsEmbeddedMpOperation.CreateCommand(new()));
     }
 
     [Fact]

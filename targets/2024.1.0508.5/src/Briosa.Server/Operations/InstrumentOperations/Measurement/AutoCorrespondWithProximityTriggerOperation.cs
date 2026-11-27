@@ -21,7 +21,7 @@ internal static class AutoCorrespondWithProximityTriggerOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         if (!request.HasDeviationVectorGroupName)
-            throw new ArgumentException("Request field 'deviation_vector_group_name' is required.", nameof(request));
+            throw RequestFieldViolation.Required("deviation_vector_group_name");
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [
                 new("Instrument ID", WorkerMpValueKind.CollectionInstrumentId,

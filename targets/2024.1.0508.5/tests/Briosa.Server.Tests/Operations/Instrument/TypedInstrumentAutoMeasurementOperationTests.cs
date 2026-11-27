@@ -41,7 +41,7 @@ public sealed class TypedInstrumentAutoMeasurementOperationTests
         Assert.Equal("Circle", feature.ObjectName);
         Assert.Equal(WorkerObjectTypeValue.Any, feature.ObjectType);
         Assert.True(batch.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => AutoMeasureBatchOfFeaturesOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => AutoMeasureBatchOfFeaturesOperation.CreateCommand(new()
         {
             Instrument = instrument,
             Features = { new Api.CollectionItemName { ItemName = "Circle", ItemType = (Api.ItemType)99 } }

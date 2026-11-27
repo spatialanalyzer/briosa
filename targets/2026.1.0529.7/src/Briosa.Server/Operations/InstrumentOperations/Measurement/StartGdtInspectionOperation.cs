@@ -23,7 +23,7 @@ internal static class StartGdtInspectionOperation
                 new("Collection Name", WorkerMpValueKind.CollectionName,
                     CollectionNameMapper.Required(request.Collection, "collection"), "SetCollectionNameArg"),
                 new("Filter (ALL/CHECKS/DATUMS)", WorkerMpValueKind.Text,
-                    InspectionFilterMapper.ToWorker(filter), "SetStringArg")
+                    InspectionFilterMapper.ToWorker(filter, "filter"), "SetStringArg")
             ], []);
     }
 

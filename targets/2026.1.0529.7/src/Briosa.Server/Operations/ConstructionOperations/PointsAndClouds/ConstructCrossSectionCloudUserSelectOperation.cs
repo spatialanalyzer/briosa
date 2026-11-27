@@ -34,7 +34,7 @@ internal static class ConstructCrossSectionCloudUserSelectOperation
             new("Input Clouds", WorkerMpValueKind.CollectionObjectNameList,
                 CollectionObjectNameMapper.RequiredList(request.InputClouds, "input_clouds"), "SetCollectionObjectNameRefListArg"),
             new("Cloud Thinning Settings", WorkerMpValueKind.CloudThinningOptions,
-                CloudThinningOptionsMapper.ToWorker(request.CloudThinningSettings), "SetCloudThinningOptionsArg"),
+                CloudThinningOptionsMapper.ToWorker(request.CloudThinningSettings, "cloud_thinning_settings"), "SetCloudThinningOptionsArg"),
             new("Update Existing Cloud", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.HasUpdateExistingCloud && request.UpdateExistingCloud), "SetBoolArg")
         ], []);

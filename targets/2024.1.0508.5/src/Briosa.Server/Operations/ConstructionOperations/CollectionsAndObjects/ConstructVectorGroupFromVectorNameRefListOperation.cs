@@ -18,9 +18,10 @@ internal static class ConstructVectorGroupFromVectorNameRefListOperation
     public static WorkerMpCommand CreateCommand(Api.ConstructVectorGroupFromVectorNameRefListRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.ResultantVectorGroupName is null ||
-            string.IsNullOrWhiteSpace(request.ResultantVectorGroupName.VectorGroupName))
-            throw new ArgumentException("Request field 'resultant_vector_group_name' is required.", nameof(request));
+        if (request.ResultantVectorGroupName is null)
+            throw RequestFieldViolation.Required("resultant_vector_group_name");
+        if (string.IsNullOrWhiteSpace(request.ResultantVectorGroupName.VectorGroupName))
+            throw RequestFieldViolation.NotBlank("resultant_vector_group_name.vector_group_name");
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Vector Name List", WorkerMpValueKind.VectorNameList,

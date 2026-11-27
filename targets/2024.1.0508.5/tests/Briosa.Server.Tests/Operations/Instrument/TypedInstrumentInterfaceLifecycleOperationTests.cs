@@ -66,7 +66,7 @@ public sealed class TypedInstrumentInterfaceLifecycleOperationTests
             WatchWindowProperties = new() { CollectionName = "Windows", ObjectName = "Properties" }
         });
         Assert.Equal(7, watch.InputArguments.Count);
-        Assert.Throws<ArgumentException>(() => WatchInstrumentOperation.CreateCommand(new() { Instrument = instrument }));
+        Assert.Throws<RequestFieldViolation>(() => WatchInstrumentOperation.CreateCommand(new() { Instrument = instrument }));
         Assert.Equal(WorkerObjectTypeValue.Any,
             watch.InputArguments[2].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
         var check = InstrumentOperationalCheckOperation.CreateCommand(new() { Instrument = instrument });

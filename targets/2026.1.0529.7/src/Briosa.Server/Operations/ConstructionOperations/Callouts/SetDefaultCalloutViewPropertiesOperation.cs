@@ -20,7 +20,7 @@ internal static class SetDefaultCalloutViewPropertiesOperation
             new("Default Callout View Name", WorkerMpValueKind.Text,
                 new WorkerTextValue(request.HasDefaultCalloutViewName ? request.DefaultCalloutViewName : "Callout 1"), "SetStringArg")
         };
-        arguments.AddRange(CalloutViewPropertyArguments.Create(request.Properties));
+        arguments.AddRange(CalloutViewPropertyArguments.Create(request.Properties, "properties"));
         return new(Descriptor.OperationId, Descriptor.MpStep, arguments, []);
     }
     public static Api.SetDefaultCalloutViewPropertiesResult CreateResult(SuccessfulOperationExecution completed) => new() { Execution = completed.Details };

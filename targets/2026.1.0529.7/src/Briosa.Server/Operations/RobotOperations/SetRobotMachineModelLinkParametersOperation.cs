@@ -17,10 +17,12 @@ internal static class SetRobotMachineModelLinkParametersOperation
     public static WorkerMpCommand CreateCommand(Api.SetRobotMachineModelLinkParametersRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.MachineId is null || string.IsNullOrWhiteSpace(request.MachineId.CollectionName))
-            throw new ArgumentException("Machine ID is required.", nameof(request));
+        if (request.MachineId is null)
+            throw RequestFieldViolation.Required("machine_id");
+        if (string.IsNullOrWhiteSpace(request.MachineId.CollectionName))
+            throw RequestFieldViolation.NotBlank("machine_id.collection_name");
         if (request.SegmentCgInSegment is null)
-            throw new ArgumentException("Segment CG In Segment is required.", nameof(request));
+            throw RequestFieldViolation.Required("segment_cg_in_segment");
 
         var linkType = request.HasLinkType ? request.LinkType : Api.RobotModelLinkType.Dh;
         var activeJointComponent = request.HasActiveJointComponent
@@ -92,7 +94,7 @@ internal static class SetRobotMachineModelLinkParametersOperation
     {
         Api.RobotModelLinkType.Dh => "DH",
         Api.RobotModelLinkType.SixDof => "6DOF",
-        _ => throw new ArgumentException("Link Type must be a supported exact-target choice.")
+        _ => throw RequestFieldViolation.SupportedChoice("link_type")
     };
 
     private static string ActiveJoint(Api.RobotActiveJointComponent value) => value switch
@@ -108,6 +110,6 @@ internal static class SetRobotMachineModelLinkParametersOperation
         Api.RobotActiveJointComponent.A => "A",
         Api.RobotActiveJointComponent.D => "D",
         Api.RobotActiveJointComponent.Theta => "THETA",
-        _ => throw new ArgumentException("Active Joint Component must be a supported exact-target choice.")
+        _ => throw RequestFieldViolation.SupportedChoice("active_joint_component")
     };
 }

@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -29,7 +30,7 @@ public sealed class TypedRelationshipOptionMigrationTests
             command.InputArguments[11].RequireValue<WorkerUdpTransmitSettingsValue>());
         Assert.True(command.InputArguments[7].RequireValue<WorkerBooleanValue>().Value);
         request.UdpNetworkTransmitSettings = null;
-        Assert.Throws<ArgumentException>(() => RelationshipWatchWindowTemplateOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => RelationshipWatchWindowTemplateOperation.CreateCommand(request));
     }
 
     [Fact]
@@ -44,13 +45,13 @@ public sealed class TypedRelationshipOptionMigrationTests
         Assert.Equal(["SetCollectionObjectNameArg2", "SetToleranceScalarOptionsArg", "SetToleranceScalarOptionsArg"],
             command.InputArguments.Select(argument => argument.SdkBinding));
         request.MutualPerpendicularLengthTolerances = null;
-        Assert.Throws<ArgumentException>(() => SetObjectToObjectDirectionRelationshipTolerancesOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => SetObjectToObjectDirectionRelationshipTolerancesOperation.CreateCommand(request));
 
         Assert.Equal(["fixture_validation_pending"], SetRelationshipOutlierRejectionScalarTypeOperation.Descriptor.RiskFlags);
         Assert.Equal("SetCollectionObjectNameArg2",
             SetRelationshipOutlierRejectionScalarTypeOperation.CreateCommand(new() { RelationshipName = Object("R") })
                 .InputArguments[0].SdkBinding);
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             SetRelationshipOutlierRejectionScalarTypeOperation.CreateCommand(new()));
     }
 
@@ -70,7 +71,7 @@ public sealed class TypedRelationshipOptionMigrationTests
             command.InputArguments[5].RequireValue<WorkerChoiceValue<WorkerSurfaceAnalysisModeValue>>().Value);
         Assert.False(command.InputArguments[7].RequireValue<WorkerBooleanValue>().Value);
         request.SurfaceAnalysisMode = (Api.SurfaceAnalysisMode)999;
-        Assert.Throws<ArgumentOutOfRangeException>(() => SetRelationshipVoxelCloudDisplayOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => SetRelationshipVoxelCloudDisplayOperation.CreateCommand(request));
     }
 
     [Fact]
@@ -82,7 +83,7 @@ public sealed class TypedRelationshipOptionMigrationTests
         });
         Assert.Equal("SetBoolArg", command.InputArguments[1].SdkBinding);
         Assert.True(command.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => SetRelationshipSigmoidalGapFitConstraintsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetRelationshipSigmoidalGapFitConstraintsOperation.CreateCommand(new()));
     }
 
     [Fact]

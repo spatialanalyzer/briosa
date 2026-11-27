@@ -37,9 +37,9 @@ public sealed class TypedGdtReferenceListTests
     [Fact]
     public void RequiredCollectionAndMigratedRegistryAreEnforced()
     {
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             MakeDatumRefListFromCollectionOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             MakeFeatureChecksOperation.CreateCommand(new()
                 { Collection = new Api.CollectionName { Name = " " } }));
 

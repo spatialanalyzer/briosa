@@ -15,7 +15,7 @@ internal static class DynamicRelationshipModeMapper
             Api.DynamicCircleMode.SphereAndPlaneIntersection => WorkerDynamicCircleModeValue.SpherePlaneIntersection,
             Api.DynamicCircleMode.TwoConesIntersection => WorkerDynamicCircleModeValue.TwoConesIntersection,
             Api.DynamicCircleMode.ConeAndCylinderIntersection => WorkerDynamicCircleModeValue.ConeCylinderIntersection,
-            _ => throw Invalid(field)
+            _ => throw Invalid(value, field)
         });
 
     public static WorkerChoiceValue<WorkerDynamicEllipseModeValue> Required(Api.DynamicEllipseMode? value, string field) =>
@@ -23,7 +23,7 @@ internal static class DynamicRelationshipModeMapper
         {
             Api.DynamicEllipseMode.CylinderAndPlaneIntersection => WorkerDynamicEllipseModeValue.CylinderPlaneIntersection,
             Api.DynamicEllipseMode.ConeAndPlaneIntersection => WorkerDynamicEllipseModeValue.ConePlaneIntersection,
-            _ => throw Invalid(field)
+            _ => throw Invalid(value, field)
         });
 
     public static WorkerChoiceValue<WorkerDynamicLineModeValue> Required(Api.DynamicLineMode? value, string field) =>
@@ -34,7 +34,7 @@ internal static class DynamicRelationshipModeMapper
             Api.DynamicLineMode.IntersectionOfTwoPlanes => WorkerDynamicLineModeValue.IntersectionOfTwoPlanes,
             Api.DynamicLineMode.BisectTwoLines => WorkerDynamicLineModeValue.BisectTwoLines,
             Api.DynamicLineMode.SlotCenterlineAlongLength => WorkerDynamicLineModeValue.SlotCenterlineAlongLength,
-            _ => throw Invalid(field)
+            _ => throw Invalid(value, field)
         });
 
     public static WorkerChoiceValue<WorkerDynamicPlaneModeValue> Required(Api.DynamicPlaneMode? value, string field) =>
@@ -48,7 +48,7 @@ internal static class DynamicRelationshipModeMapper
             Api.DynamicPlaneMode.ConeAndCylinderHoldNormalToConeAxis => WorkerDynamicPlaneModeValue.ConeCylinderConeAxis,
             Api.DynamicPlaneMode.ConeAndCylinderHoldNormalToCylinderAxis => WorkerDynamicPlaneModeValue.ConeCylinderCylinderAxis,
             Api.DynamicPlaneMode.OffsetPlaneFromPlane => WorkerDynamicPlaneModeValue.OffsetPlaneFromPlane,
-            _ => throw Invalid(field)
+            _ => throw Invalid(value, field)
         });
 
     public static WorkerChoiceValue<WorkerDynamicPointModeValue> Required(Api.DynamicPointMode? value, string field) =>
@@ -59,9 +59,9 @@ internal static class DynamicRelationshipModeMapper
             Api.DynamicPointMode.IntersectionConeAndPlane => WorkerDynamicPointModeValue.IntersectionConePlane,
             Api.DynamicPointMode.IntersectionThreePlanes => WorkerDynamicPointModeValue.IntersectionThreePlanes,
             Api.DynamicPointMode.MidPointPerpendicularToTwoLines => WorkerDynamicPointModeValue.MidPointPerpendicularTwoLines,
-            _ => throw Invalid(field)
+            _ => throw Invalid(value, field)
         });
 
-    private static ArgumentException Invalid(string field) =>
-        new($"Request field '{field}' requires a supported construction mode.", field);
+    private static RequestFieldViolation Invalid<T>(T? value, string field) where T : struct, Enum =>
+        value is null ? RequestFieldViolation.Required(field) : RequestFieldViolation.SupportedChoice(field);
 }

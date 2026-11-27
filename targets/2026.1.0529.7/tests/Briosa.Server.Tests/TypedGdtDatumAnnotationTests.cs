@@ -54,7 +54,7 @@ public sealed class TypedGdtDatumAnnotationTests
     [Fact]
     public void RequiredReferencesAndRegistryAreEnforced()
     {
-        Assert.Throws<ArgumentException>(() => MakeGdtDatumAnnotationOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => MakeGdtDatumAnnotationOperation.CreateCommand(new()));
         var id = MakeGdtDatumAnnotationOperation.Descriptor.OperationId;
         Assert.Single(SpatialAnalyzerApi.Operations, operation => operation.OperationId == id);
     }

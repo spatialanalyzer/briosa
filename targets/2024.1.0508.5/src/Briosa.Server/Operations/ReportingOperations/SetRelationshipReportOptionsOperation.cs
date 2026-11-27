@@ -22,7 +22,7 @@ internal static class SetRelationshipReportOptionsOperation
             new("Relationship Name", WorkerMpValueKind.CollectionObjectName,
                 CollectionObjectNameMapper.Required(request.RelationshipName, "relationship_name"), "SetCollectionObjectNameArg2"),
             new("Report Options", WorkerMpValueKind.PointDeltaReportOptions,
-                PointDeltaReportOptionsMapper.ToWorker(request.ReportOptions), "SetPointDeltaReportOptionsArg")
+                PointDeltaReportOptionsMapper.ToWorker(request.ReportOptions, "report_options"), "SetPointDeltaReportOptionsArg")
         ], []);
     }
 

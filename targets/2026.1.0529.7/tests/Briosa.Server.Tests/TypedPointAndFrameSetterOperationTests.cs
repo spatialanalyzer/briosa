@@ -64,9 +64,9 @@ public sealed class TypedPointAndFrameSetterOperationTests
         Assert.Equal(0, frame.InputArguments[1].RequireValue<WorkerIntegerValue>().Value);
         Assert.Equal(transformValues, frame.InputArguments[2].RequireValue<WorkerTransformValue>().Values);
 
-        Assert.Throws<ArgumentException>(() => SetPointPropertiesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetTransformForIthFrameInFrameSetOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetTransformForIthFrameInFrameSetOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetPointPropertiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetTransformForIthFrameInFrameSetOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetTransformForIthFrameInFrameSetOperation.CreateCommand(new()
         {
             FrameSet = Object("frames"), TransformInWorking = new() { Values = { 1d, 2d } }
         }));

@@ -19,14 +19,15 @@ internal static class FeatureInspectionAutoFilterOperation
     public static WorkerMpCommand CreateCommand(Api.FeatureInspectionAutoFilterRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (!request.HasOffsetDirection || request.OffsetDirection == Api.OffsetDirectionType.Unspecified ||
-            !Enum.IsDefined(request.OffsetDirection))
-            throw new ArgumentException("Request field 'offset_direction' is required.", nameof(request));
+        if (!request.HasOffsetDirection)
+            throw RequestFieldViolation.Required("offset_direction");
+        if (request.OffsetDirection == Api.OffsetDirectionType.Unspecified || !Enum.IsDefined(request.OffsetDirection))
+            throw RequestFieldViolation.SupportedChoice("offset_direction");
 
         var points = request.PointNames.Select(point =>
             new WorkerPointNameValue(point.CollectionName, point.GroupName, point.TargetName)).ToImmutableArray();
         if (points.IsEmpty)
-            throw new ArgumentException("Request field 'point_names' is required.", nameof(request));
+            throw RequestFieldViolation.NotEmpty("point_names");
 
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [

@@ -53,7 +53,7 @@ public sealed class TypedObjectTransformOperationTests
         Assert.Equal("SetIntegerArg", command.InputArguments[3].SdkBinding);
         Assert.Equal(0, command.InputArguments[3].RequireValue<WorkerIntegerValue>().Value);
         Assert.Single(command.InputArguments[0].RequireValue<WorkerCollectionObjectNameListValue>().Values);
-        Assert.Throws<ArgumentException>(() => TransformObjectsFrameToFrameOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => TransformObjectsFrameToFrameOperation.CreateCommand(new()));
     }
 
     [Fact]
@@ -79,8 +79,8 @@ public sealed class TypedObjectTransformOperationTests
         var world = worldCommand.InputArguments[1].RequireValue<WorkerWorldTransformValue>();
         Assert.Equal(16, world.Transform.Values.Count);
         Assert.Equal(1d, world.ScaleFactor);
-        Assert.Throws<ArgumentException>(() => TransformObjectsByDeltaAboutWorkingFrameOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => TransformObjectsByDeltaWorldTransformOperatorOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => TransformObjectsByDeltaAboutWorkingFrameOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => TransformObjectsByDeltaWorldTransformOperatorOperation.CreateCommand(new()));
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public sealed class TypedObjectTransformOperationTests
         Assert.Equal("SetCollectionObjectNameRefListArg", command.InputArguments[0].SdkBinding);
         Assert.Equal("SetVectorArg", command.InputArguments[1].SdkBinding);
         Assert.Equal(3, command.InputArguments[1].RequireValue<WorkerVectorValue>().Z);
-        Assert.Throws<ArgumentException>(() => TranslateObjectsByDeltaOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => TranslateObjectsByDeltaOperation.CreateCommand(new()));
     }
 
     [Fact]

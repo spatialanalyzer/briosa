@@ -17,10 +17,11 @@ internal static class CreatePointCalloutOperation
     public static WorkerMpCommand CreateCommand(Api.CreatePointCalloutRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        var coordinateSystem = request.HasDesiredCoordinateSystem
-            ? request.DesiredCoordinateSystem : Api.CoordinateSystemType.Unspecified;
+        if (!request.HasDesiredCoordinateSystem)
+            throw RequestFieldViolation.Required("desired_coordinate_system");
+        var coordinateSystem = request.DesiredCoordinateSystem;
         if (coordinateSystem == Api.CoordinateSystemType.Unspecified || !Enum.IsDefined(coordinateSystem))
-            throw new ArgumentException("Request field 'desired_coordinate_system' is required and must be supported.", nameof(request));
+            throw RequestFieldViolation.SupportedChoice("desired_coordinate_system");
 
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [

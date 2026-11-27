@@ -101,7 +101,7 @@ public sealed class TypedSurfaceConstructionMigrationTests
         Assert.Equal("SetCollectionObjectNameRefListArg", annotation.InputArguments[0].SdkBinding);
         Assert.Equal(WorkerObjectTypeValue.Surface,
             annotation.InputArguments[1].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
-        Assert.Throws<ArgumentException>(() => ConstructSurfaceFromAnnotationLinksOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ConstructSurfaceFromAnnotationLinksOperation.CreateCommand(new()
         {
             ResultingSurfaceName = Object("surface")
         }));
@@ -112,7 +112,7 @@ public sealed class TypedSurfaceConstructionMigrationTests
         });
         Assert.Equal(["Resulting Surface Name", "BSpline List"], splines.InputArguments.Select(argument => argument.Name));
         Assert.Equal("SetCollectionObjectNameRefListArg", splines.InputArguments[1].SdkBinding);
-        Assert.Throws<ArgumentException>(() => ConstructSurfaceFromBSplinesOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ConstructSurfaceFromBSplinesOperation.CreateCommand(new()
         {
             ResultingSurfaceName = Object("surface")
         }));
@@ -126,7 +126,7 @@ public sealed class TypedSurfaceConstructionMigrationTests
         Assert.Equal(["Projection Target Name List", "Point List", "Resulting Surface Name"],
             projected.InputArguments.Select(argument => argument.Name));
         Assert.Equal("SetPointNameRefListArg", projected.InputArguments[1].SdkBinding);
-        Assert.Throws<ArgumentException>(() => ConstructSurfacesByProjectingPointsOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ConstructSurfacesByProjectingPointsOperation.CreateCommand(new()
         {
             ProjectionTargetNameList = { Object("plane") }, ResultingSurfaceName = Object("projected")
         }));
@@ -138,13 +138,13 @@ public sealed class TypedSurfaceConstructionMigrationTests
         Assert.Equal("Construct Surfaces From Objects", fromObjects.StepName);
         Assert.Equal("Objects", Assert.Single(fromObjects.InputArguments).Name);
         Assert.Equal("SetCollectionObjectNameRefListArg", fromObjects.InputArguments[0].SdkBinding);
-        Assert.Throws<ArgumentException>(() => ConstructSurfacesFromObjectsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ConstructSurfacesFromObjectsOperation.CreateCommand(new()));
 
-        Assert.Throws<ArgumentException>(() => ConstructSurfaceFromPointGroupsOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ConstructSurfaceFromPointGroupsOperation.CreateCommand(new()
         {
             ResultingSurfaceName = Object("surface")
         }));
-        Assert.Throws<ArgumentException>(() => ConstructSurfaceFromCollectionOfSurfacesOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ConstructSurfaceFromCollectionOfSurfacesOperation.CreateCommand(new()
         {
             ResultingSurfaceName = Object("surface")
         }));

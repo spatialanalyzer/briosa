@@ -119,7 +119,7 @@ internal static class MakeGdtFeatureCheckAnnotationOperation
         Api.GdtFeatureType.CompositeTruePosition => "Composite True Position",
         Api.GdtFeatureType.CircularRunout => "Circular Runout",
         Api.GdtFeatureType.TotalRunout => "Total Runout",
-        _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Feature type is not supported by this SA target.")
+        _ => throw RequestFieldViolation.SupportedChoice("feature_type")
     };
 
     private static string ToleranceZoneTypeName(Api.GdtToleranceZoneType value) => value switch
@@ -133,7 +133,7 @@ internal static class MakeGdtFeatureCheckAnnotationOperation
         Api.GdtToleranceZoneType.Boundary => "Boundary",
         Api.GdtToleranceZoneType.PlanarMedian => "Planar Median",
         Api.GdtToleranceZoneType.Surface => "Surface",
-        _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Tolerance zone type is not supported by this SA target.")
+        _ => throw RequestFieldViolation.SupportedChoice("tolerance_zone_type")
     };
 
     public static Api.MakeGdtFeatureCheckAnnotationResult CreateResult(SuccessfulOperationExecution completed) =>

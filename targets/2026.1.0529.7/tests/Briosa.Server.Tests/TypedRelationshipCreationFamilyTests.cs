@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -22,7 +23,7 @@ public sealed class TypedRelationshipCreationFamilyTests
         Assert.Equal(["SetCollectionObjectNameArg2", "SetCollectionObjectNameArg2", "SetCollectionObjectNameArg2",
             "SetToleranceScalarOptionsArg", "SetToleranceVectorOptionsArg"],
             frame.InputArguments.Select(argument => argument.SdkBinding));
-        Assert.Throws<ArgumentException>(() => MakeFrameToFrameRelationshipOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => MakeFrameToFrameRelationshipOperation.CreateCommand(new()
         {
             RelationshipName = Relationship(), FirstFrameName = Object("F1"), SecondFrameName = Object("F2"),
             PositionTolerance = new()
@@ -34,7 +35,7 @@ public sealed class TypedRelationshipCreationFamilyTests
         });
         Assert.Equal(["Relationship Name", "Nominal Geometry", "Measured Geometry"],
             compare.InputArguments.Select(argument => argument.Name));
-        Assert.Throws<ArgumentException>(() => MakeGeometryCompareOnlyRelationshipOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => MakeGeometryCompareOnlyRelationshipOperation.CreateCommand(new()
         {
             RelationshipName = Relationship(), NominalGeometry = Object("nominal")
         }));
@@ -52,7 +53,7 @@ public sealed class TypedRelationshipCreationFamilyTests
         Assert.Equal(["Resulting Object Name (Optional)", "Fit Profile Name (Optional)"],
             withOptionals.InputArguments.Skip(3).Select(argument => argument.Name));
         Assert.Equal("profile", withOptionals.InputArguments[4].RequireValue<WorkerTextValue>().Value);
-        Assert.Throws<ArgumentException>(() => MakeGeometryFitAndCompareToNominalRelationshipOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => MakeGeometryFitAndCompareToNominalRelationshipOperation.CreateCommand(new()
         {
             RelationshipName = Relationship(), NominalGeometry = Object("nominal")
         }));
@@ -65,7 +66,7 @@ public sealed class TypedRelationshipCreationFamilyTests
         Assert.Equal("SetGeometryTypeArg",
             MakeGeometryFitOnlyRelationshipOperation.CreateCommand(fitOnly).InputArguments[2].SdkBinding);
         fitOnly.ClearGeometryType();
-        Assert.Throws<ArgumentException>(() => MakeGeometryFitOnlyRelationshipOperation.CreateCommand(fitOnly));
+        Assert.Throws<RequestFieldViolation>(() => MakeGeometryFitOnlyRelationshipOperation.CreateCommand(fitOnly));
     }
 
     [Fact]
@@ -79,7 +80,7 @@ public sealed class TypedRelationshipCreationFamilyTests
         Assert.Equal(WorkerObjectTypeValue.PointGroup,
             group.InputArguments[1].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
         Assert.False(group.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => MakeGroupToGroupRelationshipOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => MakeGroupToGroupRelationshipOperation.CreateCommand(new()
         {
             RelationshipName = Relationship(), FirstGroupName = Object("G1"), SecondGroupName = Object("G2"),
             Constraint = new()
@@ -94,7 +95,7 @@ public sealed class TypedRelationshipCreationFamilyTests
         Assert.True(nominal.InputArguments[4].RequireValue<WorkerBooleanValue>().Value);
         Assert.Equal(0.01, nominal.InputArguments[8].RequireValue<WorkerDoubleValue>().Value);
         Assert.Equal(1d, nominal.InputArguments[11].RequireValue<WorkerDoubleValue>().Value);
-        Assert.Throws<ArgumentException>(() => MakeGroupToNominalGroupRelationshipOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => MakeGroupToNominalGroupRelationshipOperation.CreateCommand(new()
         {
             RelationshipName = Relationship(), NominalGroupName = Object("nominal"),
             Tolerance = new(), Constraint = new()
@@ -107,7 +108,7 @@ public sealed class TypedRelationshipCreationFamilyTests
         });
         Assert.Equal(0d, direction.InputArguments[3].RequireValue<WorkerDoubleValue>().Value);
         Assert.Equal("SetDoubleArg", direction.InputArguments[3].SdkBinding);
-        Assert.Throws<ArgumentException>(() => MakeObjectToObjectDirectionRelationshipOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => MakeObjectToObjectDirectionRelationshipOperation.CreateCommand(new()
         {
             RelationshipName = Relationship(), FirstObjectInRelationship = Object("A")
         }));
@@ -125,7 +126,7 @@ public sealed class TypedRelationshipCreationFamilyTests
         Assert.Equal("SetProjectionOptionsArg",
             MakeGroupsToObjectsRelationshipOperation.CreateCommand(groups).InputArguments[3].SdkBinding);
         groups.ProjectionOptions = null;
-        Assert.Throws<ArgumentException>(() => MakeGroupsToObjectsRelationshipOperation.CreateCommand(groups));
+        Assert.Throws<RequestFieldViolation>(() => MakeGroupsToObjectsRelationshipOperation.CreateCommand(groups));
 
         var clouds = new Api.MakePointCloudsToObjectsRelationshipRequest
         {
@@ -136,7 +137,7 @@ public sealed class TypedRelationshipCreationFamilyTests
         Assert.Equal("SetCollectionObjectNameRefListArg",
             MakePointCloudsToObjectsRelationshipOperation.CreateCommand(clouds).InputArguments[1].SdkBinding);
         clouds.PointCloudsInRelationship.Clear();
-        Assert.Throws<ArgumentException>(() => MakePointCloudsToObjectsRelationshipOperation.CreateCommand(clouds));
+        Assert.Throws<RequestFieldViolation>(() => MakePointCloudsToObjectsRelationshipOperation.CreateCommand(clouds));
 
         var points = PointsToObjects();
         var pointsCommand = MakePointsToObjectsRelationshipOperation.CreateCommand(points);
@@ -144,7 +145,7 @@ public sealed class TypedRelationshipCreationFamilyTests
         Assert.Equal("P1", Assert.Single(pointsCommand.InputArguments[1]
             .RequireValue<WorkerPointNameListValue>().Values).TargetName);
         points.ProjectionOptions = null;
-        Assert.Throws<ArgumentException>(() => MakePointsToObjectsRelationshipOperation.CreateCommand(points));
+        Assert.Throws<RequestFieldViolation>(() => MakePointsToObjectsRelationshipOperation.CreateCommand(points));
 
         var pointPairs = new Api.MakePointsToPointsRelationshipRequest
         {
@@ -156,7 +157,7 @@ public sealed class TypedRelationshipCreationFamilyTests
             "SetBoolArg", "SetToleranceVectorOptionsArg", "SetToleranceVectorOptionsArg"],
             MakePointsToPointsRelationshipOperation.CreateCommand(pointPairs).InputArguments.Select(argument => argument.SdkBinding));
         pointPairs.MeasuredPoints.Clear();
-        Assert.Throws<ArgumentException>(() => MakePointsToPointsRelationshipOperation.CreateCommand(pointPairs));
+        Assert.Throws<RequestFieldViolation>(() => MakePointsToPointsRelationshipOperation.CreateCommand(pointPairs));
 
         var vectors = MakeVectorGroupToVectorGroupRelationshipOperation.CreateCommand(new()
         {
@@ -166,7 +167,7 @@ public sealed class TypedRelationshipCreationFamilyTests
         Assert.Equal(WorkerObjectTypeValue.VectorGroup,
             vectors.InputArguments[1].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
         Assert.True(vectors.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => MakeVectorGroupToVectorGroupRelationshipOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => MakeVectorGroupToVectorGroupRelationshipOperation.CreateCommand(new()
         {
             NewVgToVgRelationship = Relationship(), ReferenceVectorGroup = Object("V1")
         }));

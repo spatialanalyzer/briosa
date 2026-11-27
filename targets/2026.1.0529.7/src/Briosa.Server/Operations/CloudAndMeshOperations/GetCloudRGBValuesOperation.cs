@@ -30,7 +30,7 @@ internal static class GetCloudRGBValuesOperation
         [
             new("Source Cloud Name", WorkerMpValueKind.CollectionObjectName,
                 CollectionObjectNameMapper.Required(request.SourceCloudName, "source_cloud_name", WorkerObjectTypeValue.Cloud), "SetCollectionObjectNameArg2"),
-            new("RGB Color Channel", WorkerMpValueKind.Text, RgbColorChannelMapper.ToMpValue(channel), "SetStringArg")
+            new("RGB Color Channel", WorkerMpValueKind.Text, RgbColorChannelMapper.ToMpValue(channel, "rgb_color_channel"), "SetStringArg")
         ], Outputs());
     }
 

@@ -19,7 +19,7 @@ internal static class SetStringRefListVariableOperation
         ArgumentNullException.ThrowIfNull(request);
         if (request.Value.Count == 0)
         {
-            throw new ArgumentException("Request field 'value' is required.", nameof(request));
+            throw RequestFieldViolation.NotEmpty("value");
         }
 
         return new(Descriptor.OperationId, Descriptor.MpStep,

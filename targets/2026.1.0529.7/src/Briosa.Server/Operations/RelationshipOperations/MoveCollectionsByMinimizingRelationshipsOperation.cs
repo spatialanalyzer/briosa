@@ -27,7 +27,7 @@ internal static class MoveCollectionsByMinimizingRelationshipsOperation
                 new("Relationships To Minimize", WorkerMpValueKind.CollectionItemNameList,
                     RelationshipOperationValueMapper.RequiredRelationships(request.RelationshipsToMinimize, "relationships_to_minimize"), "SetCollectionObjectNameRefListArg"),
                 new("Solver Mode", WorkerMpValueKind.Text,
-                    RelationshipOperationValueMapper.Solver(request.HasSolverMode ? request.SolverMode : null), "SetStringArg"),
+                    RelationshipOperationValueMapper.Solver(request.HasSolverMode ? request.SolverMode : null, "solver_mode"), "SetStringArg"),
                 new("Motion to allow", WorkerMpValueKind.FitDegreeOfFreedomOptions,
                     RelationshipOperationValueMapper.RequiredMotion(request.MotionToAllow, "motion_to_allow"), "SetFitDofOptionsArg"),
                 new("Use Fit Dialog", WorkerMpValueKind.Logical,

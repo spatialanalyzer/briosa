@@ -21,8 +21,8 @@ internal static class ImportAsciiPredefinedFrameSetFormatsOperation
         [
             new("ASCII File Path", WorkerMpValueKind.FileReference, FileReferenceMapper.Required(request.AsciiFilePath, "ascii_file_path"), "SetFilePathArg"),
             new("File Format", WorkerMpValueKind.AsciiImportFileFormat, AsciiFileOperationValueMapper.RequiredFileFormat(request.HasFileFormat ? request.FileFormat : null, "file_format"), "SetAsciiFileFormatArg"),
-            new("Units", WorkerMpValueKind.DistanceUnit, DistanceUnitMapper.OrDefault(request.HasUnits ? request.Units : null, Api.DistanceUnits.Inches), "SetDistanceUnitsArg"),
-            new("Angular Units", WorkerMpValueKind.AngularUnit, AsciiFileOperationValueMapper.AngularUnitsOrDefault(request.HasAngularUnits ? request.AngularUnits : null), "SetAngularUnitsArg"),
+            new("Units", WorkerMpValueKind.DistanceUnit, DistanceUnitMapper.OrDefault(request.HasUnits ? request.Units : null, Api.DistanceUnits.Inches, "units"), "SetDistanceUnitsArg"),
+            new("Angular Units", WorkerMpValueKind.AngularUnit, AsciiFileOperationValueMapper.AngularUnitsOrDefault(request.HasAngularUnits ? request.AngularUnits : null, "angular_units"), "SetAngularUnitsArg"),
             new("Frame Set Container Name", WorkerMpValueKind.CollectionObjectName, CollectionObjectNameMapper.Required(request.FrameSetContainerName, "frame_set_container_name"), "SetCollectionObjectNameArg2"),
             new("Ensure Unique Name", WorkerMpValueKind.Logical, new WorkerBooleanValue(!request.HasEnsureUniqueName || request.EnsureUniqueName), "SetBoolArg")
         ], []);

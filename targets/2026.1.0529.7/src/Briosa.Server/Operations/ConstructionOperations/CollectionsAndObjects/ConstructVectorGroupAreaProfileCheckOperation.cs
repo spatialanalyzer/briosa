@@ -18,8 +18,10 @@ internal static class ConstructVectorGroupAreaProfileCheckOperation
     public static WorkerMpCommand CreateCommand(Api.ConstructVectorGroupAreaProfileCheckRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.ResultantVectorGroupName is null || string.IsNullOrWhiteSpace(request.ResultantVectorGroupName.VectorGroupName))
-            throw new ArgumentException("Resultant vector group name is required.", nameof(request));
+        if (request.ResultantVectorGroupName is null)
+            throw RequestFieldViolation.Required("resultant_vector_group_name");
+        if (string.IsNullOrWhiteSpace(request.ResultantVectorGroupName.VectorGroupName))
+            throw RequestFieldViolation.NotBlank("resultant_vector_group_name.vector_group_name");
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Reference Vectors", WorkerMpValueKind.VectorNameList,

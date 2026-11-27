@@ -32,7 +32,7 @@ internal static class DefinePointOfViewOperation
             new("Restore Render Mode?", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.RestoreRenderMode), "SetBoolArg"),
             new("Rendering Mode", WorkerMpValueKind.RenderModeType,
-                RenderModeTypeMapper.ToWorker(request.HasRenderingMode ? request.RenderingMode : Api.RenderModeType.Wireframe),
+                RenderModeTypeMapper.ToWorker(request.HasRenderingMode ? request.RenderingMode : Api.RenderModeType.Wireframe, "rendering_mode"),
                 "SetRenderModeTypeArg")
         ], []);
     }

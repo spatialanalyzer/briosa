@@ -80,8 +80,8 @@ public sealed class TypedPointRenamingOperationTests
         Assert.True(configuredProximity.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
         Assert.True(configuredProximity.InputArguments[4].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => RenamePointsBasedOnInterPointDistanceToReferencePointsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => RenamePointsBasedOnProximityToReferencePointsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => RenamePointsBasedOnInterPointDistanceToReferencePointsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => RenamePointsBasedOnProximityToReferencePointsOperation.CreateCommand(new()));
         Assert.Empty(interPoint.OutputArguments);
         Assert.Empty(proximity.OutputArguments);
     }

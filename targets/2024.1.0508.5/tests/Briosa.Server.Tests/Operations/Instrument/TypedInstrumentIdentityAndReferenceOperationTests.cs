@@ -49,7 +49,7 @@ public sealed class TypedInstrumentIdentityAndReferenceOperationTests
         Assert.Equal([false, true], delete.InputArguments.Skip(1)
             .Select(argument => argument.RequireValue<WorkerBooleanValue>().Value));
         Assert.Contains("destructive", DeleteInstrumentOperation.Descriptor.RiskFlags);
-        Assert.Throws<ArgumentException>(() => DeleteInstrumentOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DeleteInstrumentOperation.CreateCommand(new()));
 
         var lookup = GetInstrumentIdFromNameOperation.CreateCommand(new() { Name = "Tracker A" });
         Assert.Equal("Tracker A", lookup.InputArguments[0].RequireValue<WorkerTextValue>().Value);

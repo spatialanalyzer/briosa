@@ -23,7 +23,7 @@ internal static class ConstructSurfaceByDissectingSurfacesOperation
         {
             Api.SurfaceDissectionMode.EntireSolid => WorkerSurfaceDissectionModeTypeValue.EntireSolid,
             Api.SurfaceDissectionMode.SelectFaces => WorkerSurfaceDissectionModeTypeValue.SelectFaces,
-            _ => throw new ArgumentException("A supported dissection_mode is required.", nameof(request))
+            _ => throw RequestFieldViolation.SupportedChoice("dissection_mode")
         };
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [new("Dissection Mode", WorkerMpValueKind.SurfaceDissectionModeType,

@@ -67,11 +67,11 @@ public sealed class TypedVectorConstructionMigrationTests
     [Fact]
     public void RequiredVectorInputsAreValidatedForEveryCommand()
     {
-        Assert.Throws<ArgumentException>(() => ConstructVectorGroupAreaProfileCheckOperation.CreateCommand(new() { ResultantVectorGroupName = Group("result") }));
-        Assert.Throws<ArgumentException>(() => ConstructVectorGroupFromRelationshipOperation.CreateCommand(new() { RelationshipName = Object("relationship") }));
-        Assert.Throws<ArgumentException>(() => ConstructVectorGroupGroupToGroupCompareOperation.CreateCommand(new() { VectorGroupName = Object("vectors"), GroupA = Object("a") }));
-        Assert.Throws<ArgumentException>(() => ConstructVectorInWorkingCoordinatesBeginDeltaOperation.CreateCommand(new() { VectorGroupName = Object("vectors"), BeginInWorkingCoordinates = Vector(1) }));
-        Assert.Throws<ArgumentException>(() => ConstructVectorInWorkingCoordinatesBeginDirectionMagnitudeOperation.CreateCommand(new() { VectorGroupName = Object("vectors"), BeginInWorkingCoordinates = Vector(1) }));
+        Assert.Throws<RequestFieldViolation>(() => ConstructVectorGroupAreaProfileCheckOperation.CreateCommand(new() { ResultantVectorGroupName = Group("result") }));
+        Assert.Throws<RequestFieldViolation>(() => ConstructVectorGroupFromRelationshipOperation.CreateCommand(new() { RelationshipName = Object("relationship") }));
+        Assert.Throws<RequestFieldViolation>(() => ConstructVectorGroupGroupToGroupCompareOperation.CreateCommand(new() { VectorGroupName = Object("vectors"), GroupA = Object("a") }));
+        Assert.Throws<RequestFieldViolation>(() => ConstructVectorInWorkingCoordinatesBeginDeltaOperation.CreateCommand(new() { VectorGroupName = Object("vectors"), BeginInWorkingCoordinates = Vector(1) }));
+        Assert.Throws<RequestFieldViolation>(() => ConstructVectorInWorkingCoordinatesBeginDirectionMagnitudeOperation.CreateCommand(new() { VectorGroupName = Object("vectors"), BeginInWorkingCoordinates = Vector(1) }));
     }
 
     private static Api.CollectionObjectName Object(string name) => new() { CollectionName = "part", ObjectName = name };

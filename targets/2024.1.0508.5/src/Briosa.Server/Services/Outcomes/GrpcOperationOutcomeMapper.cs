@@ -195,11 +195,13 @@ internal static class GrpcOperationOutcomeMapper
         return new SuccessfulOperationExecution(execution, successfulDetails);
     }
 
+    // The status text stays fixed; only the typed detail names the field.
     public static RpcException CreateValidationFailure(
         string operationId,
         string diagnosticCode,
         int generation = 0,
-        ReplaySafety replaySafety = ReplaySafety.Unknown) =>
+        ReplaySafety replaySafety = ReplaySafety.Unknown,
+        RequestValidationDetails? requestValidation = null) =>
         CreateFailure(
             StatusCode.InvalidArgument,
             operationId,
@@ -211,7 +213,8 @@ internal static class GrpcOperationOutcomeMapper
             replaySafety,
             generation,
             mpExecution: null,
-            "The request is invalid.");
+            "The request is invalid.",
+            requestValidation: requestValidation);
 
     public static RpcException CreateUnsupportedFailure(
         string operationId,
@@ -457,7 +460,7 @@ internal static class GrpcOperationOutcomeMapper
         };
     }
 
-    private static RpcException CreateInternalFailure(
+    public static RpcException CreateInternalFailure(
         string operationId,
         ReplaySafety replaySafety,
         int generation,
@@ -490,7 +493,8 @@ internal static class GrpcOperationOutcomeMapper
         int generation,
         MpExecutionDetails? mpExecution,
         string detail,
-        PolicyDenialDetails? policyDenial = null)
+        PolicyDenialDetails? policyDenial = null,
+        RequestValidationDetails? requestValidation = null)
     {
         var error = new OperationError
         {
@@ -503,7 +507,8 @@ internal static class GrpcOperationOutcomeMapper
             ReplaySafety = replaySafety,
             WorkerGeneration = generation,
             MpExecution = mpExecution,
-            PolicyDenial = policyDenial
+            PolicyDenial = policyDenial,
+            RequestValidation = requestValidation
         };
         var trailers = new Metadata
         {

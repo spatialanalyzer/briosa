@@ -18,8 +18,10 @@ internal static class RunCribSheetOperation
     public static WorkerMpCommand CreateCommand(Api.RunCribSheetRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (!request.HasCribSheetName || string.IsNullOrWhiteSpace(request.CribSheetName))
-            throw new ArgumentException("Request field 'crib_sheet_name' is required.", nameof(request));
+        if (!request.HasCribSheetName)
+            throw RequestFieldViolation.Required("crib_sheet_name");
+        if (string.IsNullOrWhiteSpace(request.CribSheetName))
+            throw RequestFieldViolation.NotBlank("crib_sheet_name");
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Collection Name", WorkerMpValueKind.CollectionName,

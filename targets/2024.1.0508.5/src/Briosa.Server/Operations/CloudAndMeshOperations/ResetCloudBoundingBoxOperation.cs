@@ -38,7 +38,7 @@ internal static class ResetCloudBoundingBoxOperation
             Api.CloudBoxType.WorkAxisAlignedBox => "Work Axis Aligned Box",
             Api.CloudBoxType.MinimumOrientedBoxUnconditional => "Minimum Oriented Box - Unconditional",
             Api.CloudBoxType.MinimumOrientedBoxVerifyVolume => "Minimum Oriented Box - Verify Volume",
-            _ => throw new ArgumentException("Unsupported cloud box type.", nameof(request))
+            _ => throw RequestFieldViolation.SupportedChoice("cloud_box_type")
         };
 
         return new(Descriptor.OperationId, Descriptor.MpStep,

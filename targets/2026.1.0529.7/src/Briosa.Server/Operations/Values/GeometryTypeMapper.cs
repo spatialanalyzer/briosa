@@ -9,7 +9,7 @@ internal static class GeometryTypeMapper
     {
         if (value is < Api.GeometryType.Line or > Api.GeometryType.Torus)
         {
-            throw new ArgumentOutOfRangeException(fieldName, "The geometry type is not supported by this SA target.");
+            throw RequestFieldViolation.SupportedChoice(fieldName);
         }
 
         return WorkerChoiceFactory.FromOrdinal(WorkerMpValueKind.GeometryType, (int)value - 1);

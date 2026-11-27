@@ -47,14 +47,14 @@ internal static class SetActiveUnitsOperation
         Api.DistanceUnits.Feet => WorkerDistanceUnitValue.Feet,
         Api.DistanceUnits.Inches => WorkerDistanceUnitValue.Inches,
         Api.DistanceUnits.UsSurveyFeet => WorkerDistanceUnitValue.UsSurveyFeet,
-        _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Distance unit is not supported.")
+        _ => throw RequestFieldViolation.SupportedChoice("length")
     };
 
     private static WorkerTemperatureUnitValue ToWorker(Api.TemperatureUnits value) => value switch
     {
         Api.TemperatureUnits.Fahrenheit => WorkerTemperatureUnitValue.Fahrenheit,
         Api.TemperatureUnits.Celsius => WorkerTemperatureUnitValue.Celsius,
-        _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Temperature unit is not supported.")
+        _ => throw RequestFieldViolation.SupportedChoice("temperature")
     };
 
     private static WorkerAngularUnitValue ToWorker(Api.AngularUnits value) => value switch
@@ -67,6 +67,6 @@ internal static class SetActiveUnitsOperation
         Api.AngularUnits.Mils => WorkerAngularUnitValue.Mils,
         Api.AngularUnits.Arcseconds => WorkerAngularUnitValue.Arcseconds,
         Api.AngularUnits.DegreesMinutes => WorkerAngularUnitValue.DegreesMinutes,
-        _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Angular unit is not supported.")
+        _ => throw RequestFieldViolation.SupportedChoice("angular")
     };
 }

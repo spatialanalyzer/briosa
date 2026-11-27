@@ -33,7 +33,7 @@ internal static class GetCurrentInstrumentPositionUpdateOperation
             Api.InstrumentPositionReportingFrame.Unspecified or Api.InstrumentPositionReportingFrame.InstrumentBase => "Instrument Base",
             Api.InstrumentPositionReportingFrame.World => "World",
             Api.InstrumentPositionReportingFrame.Working => "Working",
-            _ => throw new ArgumentOutOfRangeException(nameof(request), "Reporting frame is not supported by this SA target.")
+            _ => throw RequestFieldViolation.SupportedChoice("reporting_frame")
         };
 
         return new(Descriptor.OperationId, Descriptor.MpStep,

@@ -19,7 +19,8 @@ internal static class SetPointGroupReportOptionsOperation
         ArgumentNullException.ThrowIfNull(request);
         var coordinateSystem = CoordinateSystemTypeMapper.OrDefault(
             request.HasCoordinateSystem ? request.CoordinateSystem : null,
-            Api.CoordinateSystemType.Cartesian);
+            Api.CoordinateSystemType.Cartesian,
+            "coordinate_system");
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Point Group", WorkerMpValueKind.CollectionObjectName,

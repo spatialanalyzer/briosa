@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -21,7 +22,7 @@ public sealed class TypedEditGeometryRelationshipPointListTests
 
         Assert.Equal("Point Graph", Mode(Api.GeometryRelationshipPointEditMode.PointGraph));
         Assert.Equal("Sub-Sampler Settings", Mode(Api.GeometryRelationshipPointEditMode.SubSamplerSettings));
-        Assert.Throws<ArgumentOutOfRangeException>(() => Mode(Api.GeometryRelationshipPointEditMode.Unspecified));
+        Assert.Throws<RequestFieldViolation>(() => Mode(Api.GeometryRelationshipPointEditMode.Unspecified));
     }
 
     [Fact]

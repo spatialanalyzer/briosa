@@ -22,25 +22,25 @@ internal static class SetRelationshipAssociatedDataOperation
         var relationship = CollectionItemNameMapper.Required(
             request.RelationshipName, "relationship_name", WorkerItemTypeValue.Relationship);
         var individualPoints = request.IndividualPoints?.Values ??
-            throw new ArgumentException("Request field 'individual_points' is required.", nameof(request));
+            throw RequestFieldViolation.Required("individual_points");
         var pointGroups = request.PointGroups?.Values ??
-            throw new ArgumentException("Request field 'point_groups' is required.", nameof(request));
+            throw RequestFieldViolation.Required("point_groups");
         var pointClouds = request.PointClouds?.Values ??
-            throw new ArgumentException("Request field 'point_clouds' is required.", nameof(request));
+            throw RequestFieldViolation.Required("point_clouds");
 
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [
                 new("Relationship Name", WorkerMpValueKind.CollectionItemName,
                     relationship, "SetCollectionObjectNameArg2"),
                 new("Individual Points", WorkerMpValueKind.PointNameList,
-                    PointNameMapper.RequiredList(individualPoints, "individual_points"), "SetPointNameRefListArg"),
+                    PointNameMapper.RequiredList(individualPoints, "individual_points.values"), "SetPointNameRefListArg"),
                 new("Point Groups", WorkerMpValueKind.CollectionObjectNameList,
-                    CollectionObjectNameMapper.RequiredList(pointGroups, "point_groups"), "SetCollectionObjectNameRefListArg"),
+                    CollectionObjectNameMapper.RequiredList(pointGroups, "point_groups.values"), "SetCollectionObjectNameRefListArg"),
                 new("Point Clouds", WorkerMpValueKind.CollectionObjectNameList,
-                    CollectionObjectNameMapper.RequiredList(pointClouds, "point_clouds"), "SetCollectionObjectNameRefListArg"),
+                    CollectionObjectNameMapper.RequiredList(pointClouds, "point_clouds.values"), "SetCollectionObjectNameRefListArg"),
                 new("Objects", WorkerMpValueKind.CollectionObjectNameList,
                     CollectionObjectNameMapper.RequiredList(request.Objects?.Values ??
-                        throw new ArgumentException("Request field 'objects' is required.", nameof(request)), "objects"),
+                        throw RequestFieldViolation.Required("objects"), "objects.values"),
                     "SetCollectionObjectNameRefListArg"),
                 new("Ignore Empty Arguments?", WorkerMpValueKind.Logical,
                     new WorkerBooleanValue(!request.HasIgnoreEmptyArguments || request.IgnoreEmptyArguments), "SetBoolArg")

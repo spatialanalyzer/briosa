@@ -17,11 +17,15 @@ internal static class SetObjectsTranslucencyOperation
     public static WorkerMpCommand CreateCommand(Api.SetObjectsTranslucencyRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        var renderingType = request.HasRenderingType
-            ? request.RenderingType : Api.TranslucencyType.Unspecified;
+        if (!request.HasRenderingType)
+        {
+            throw RequestFieldViolation.Required("rendering_type");
+        }
+
+        var renderingType = request.RenderingType;
         if (!Enum.IsDefined(renderingType) || renderingType == Api.TranslucencyType.Unspecified)
         {
-            throw new ArgumentException("A supported rendering type is required.", nameof(request));
+            throw RequestFieldViolation.SupportedChoice("rendering_type");
         }
 
         var workerRenderingType = renderingType switch
@@ -29,7 +33,7 @@ internal static class SetObjectsTranslucencyOperation
             Api.TranslucencyType.Solid => WorkerTranslucencyTypeValue.Solid,
             Api.TranslucencyType.Translucent => WorkerTranslucencyTypeValue.Translucent,
             Api.TranslucencyType.Wireframe => WorkerTranslucencyTypeValue.Wireframe,
-            _ => throw new ArgumentOutOfRangeException(nameof(request), renderingType, "Rendering type is not supported.")
+            _ => throw RequestFieldViolation.SupportedChoice("rendering_type")
         };
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [

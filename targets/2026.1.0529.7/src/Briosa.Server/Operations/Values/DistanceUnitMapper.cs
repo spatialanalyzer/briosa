@@ -6,7 +6,7 @@ namespace Briosa.Server.Operations.Values;
 internal static class DistanceUnitMapper
 {
     public static WorkerDistanceUnitChoice OrDefault(
-        Api.DistanceUnits? value, Api.DistanceUnits defaultValue) =>
+        Api.DistanceUnits? value, Api.DistanceUnits defaultValue, string fieldName) =>
         new((value ?? defaultValue) switch
         {
             Api.DistanceUnits.Meters => WorkerDistanceUnitValue.Meters,
@@ -15,6 +15,6 @@ internal static class DistanceUnitMapper
             Api.DistanceUnits.Feet => WorkerDistanceUnitValue.Feet,
             Api.DistanceUnits.Inches => WorkerDistanceUnitValue.Inches,
             Api.DistanceUnits.UsSurveyFeet => WorkerDistanceUnitValue.UsSurveyFeet,
-            _ => throw new ArgumentException("Distance units are not supported by this SA target.", nameof(value))
+            _ => throw RequestFieldViolation.SupportedChoice(fieldName)
         });
 }

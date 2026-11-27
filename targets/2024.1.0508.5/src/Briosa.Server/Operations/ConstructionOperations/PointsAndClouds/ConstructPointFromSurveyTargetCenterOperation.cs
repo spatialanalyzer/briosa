@@ -22,7 +22,7 @@ internal static class ConstructPointFromSurveyTargetCenterOperation
         {
             Api.SurveyTargetType.Triangle => "Triangle",
             Api.SurveyTargetType.Circle => "Circle",
-            _ => throw new ArgumentException("Survey target type must be Triangle or Circle.", nameof(request))
+            _ => throw RequestFieldViolation.SupportedChoice("survey_target_type")
         };
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [

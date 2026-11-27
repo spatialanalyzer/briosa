@@ -30,7 +30,7 @@ internal static class FilterCloudsToBSplinesOperation
                 new WorkerDoubleValue(request.HasMinimumProximity ? request.MinimumProximity : 0), "SetDoubleArg"),
             new("Maximum Proximity", WorkerMpValueKind.FloatingPoint,
                 new WorkerDoubleValue(request.HasMaximumProximity ? request.MaximumProximity : 0), "SetDoubleArg"),
-            new("Output Type", WorkerMpValueKind.Text, PointOutputTypeMapper.ToMpValue(outputType), "SetStringArg")
+            new("Output Type", WorkerMpValueKind.Text, PointOutputTypeMapper.ToMpValue(outputType, "output_type"), "SetStringArg")
         ], []);
     }
 

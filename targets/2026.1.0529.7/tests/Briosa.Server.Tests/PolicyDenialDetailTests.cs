@@ -536,7 +536,7 @@ public sealed class PolicyDenialDetailTests
                 OperationRequestClassifier.IsEnabled(entry, request));
             if (omission == Api.OperationRequestOptionOmission.Required)
             {
-                Assert.Throws<ArgumentException>(() => builder.Create(request));
+                Assert.Throws<RequestFieldViolation>(() => builder.Create(request));
                 required.Add(label);
             }
             else

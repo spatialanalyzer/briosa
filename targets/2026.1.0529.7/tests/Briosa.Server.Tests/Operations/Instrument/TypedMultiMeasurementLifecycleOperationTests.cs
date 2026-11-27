@@ -42,7 +42,7 @@ public sealed class TypedMultiMeasurementLifecycleOperationTests
         Assert.Equal("SetColInstIdRefListArg", initiate.InputArguments[0].SdkBinding);
         Assert.Equal(string.Empty, initiate.InputArguments[1].RequireValue<WorkerTextValue>().Value);
         Assert.False(initiate.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => MultiMeasurementInitiateOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => MultiMeasurementInitiateOperation.CreateCommand(new()));
 
         var stop = MultiMeasurementStopOperation.CreateCommand(new()
         {
@@ -50,7 +50,7 @@ public sealed class TypedMultiMeasurementLifecycleOperationTests
         });
         Assert.Equal([4, 5], stop.InputArguments[0].RequireValue<WorkerCollectionInstrumentIdListValue>()
             .Values.Select(instrument => instrument.InstrumentId));
-        Assert.Throws<ArgumentException>(() => MultiMeasurementStopOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => MultiMeasurementStopOperation.CreateCommand(new()));
     }
 
     [Fact]

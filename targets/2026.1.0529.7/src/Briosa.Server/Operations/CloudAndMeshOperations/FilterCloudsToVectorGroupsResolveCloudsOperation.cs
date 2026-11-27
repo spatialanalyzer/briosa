@@ -18,8 +18,10 @@ internal static class FilterCloudsToVectorGroupsResolveCloudsOperation
     public static WorkerMpCommand CreateCommand(Api.FilterCloudsToVectorGroupsResolveCloudsRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (!request.HasOutputCollectionName || string.IsNullOrWhiteSpace(request.OutputCollectionName))
-            throw new ArgumentException("Request field 'output_collection_name' is required.", nameof(request));
+        if (!request.HasOutputCollectionName)
+            throw RequestFieldViolation.Required("output_collection_name");
+        if (string.IsNullOrWhiteSpace(request.OutputCollectionName))
+            throw RequestFieldViolation.NotBlank("output_collection_name");
 
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [

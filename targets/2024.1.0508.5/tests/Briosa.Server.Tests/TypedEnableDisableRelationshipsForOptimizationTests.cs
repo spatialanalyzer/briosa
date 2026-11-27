@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -32,7 +33,7 @@ public sealed class TypedEnableDisableRelationshipsForOptimizationTests
             command.InputArguments[0].RequireValue<WorkerCollectionItemNameListValue>().Values[1]);
         Assert.False(command.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
         Assert.Empty(command.OutputArguments);
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             EnableDisableRelationshipsForOptimizationOperation.CreateCommand(new()));
     }
 

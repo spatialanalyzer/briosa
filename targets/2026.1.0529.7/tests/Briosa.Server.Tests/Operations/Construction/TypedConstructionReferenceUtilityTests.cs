@@ -41,7 +41,7 @@ public sealed class TypedConstructionReferenceUtilityTests
     [Fact]
     public void InstrumentListsPreserveBindingOrder()
     {
-        Assert.Throws<ArgumentException>(() => SetCollectionInstrumentRefListVariableOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetCollectionInstrumentRefListVariableOperation.CreateCommand(new()));
         var instrument = new Api.CollectionInstrumentId { CollectionName = "C", InstrumentId = 7 };
         var set = SetCollectionInstrumentRefListVariableOperation.CreateCommand(new()
             { Name = "instruments", Value = { instrument } });
@@ -74,7 +74,7 @@ public sealed class TypedConstructionReferenceUtilityTests
             .CreateCommand(new()).OutputArguments).SdkBinding);
         Assert.Equal("GetCollectionObjectNameRefListArg", Assert.Single(MakeReportRefListRuntimeSelectOperation
             .CreateCommand(new()).OutputArguments).SdkBinding);
-        Assert.Throws<ArgumentException>(() => MakeReportRefListFromCollectionOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => MakeReportRefListFromCollectionOperation.CreateCommand(new()));
         Assert.Equal("SetCollectionNameArg", Assert.Single(MakeReportRefListFromCollectionOperation.CreateCommand(new()
             { CollectionName = new Api.CollectionName { Name = "C" } }).InputArguments).SdkBinding);
     }
@@ -82,14 +82,14 @@ public sealed class TypedConstructionReferenceUtilityTests
     [Fact]
     public void VectorAndSystemStringCommandsPreservePresenceAndType()
     {
-        Assert.Throws<ArgumentException>(() => ConstructSurfacesByDissectingSurfacesFromRefListOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ConstructSurfacesByDissectingSurfacesFromRefListOperation.CreateCommand(new()));
         var surfaces = ConstructSurfacesByDissectingSurfacesFromRefListOperation.CreateCommand(new()
         {
             SurfacesToDissect = { new Api.CollectionObjectName { CollectionName = "C", ObjectName = "S" } }
         });
         Assert.Equal("SetCollectionObjectNameRefListArg", Assert.Single(surfaces.InputArguments).SdkBinding);
         Assert.Equal("GetCollectionObjectNameRefListArg", Assert.Single(surfaces.OutputArguments).SdkBinding);
-        Assert.Throws<ArgumentException>(() => ConstructVectorGroupFromVectorNameRefListOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ConstructVectorGroupFromVectorNameRefListOperation.CreateCommand(new()));
         var vectors = ConstructVectorGroupFromVectorNameRefListOperation.CreateCommand(new()
         {
             VectorNameList = { new Api.VectorName { CollectionName = "C", GroupName = "G", Name = "V" } },
@@ -97,13 +97,13 @@ public sealed class TypedConstructionReferenceUtilityTests
         });
         Assert.Equal(["SetVectorNameRefListArg", "SetColVectorGroupNameArg"],
             vectors.InputArguments.Select(input => input.SdkBinding));
-        Assert.Throws<ArgumentException>(() => MakeVectorNameRefListFromVectorGroupOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => MakeVectorNamesUniqueInVectorGroupOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => MakeVectorNameRefListFromVectorGroupOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => MakeVectorNamesUniqueInVectorGroupOperation.CreateCommand(new()));
         Assert.Equal("GetVectorNameRefListArg", Assert.Single(MakeVectorNameRefListFromVectorGroupOperation
             .CreateCommand(new() { VectorGroupName = new Api.CollectionObjectName { ObjectName = "G" } })
             .OutputArguments).SdkBinding);
 
-        Assert.Throws<ArgumentException>(() => MakeSystemStringOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => MakeSystemStringOperation.CreateCommand(new()));
         var system = MakeSystemStringOperation.CreateCommand(new()
             { StringContent = Api.SystemString.SaVersion });
         Assert.Single(system.InputArguments);

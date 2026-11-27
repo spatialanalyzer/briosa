@@ -17,12 +17,16 @@ internal static class SetGdtOptionsOperation
     public static WorkerMpCommand CreateCommand(Api.SetGdtOptionsRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (!request.HasDistanceBetweenMode || request.DistanceBetweenMode == Api.GdtDistanceBetweenMode.Unspecified ||
+        if (!request.HasDistanceBetweenMode)
+            throw RequestFieldViolation.Required("distance_between_mode");
+        if (request.DistanceBetweenMode == Api.GdtDistanceBetweenMode.Unspecified ||
             !Enum.IsDefined(request.DistanceBetweenMode))
-            throw new ArgumentException("Distance between mode must specify a supported value.", nameof(request));
-        if (!request.HasEvaluationMethod || request.EvaluationMethod == Api.GdtEvaluationMethod.Unspecified ||
+            throw RequestFieldViolation.SupportedChoice("distance_between_mode");
+        if (!request.HasEvaluationMethod)
+            throw RequestFieldViolation.Required("evaluation_method");
+        if (request.EvaluationMethod == Api.GdtEvaluationMethod.Unspecified ||
             !Enum.IsDefined(request.EvaluationMethod))
-            throw new ArgumentException("Evaluation method must specify a supported value.", nameof(request));
+            throw RequestFieldViolation.SupportedChoice("evaluation_method");
 
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [

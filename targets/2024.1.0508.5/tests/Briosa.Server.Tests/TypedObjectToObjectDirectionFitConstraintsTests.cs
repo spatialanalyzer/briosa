@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -32,7 +33,7 @@ public sealed class TypedObjectToObjectDirectionFitConstraintsTests
                 new WorkerToleranceLimit(false, 0), new WorkerToleranceLimit(false, 0)),
             command.InputArguments[2].RequireValue<WorkerFitConstraintScalarOptionsValue>());
         Assert.Empty(command.OutputArguments);
-        Assert.Throws<ArgumentException>(() => SetObjectToObjectDirectionRelationshipFitConstraintsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetObjectToObjectDirectionRelationshipFitConstraintsOperation.CreateCommand(new()));
     }
 
     [Fact]

@@ -72,10 +72,10 @@ public sealed class TypedUtilityFolderOperationTests
         Assert.Equal(["Old", "New"], moveFolder.InputArguments
             .Select(argument => argument.RequireValue<WorkerTextValue>().Value));
 
-        Assert.Throws<ArgumentException>(() => DeleteItemsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => DeleteObjectsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => IncrementPointNameOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => MoveCollectionToFolderOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DeleteItemsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DeleteObjectsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => IncrementPointNameOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => MoveCollectionToFolderOperation.CreateCommand(new()));
 
         var listResult = GetFolderCollectionsOperation.CreateResult(
             Success([Strings("Collection List", "Folder A", "Folder B")]));

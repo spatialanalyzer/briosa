@@ -11,6 +11,7 @@ internal static class DatasetTypeMapper
         Api.DatasetType.Y => WorkerVectorComponentValue.Y,
         Api.DatasetType.Z => WorkerVectorComponentValue.Z,
         Api.DatasetType.Magnitude => WorkerVectorComponentValue.Magnitude,
-        _ => throw new ArgumentException($"Request field '{fieldName}' is required or unsupported.", nameof(value))
+        null => throw RequestFieldViolation.Required(fieldName),
+        _ => throw RequestFieldViolation.SupportedChoice(fieldName)
     };
 }

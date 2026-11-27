@@ -46,8 +46,8 @@ public sealed class TypedGdtFeatureCheckMeasurementsTests
     [Fact]
     public void RequiredInputsAndRegistryAreEnforced()
     {
-        Assert.Throws<ArgumentException>(() => GetFeatureCheckMeasurementsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetFeatureCheckMeasurementsOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => GetFeatureCheckMeasurementsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetFeatureCheckMeasurementsOperation.CreateCommand(new()
             { FeatureCheck = new Api.CollectionItemName { ItemName = "FC" } }));
         foreach (var id in new[] { GetFeatureCheckMeasurementsOperation.Descriptor.OperationId,
                      SetFeatureCheckMeasurementsOperation.Descriptor.OperationId })

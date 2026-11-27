@@ -41,8 +41,8 @@ public sealed class TypedFrameConstructionOperationTests
     [Fact]
     public void FrameTransformsNamesAndFlagsPreserveBindings()
     {
-        Assert.Throws<ArgumentException>(() => ConstructFrameOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => ConstructFrameOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ConstructFrameOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ConstructFrameOperation.CreateCommand(new()
             { NewFrameName = Frame() }));
         var frame = ConstructFrameOperation.CreateCommand(new()
             { NewFrameName = Frame(), TransformInWorkingCoordinates = Transform() });
@@ -62,12 +62,12 @@ public sealed class TypedFrameConstructionOperationTests
         Assert.Single(onObject.InputArguments);
         Assert.Equal(2, ConstructFrameOnObjectOperation.CreateCommand(new()
             { ReferenceObject = Frame(), FrameName = Frame("New") }).InputArguments.Count);
-        Assert.Throws<ArgumentException>(() => ConstructFrameAverageOfOtherObjectFramesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ConstructFrameAverageOfOtherObjectFramesOperation.CreateCommand(new()));
         var average = ConstructFrameAverageOfOtherObjectFramesOperation.CreateCommand(new()
             { Objects = { Frame("A") } });
         Assert.Single(average.InputArguments);
         Assert.Equal("SetCollectionObjectNameRefListArg", average.InputArguments[0].SdkBinding);
-        Assert.Throws<ArgumentException>(() => ConstructFrameFromPointMeasurementProbingFramesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ConstructFrameFromPointMeasurementProbingFramesOperation.CreateCommand(new()));
         var probes = ConstructFrameFromPointMeasurementProbingFramesOperation.CreateCommand(new()
             { PointList = { Point("P") } });
         Assert.Equal(["SetPointNameRefListArg", "SetBoolArg"],
@@ -78,10 +78,10 @@ public sealed class TypedFrameConstructionOperationTests
     [Fact]
     public void FrameAxisPointAndPlaneChoicesPreserveExactOrder()
     {
-        Assert.Throws<ArgumentException>(() => FrameConstructionChoiceMapper.Axis(Api.AxisIdentifier.Unspecified));
-        Assert.Throws<ArgumentException>(() => FrameConstructionChoiceMapper.Method(Api.FrameConstructionMethod.Unspecified));
+        Assert.Throws<RequestFieldViolation>(() => FrameConstructionChoiceMapper.Axis(Api.AxisIdentifier.Unspecified, "clocked_axis"));
+        Assert.Throws<RequestFieldViolation>(() => FrameConstructionChoiceMapper.Method(Api.FrameConstructionMethod.Unspecified, "construction_method"));
         Assert.Equal(WorkerAxisIdentifierValue.PositiveX,
-            FrameConstructionChoiceMapper.FrameAxis((Api.FrameAxis)1).Value);
+            FrameConstructionChoiceMapper.FrameAxis((Api.FrameAxis)1, "axis_to_reverse").Value);
         var clocked = ConstructFrameAtPointWithWorkingZAndClockedAxisOperation.CreateCommand(new()
         {
             OriginPoint = Point("O"), ClockedAxis = (Api.AxisIdentifier)2, ClockingPoint = Point("C")

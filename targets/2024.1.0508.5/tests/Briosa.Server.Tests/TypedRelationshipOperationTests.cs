@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -98,7 +99,7 @@ public sealed class TypedRelationshipOperationTests
         {
             RelationshipName = new() { ObjectName = "relationship", ObjectType = (Api.ObjectType)type }
         };
-        Assert.Throws<ArgumentException>(() => GetRelationshipFitConstraintsScalarTypeOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => GetRelationshipFitConstraintsScalarTypeOperation.CreateCommand(request));
     }
 
     private sealed class RelationshipWorker : IWorkerCommandExecutor

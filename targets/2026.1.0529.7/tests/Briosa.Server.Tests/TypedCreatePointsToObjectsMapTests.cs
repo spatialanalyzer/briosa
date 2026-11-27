@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -27,13 +28,13 @@ public sealed class TypedCreatePointsToObjectsMapTests
 
         var missingPoints = Request();
         missingPoints.Points = null;
-        Assert.Throws<ArgumentException>(() => CreatePointsToObjectsMapOperation.CreateCommand(missingPoints));
+        Assert.Throws<RequestFieldViolation>(() => CreatePointsToObjectsMapOperation.CreateCommand(missingPoints));
         var emptyGroups = Request();
         emptyGroups.Groups = new();
-        Assert.Throws<ArgumentException>(() => CreatePointsToObjectsMapOperation.CreateCommand(emptyGroups));
+        Assert.Throws<RequestFieldViolation>(() => CreatePointsToObjectsMapOperation.CreateCommand(emptyGroups));
         var emptyObjects = Request();
         emptyObjects.Objects.Clear();
-        Assert.Throws<ArgumentException>(() => CreatePointsToObjectsMapOperation.CreateCommand(emptyObjects));
+        Assert.Throws<RequestFieldViolation>(() => CreatePointsToObjectsMapOperation.CreateCommand(emptyObjects));
     }
 
     [Fact]

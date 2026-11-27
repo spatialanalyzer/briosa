@@ -51,7 +51,7 @@ public sealed class TypedGdtFeatureCheckDatumReferencesTests
         Assert.Equal("Aux geometry relationship 3", Assert.Single(result.Datum3.AuxiliaryGeometryRelationships).ItemName);
         Assert.Same(details, result.Execution);
 
-        Assert.Throws<ArgumentException>(() => GetFeatureCheckDatumReferencesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetFeatureCheckDatumReferencesOperation.CreateCommand(new()));
         var id = GetFeatureCheckDatumReferencesOperation.Descriptor.OperationId;
         Assert.Single(SpatialAnalyzerApi.Operations, operation => operation.OperationId == id);
     }

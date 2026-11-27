@@ -17,7 +17,7 @@ internal static class SetFolderNotesOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.Notes.Count == 0)
-            throw new ArgumentException("Notes are required.", nameof(request));
+            throw RequestFieldViolation.NotEmpty("notes");
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Folder Path", WorkerMpValueKind.Text, new WorkerTextValue(request.FolderPath), "SetStringArg"),

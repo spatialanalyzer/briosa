@@ -18,7 +18,7 @@ internal static class SetWorkingColorOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [new("New Working Color Name", WorkerMpValueKind.RgbColor,
-            ViewControlColorMapper.WithDefault(request.NewWorkingColorName), "SetColorArg")], []);
+            ViewControlColorMapper.WithDefault(request.NewWorkingColorName, "new_working_color_name"), "SetColorArg")], []);
     }
 
     public static Api.SetWorkingColorResult CreateResult(SuccessfulOperationExecution completed) =>

@@ -20,7 +20,7 @@ internal static class HighlightRelationshipsOperation
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Relationships (Empty to clear all)", WorkerMpValueKind.CollectionItemNameList,
-                CollectionItemNameMapper.AllowEmptyList(request.Relationships), "SetCollectionObjectNameRefListArg"),
+                CollectionItemNameMapper.AllowEmptyList(request.Relationships, "relationships"), "SetCollectionObjectNameRefListArg"),
             new("HighLight Relationships?", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.HasHighLightRelationships && request.HighLightRelationships), "SetBoolArg")
         ], []);

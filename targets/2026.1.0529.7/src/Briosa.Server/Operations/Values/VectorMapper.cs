@@ -9,7 +9,7 @@ internal static class VectorMapper
     {
         if (value is null)
         {
-            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(value));
+            throw RequestFieldViolation.Required(fieldName);
         }
 
         return new(value.X, value.Y, value.Z);

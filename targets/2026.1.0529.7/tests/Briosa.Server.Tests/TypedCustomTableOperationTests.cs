@@ -41,7 +41,7 @@ public sealed class TypedCustomTableOperationTests
     [Fact]
     public void CustomTableMappingsPreserveBindingsDefaultsAndRetrievedValues()
     {
-        Assert.Throws<ArgumentException>(() => AddCustomTableToSaReportOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => AddCustomTableToSaReportOperation.CreateCommand(new()));
         var add = AddCustomTableToSaReportOperation.CreateCommand(new()
         {
             TableName = Object("Table"), ReportName = Object("Report")
@@ -50,7 +50,7 @@ public sealed class TypedCustomTableOperationTests
             .Select(argument => argument.RequireValue<WorkerCollectionObjectNameValue>().ObjectName));
         Assert.False(add.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => AddCustomTablesToReportBarOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => AddCustomTablesToReportBarOperation.CreateCommand(new()));
         var addBar = AddCustomTablesToReportBarOperation.CreateCommand(new()
         {
             CustomTablesToReport = { Item("Table") }
@@ -59,10 +59,10 @@ public sealed class TypedCustomTableOperationTests
             .RequireValue<WorkerCollectionItemNameListValue>().Values[0].ItemName);
         Assert.False(addBar.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => ClearCustomTableOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => DeleteCustomTableOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ClearCustomTableOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DeleteCustomTableOperation.CreateCommand(new()));
 
-        Assert.Throws<ArgumentException>(() => GetCustomTableCellDoubleOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetCustomTableCellDoubleOperation.CreateCommand(new()));
         var getDouble = GetCustomTableCellDoubleOperation.CreateCommand(new() { TableName = Object("Table") });
         Assert.Equal([0, 0], getDouble.InputArguments.Skip(1)
             .Select(argument => argument.RequireValue<WorkerIntegerValue>().Value));
@@ -72,7 +72,7 @@ public sealed class TypedCustomTableOperationTests
         Assert.Equal(12.5, GetCustomTableCellDoubleOperation.CreateResult(Success(
             [new WorkerRetrievedOutput("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(12.5))])).Value);
 
-        Assert.Throws<ArgumentException>(() => GetCustomTableCellStringOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetCustomTableCellStringOperation.CreateCommand(new()));
         var getString = GetCustomTableCellStringOperation.CreateCommand(new() { TableName = Object("Table") });
         Assert.Equal([0, 0], getString.InputArguments.Skip(1)
             .Select(argument => argument.RequireValue<WorkerIntegerValue>().Value));
@@ -80,13 +80,13 @@ public sealed class TypedCustomTableOperationTests
         Assert.Equal("Cell", GetCustomTableCellStringOperation.CreateResult(Success(
             [new WorkerRetrievedOutput("Value", WorkerMpValueKind.Text, new WorkerTextValue("Cell"))])).Value);
 
-        Assert.Throws<ArgumentException>(() => MakeCustomTableOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => MakeCustomTableOperation.CreateCommand(new()));
         var table = MakeCustomTableOperation.CreateCommand(new() { TableName = Object("Table") });
         Assert.Equal(6, table.InputArguments[1].RequireValue<WorkerIntegerValue>().Value);
         table = MakeCustomTableOperation.CreateCommand(new() { TableName = Object("Table"), DecimalPrecision = 2 });
         Assert.Equal(2, table.InputArguments[1].RequireValue<WorkerIntegerValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => SetCustomTableCellColorOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetCustomTableCellColorOperation.CreateCommand(new()));
         var color = SetCustomTableCellColorOperation.CreateCommand(new() { TableName = Object("Table") });
         Assert.Equal(new WorkerRgbColorValue(255, 0, 0), color.InputArguments[3].RequireValue<WorkerRgbColorValue>());
         var customColor = SetCustomTableCellColorOperation.CreateCommand(new()
@@ -96,7 +96,7 @@ public sealed class TypedCustomTableOperationTests
         Assert.Equal(new WorkerRgbColorValue(1, 2, 3), customColor.InputArguments[3].RequireValue<WorkerRgbColorValue>());
         Assert.Equal(new WorkerRgbColorValue(255, 0, 0), customColor.InputArguments[4].RequireValue<WorkerRgbColorValue>());
 
-        Assert.Throws<ArgumentException>(() => SetCustomTableCellDoubleOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetCustomTableCellDoubleOperation.CreateCommand(new()));
         var cellDouble = SetCustomTableCellDoubleOperation.CreateCommand(new() { TableName = Object("Table") });
         Assert.Equal(0d, cellDouble.InputArguments[3].RequireValue<WorkerDoubleValue>().Value);
         Assert.Equal([1, -1], cellDouble.InputArguments.Skip(4)
@@ -109,29 +109,29 @@ public sealed class TypedCustomTableOperationTests
         Assert.Equal([3, 4], cellDouble.InputArguments.Skip(4)
             .Select(argument => argument.RequireValue<WorkerIntegerValue>().Value));
 
-        Assert.Throws<ArgumentException>(() => SetCustomTableCellFontOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetCustomTableCellFontOperation.CreateCommand(new()));
         var font = SetCustomTableCellFontOperation.CreateCommand(new() { TableName = Object("Table") })
             .InputArguments[3].RequireValue<WorkerFontValue>();
         Assert.Equal("MS Shell Dlg", font.FontName);
         Assert.Equal((byte)8, font.Size);
         Assert.Equal(new WorkerRgbColorValue(0, 0, 0), font.Color);
 
-        Assert.Throws<ArgumentException>(() => SetCustomTableCellStringOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetCustomTableCellStringOperation.CreateCommand(new()));
         var cellString = SetCustomTableCellStringOperation.CreateCommand(new() { TableName = Object("Table") });
         Assert.Equal(string.Empty, cellString.InputArguments[3].RequireValue<WorkerTextValue>().Value);
         Assert.Equal(1, cellString.InputArguments[4].RequireValue<WorkerIntegerValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => SetCustomTableHeaderCellOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetCustomTableHeaderCellOperation.CreateCommand(new()));
         var headerCell = SetCustomTableHeaderCellOperation.CreateCommand(new() { TableName = Object("Table") });
         Assert.Equal(string.Empty, headerCell.InputArguments[3].RequireValue<WorkerTextValue>().Value);
         Assert.Equal(1, headerCell.InputArguments[4].RequireValue<WorkerIntegerValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => SetCustomTableHeaderRowOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetCustomTableHeaderRowOperation.CreateCommand(new()));
         var headerRow = SetCustomTableHeaderRowOperation.CreateCommand(new() { TableName = Object("Table") });
         Assert.Equal(0, headerRow.InputArguments[1].RequireValue<WorkerIntegerValue>().Value);
         Assert.Equal(string.Empty, headerRow.InputArguments[2].RequireValue<WorkerTextValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => SetCustomTableTitleOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetCustomTableTitleOperation.CreateCommand(new()));
         var title = SetCustomTableTitleOperation.CreateCommand(new() { TableName = Object("Table") });
         Assert.Equal([string.Empty, string.Empty], title.InputArguments.Skip(1)
             .Select(argument => argument.RequireValue<WorkerTextValue>().Value));

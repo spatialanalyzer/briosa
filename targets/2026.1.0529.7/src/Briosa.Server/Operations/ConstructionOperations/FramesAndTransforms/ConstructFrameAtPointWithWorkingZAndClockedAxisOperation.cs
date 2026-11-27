@@ -24,7 +24,7 @@ internal static class ConstructFrameAtPointWithWorkingZAndClockedAxisOperation
             new("Origin Point", WorkerMpValueKind.PointName,
                 PointNameMapper.Required(request.OriginPoint, "origin_point"), "SetPointNameArg"),
             new("Clocked axis", WorkerMpValueKind.AxisIdentifier,
-                FrameConstructionChoiceMapper.Axis(request.ClockedAxis), "SetAxisNameArg"),
+                FrameConstructionChoiceMapper.Axis(request.ClockedAxis, "clocked_axis"), "SetAxisNameArg"),
             new("Clocking Point", WorkerMpValueKind.PointName,
                 PointNameMapper.Required(request.ClockingPoint, "clocking_point"), "SetPointNameArg")
         };

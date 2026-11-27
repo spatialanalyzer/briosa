@@ -21,7 +21,7 @@ internal static class NotifyUserTextArrayOperation
         [
             new("Notification Text", WorkerMpValueKind.EditText,
                 StringListMapper.RequiredList(request.NotificationText, "notification_text"), "SetEditTextArg"),
-            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font), "SetFontTypeArg"),
+            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font, "font"), "SetFontTypeArg"),
             new("Auto expand to fit text?", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.AutoExpandToFitText), "SetBoolArg"),
             new("Display Timeout", WorkerMpValueKind.WholeNumber,

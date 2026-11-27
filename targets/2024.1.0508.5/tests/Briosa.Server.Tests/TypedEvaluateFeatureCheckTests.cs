@@ -62,7 +62,7 @@ public sealed class TypedEvaluateFeatureCheckTests
         });
         Assert.Equal([false, true], explicitValues.InputArguments.Skip(1)
             .Select(argument => argument.RequireValue<WorkerBooleanValue>().Value));
-        Assert.Throws<ArgumentException>(() => EvaluateFeatureCheckOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => EvaluateFeatureCheckOperation.CreateCommand(new()));
 
         var id = EvaluateFeatureCheckOperation.Descriptor.OperationId;
         Assert.Single(SpatialAnalyzerApi.Operations, operation => operation.OperationId == id);

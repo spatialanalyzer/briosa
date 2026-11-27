@@ -15,15 +15,7 @@ internal readonly record struct OperationAuditSummary(
         var execution = outcome?.Execution;
         if (execution is null)
         {
-            return new OperationAuditSummary(
-                FormatExecutionDisposition(outcome?.ExecutionDisposition),
-                outcome?.ExecutionDisposition ==
-                    WorkerExecutionDisposition.StartedOutcomeUnknown
-                        ? "outcome_unknown"
-                        : "not_started",
-                "not_attempted",
-                SdkDurationMilliseconds: null,
-                MpResultCode: null);
+            return WithoutExecution(outcome?.ExecutionDisposition);
         }
 
         if (execution is WorkerSdkCallFaulted fault)
@@ -80,6 +72,18 @@ internal readonly record struct OperationAuditSummary(
             execution.DurationMilliseconds,
             execution.MpResultCode);
     }
+
+    /// <summary>
+    /// The summary of a failure without an MP execution result, for the disposition the
+    /// error reports, so that the audit and the typed error agree.
+    /// </summary>
+    public static OperationAuditSummary WithoutExecution(WorkerExecutionDisposition? disposition) =>
+        new(
+            FormatExecutionDisposition(disposition),
+            disposition == WorkerExecutionDisposition.StartedOutcomeUnknown ? "outcome_unknown" : "not_started",
+            "not_attempted",
+            SdkDurationMilliseconds: null,
+            MpResultCode: null);
 
     private static string CompletedOutcome(WorkerMpExecutionResult execution) =>
         execution.MpPartialSuccess ? "partial_success" : "succeeded";

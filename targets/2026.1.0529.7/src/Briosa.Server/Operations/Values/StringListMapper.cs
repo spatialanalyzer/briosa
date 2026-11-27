@@ -8,7 +8,7 @@ internal static class StringListMapper
     {
         if (values.Count == 0)
         {
-            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(values));
+            throw RequestFieldViolation.NotEmpty(fieldName);
         }
 
         return new(values);

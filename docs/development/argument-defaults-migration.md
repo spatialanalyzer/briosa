@@ -13,7 +13,10 @@ behave the same.
 A rejected request fails before dispatch with InvalidArgument, an
 `OperationError` of kind Validation, diagnostic `request-validation-failed`, and
 disposition NotStarted. Nothing reaches SpatialAnalyzer, so the request is safe
-to correct and resend.
+to correct and resend. On Server 0.10.2 and later, the error's
+`request_validation` also names the rejected field and the constraint, for
+example `REQUIRED` for an absent required scalar
+([#442](https://github.com/spatialanalyzer/briosa/issues/442)).
 
 | Operation | Field | Contract 2.0 | Major 3 |
 | --- | --- | --- | --- |

@@ -20,12 +20,12 @@ internal static class AskForUserDecisionFromStringsOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.QuestionOrStatement.Count == 0)
-            throw new ArgumentException("Question or statement is required.", nameof(request));
+            throw RequestFieldViolation.NotEmpty("question_or_statement");
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Question or Statement", WorkerMpValueKind.EditText,
                 new WorkerStringListValue(request.QuestionOrStatement), "SetEditTextArg"),
-            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font), "SetFontTypeArg"),
+            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font, "font"), "SetFontTypeArg"),
             new("Button1 Text (Empty to hide button)", WorkerMpValueKind.Text, new WorkerTextValue(request.Button1Text), "SetStringArg"),
             new("Button2 Text (Empty to hide button)", WorkerMpValueKind.Text, new WorkerTextValue(request.Button2Text), "SetStringArg"),
             new("Button3 Text (Empty to hide button)", WorkerMpValueKind.Text, new WorkerTextValue(request.Button3Text), "SetStringArg")

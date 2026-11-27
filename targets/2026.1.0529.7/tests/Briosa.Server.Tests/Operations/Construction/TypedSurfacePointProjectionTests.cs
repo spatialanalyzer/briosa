@@ -57,7 +57,7 @@ public sealed class TypedSurfacePointProjectionTests
             intersect.InputArguments.Select(argument => argument.Name));
         Assert.Equal(WorkerObjectTypeValue.PointGroup,
             intersect.InputArguments[2].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
-        Assert.Throws<ArgumentException>(() => ConstructPointsAtIntersectionOfPrincipalObjectAxesAndSurfacesOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ConstructPointsAtIntersectionOfPrincipalObjectAxesAndSurfacesOperation.CreateCommand(new()
         {
             AxisObjectList = { Object("axis") }, ResultantGroupName = Object("result")
         }));
@@ -71,7 +71,7 @@ public sealed class TypedSurfacePointProjectionTests
             radial.InputArguments[5].RequireValue<WorkerChoiceValue<WorkerAxisIdentifierValue>>().Value);
         Assert.All(radial.InputArguments.Skip(2).Take(3), argument =>
             Assert.Equal(string.Empty, argument.RequireValue<WorkerTextValue>().Value));
-        Assert.Throws<ArgumentException>(() => ConstructPointsAtProjectionOnSurfacesRadialFromWcfAxisOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ConstructPointsAtProjectionOnSurfacesRadialFromWcfAxisOperation.CreateCommand(new()
         {
             SurfaceList = { Object("surface") }, PointNames = { Point("source") }
         }));
@@ -84,12 +84,12 @@ public sealed class TypedSurfacePointProjectionTests
         Assert.Equal(5, spherical.InputArguments.Count);
         Assert.All(spherical.InputArguments.Skip(2), argument =>
             Assert.Equal(string.Empty, argument.RequireValue<WorkerTextValue>().Value));
-        Assert.Throws<ArgumentException>(() => ConstructPointsAtProjectionOnSurfacesSphericalFromWcfOriginOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ConstructPointsAtProjectionOnSurfacesSphericalFromWcfOriginOperation.CreateCommand(new()
         {
             SurfaceList = { Object("surface") }
         }));
 
-        Assert.Throws<ArgumentException>(() => ConstructPointsFromSurfacesOnUvGridOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ConstructPointsFromSurfacesOnUvGridOperation.CreateCommand(new()
         {
             SurfaceList = { Object("surface") }
         }));
@@ -102,7 +102,7 @@ public sealed class TypedSurfacePointProjectionTests
             cylinder.InputArguments[0].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
         Assert.Equal(WorkerObjectTypeValue.PointGroup,
             cylinder.InputArguments[1].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
-        Assert.Throws<ArgumentException>(() => ConstructPointsFromCylinderOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ConstructPointsFromCylinderOperation.CreateCommand(new()
         {
             CylinderName = Object("cylinder")
         }));
@@ -117,14 +117,14 @@ public sealed class TypedSurfacePointProjectionTests
             GroupNameForPoints = Object("group")
         });
         Assert.Equal("p0", clicking.InputArguments[1].RequireValue<WorkerTextValue>().Value);
-        Assert.Throws<ArgumentException>(() => ConstructPointsOnSurfacesByClickingOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ConstructPointsOnSurfacesByClickingOperation.CreateCommand(new()));
 
         var shifted = ShiftPlaneOperation.CreateCommand(new() { Plane = Object("plane") });
         Assert.Equal(["Plane", "Shift Along Normal", "Grow Bounds by Factor"],
             shifted.InputArguments.Select(argument => argument.Name));
         Assert.All(shifted.InputArguments.Skip(1), argument =>
             Assert.Equal(0, argument.RequireValue<WorkerDoubleValue>().Value));
-        Assert.Throws<ArgumentException>(() => ShiftPlaneOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ShiftPlaneOperation.CreateCommand(new()));
 
         OperationDescriptor[] descriptors =
         [

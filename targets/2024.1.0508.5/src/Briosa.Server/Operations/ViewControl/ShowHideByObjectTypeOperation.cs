@@ -21,7 +21,7 @@ internal static class ShowHideByObjectTypeOperation
             ? request.ObjectTypeToShowHide : Api.ObjectType.Any;
         if (!Enum.IsDefined(objectType) || objectType == Api.ObjectType.Unspecified)
         {
-            throw new ArgumentException("A supported object type is required.", nameof(request));
+            throw RequestFieldViolation.SupportedChoice("object_type_to_show_hide");
         }
 
         return new(Descriptor.OperationId, Descriptor.MpStep,

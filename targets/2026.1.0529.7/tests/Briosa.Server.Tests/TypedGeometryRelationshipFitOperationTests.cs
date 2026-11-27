@@ -55,7 +55,7 @@ public sealed class TypedGeometryRelationshipFitOperationTests
         Assert.Equal(0d, command.InputArguments[4].RequireValue<WorkerDoubleValue>().Value);
         Assert.Equal(GroupOutputBindings,
             command.OutputArguments.Select(argument => argument.SdkBinding).ToArray());
-        Assert.Throws<ArgumentException>(() => GroupToSurfaceFitOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GroupToSurfaceFitOperation.CreateCommand(new()));
 
         var matrix = Enumerable.Range(0, 16).Select(value => (double)value).ToArray();
         var result = GroupToSurfaceFitOperation.CreateResult(Completed(
@@ -82,7 +82,7 @@ public sealed class TypedGeometryRelationshipFitOperationTests
         Assert.Equal("SetFilePathArg", command.InputArguments[0].SdkBinding);
         Assert.Equal("profiles.xml", command.InputArguments[0].RequireValue<WorkerFileReferenceValue>().Path);
         Assert.False(command.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => ImportGeometryFitProfilesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ImportGeometryFitProfilesOperation.CreateCommand(new()));
 
         var completed = Completed();
         Assert.Same(completed.Details, ImportGeometryFitProfilesOperation.CreateResult(completed).Execution);
@@ -113,7 +113,7 @@ public sealed class TypedGeometryRelationshipFitOperationTests
         Assert.Equal(WorkerItemTypeValue.Relationship, Assert.Single(items.Values).ItemType);
         Assert.Equal(string.Empty, command.InputArguments[2].RequireValue<WorkerTextValue>().Value);
         Assert.False(command.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => SetGeometryRelationshipFitProfileOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetGeometryRelationshipFitProfileOperation.CreateCommand(new()
         {
             GeometryType = Api.GeometryType.Cylinder
         }));

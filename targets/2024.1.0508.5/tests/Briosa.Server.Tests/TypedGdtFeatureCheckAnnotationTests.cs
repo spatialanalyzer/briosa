@@ -113,11 +113,11 @@ public sealed class TypedGdtFeatureCheckAnnotationTests
         Assert.Equal("None", Text(command, 27));
         Assert.Equal(WorkerItemTypeValue.Relationship,
             command.InputArguments[21].RequireValue<WorkerCollectionItemNameValue>().ItemType);
-        Assert.Throws<ArgumentOutOfRangeException>(() => MakeGdtFeatureCheckAnnotationOperation.CreateCommand(
+        Assert.Throws<RequestFieldViolation>(() => MakeGdtFeatureCheckAnnotationOperation.CreateCommand(
             With(request, new() { FeatureType = Api.GdtFeatureType.Unspecified })));
-        Assert.Throws<ArgumentOutOfRangeException>(() => MakeGdtFeatureCheckAnnotationOperation.CreateCommand(
+        Assert.Throws<RequestFieldViolation>(() => MakeGdtFeatureCheckAnnotationOperation.CreateCommand(
             With(request, new() { ToleranceZoneType = Api.GdtToleranceZoneType.Unspecified })));
-        Assert.Throws<ArgumentException>(() => MakeGdtFeatureCheckAnnotationOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => MakeGdtFeatureCheckAnnotationOperation.CreateCommand(new()));
         var id = MakeGdtFeatureCheckAnnotationOperation.Descriptor.OperationId;
         Assert.Single(SpatialAnalyzerApi.Operations, operation => operation.OperationId == id);
     }

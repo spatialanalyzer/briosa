@@ -20,7 +20,7 @@ internal static class HighlightObjectsOperation
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Object Names (Empty to clear all)", WorkerMpValueKind.CollectionObjectNameList,
-                CollectionObjectNameMapper.AllowEmptyList(request.ObjectNames), "SetCollectionObjectNameRefListArg"),
+                CollectionObjectNameMapper.AllowEmptyList(request.ObjectNames, "object_names"), "SetCollectionObjectNameRefListArg"),
             new("HighLight Objects?", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.HasHighLightObjects && request.HighLightObjects), "SetBoolArg")
         ], []);

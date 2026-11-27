@@ -90,10 +90,10 @@ public sealed class TypedConstructionInspectionOperationTests
         Assert.Empty(holePin.OutputArguments);
         Assert.Empty(pointShift.OutputArguments);
 
-        Assert.Throws<ArgumentException>(() => MushroomTargetHoleInspectionOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => PatchNormalShiftHolePinOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => PatchNormalShiftPointOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SphereAxisCheckOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => MushroomTargetHoleInspectionOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => PatchNormalShiftHolePinOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => PatchNormalShiftPointOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SphereAxisCheckOperation.CreateCommand(new()));
     }
 
     [Fact]

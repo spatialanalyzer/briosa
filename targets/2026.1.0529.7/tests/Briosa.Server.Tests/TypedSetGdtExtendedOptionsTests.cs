@@ -47,15 +47,15 @@ public sealed class TypedSetGdtExtendedOptionsTests
             ],
             command.InputArguments.Skip(1).Select(argument => argument.RequireValue<WorkerTextValue>().Value));
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => SetGdtExtendedOptionsOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetGdtExtendedOptionsOperation.CreateCommand(new()
         {
             ConeExtendedOptions = Api.GdtExtendedEvaluationMethod.LeastSquares3D
         }));
-        Assert.Throws<ArgumentOutOfRangeException>(() => SetGdtExtendedOptionsOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetGdtExtendedOptionsOperation.CreateCommand(new()
         {
             LineExtendedOptions = Api.GdtExtendedEvaluationMethod.HighPoint
         }));
-        Assert.Throws<ArgumentOutOfRangeException>(() => SetGdtExtendedOptionsOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetGdtExtendedOptionsOperation.CreateCommand(new()
         {
             PlaneExtendedOptions = (Api.GdtExtendedEvaluationMethod)100
         }));

@@ -35,7 +35,7 @@ public sealed class TypedInstrumentMeasurementObservationOperationTests
         var point = new Api.PointName { CollectionName = "Points", GroupName = "Measured", TargetName = "P1" };
 
         // #243 D2 (R6): the observation index is required; an omitted index is rejected instead of sent as 0.
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             DeleteMeasurementObservationOperation.CreateCommand(new() { PointName = point }));
         var deleteObservation = DeleteMeasurementObservationOperation.CreateCommand(
             new() { PointName = point, ObservationIndex = 0 });

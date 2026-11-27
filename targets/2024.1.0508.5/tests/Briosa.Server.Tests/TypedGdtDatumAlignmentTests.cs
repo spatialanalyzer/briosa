@@ -30,7 +30,7 @@ public sealed class TypedGdtDatumAlignmentTests
         Assert.Equal("I", instrument.CollectionName);
         Assert.Equal(4, instrument.InstrumentId);
         Assert.False(command.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => DatumAlignmentOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DatumAlignmentOperation.CreateCommand(new()));
 
         var id = DatumAlignmentOperation.Descriptor.OperationId;
         Assert.Single(SpatialAnalyzerApi.Operations, operation => operation.OperationId == id);

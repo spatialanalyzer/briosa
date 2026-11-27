@@ -100,11 +100,11 @@ public sealed class TypedDataShareFileOperationTests
         Assert.Equal(16, setters[4].InputArguments[2].RequireValue<WorkerTransformValue>().Values.Count);
         Assert.Equal(new WorkerVectorValue(1, 2, 3), setters[5].InputArguments[2].RequireValue<WorkerVectorValue>());
 
-        Assert.Throws<ArgumentException>(() => GetBooleanFromDataShareFileOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetBooleanInDataShareFileOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetTransformInDataShareFileOperation.CreateCommand(new() { DataShareFilePath = file }));
-        Assert.Throws<ArgumentException>(() => SetVectorInDataShareFileOperation.CreateCommand(new() { DataShareFilePath = file }));
-        Assert.Throws<ArgumentException>(() => SetTransformInDataShareFileOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => GetBooleanFromDataShareFileOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetBooleanInDataShareFileOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetTransformInDataShareFileOperation.CreateCommand(new() { DataShareFilePath = file }));
+        Assert.Throws<RequestFieldViolation>(() => SetVectorInDataShareFileOperation.CreateCommand(new() { DataShareFilePath = file }));
+        Assert.Throws<RequestFieldViolation>(() => SetTransformInDataShareFileOperation.CreateCommand(new()
         {
             DataShareFilePath = file, TransformValue = new Api.Transform { Values = { 1, 2 } }
         }));

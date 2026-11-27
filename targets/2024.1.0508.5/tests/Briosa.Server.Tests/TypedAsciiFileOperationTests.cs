@@ -51,7 +51,7 @@ public sealed class TypedAsciiFileOperationTests
         Assert.Equal(6, frameSet.InputArguments[5].RequireValue<WorkerIntegerValue>().Value);
         Assert.False(frameSet.InputArguments[4].RequireValue<WorkerBooleanValue>().Value);
         Assert.False(frameSet.InputArguments[6].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => ExportAsciiFrameSetOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ExportAsciiFrameSetOperation.CreateCommand(new()));
 
         var frames = ExportAsciiFramesOperation.CreateCommand(new()
         {
@@ -60,7 +60,7 @@ public sealed class TypedAsciiFileOperationTests
         });
         Assert.Equal("Fixed XYZ", frames.InputArguments[2].RequireValue<WorkerTextValue>().Value);
         Assert.False(frames.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => ExportAsciiFramesOperation.CreateCommand(new() { AsciiFilePath = file }));
+        Assert.Throws<RequestFieldViolation>(() => ExportAsciiFramesOperation.CreateCommand(new() { AsciiFilePath = file }));
 
         var clouds = ExportAsciiPointCloudsOperation.CreateCommand(new()
         {
@@ -97,7 +97,7 @@ public sealed class TypedAsciiFileOperationTests
             Assert.Single(points.InputArguments[1].RequireValue<WorkerCollectionGroupNameListValue>().Values));
         Assert.Equal(18, points.InputArguments.Count);
         Assert.Equal(6, points.InputArguments[16].RequireValue<WorkerIntegerValue>().Value);
-        Assert.Throws<ArgumentException>(() => ExportAsciiPointsOperation.CreateCommand(new() { AsciiFilePath = file }));
+        Assert.Throws<RequestFieldViolation>(() => ExportAsciiPointsOperation.CreateCommand(new() { AsciiFilePath = file }));
 
         var vectorFile = ExportVectorContainerToAsciiFileOperation.CreateCommand(new()
         {

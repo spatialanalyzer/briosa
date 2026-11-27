@@ -41,10 +41,10 @@ public sealed class TypedGdtFeatureInspectionAutoFilterTests
             .InputArguments[10].RequireValue<WorkerBooleanValue>().Value);
         var missingChoice = CreateValidRequest();
         missingChoice.ClearOffsetDirection();
-        Assert.Throws<ArgumentException>(() => FeatureInspectionAutoFilterOperation.CreateCommand(missingChoice));
+        Assert.Throws<RequestFieldViolation>(() => FeatureInspectionAutoFilterOperation.CreateCommand(missingChoice));
         var missingGroups = CreateValidRequest();
         missingGroups.GroupNames.Clear();
-        Assert.Throws<ArgumentException>(() => FeatureInspectionAutoFilterOperation.CreateCommand(missingGroups));
+        Assert.Throws<RequestFieldViolation>(() => FeatureInspectionAutoFilterOperation.CreateCommand(missingGroups));
 
         var id = FeatureInspectionAutoFilterOperation.Descriptor.OperationId;
         Assert.Single(SpatialAnalyzerApi.Operations, operation => operation.OperationId == id);

@@ -47,7 +47,7 @@ public sealed class TypedViewWindowAndToolkitOperationTests
         Assert.Empty(HideAllCalloutViewsOperation.CreateCommand(new()).InputArguments);
         Assert.Empty(ResetRibbonBarToDefaultOperation.CreateCommand(new()).InputArguments);
 
-        Assert.Throws<ArgumentException>(() => LoadRibbonBarFromXmlFileOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => LoadRibbonBarFromXmlFileOperation.CreateCommand(new()));
         var ribbon = LoadRibbonBarFromXmlFileOperation.CreateCommand(new()
         {
             FilePath = new Api.FileReference { Path = "C:\\tools\\ribbon.xml", EmbeddedFile = true }
@@ -56,7 +56,7 @@ public sealed class TypedViewWindowAndToolkitOperationTests
         Assert.Equal("C:\\tools\\ribbon.xml", file.Path);
         Assert.True(file.EmbeddedFile);
 
-        Assert.Throws<ArgumentException>(() => SetMpWindowStateOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetMpWindowStateOperation.CreateCommand(new()));
         Assert.Equal(WorkerWindowStateValue.Maximize,
             SetMpWindowStateOperation.CreateCommand(new() { MpWindowState = Api.WindowState.Maximize })
                 .InputArguments[0].RequireValue<WorkerChoiceValue<WorkerWindowStateValue>>().Value);
@@ -67,7 +67,7 @@ public sealed class TypedViewWindowAndToolkitOperationTests
             .InputArguments.Select(argument => argument.RequireValue<WorkerIntegerValue>().Value));
         Assert.Equal([800, 600], SetSaWindowSizeOperation.CreateCommand(new Api.SetSaWindowSizeRequest { Width = 800, Height = 600 })
             .InputArguments.Select(argument => argument.RequireValue<WorkerIntegerValue>().Value));
-        Assert.Throws<ArgumentException>(() => SetSaWindowStateOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetSaWindowStateOperation.CreateCommand(new()));
         Assert.Equal(WorkerWindowStateValue.Restore,
             SetSaWindowStateOperation.CreateCommand(new() { SaWindowState = Api.WindowState.Restore })
                 .InputArguments[0].RequireValue<WorkerChoiceValue<WorkerWindowStateValue>>().Value);
@@ -76,7 +76,7 @@ public sealed class TypedViewWindowAndToolkitOperationTests
             .RequireValue<WorkerBooleanValue>().Value);
         Assert.True(SetToolkitVisibilityOperation.CreateCommand(new Api.SetToolkitVisibilityRequest { ShowToolkit = true }).InputArguments[0]
             .RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => ShowHideCalloutViewOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ShowHideCalloutViewOperation.CreateCommand(new()));
         var callout = ShowHideCalloutViewOperation.CreateCommand(new()
         {
             CalloutViewToShow = new Api.CollectionItemName { CollectionName = "Parts", ItemName = "View" }
@@ -86,7 +86,7 @@ public sealed class TypedViewWindowAndToolkitOperationTests
         Assert.True(ShowHideInspectionBarOperation.CreateCommand(new()).InputArguments[0]
             .RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => ShowHideInstrumentInterfaceOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ShowHideInstrumentInterfaceOperation.CreateCommand(new()));
         var interfaceCommand = ShowHideInstrumentInterfaceOperation.CreateCommand(new()
         {
             InstrumentId = Instrument(3)
@@ -98,7 +98,7 @@ public sealed class TypedViewWindowAndToolkitOperationTests
         Assert.False(ShowHideInstrumentProbeTipOperation.CreateCommand(new()).InputArguments[0]
             .RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => ShowHideRelationshipReportOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ShowHideRelationshipReportOperation.CreateCommand(new()));
         var report = ShowHideRelationshipReportOperation.CreateCommand(new()
         {
             CollectionName = new Api.CollectionName { Name = "Parts" },
@@ -107,7 +107,7 @@ public sealed class TypedViewWindowAndToolkitOperationTests
         Assert.Equal("Parts", report.InputArguments[0].RequireValue<WorkerTextValue>().Value);
         Assert.True(report.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => ShowHideRelationshipWatchOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ShowHideRelationshipWatchOperation.CreateCommand(new()));
         var watch = ShowHideRelationshipWatchOperation.CreateCommand(new()
         {
             RelationshipName = Object("Alignment", Api.ObjectType.Unspecified),
@@ -117,7 +117,7 @@ public sealed class TypedViewWindowAndToolkitOperationTests
         Assert.Equal([0, 0, 0, 0], watch.InputArguments.Skip(3)
             .Select(argument => argument.RequireValue<WorkerIntegerValue>().Value));
 
-        Assert.Throws<ArgumentException>(() => ShowItemsInTreeOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ShowItemsInTreeOperation.CreateCommand(new()));
         var tree = ShowItemsInTreeOperation.CreateCommand(new()
         {
             Points = { new Api.PointName { CollectionName = "Parts", GroupName = "Targets", TargetName = "P1" } },

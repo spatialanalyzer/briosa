@@ -138,18 +138,18 @@ public sealed class TypedVariableDomainTests
             SetStringVariableOperation.CreateCommand(new() { Name = "", Value = "" }).InputArguments);
         Assert.Equal(AddDoubleToNamedDoubleListVariableOperation.CreateCommand(new()).InputArguments,
             AddDoubleToNamedDoubleListVariableOperation.CreateCommand(new() { Name = "", DoubleValue = 0 }).InputArguments);
-        Assert.Equal(FontMapper.WithDefaults(null), FontMapper.WithDefaults(new()));
+        Assert.Equal(FontMapper.WithDefaults(null, "value"), FontMapper.WithDefaults(new(), "value"));
         Assert.Equal(new WorkerFontValue("", 0, new(0, 255, 0)),
-            FontMapper.WithDefaults(new() { FontName = "", Size = 0, Color = new() { Green = 255 } }));
-        Assert.Throws<ArgumentOutOfRangeException>(() => FontMapper.WithDefaults(new() { Color = new() { Blue = 256 } }));
+            FontMapper.WithDefaults(new() { FontName = "", Size = 0, Color = new() { Green = 255 } }, "value"));
+        Assert.Throws<RequestFieldViolation>(() => FontMapper.WithDefaults(new() { Color = new() { Blue = 256 } }, "value"));
 
         Assert.Equal(WorkerObjectTypeValue.Any, CollectionObjectNameMapper.Required(new() { ObjectName = "object" }, "value").ObjectType);
         Assert.Equal(WorkerItemTypeValue.Any, CollectionItemNameMapper.RequiredList([new() { ItemName = "item" }], "value").Values[0].ItemType);
-        Assert.Throws<ArgumentException>(() => CollectionItemNameMapper.RequiredList([new() { ItemName = "item", ItemType = Api.ItemType.Unspecified }], "value"));
+        Assert.Throws<RequestFieldViolation>(() => CollectionItemNameMapper.RequiredList([new() { ItemName = "item", ItemType = Api.ItemType.Unspecified }], "value"));
         foreach (var type in new[] { -1, 9999 })
         {
-            Assert.Throws<ArgumentException>(() => CollectionObjectNameMapper.Required(new() { ObjectName = "object", ObjectType = (Api.ObjectType)type }, "value"));
-            Assert.Throws<ArgumentException>(() => CollectionItemNameMapper.RequiredList([new() { ItemName = "item", ItemType = (Api.ItemType)type }], "value"));
+            Assert.Throws<RequestFieldViolation>(() => CollectionObjectNameMapper.Required(new() { ObjectName = "object", ObjectType = (Api.ObjectType)type }, "value"));
+            Assert.Throws<RequestFieldViolation>(() => CollectionItemNameMapper.RequiredList([new() { ItemName = "item", ItemType = (Api.ItemType)type }], "value"));
         }
     }
 
@@ -160,7 +160,7 @@ public sealed class TypedVariableDomainTests
     public void InvalidTransformLengthsAreRejectedBeforeDispatch(int count)
     {
         var request = new Api.SetTransformVariableRequest { Value = new() { Values = { new double[count] } } };
-        Assert.Throws<ArgumentException>(() => SetTransformVariableOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => SetTransformVariableOperation.CreateCommand(request));
     }
 
     [Fact]

@@ -76,11 +76,11 @@ public sealed class TypedInstrumentUsmnOperationTests
         Assert.Equal(25, customized.InputArguments[11].RequireValue<WorkerIntegerValue>().Value);
         Assert.Equal(0, customized.InputArguments[12].RequireValue<WorkerDoubleValue>().Value);
 
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             LocateInstrumentsUsmnOperation.CreateCommand(new Api.LocateInstrumentsUsmnRequest()));
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             LocateInstrumentsUsmnOperation.CreateCommand(ValidRequest(Api.ShowUsmnDialog.Unspecified)));
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             LocateInstrumentsUsmnOperation.CreateCommand(ValidRequest((Api.ShowUsmnDialog)99)));
     }
 

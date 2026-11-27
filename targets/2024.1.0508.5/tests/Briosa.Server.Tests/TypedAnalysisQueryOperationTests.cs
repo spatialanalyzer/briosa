@@ -205,15 +205,15 @@ public sealed class TypedAnalysisQueryOperationTests
     [Fact]
     public void MissingRequiredNamesAndListsAreRejected()
     {
-        Assert.Throws<ArgumentException>(() => QueryCloudsToObjectsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => QueryCloudsToSurfaceOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => QueryFrameToFrameOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => QueryGroupsToObjectsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => QueryPointToObjectsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => QueryPointToPointAlongCurveOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => QueryPointsToCircleOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => QueryPointsToObjectsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => QueryPointsToSinglePointOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => QueryCloudsToObjectsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => QueryCloudsToSurfaceOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => QueryFrameToFrameOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => QueryGroupsToObjectsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => QueryPointToObjectsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => QueryPointToPointAlongCurveOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => QueryPointsToCircleOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => QueryPointsToObjectsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => QueryPointsToSinglePointOperation.CreateCommand(new()));
     }
 
     [Fact]

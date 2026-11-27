@@ -40,7 +40,7 @@ public sealed class TypedRobotMachineIdentityAndSetupOperationTests
             compute.InputArguments.Select(argument => argument.Name));
         Assert.All(compute.InputArguments, argument =>
             Assert.Equal(WorkerObjectTypeValue.Frame, argument.RequireValue<WorkerCollectionObjectNameValue>().ObjectType));
-        Assert.Throws<ArgumentException>(() => ComputeRobotMachineAdjustedGoalFrameOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ComputeRobotMachineAdjustedGoalFrameOperation.CreateCommand(new()));
 
         var pose = GetRobotPoseForAFrameOperation.CreateCommand(new()
         {
@@ -54,7 +54,7 @@ public sealed class TypedRobotMachineIdentityAndSetupOperationTests
             pose.InputArguments[1].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
         Assert.Empty(pose.InputArguments[2].RequireValue<WorkerDoubleArrayValue>().Values);
         Assert.Equal(6, Assert.Single(pose.OutputArguments).ArraySize);
-        Assert.Throws<ArgumentException>(() => GetRobotPoseForAFrameOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetRobotPoseForAFrameOperation.CreateCommand(new()));
     }
 
     [Fact]

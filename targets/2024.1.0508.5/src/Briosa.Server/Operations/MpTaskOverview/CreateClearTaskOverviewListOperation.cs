@@ -18,8 +18,8 @@ internal static class CreateClearTaskOverviewListOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
-            new("Task Name Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.TaskNameFont), "SetFontTypeArg"),
-            new("Task Comment Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.TaskCommentFont), "SetFontTypeArg")
+            new("Task Name Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.TaskNameFont, "task_name_font"), "SetFontTypeArg"),
+            new("Task Comment Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.TaskCommentFont, "task_comment_font"), "SetFontTypeArg")
         ], []);
     }
     public static Api.CreateClearTaskOverviewListResult CreateResult(SuccessfulOperationExecution completed) =>

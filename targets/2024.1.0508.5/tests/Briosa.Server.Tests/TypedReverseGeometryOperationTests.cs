@@ -34,9 +34,9 @@ public sealed class TypedReverseGeometryOperationTests
     [Fact]
     public void EachOperationRequiresItsNamedObjectListAndUsesTheReferenceListBinding()
     {
-        Assert.Throws<ArgumentException>(() => ReverseBSplinesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => ReversePlaneNormalsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => ReverseSurfaceNormalsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ReverseBSplinesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ReversePlaneNormalsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ReverseSurfaceNormalsOperation.CreateCommand(new()));
 
         var objectName = new Api.CollectionObjectName { ObjectName = "object" };
         var spline = ReverseBSplinesOperation.CreateCommand(new() { BSplineList = { objectName } });

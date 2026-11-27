@@ -34,12 +34,12 @@ internal static class AutoMeasureBatchOfFeaturesOperation
         RepeatedField<Api.CollectionItemName> features)
     {
         if (features.Count == 0)
-            throw new ArgumentException("Request field 'features' is required.", nameof(features));
+            throw RequestFieldViolation.NotEmpty("features");
 
         var values = features.Select(feature =>
         {
             if (feature.HasItemType && !Enum.IsDefined(feature.ItemType))
-                throw new ArgumentException("Item type is not supported by this SA target.", nameof(features));
+                throw RequestFieldViolation.SupportedChoice("features.item_type");
 
             // The MP binding is SetCollectionObjectNameRefListArg, so the legacy contract maps item names to Any objects.
             return new WorkerCollectionObjectNameValue(

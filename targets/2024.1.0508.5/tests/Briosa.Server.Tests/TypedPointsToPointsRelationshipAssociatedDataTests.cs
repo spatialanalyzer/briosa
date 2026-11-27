@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -33,7 +34,7 @@ public sealed class TypedPointsToPointsRelationshipAssociatedDataTests
 
         var invalid = SetRequest();
         invalid.ActualPoints = new();
-        Assert.Throws<ArgumentException>(() => SetPointsToPointsRelationshipAssociatedDataOperation.CreateCommand(invalid));
+        Assert.Throws<RequestFieldViolation>(() => SetPointsToPointsRelationshipAssociatedDataOperation.CreateCommand(invalid));
     }
 
     [Fact]

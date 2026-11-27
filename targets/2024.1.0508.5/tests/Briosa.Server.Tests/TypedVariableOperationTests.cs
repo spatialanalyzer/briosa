@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.Variables;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -54,7 +55,7 @@ public sealed class TypedVariableOperationTests
     [Fact]
     public void ListCommandOwnsItsValuesAndPreservesRequiredListBehavior()
     {
-        Assert.Throws<ArgumentException>(() => SetNamedDoubleListVariableOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetNamedDoubleListVariableOperation.CreateCommand(new()));
         var request = new Api.SetNamedDoubleListVariableRequest { Name = "values" };
         request.DoubleListVariable.AddRange([0.0, -1.25, 2.5]);
         var command = SetNamedDoubleListVariableOperation.CreateCommand(request);

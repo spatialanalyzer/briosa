@@ -20,7 +20,7 @@ internal static class WatchPointToObjectsOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ProjectionOptions is null)
-            throw new ArgumentException("Request field 'projection_options' is required.", nameof(request));
+            throw RequestFieldViolation.Required("projection_options");
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [
                 new("Instrument's ID", WorkerMpValueKind.CollectionInstrumentId,

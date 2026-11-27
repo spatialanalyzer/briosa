@@ -22,7 +22,7 @@ public sealed class TypedGdtDeleteAndSummaryTests
         Assert.Equal("FC", featureCheck.ObjectName);
         Assert.Equal(WorkerObjectTypeValue.Any, featureCheck.ObjectType);
         Assert.Contains("destructive", DeleteFeatureChecksOperation.Descriptor.RiskFlags);
-        Assert.Throws<ArgumentException>(() => DeleteFeatureChecksOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DeleteFeatureChecksOperation.CreateCommand(new()));
         AssertRegisteredAndRemoved(DeleteFeatureChecksOperation.Descriptor.OperationId);
     }
 
@@ -44,7 +44,7 @@ public sealed class TypedGdtDeleteAndSummaryTests
         request.SummaryTableName = "Checks";
         Assert.Equal("Checks", GenerateFeatureCheckSummaryOperation.CreateCommand(request)
             .InputArguments[1].RequireValue<WorkerTextValue>().Value);
-        Assert.Throws<ArgumentException>(() => GenerateFeatureCheckSummaryOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GenerateFeatureCheckSummaryOperation.CreateCommand(new()));
         AssertRegisteredAndRemoved(GenerateFeatureCheckSummaryOperation.Descriptor.OperationId);
     }
 

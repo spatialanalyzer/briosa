@@ -55,9 +55,9 @@ public sealed class TypedViewCameraAndClippingOperationTests
             centerObjects.InputArguments[0].RequireValue<WorkerChoiceValue<WorkerObjectTypeValue>>().Value);
         Assert.Equal(["*", "*"], centerObjects.InputArguments.Skip(1)
             .Select(argument => argument.RequireValue<WorkerTextValue>().Value));
-        Assert.Throws<ArgumentException>(() => CenterGraphicsAboutPointOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => CenterGraphicsAboutPointOperation.CreateCommand(new()));
 
-        Assert.Throws<ArgumentException>(() => DefinePointOfViewOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DefinePointOfViewOperation.CreateCommand(new()));
         var defined = DefinePointOfViewOperation.CreateCommand(new()
         {
             ViewName = new Api.ViewName { Name = "Front" }
@@ -81,7 +81,7 @@ public sealed class TypedViewCameraAndClippingOperationTests
         Assert.Single(clippingResult.Objects);
         Assert.Equal("ClipPlane", clippingResult.Objects[0].ObjectName);
 
-        Assert.Throws<ArgumentException>(() => GetPointOfViewParametersOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetPointOfViewParametersOperation.CreateCommand(new()));
         var viewParameters = GetPointOfViewParametersOperation.CreateCommand(new()
         {
             ViewName = new Api.ViewName { Name = "Front" }
@@ -106,7 +106,7 @@ public sealed class TypedViewCameraAndClippingOperationTests
         Assert.True(viewResult.RestoreZoomSettings);
         Assert.False(viewResult.RestoreRenderMode);
 
-        Assert.Throws<ArgumentException>(() => SetRenderModeTypeOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetRenderModeTypeOperation.CreateCommand(new()));
         var mode = SetRenderModeTypeOperation.CreateCommand(new()
         {
             RenderingMode = Api.RenderModeType.SolidAndEdges
@@ -114,7 +114,7 @@ public sealed class TypedViewCameraAndClippingOperationTests
         Assert.Equal(WorkerRenderModeTypeValue.SolidAndEdges,
             mode.InputArguments[0].RequireValue<WorkerChoiceValue<WorkerRenderModeTypeValue>>().Value);
 
-        Assert.Throws<ArgumentException>(() => SetViewClippingPlaneOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetViewClippingPlaneOperation.CreateCommand(new()));
         var clippingPlane = SetViewClippingPlaneOperation.CreateCommand(new()
         {
             Object = Object("ClipPlane", Api.ObjectType.Plane)
@@ -122,17 +122,17 @@ public sealed class TypedViewCameraAndClippingOperationTests
         Assert.Equal("SetCollectionObjectNameArg2", clippingPlane.InputArguments[0].SdkBinding);
         Assert.False(clippingPlane.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => SavePointOfViewOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SavePointOfViewOperation.CreateCommand(new()));
         var saved = SavePointOfViewOperation.CreateCommand(new()
         {
             ViewName = new Api.ViewName { Name = "Front" }
         });
         Assert.True(saved.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
         Assert.Empty(RefreshViewsOperation.CreateCommand(new()).InputArguments);
-        Assert.Throws<ArgumentException>(() => SetPointOfViewOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetPointOfViewFromFrameOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetPointOfViewOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetPointOfViewFromFrameOperation.CreateCommand(new()));
 
-        Assert.Throws<ArgumentException>(() => SetPointOfViewFromInstrumentUpdatesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetPointOfViewFromInstrumentUpdatesOperation.CreateCommand(new()));
         var instrumentUpdates = SetPointOfViewFromInstrumentUpdatesOperation.CreateCommand(new()
         {
             InstrumentId = new Api.CollectionInstrumentId { CollectionName = "Parts", InstrumentId = 7 },

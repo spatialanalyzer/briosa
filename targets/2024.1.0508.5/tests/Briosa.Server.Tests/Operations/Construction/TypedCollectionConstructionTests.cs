@@ -123,8 +123,8 @@ public sealed class TypedCollectionConstructionTests
         Assert.False(collection.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
         Assert.True(collection.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
         // #243 D2 (R7): the search string is required and must not be empty.
-        Assert.Throws<ArgumentException>(() => DeleteFoldersByWildcardOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => DeleteCollectionsByWildcardOperation.CreateCommand(new() { SearchString = " " }));
+        Assert.Throws<RequestFieldViolation>(() => DeleteFoldersByWildcardOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DeleteCollectionsByWildcardOperation.CreateCommand(new() { SearchString = " " }));
         var folder = DeleteFoldersByWildcardOperation.CreateCommand(new() { SearchString = "Temp*" });
         Assert.True(folder.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
         Assert.False(folder.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);

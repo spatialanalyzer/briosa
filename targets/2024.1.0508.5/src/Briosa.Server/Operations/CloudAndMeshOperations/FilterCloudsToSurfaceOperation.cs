@@ -32,7 +32,7 @@ internal static class FilterCloudsToSurfaceOperation
                 new WorkerDoubleValue(request.HasHighProximity ? request.HighProximity : 0), "SetDoubleArg"),
             new("Skip Factor", WorkerMpValueKind.WholeNumber,
                 new WorkerIntegerValue(request.HasSkipFactor ? request.SkipFactor : 0), "SetIntegerArg"),
-            new("Output Type", WorkerMpValueKind.Text, PointOutputTypeMapper.ToMpValue(outputType), "SetStringArg")
+            new("Output Type", WorkerMpValueKind.Text, PointOutputTypeMapper.ToMpValue(outputType, "output_type"), "SetStringArg")
         ], []);
     }
 

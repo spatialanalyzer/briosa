@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -37,7 +38,7 @@ public sealed class TypedCloudToSwatchRelationshipTests
         Assert.Equal("Face 1", command.InputArguments[2].RequireValue<WorkerTextValue>().Value);
         Assert.Equal(0d, command.InputArguments[5].RequireValue<WorkerDoubleValue>().Value);
         request.ReferencePoint = null;
-        Assert.Throws<ArgumentException>(() => MakeCloudToSwatchRelationshipOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => MakeCloudToSwatchRelationshipOperation.CreateCommand(request));
     }
 
     [Fact]

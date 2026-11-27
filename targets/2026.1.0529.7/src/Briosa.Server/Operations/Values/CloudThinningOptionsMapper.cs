@@ -5,7 +5,7 @@ namespace Briosa.Server.Operations.Values;
 
 internal static class CloudThinningOptionsMapper
 {
-    public static WorkerCloudThinningOptionsValue ToWorker(Api.CloudThinningOptions? value)
+    public static WorkerCloudThinningOptionsValue ToWorker(Api.CloudThinningOptions? value, string fieldName)
     {
         if (value is null)
         {
@@ -15,7 +15,7 @@ internal static class CloudThinningOptionsMapper
         var mode = value.HasMode ? value.Mode : Api.CloudThinningMode.None;
         if (mode == Api.CloudThinningMode.Unspecified || !Enum.IsDefined(mode))
         {
-            throw new ArgumentOutOfRangeException(nameof(value), "Cloud thinning mode is not supported.");
+            throw RequestFieldViolation.SupportedChoice(RequestFieldViolation.Path(fieldName, "mode"));
         }
 
         return new(

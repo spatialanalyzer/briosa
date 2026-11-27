@@ -7,9 +7,14 @@ internal static class ChartNameMapper
 {
     public static WorkerTextValue Required(Api.ChartName? value, string fieldName)
     {
-        if (value is null || string.IsNullOrWhiteSpace(value.Name))
+        if (value is null)
         {
-            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(value));
+            throw RequestFieldViolation.Required(fieldName);
+        }
+
+        if (string.IsNullOrWhiteSpace(value.Name))
+        {
+            throw RequestFieldViolation.NotBlank(RequestFieldViolation.Path(fieldName, "name"));
         }
 
         return new(value.Name);

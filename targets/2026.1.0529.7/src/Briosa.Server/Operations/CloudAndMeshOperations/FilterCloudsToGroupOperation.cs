@@ -30,7 +30,7 @@ internal static class FilterCloudsToGroupOperation
                 new WorkerDoubleValue(request.HasProximity ? request.Proximity : 0), "SetDoubleArg"),
             new("Maximum Number of Points (0 for Unlimited)", WorkerMpValueKind.WholeNumber,
                 new WorkerIntegerValue(request.HasMaximumNumberOfPoints ? request.MaximumNumberOfPoints : 0), "SetIntegerArg"),
-            new("Output Type", WorkerMpValueKind.Text, PointOutputTypeMapper.ToMpValue(outputType), "SetStringArg")
+            new("Output Type", WorkerMpValueKind.Text, PointOutputTypeMapper.ToMpValue(outputType, "output_type"), "SetStringArg")
         ], []);
     }
 

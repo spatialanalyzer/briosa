@@ -17,7 +17,7 @@ public sealed class LegacyTargetCompatibilityTests
     public void DirectCadAccessRequiresAnExplicitCompatibilityChoiceIncludingFalse()
     {
         var request = new Api.DirectCadAccessRequest { CadFileName = new Api.FileReference { Path = "fixture.step" } };
-        Assert.Throws<ArgumentException>(() => DirectCadAccessOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => DirectCadAccessOperation.CreateCommand(request));
         request.SurfaceCompatibilityMode = false;
         var command = DirectCadAccessOperation.CreateCommand(request);
         Assert.False(((Assert.Single(command.InputArguments, argument => argument.Name == "Surface Compatibility Mode").Value as WorkerBooleanValue)?.Value));
@@ -26,10 +26,15 @@ public sealed class LegacyTargetCompatibilityTests
     [Fact]
     public void CapturedQdasTimestampsAreNotDefaults()
     {
-        Assert.Contains("k0004_date_time_stamp", Assert.Throws<ArgumentException>(() =>
-            PrepareQdasDataListOperation.CreateCommand(new())).Message, StringComparison.Ordinal);
-        Assert.Contains("k0004_date_time_stamp", Assert.Throws<ArgumentException>(() =>
-            ExportQdasCharacteristicsOperation.CreateCommand(new())).Message, StringComparison.Ordinal);
+        foreach (var violation in new[]
+                 {
+                     Assert.Throws<RequestFieldViolation>(() => PrepareQdasDataListOperation.CreateCommand(new())),
+                     Assert.Throws<RequestFieldViolation>(() => ExportQdasCharacteristicsOperation.CreateCommand(new()))
+                 })
+        {
+            Assert.Equal("k0004_date_time_stamp", violation.FieldPath);
+            Assert.Equal(Api.RequestFieldConstraint.Required, violation.Constraint);
+        }
     }
 
     [Fact]
@@ -95,7 +100,7 @@ public sealed class LegacyTargetCompatibilityTests
         Assert.Equal(WorkerSystemStringValue.UserName, command.InputArguments[0].RequireValue<WorkerChoiceValue<WorkerSystemStringValue>>().Value);
         foreach (var number in new[] { 12, 13, 14 })
         {
-            Assert.Throws<ArgumentException>(() => MakeSystemStringOperation.CreateCommand(new Api.MakeSystemStringRequest { StringContent = (Api.SystemString)number }));
+            Assert.Throws<RequestFieldViolation>(() => MakeSystemStringOperation.CreateCommand(new Api.MakeSystemStringRequest { StringContent = (Api.SystemString)number }));
         }
         Assert.False(Enum.IsDefined((Api.ObjectType)5));
         Assert.False(Enum.IsDefined((Api.ItemType)10));
@@ -116,9 +121,9 @@ public sealed class LegacyTargetCompatibilityTests
             ObjectName = "cloud",
             ObjectType = (Api.ObjectType)5
         });
-        Assert.Throws<ArgumentException>(() => ProjectObjectsOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => ProjectObjectsOperation.CreateCommand(request));
 
-        Assert.Throws<ArgumentException>(() => GetGeneralRelationshipStatisticsOperation.CreateCommand(new Api.GetGeneralRelationshipStatisticsRequest
+        Assert.Throws<RequestFieldViolation>(() => GetGeneralRelationshipStatisticsOperation.CreateCommand(new Api.GetGeneralRelationshipStatisticsRequest
         {
             RelationshipName = new Api.CollectionItemName
             {
@@ -143,7 +148,7 @@ public sealed class LegacyTargetCompatibilityTests
         Assert.Equal(["SetCollectionNameArg", "SetStringArg", "SetColInstIdArg"], cribCommand.InputArguments.Select(argument => argument.SdkBinding));
 
         var request = new Api.ProjectObjectsRequest { Instrument = instrument };
-        Assert.Throws<ArgumentException>(() => ProjectObjectsOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => ProjectObjectsOperation.CreateCommand(request));
         request.ObjectsToProject.Add(new Api.CollectionObjectName { CollectionName = "fixture", ObjectName = "line", ObjectType = Api.ObjectType.Line });
         var projectCommand = ProjectObjectsOperation.CreateCommand(request);
         Assert.Equal(["SetColInstIdArg", "SetCollectionObjectNameRefListArg"], projectCommand.InputArguments.Select(argument => argument.SdkBinding));

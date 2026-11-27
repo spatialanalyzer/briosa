@@ -20,8 +20,10 @@ internal static class StartStopFeatureCheckTrappingOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         var featureCheck = CollectionItemNameMapper.Required(request.FeatureCheck, "feature_check");
-        if (request.InstrumentId is null || string.IsNullOrWhiteSpace(request.InstrumentId.CollectionName))
-            throw new ArgumentException("Request field 'instrument_id' is required.", nameof(request));
+        if (request.InstrumentId is null)
+            throw RequestFieldViolation.Required("instrument_id");
+        if (string.IsNullOrWhiteSpace(request.InstrumentId.CollectionName))
+            throw RequestFieldViolation.NotBlank("instrument_id.collection_name");
 
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [

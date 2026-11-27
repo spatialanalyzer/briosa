@@ -50,13 +50,13 @@ public sealed class TypedCalloutViewMigrationTests
     [Fact]
     public void InvalidCalloutViewInputsAreRejected()
     {
-        Assert.Throws<ArgumentException>(() => AutoArrangeCalloutViewOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => DeleteCalloutViewOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetIthCalloutPositionInCalloutViewOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetNumberOfCalloutsInCalloutViewOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => RenameCalloutViewOperation.CreateCommand(new() { OriginalCalloutViewName = View("a") }));
-        Assert.Throws<ArgumentException>(() => SetIthCalloutPositionInCalloutViewOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentOutOfRangeException>(() => SetDefaultCalloutViewPropertiesOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => AutoArrangeCalloutViewOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DeleteCalloutViewOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetIthCalloutPositionInCalloutViewOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetNumberOfCalloutsInCalloutViewOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => RenameCalloutViewOperation.CreateCommand(new() { OriginalCalloutViewName = View("a") }));
+        Assert.Throws<RequestFieldViolation>(() => SetIthCalloutPositionInCalloutViewOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetDefaultCalloutViewPropertiesOperation.CreateCommand(new()
         {
             Properties = new() { CalloutLeaderColor = new() { Red = 256 } }
         }));

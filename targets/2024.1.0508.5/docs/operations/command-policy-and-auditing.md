@@ -160,7 +160,8 @@ The first matching rule decides:
 Specific settings beat general ones, and across an operation's flags any single
 `deny` wins. Policy denial happens before request mapping, worker enqueue, or
 SDK execution and returns a typed, value-free `PermissionDenied` outcome with a
-`NotStarted` disposition.
+`NotStarted` disposition. An admitted request can still fail
+[request validation](request-validation.md) when its fields are read.
 
 ### Typed denial detail
 

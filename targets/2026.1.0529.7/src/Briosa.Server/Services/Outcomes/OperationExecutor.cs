@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Security;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -80,22 +81,43 @@ internal sealed class OperationExecutor(
         var startedAt = _timeProvider.GetTimestamp();
         var rpcStatus = StatusCode.Internal;
         WorkerExecutionOutcome? outcome = null;
+        OperationAuditSummary? failureSummary = null;
+        var mapping = new RequestMappingAttempt<TRequest>(request, createCommand);
         try
         {
             try
             {
                 outcome = await _executor.ExecuteAsync(
-                    new WorkerCommandSubmission(operation.OperationId, () => createCommand(request),
+                    new WorkerCommandSubmission(operation.OperationId, mapping.Create,
                         RetainedRequestBudget(request), request as Google.Protobuf.IMessage),
                     effectiveCorrelationId,
                     cancellationToken).ConfigureAwait(false);
             }
-            catch (ArgumentException)
+            catch (ArgumentException exception) when (mapping.FailedAfterMapping(exception))
             {
+                // A typed violation that the request mapping did not throw, or any argument
+                // failure after a repeated mapping, once a mapped command left this
+                // executor: not a request validation failure, and Briosa cannot prove that
+                // the command did not start. The audit records the same disposition.
+                const WorkerExecutionDisposition disposition = WorkerExecutionDisposition.StartedOutcomeUnknown;
+                failureSummary = OperationAuditSummary.WithoutExecution(disposition);
+                throw GrpcOperationOutcomeMapper.CreateInternalFailure(
+                    operation.OperationId,
+                    operation.ReplaySafety,
+                    generation: 0,
+                    disposition,
+                    "request-violation-after-mapping");
+            }
+            catch (ArgumentException exception)
+            {
+                // Only the request mapping's own violation names its field, and only when
+                // the path resolves to a field of this request. Any other argument failure,
+                // and every exception message, stays out of the error.
                 throw GrpcOperationOutcomeMapper.CreateValidationFailure(
                     operation.OperationId,
                     "request-validation-failed",
-                    replaySafety: operation.ReplaySafety);
+                    replaySafety: operation.ReplaySafety,
+                    requestValidation: mapping.Details(exception));
             }
 
             var completed = GrpcOperationOutcomeMapper.RequireSuccess(
@@ -140,7 +162,7 @@ internal sealed class OperationExecutor(
                 operation.OperationId,
                 outcome?.Generation ?? 0,
                 RequestDurationMilliseconds(startedAt),
-                OperationAuditSummary.Create(outcome, operation.OperationId),
+                failureSummary ?? OperationAuditSummary.Create(outcome, operation.OperationId),
                 exception.StatusCode,
                 GrpcOperationOutcomeMapper.GetDiagnosticCode(exception));
             throw;

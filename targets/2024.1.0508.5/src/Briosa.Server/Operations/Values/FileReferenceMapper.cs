@@ -7,8 +7,10 @@ internal static class FileReferenceMapper
 {
     public static WorkerFileReferenceValue Required(Api.FileReference? value, string fieldName)
     {
-        if (value is null || string.IsNullOrWhiteSpace(value.Path))
-            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(value));
+        if (value is null)
+            throw RequestFieldViolation.Required(fieldName);
+        if (string.IsNullOrWhiteSpace(value.Path))
+            throw RequestFieldViolation.NotBlank(RequestFieldViolation.Path(fieldName, "path"));
         return new(value.Path, value.EmbeddedFile);
     }
 }

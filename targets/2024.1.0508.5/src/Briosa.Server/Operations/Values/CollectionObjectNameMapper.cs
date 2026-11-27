@@ -14,21 +14,27 @@ internal static class CollectionObjectNameMapper
         string fieldName,
         WorkerObjectTypeValue objectTypeWhenOmitted)
     {
-        if (value is null || string.IsNullOrWhiteSpace(value.ObjectName))
+        if (value is null)
         {
-            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(value));
+            throw RequestFieldViolation.Required(fieldName);
         }
 
-        return ToWorker(value, objectTypeWhenOmitted);
+        if (string.IsNullOrWhiteSpace(value.ObjectName))
+        {
+            throw RequestFieldViolation.NotBlank(RequestFieldViolation.Path(fieldName, "object_name"));
+        }
+
+        return ToWorker(value, fieldName, objectTypeWhenOmitted);
     }
 
     private static WorkerCollectionObjectNameValue ToWorker(
         Api.CollectionObjectName value,
+        string fieldName,
         WorkerObjectTypeValue objectTypeWhenOmitted)
     {
         if (!Enum.IsDefined(value.ObjectType))
         {
-            throw new ArgumentException("Object type is not supported by this SA target.", nameof(value));
+            throw RequestFieldViolation.SupportedChoice(RequestFieldViolation.Path(fieldName, "object_type"));
         }
 
         // Preserve the operation's documented object type when protobuf omits it.
@@ -47,23 +53,24 @@ internal static class CollectionObjectNameMapper
     {
         if (values.Count == 0)
         {
-            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(values));
+            throw RequestFieldViolation.NotEmpty(fieldName);
         }
 
-        return new(values.Select(value => ToWorker(value, objectTypeWhenOmitted)).ToImmutableArray());
+        return new(values.Select(value => ToWorker(value, fieldName, objectTypeWhenOmitted)).ToImmutableArray());
     }
 
-    public static WorkerCollectionObjectNameListValue AllowEmptyList(IReadOnlyList<Api.CollectionObjectName> values) =>
-        new(values.Select(value => ToWorker(value, WorkerObjectTypeValue.Any)).ToImmutableArray());
+    public static WorkerCollectionObjectNameListValue AllowEmptyList(
+        IReadOnlyList<Api.CollectionObjectName> values, string fieldName) =>
+        new(values.Select(value => ToWorker(value, fieldName, WorkerObjectTypeValue.Any)).ToImmutableArray());
     public static WorkerCollectionObjectNameListValue RequiredList(IReadOnlyList<Api.CollectionItemName> values, string fieldName)
     {
         if (values.Count == 0)
-            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(values));
+            throw RequestFieldViolation.NotEmpty(fieldName);
 
         return new(values.Select(value =>
         {
             if (string.IsNullOrWhiteSpace(value.ItemName))
-                throw new ArgumentException($"Request field '{fieldName}' contains an empty item name.", nameof(values));
+                throw RequestFieldViolation.NotBlank(RequestFieldViolation.Path(fieldName, "item_name"));
             return new WorkerCollectionObjectNameValue(value.CollectionName, value.ItemName, WorkerObjectTypeValue.Any);
         }).ToImmutableArray());
     }

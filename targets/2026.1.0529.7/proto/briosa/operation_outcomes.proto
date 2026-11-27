@@ -147,6 +147,52 @@ message PolicyDenialDetails {
   optional string admission_profile = 4;
 }
 
+// The constraint a request field did not meet. Each value names one kind of
+// check the server makes while it reads a request, before anything is
+// dispatched. A newer server can send a value that an older client does not
+// know; such a client can still use field_path.
+enum RequestFieldConstraint {
+  REQUEST_FIELD_CONSTRAINT_UNSPECIFIED = 0;
+  // The field must be set, and it is absent. It is a message field, or a
+  // field with explicit presence (proto3 optional) whose presence the
+  // operation checks. Some fields are required only when another field of the
+  // request turns on the behavior that uses them.
+  REQUEST_FIELD_CONSTRAINT_REQUIRED = 1;
+  // The string must contain a character other than whitespace. An operation
+  // that does not check a string's presence reads an absent string as empty,
+  // so an absent string can fail this check instead of REQUIRED.
+  REQUEST_FIELD_CONSTRAINT_NOT_BLANK = 2;
+  // The repeated field must have at least one element.
+  REQUEST_FIELD_CONSTRAINT_NOT_EMPTY = 3;
+  // The repeated field must have the exact number of elements the value
+  // needs, for example 16 for a transform.
+  REQUEST_FIELD_CONSTRAINT_ELEMENT_COUNT = 4;
+  // The number must be in the range the target accepts, for example 0 to 255
+  // for a color channel.
+  REQUEST_FIELD_CONSTRAINT_RANGE = 5;
+  // The field must hold a choice this operation supports on this target. For
+  // an enum field, a number the schema does not define and a defined value the
+  // operation does not accept fail this check. Each operation decides whether
+  // UNSPECIFIED fails it: some read UNSPECIFIED as the operation's default. A
+  // string field that names a target choice, such as an instrument type name,
+  // fails it for a name the target does not define.
+  REQUEST_FIELD_CONSTRAINT_SUPPORTED_CHOICE = 6;
+  // One field of a oneof must be set. field_path names the message that holds
+  // the oneof.
+  REQUEST_FIELD_CONSTRAINT_ONEOF_REQUIRED = 7;
+}
+
+// Value-free detail of a request that failed validation: which field, and
+// which constraint. It never carries the value the request sent.
+message RequestValidationDetails {
+  // The request field, as protobuf field names separated by dots from the
+  // request message down, for example "point_name.target_name". A path through
+  // a repeated message field names the element's field without an index, for
+  // example "objects.object_type" for any element of objects.
+  string field_path = 1;
+  RequestFieldConstraint constraint = 2;
+}
+
 // Typed, value-free detail carried in briosa-operation-error-bin metadata.
 message OperationError {
   reserved 4;
@@ -165,4 +211,11 @@ message OperationError {
   // every POLICY_DENIED failure and on no other kind. Server 0.10.0 does not set
   // it, and clients built for Server 0.10.0 ignore it.
   optional PolicyDenialDetails policy_denial = 11;
+  // The first request field the server found invalid, and the constraint it
+  // did not meet. Server 0.10.2 and later set it only on VALIDATION failures,
+  // and only when the failed check belongs to one request field; other
+  // validation failures leave it absent. The server stops at the first invalid
+  // field, so the request can have others. Earlier servers do not set it, and
+  // clients built for them ignore it.
+  optional RequestValidationDetails request_validation = 12;
 }

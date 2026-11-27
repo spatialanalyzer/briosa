@@ -20,7 +20,7 @@ internal static class SortVectorsOperation
         var coordinateSystem = request.HasCoordinateSystem
             ? request.CoordinateSystem : Api.CoordinateSystemType.Cartesian;
         if (!Enum.IsDefined(coordinateSystem) || coordinateSystem == Api.CoordinateSystemType.Unspecified)
-            throw new ArgumentException("Unsupported coordinate system.", nameof(request));
+            throw RequestFieldViolation.SupportedChoice("coordinate_system");
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Source Vectors", WorkerMpValueKind.VectorNameList,

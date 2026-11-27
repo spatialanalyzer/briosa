@@ -21,7 +21,7 @@ internal static class SetActiveCustomLanguageOperation
         [
             new("Language File Name", WorkerMpValueKind.FileReference,
                 FileReferenceMapper.Required(request.LanguageFileName, "language_file_name"), "SetFilePathArg"),
-            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font), "SetFontTypeArg")
+            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font, "font"), "SetFontTypeArg")
         ], []);
     }
 

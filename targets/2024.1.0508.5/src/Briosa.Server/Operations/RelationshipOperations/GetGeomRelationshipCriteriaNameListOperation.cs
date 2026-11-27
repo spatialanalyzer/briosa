@@ -21,7 +21,7 @@ internal static class GetGeomRelationshipCriteriaNameListOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         var relationshipName = request.RelationshipName ??
-            throw new ArgumentException("Request field 'relationship_name' is required.", nameof(request));
+            throw RequestFieldViolation.Required("relationship_name");
         var workerRelationshipName = CollectionItemNameMapper.Required(relationshipName, "relationship_name");
         if (!relationshipName.HasItemType)
         {

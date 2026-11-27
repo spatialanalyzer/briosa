@@ -33,7 +33,7 @@ internal static class FitProfileChoiceMapper
     {
         if (value < 1 || value > choiceCount)
         {
-            throw new ArgumentOutOfRangeException(fieldName, "The fit-profile choice is not supported by this SA target.");
+            throw RequestFieldViolation.SupportedChoice(fieldName);
         }
 
         return WorkerChoiceFactory.FromOrdinal(kind, value - 1);

@@ -19,12 +19,12 @@ internal static class MakeCollectionObjectNameRefListByTypeAndColorOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         var color = request.ObjectColor;
-        if (color is not null && (color.Red > byte.MaxValue || color.Green > byte.MaxValue || color.Blue > byte.MaxValue))
-            throw new ArgumentOutOfRangeException(nameof(request), "Color channels must be in 0..255.");
+        if (color is not null)
+            ColorChannelRange.Require(color, "object_color");
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Collection", WorkerMpValueKind.Text, new WorkerTextValue(request.Collection), "SetStringArg"),
-            new("Object Type", WorkerMpValueKind.ObjectType, ObjectTypeMapper.Required(request.ObjectType), "SetObjectTypeArg"),
+            new("Object Type", WorkerMpValueKind.ObjectType, ObjectTypeMapper.RequiredChoice(request.ObjectType, "object_type"), "SetObjectTypeArg"),
             new("Object Color", WorkerMpValueKind.RgbColor,
                 color is null ? new WorkerRgbColorValue(255, 0, 0) : new WorkerRgbColorValue((byte)color.Red, (byte)color.Green, (byte)color.Blue), "SetColorArg")
         ], [new("Resultant Collection Object Name List", WorkerMpValueKind.CollectionObjectNameList, "GetCollectionObjectNameRefListArg")]);

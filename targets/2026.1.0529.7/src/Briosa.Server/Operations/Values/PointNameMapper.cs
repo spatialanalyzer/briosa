@@ -8,9 +8,14 @@ internal static class PointNameMapper
 {
     public static WorkerPointNameValue Required(Api.PointName? value, string fieldName)
     {
-        if (value is null || string.IsNullOrWhiteSpace(value.TargetName))
+        if (value is null)
         {
-            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(value));
+            throw RequestFieldViolation.Required(fieldName);
+        }
+
+        if (string.IsNullOrWhiteSpace(value.TargetName))
+        {
+            throw RequestFieldViolation.NotBlank(RequestFieldViolation.Path(fieldName, "target_name"));
         }
 
         return new(value.CollectionName, value.GroupName, value.TargetName);
@@ -20,7 +25,7 @@ internal static class PointNameMapper
     {
         if (values.Count == 0)
         {
-            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(values));
+            throw RequestFieldViolation.NotEmpty(fieldName);
         }
 
         return new(values.Select(value => new WorkerPointNameValue(value.CollectionName, value.GroupName, value.TargetName)).ToImmutableArray());

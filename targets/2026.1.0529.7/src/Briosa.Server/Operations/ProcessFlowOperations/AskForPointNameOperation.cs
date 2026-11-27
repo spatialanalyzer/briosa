@@ -22,7 +22,7 @@ internal static class AskForPointNameOperation
         [
             new("Question to ask", WorkerMpValueKind.Text, new WorkerTextValue(request.QuestionToAsk), "SetStringArg"),
             new("Initial Value", WorkerMpValueKind.PointName, PointNameMapper.Required(request.InitialValue, "initial_value"), "SetPointNameArg"),
-            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font), "SetFontTypeArg")
+            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font, "font"), "SetFontTypeArg")
         ], [new("Answer", WorkerMpValueKind.PointName, "GetPointNameArg")]);
     }
 

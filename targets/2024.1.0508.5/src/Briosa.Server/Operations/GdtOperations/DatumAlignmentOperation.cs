@@ -23,7 +23,7 @@ internal static class DatumAlignmentOperation
         if (featureCheck.ItemType == WorkerItemTypeValue.Any)
             featureCheck = featureCheck with { ItemType = WorkerItemTypeValue.FeatureCheck };
         if (request.InstrumentsToMove.Count == 0)
-            throw new ArgumentException("Request field 'instruments_to_move' is required.", nameof(request));
+            throw RequestFieldViolation.NotEmpty("instruments_to_move");
 
         var instruments = new WorkerCollectionInstrumentIdListValue(
             request.InstrumentsToMove.Select(instrument =>

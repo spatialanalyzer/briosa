@@ -7,13 +7,13 @@ internal static class WorldTransformMapper
 {
     public static WorkerWorldTransformValue Required(Api.WorldTransform? value, string fieldName)
     {
-        if (value?.Transform is null)
+        if (value is null)
         {
-            throw new ArgumentException($"Request field '{fieldName}' must include a transform.", nameof(value));
+            throw RequestFieldViolation.Required(fieldName);
         }
 
         return new(
-            TransformMapper.Required(value.Transform, $"{fieldName}.transform"),
+            TransformMapper.Required(value.Transform, RequestFieldViolation.Path(fieldName, "transform")),
             value.HasScaleFactor ? value.ScaleFactor : 1d);
     }
 

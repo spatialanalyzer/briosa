@@ -17,8 +17,10 @@ internal static class SetRemeasureFailedChecksOnlyOperation
     public static WorkerMpCommand CreateCommand(Api.SetRemeasureFailedChecksOnlyRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.Collection is null || string.IsNullOrWhiteSpace(request.Collection.Name))
-            throw new ArgumentException("Collection Name is required.", nameof(request));
+        if (request.Collection is null)
+            throw RequestFieldViolation.Required("collection");
+        if (string.IsNullOrWhiteSpace(request.Collection.Name))
+            throw RequestFieldViolation.NotBlank("collection.name");
 
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [new("Collection Name", WorkerMpValueKind.CollectionName,

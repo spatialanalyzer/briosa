@@ -34,7 +34,7 @@ internal static class GetCloudRGBValuesNearPointOperation
                 PointNameMapper.Required(request.SinglePoint, "single_point"), "SetPointNameArg"),
             new("Diameter", WorkerMpValueKind.FloatingPoint,
                 new WorkerDoubleValue(request.HasDiameter ? request.Diameter : 10), "SetDoubleArg"),
-            new("RGB Color Channel", WorkerMpValueKind.Text, RgbColorChannelMapper.ToMpValue(channel), "SetStringArg")
+            new("RGB Color Channel", WorkerMpValueKind.Text, RgbColorChannelMapper.ToMpValue(channel, "rgb_color_channel"), "SetStringArg")
         ],
         [
             new("Low Value", WorkerMpValueKind.WholeNumber, "GetIntegerArg"),

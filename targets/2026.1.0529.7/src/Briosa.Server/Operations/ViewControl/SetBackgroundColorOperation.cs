@@ -19,13 +19,13 @@ internal static class SetBackgroundColorOperation
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Solid Color Name", WorkerMpValueKind.RgbColor,
-                ViewControlColorMapper.WithDefault(request.SolidColorName), "SetColorArg"),
+                ViewControlColorMapper.WithDefault(request.SolidColorName, "solid_color_name"), "SetColorArg"),
             new("Gradient Start Color Name", WorkerMpValueKind.RgbColor,
-                ViewControlColorMapper.WithDefault(request.GradientStartColorName), "SetColorArg"),
+                ViewControlColorMapper.WithDefault(request.GradientStartColorName, "gradient_start_color_name"), "SetColorArg"),
             new("Gradient End Color Name", WorkerMpValueKind.RgbColor,
-                ViewControlColorMapper.WithDefault(request.GradientEndColorName), "SetColorArg"),
+                ViewControlColorMapper.WithDefault(request.GradientEndColorName, "gradient_end_color_name"), "SetColorArg"),
             new("Highlight Color", WorkerMpValueKind.RgbColor,
-                ViewControlColorMapper.WithDefault(request.HighlightColor), "SetColorArg")
+                ViewControlColorMapper.WithDefault(request.HighlightColor, "highlight_color"), "SetColorArg")
         ], []);
     }
 

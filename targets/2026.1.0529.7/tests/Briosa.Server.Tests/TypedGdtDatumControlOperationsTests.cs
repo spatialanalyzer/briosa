@@ -26,7 +26,7 @@ public sealed class TypedGdtDatumControlOperationsTests
             .Select(i => command.InputArguments[i].RequireValue<WorkerBooleanValue>().Value));
         Assert.Equal(WorkerItemTypeValue.Alignment,
             command.InputArguments[4].RequireValue<WorkerCollectionItemNameValue>().ItemType);
-        Assert.Throws<ArgumentException>(() => EnableDisableDatumAlignmentForFeatureCheckOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => EnableDisableDatumAlignmentForFeatureCheckOperation.CreateCommand(new()));
         AssertRegisteredAndRemoved(EnableDisableDatumAlignmentForFeatureCheckOperation.Descriptor.OperationId);
     }
 
@@ -47,7 +47,7 @@ public sealed class TypedGdtDatumControlOperationsTests
         Assert.Equal("Instruments", instrument.CollectionName);
         Assert.Equal(7, instrument.InstrumentId);
         Assert.False(command.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => StartStopFeatureCheckTrappingOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => StartStopFeatureCheckTrappingOperation.CreateCommand(new()));
         AssertRegisteredAndRemoved(StartStopFeatureCheckTrappingOperation.Descriptor.OperationId);
     }
 

@@ -6,12 +6,14 @@ namespace Briosa.Server.Operations.Values;
 internal static class CoordinateSystemTypeMapper
 {
     public static WorkerCoordinateSystemTypeValue OrDefault(
-        Api.CoordinateSystemType? value, Api.CoordinateSystemType defaultValue) =>
+        Api.CoordinateSystemType? value, Api.CoordinateSystemType defaultValue, string fieldName) =>
         (value ?? defaultValue) switch
         {
             Api.CoordinateSystemType.Cartesian => WorkerCoordinateSystemTypeValue.Cartesian,
             Api.CoordinateSystemType.Cylindric => WorkerCoordinateSystemTypeValue.Cylindric,
             Api.CoordinateSystemType.Polar => WorkerCoordinateSystemTypeValue.Polar,
-            _ => throw new ArgumentException("Coordinate system is not supported by this SA target.", nameof(value))
+            _ => throw (value is null
+                ? RequestFieldViolation.Required(fieldName)
+                : RequestFieldViolation.SupportedChoice(fieldName))
         };
 }

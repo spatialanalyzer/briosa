@@ -46,8 +46,8 @@ public sealed class TypedGdtDatumMeasurementsTests
     [Fact]
     public void RequiredInputsAndRegistryAreEnforced()
     {
-        Assert.Throws<ArgumentException>(() => GetDatumMeasurementsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetDatumMeasurementsOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => GetDatumMeasurementsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetDatumMeasurementsOperation.CreateCommand(new()
             { Datum = new Api.CollectionItemName { ItemName = "D" } }));
         foreach (var id in new[] { GetDatumMeasurementsOperation.Descriptor.OperationId,
                      SetDatumMeasurementsOperation.Descriptor.OperationId })

@@ -20,7 +20,7 @@ internal static class AddNewInstrumentOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.InstrumentType is null)
-            throw new ArgumentException("Instrument Type is required.", nameof(request));
+            throw RequestFieldViolation.Required("instrument_type");
 
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [new("Instrument Type", WorkerMpValueKind.InstrumentTypeName,

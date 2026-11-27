@@ -61,13 +61,13 @@ public sealed class TypedUtilityNotesOperationTests
     [Fact]
     public void SetNotesRequireTextAndPreserveAppendDefault()
     {
-        Assert.Throws<ArgumentException>(() => GetCollectionNotesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetObjectNotesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetPointNotesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetCollectionNotesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetFolderNotesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetObjectNotesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetPointNotesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetCollectionNotesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetObjectNotesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetPointNotesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetCollectionNotesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetFolderNotesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetObjectNotesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetPointNotesOperation.CreateCommand(new()));
 
         var commands = new[]
         {

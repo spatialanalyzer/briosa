@@ -89,14 +89,14 @@ public sealed class TypedSmallDomainOperationTests
     [Fact]
     public void RequiredValuesAreCheckedBeforeSdkDispatch()
     {
-        Assert.Throws<ArgumentException>(() => SetDimensionToleranceOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => ScaleBarCheckOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => RunSubroutineOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => AskForStringPullDownVersionOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => AskForUserDecisionFromStringsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetOverviewImageOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => DeleteVectorsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => AutoRangeAndSetVectorGroupColorizationSelectedOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetDimensionToleranceOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ScaleBarCheckOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => RunSubroutineOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => AskForStringPullDownVersionOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => AskForUserDecisionFromStringsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetOverviewImageOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DeleteVectorsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => AutoRangeAndSetVectorGroupColorizationSelectedOperation.CreateCommand(new()));
     }
 
     [Fact]

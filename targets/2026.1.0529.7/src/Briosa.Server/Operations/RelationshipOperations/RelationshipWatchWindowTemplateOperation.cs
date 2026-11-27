@@ -20,7 +20,7 @@ internal static class RelationshipWatchWindowTemplateOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         var udp = request.UdpNetworkTransmitSettings ??
-            throw new ArgumentException("Request field 'udp_network_transmit_settings' is required.", nameof(request));
+            throw RequestFieldViolation.Required("udp_network_transmit_settings");
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [
                 new("Watch Window Template Name", WorkerMpValueKind.CollectionObjectName,
@@ -29,10 +29,10 @@ internal static class RelationshipWatchWindowTemplateOperation
                     new WorkerIntegerValue(request.HasLinearPrecision ? request.LinearPrecision : 4), "SetIntegerArg"),
                 new("Angular Precision", WorkerMpValueKind.WholeNumber,
                     new WorkerIntegerValue(request.HasAngularPrecision ? request.AngularPrecision : 3), "SetIntegerArg"),
-                new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font), "SetFontTypeArg"),
-                new("Text Color", WorkerMpValueKind.RgbColor, ToColor(request.TextColor), "SetColorArg"),
-                new("Background Color", WorkerMpValueKind.RgbColor, ToColor(request.BackgroundColor), "SetColorArg"),
-                new("Highlight Color", WorkerMpValueKind.RgbColor, ToColor(request.HighlightColor), "SetColorArg"),
+                new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font, "font"), "SetFontTypeArg"),
+                new("Text Color", WorkerMpValueKind.RgbColor, ToColor(request.TextColor, "text_color"), "SetColorArg"),
+                new("Background Color", WorkerMpValueKind.RgbColor, ToColor(request.BackgroundColor, "background_color"), "SetColorArg"),
+                new("Highlight Color", WorkerMpValueKind.RgbColor, ToColor(request.HighlightColor, "highlight_color"), "SetColorArg"),
                 new("Show Deviation X (Rx)?", WorkerMpValueKind.Logical,
                     new WorkerBooleanValue(!request.HasShowDeviationX || request.ShowDeviationX), "SetBoolArg"),
                 new("Show Deviation Y (Ry)?", WorkerMpValueKind.Logical,
@@ -55,12 +55,11 @@ internal static class RelationshipWatchWindowTemplateOperation
     public static Api.RelationshipWatchWindowTemplateResult CreateResult(SuccessfulOperationExecution completed) =>
         new() { Execution = completed.Details };
 
-    private static WorkerRgbColorValue ToColor(Api.Color? value)
+    private static WorkerRgbColorValue ToColor(Api.Color? value, string fieldName)
     {
         if (value is null)
             return new(255, 0, 0);
-        if (value.Red > byte.MaxValue || value.Green > byte.MaxValue || value.Blue > byte.MaxValue)
-            throw new ArgumentOutOfRangeException(nameof(value), "Color channels must be in 0..255.");
+        ColorChannelRange.Require(value, fieldName);
         return new((byte)value.Red, (byte)value.Green, (byte)value.Blue);
     }
 }

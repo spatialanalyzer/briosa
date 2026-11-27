@@ -21,7 +21,7 @@ internal static class SetRelationshipVoxelCloudDisplayOperation
         ArgumentNullException.ThrowIfNull(request);
         var mode = request.HasSurfaceAnalysisMode ? request.SurfaceAnalysisMode : Api.SurfaceAnalysisMode.Relationship;
         if (mode == Api.SurfaceAnalysisMode.Unspecified || !Enum.IsDefined(mode))
-            throw new ArgumentOutOfRangeException(nameof(request), "Surface analysis mode is not supported.");
+            throw RequestFieldViolation.SupportedChoice("surface_analysis_mode");
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [
                 new("Relationship Name", WorkerMpValueKind.CollectionObjectName,

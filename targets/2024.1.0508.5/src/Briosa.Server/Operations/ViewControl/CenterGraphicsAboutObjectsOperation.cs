@@ -19,7 +19,7 @@ internal static class CenterGraphicsAboutObjectsOperation
         var objectType = request.HasObjectType ? request.ObjectType : Api.ObjectType.Any;
         if (!Enum.IsDefined(objectType) || objectType == Api.ObjectType.Unspecified)
         {
-            throw new ArgumentException("A supported object type is required.", nameof(request));
+            throw RequestFieldViolation.SupportedChoice("object_type");
         }
 
         return new(Descriptor.OperationId, Descriptor.MpStep,

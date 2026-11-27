@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Worker.Control;
 using Api = global::Briosa;
@@ -36,7 +37,7 @@ public sealed class RelationshipOptionMappingTests
             argument.RequireValue<WorkerAutoFilterProximitySettingsValue>());
 
         request.FilterProximitySettings3D.SurfaceProximityMode = (Api.OffsetDirectionType)9999;
-        Assert.Throws<ArgumentException>(() => AutoFilterPointsToNominalGeometry3DOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => AutoFilterPointsToNominalGeometry3DOperation.CreateCommand(request));
     }
 
     [Fact]

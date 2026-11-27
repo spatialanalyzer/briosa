@@ -33,11 +33,11 @@ public sealed class TypedPointSetQueryOperationTests
     [Fact]
     public void RequiredNamesAndIndexedDefaultsMatchReviewedBindings()
     {
-        Assert.Throws<ArgumentException>(() => GetCoordinateForIthPointInPointSetOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetIthPointFromGroupOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetNumberOfPointsInGroupOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetNumberOfPointsInPointSetOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetTimestampForIthPointInPointSetOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetCoordinateForIthPointInPointSetOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetIthPointFromGroupOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetNumberOfPointsInGroupOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetNumberOfPointsInPointSetOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetTimestampForIthPointInPointSetOperation.CreateCommand(new()));
 
         var pointSet = new Api.CollectionObjectName { ObjectName = "set" };
         var coordinate = GetCoordinateForIthPointInPointSetOperation.CreateCommand(new() { PointSet = pointSet });

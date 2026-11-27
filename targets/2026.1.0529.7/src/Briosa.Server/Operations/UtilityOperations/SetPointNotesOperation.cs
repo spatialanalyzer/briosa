@@ -18,7 +18,7 @@ internal static class SetPointNotesOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.Notes.Count == 0)
-            throw new ArgumentException("Notes are required.", nameof(request));
+            throw RequestFieldViolation.NotEmpty("notes");
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Point", WorkerMpValueKind.PointName,

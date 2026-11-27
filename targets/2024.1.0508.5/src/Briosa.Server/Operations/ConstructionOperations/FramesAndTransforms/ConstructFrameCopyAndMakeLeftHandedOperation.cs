@@ -28,7 +28,7 @@ internal static class ConstructFrameCopyAndMakeLeftHandedOperation
             inputs.Add(new("Frame Name (Optional)", WorkerMpValueKind.CollectionObjectName,
                 CollectionObjectNameMapper.Required(request.FrameName, "frame_name"), "SetCollectionObjectNameArg2"));
         inputs.Add(new("Axis to reverse", WorkerMpValueKind.AxisIdentifier,
-            FrameConstructionChoiceMapper.FrameAxis(request.AxisToReverse), "SetAxisNameArg"));
+            FrameConstructionChoiceMapper.FrameAxis(request.AxisToReverse, "axis_to_reverse"), "SetAxisNameArg"));
         return new(Descriptor.OperationId, Descriptor.MpStep, inputs, []);
     }
 
