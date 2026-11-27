@@ -125,32 +125,42 @@ launch, proving installation/startup rejection only, and all six published
 runs. The twelve published `0.2.0`/`0.3.0` packages remain retired from the live
 gate. Every report's server artifact hash matches the published conformance ZIP.
 The reports are stored with the repository's LF line endings; their content is
-otherwise unchanged from the CI artifacts. The matrix now declares contract 3.0
+otherwise unchanged from the CI artifacts. The matrix then declared contract 3.0
 and the published `0.5.0` clients, bringing the recorded total to 144
 evidence-backed pairs: 102 released-package pairs (36 major-1, 54 major-2, and
 12 major-3; 738 accepted scenario runs) and 42 development-candidate pairs. No
 licensed-SA coverage is implied.
 
-For Server 0.10.1, each target's `compatibility.json` declares contract 3.1
-([#397](https://github.com/spatialanalyzer/briosa/issues/397)). The published
-`0.5.0` clients require 3.0, which 3.1 satisfies. Both targets use the fixtures
+For Server 0.10.1, each target's `compatibility.json` records `major` 3 and
+`revision` 1 ([#397](https://github.com/spatialanalyzer/briosa/issues/397)),
+and the published `0.5.0` and `0.5.1` clients, whose `requiredContract` is 3.0,
+work with it. Its release gate tested the published packages with the fixtures
 from the merged .NET, JavaScript, and Python 0.5.1 pull requests (`f03d2c8c`,
-`4e5ab1ce`, and `f101fcdf`) to test the published packages. Their scripts
-request `large-result` when the packaged runner and scenario contract offer it,
-and the fixtures report the exact UTF-8 byte length and SHA-256 of the value
-received. Six published `0.5.1` packages now join the `0.5.0` packages for the
-three client languages and both exact targets. They were published from the
-same commits as those fixtures, the `v0.5.1` tags of briosa-dotnet, briosa-js,
-and briosa-py, so they run on the current fixtures without a pin of their own.
-Like the `0.5.0` packages, they require contract 3.0. The three current fixture
-sources list `large-result` in `optionalScenarios`, so the retained-client
-workflow fails an accepted `0.5.0` or `0.5.1` job unless the packaged runner
-reports `large-result` as passed exactly once. The six 0.4.0 packages keep their
-explicit fixture pins and still run only to verify pre-launch rejection. The
-gate runs eighteen jobs: six rejections and twelve published accepts. As for
-earlier releases, the matrix keeps declaring the contract of its recorded
-release evidence, 3.0, and the published `0.5.0` clients until the 0.10.1
-release gate's reports are recorded.
+`4e5ab1ce`, and `f101fcdf`). Their scripts request `large-result` when the
+packaged runner and scenario contract offer it, and the fixtures report the
+exact UTF-8 byte length and SHA-256 of the value received. The six `0.5.1`
+packages were published from those same commits, the `v0.5.1` tags of
+briosa-dotnet, briosa-js, and briosa-py, so they ran on those fixtures without a
+pin of their own. The six 0.4.0 packages kept their explicit fixture pins and
+ran only to verify pre-launch rejection.
+
+The released Server `0.10.1` (source `d947d95ca6e7ff1ecece94cdcb218724f151a807`)
+release gate supplied the 2026-11-27 reports from
+[run 46039672611](https://github.com/spatialanalyzer/briosa/actions/runs/46039672611),
+in which no job was rerun: 18 released-package pairs. All six published `0.4.0`
+packages rejected the release before launch, proving installation/startup
+rejection only. All twelve published `0.5.0` and `0.5.1` packages passed all
+fifteen fake-SDK scenarios and `large-result` per target: 192 scenario runs.
+The twelve published `0.2.0`/`0.3.0` packages remain retired from the live gate.
+Every report's server artifact hash matches the published conformance ZIP, and
+the server manifest inside both ZIPs records compatibility 3.1. The reports are
+stored with the repository's LF line endings; their content is otherwise
+unchanged from the CI artifacts. The matrix now records 3.1 in `contract` and
+declares the published `0.5.0` and `0.5.1` clients. That brings the recorded
+total to 162 evidence-backed pairs: 120 released-package pairs (36 with Server
+0.6.1 to 0.8.0, 54 with Server 0.9.x, and 30 with Server 0.10.x; 930 accepted
+scenario runs) and 42 development-candidate pairs. No licensed-SA coverage is
+implied.
 
 Each new tested pair records `expectedCompatibility`. An accepted pair passed
 the fake-SDK scenarios listed in its report; a rejected pair proves
