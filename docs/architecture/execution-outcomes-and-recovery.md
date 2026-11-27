@@ -42,7 +42,7 @@ version and fail at startup, before any command runs; see
 limit applies before operation mapping.
 JSON envelope overhead can still make a smaller protobuf request exceed the
 request budget; encoding rejection returns typed `InvalidArgument`/`Validation`
-with `NotStarted` and does not retire a healthy worker. These limits bound encoded
+with `NotStarted`, names no request field, and does not retire a healthy worker. These limits bound encoded
 message sizes, not an exact amount of managed memory. A transport-level size
 rejection can occur before the service runs and therefore need not include an
 `OperationError` trailer.
@@ -166,11 +166,16 @@ Non-OK RPCs use a canonical gRPC status and exactly one typed
 - execution disposition;
 - worker recovery guidance;
 - replay guidance and the operation's reviewed replay safety;
-- worker generation; and
-- MP and output-retrieval details when available.
+- worker generation;
+- MP and output-retrieval details when available; and
+- for a validation failure on Server 0.10.2 and later, the first invalid request
+  field, as a protobuf field path, and the constraint it did not meet, when the
+  failed check belongs to one field.
 
 The error contains no raw arguments or returned values. Status text is generic and
-value-free.
+value-free. The validation detail names schema fields only; adding it changed
+nothing else about a validation failure. See the
+[request validation guide](../../targets/2026.1.0529.7/docs/operations/request-validation.md).
 
 ## Execution disposition
 

@@ -623,6 +623,34 @@ clients surface it and still work with Server 0.10.0:
 - An unknown rule, effect, condition, or omission value is unknown metadata,
   never permission, and never fails discovery.
 
+Server 0.10.2 adds value-free request validation detail
+([#442](https://github.com/spatialanalyzer/briosa/issues/442); see the
+[request validation guide](../../targets/2026.1.0529.7/docs/operations/request-validation.md)).
+Earlier servers send none of it, and clients that predate it ignore it. A
+first-party client may surface it; one that does:
+
+- exposes, on a validation failure, an optional detail from
+  `OperationError.request_validation`: the request field path and the
+  constraint the field did not meet;
+- keeps the path exactly as the server sent it: protobuf field names joined by
+  dots from the request message down, with no index for a repeated field. A
+  language may add an idiomatic rendering of the path, but the protobuf path
+  stays available unchanged;
+- exposes the constraint with a distinct unknown member for `UNSPECIFIED` and
+  for any value the client does not recognize, and keeps the path usable when
+  the constraint is unknown;
+- treats an absent detail as normal: the server omits it when the failed check
+  does not belong to one field. When the enclosing message decodes, absent or
+  unrecognized detail does not change the typed failure kind, diagnostic code,
+  disposition, or guidance. If the enclosing message cannot be decoded, existing
+  malformed-message handling applies;
+- presents the detail as the first invalid field only, not as a complete list;
+  and
+- adds no request value when it renders the detail, in messages or logs.
+
+The detail does not move validation into the client: clients still do not
+pre-validate requests from it, and the server remains authoritative.
+
 Package semantic version, Briosa server semantic version, exact SpatialAnalyzer
 target, protocol artifact identity, and runtime architecture remain separate
 coordinates as described by the
