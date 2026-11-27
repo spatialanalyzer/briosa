@@ -20,7 +20,8 @@ public sealed class PolicyDenialProtocolTests
         Assert.Equal(13, OperationCapability.RequestOptionsFieldNumber);
         Assert.Equal(1, OperationRequestOptions.OptionsFieldNumber);
         Assert.Equal(
-            ["rule", "denied_flag", "request_option_field", "admission_profile"],
+            ["rule", "denied_flag", "request_option_field", "admission_profile", "caller_admission_profile",
+                "caller_denied_flag"],
             Names(PolicyDenialDetails.Descriptor));
         Assert.Equal(
             ["field_name", "effect", "condition", "enabling_enum_values", "omission", "admission", "policy_denial"],
@@ -31,6 +32,8 @@ public sealed class PolicyDenialProtocolTests
             PolicyDenialDetails.Descriptor.FindFieldByName("denied_flag"),
             PolicyDenialDetails.Descriptor.FindFieldByName("request_option_field"),
             PolicyDenialDetails.Descriptor.FindFieldByName("admission_profile"),
+            PolicyDenialDetails.Descriptor.FindFieldByName("caller_admission_profile"),
+            PolicyDenialDetails.Descriptor.FindFieldByName("caller_denied_flag"),
             OperationError.Descriptor.FindFieldByName("policy_denial"),
             OperationCapability.Descriptor.FindFieldByName("policy_denial"),
             OperationCapability.Descriptor.FindFieldByName("request_options"),
@@ -47,7 +50,7 @@ public sealed class PolicyDenialProtocolTests
         var expected = new Dictionary<EnumDescriptor, string[]>
         {
             [OperationOutcomesReflection.Descriptor.FindTypeByName<EnumDescriptor>(nameof(PolicyDenialRule))] =
-                ["UNSPECIFIED", "PROFILE", "FLAG", "OVERRIDE", "EXCLUSIVE", "UNREVIEWED"],
+                ["UNSPECIFIED", "PROFILE", "FLAG", "OVERRIDE", "EXCLUSIVE", "UNREVIEWED", "CALLER_PROFILE", "CALLER_FLAG"],
             [DiscoveryReflection.Descriptor.FindTypeByName<EnumDescriptor>(nameof(OperationRequestOptionEffect))] =
                 ["UNSPECIFIED", "INTERACTIVE_UI", "BACKGROUND_WORK"],
             [DiscoveryReflection.Descriptor.FindTypeByName<EnumDescriptor>(nameof(OperationRequestOptionCondition))] =

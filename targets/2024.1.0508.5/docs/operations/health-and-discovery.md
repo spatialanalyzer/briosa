@@ -160,6 +160,8 @@ On Server 0.10.1 and later, each denied entry also carries `policy_denial`, the 
 | `admission_profile` | Only for `PROFILE`: the active profile. A profile denial names no flag, because the profile or its `read-only` effect filter can exclude an operation for more than one reason. |
 | `request_option_field` | The request field that decided, when a request option did. An entry's own row decision never names one. |
 
+Discovery never reports `CALLER_PROFILE` or `CALLER_FLAG`, or the caller fields of the detail. It does not read the `briosa-caller-restriction` header, so it lists the server's own decisions; a call that sends the header can be denied for an operation listed as admitted (see [caller restriction](command-policy-and-auditing.md#caller-restriction)).
+
 ### Request options in discovery
 
 On Server 0.10.1 and later, `request_options` lists the operation's reviewed request options, in no particular order. Each option has:

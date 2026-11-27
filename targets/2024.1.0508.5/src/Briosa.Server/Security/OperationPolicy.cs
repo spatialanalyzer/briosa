@@ -31,12 +31,22 @@ namespace Briosa.Server.Security;
 /// <item>Any effective risk flag set to <c>deny</c> denies.</item>
 /// <item>The profile, widened by flags set to <c>allow</c>, admits or denies the
 /// effective risks.</item>
+/// <item>Only when the steps above admit, and the call carries a caller
+/// restriction (#443): any effective risk flag the caller denies denies, and
+/// then the caller's profile, with no flag or override widening it and with its
+/// own effect filter, admits or denies the effective risks.</item>
 /// </list>
 /// A request that turns on operator UI gains <see cref="OperationRisks.InteractiveUi"/>
-/// and the <see cref="OperationDurationClass.Interactive"/> duration class.
-/// <see cref="Evaluate(string)"/> decides the static row only, for discovery;
-/// enforcement uses <see cref="EvaluateRequest(string, IMessage)"/>. Validation
-/// status never affects admission.
+/// and the <see cref="OperationDurationClass.Interactive"/> duration class. Step 8
+/// reads the same effective risks and effect as steps 4 to 7, and it can only turn
+/// an admission into a denial: a denial by steps 1 to 7 is returned unchanged, and
+/// an admission that step 8 keeps is returned unchanged, so a caller restriction
+/// never widens the server's decision. It is not part of <see cref="Fingerprint"/>,
+/// which describes the server's configuration only.
+/// <see cref="Evaluate(string, OperationCallerRestriction)"/> decides the static
+/// row only, for discovery; enforcement uses
+/// <see cref="EvaluateRequest(string, IMessage, OperationCallerRestriction)"/>.
+/// Validation status never affects admission.
 /// </remarks>
 internal sealed class OperationPolicy
 {
@@ -55,13 +65,19 @@ internal sealed class OperationPolicy
     internal const string FlagRulePrefix = "flag.";
     internal const string ProfileRulePrefix = "profile.";
     internal const string OptionRulePrefix = "option.";
+    internal const string CallerRulePrefix = "caller.";
+
+    internal const string CallerDeniedDiagnosticCode = "caller-restriction-denied";
+    internal const string CallerOptionDeniedDiagnosticCode = "caller-restriction-option-denied";
 
     internal const string MigrationGuide =
         "See docs/development/admission-profile-migration.md.";
 
     // Part of the fingerprint. Increment it whenever EvaluateCore, CheckBinding,
     // or OperationAdmissionProfile.Admits decides the same inputs differently,
-    // so equal fingerprints keep meaning equal decisions across builds.
+    // so equal fingerprints keep meaning equal decisions across builds. A caller
+    // restriction is a per-call input outside the fingerprint; adding step 8 for it
+    // left every decision of a call without one unchanged.
     internal const int SemanticsVersion = 1;
 
     // .NET configuration keys are case-insensitive, so the section names are
@@ -202,16 +218,25 @@ internal sealed class OperationPolicy
     public OperationPolicyDecision Evaluate(WorkerMpCommand command) =>
         CheckBinding(command, Evaluate(command?.OperationId!));
 
-    /// <summary>Decides one request and checks the mapped command's MP binding.</summary>
-    public OperationPolicyDecision EvaluateRequest(WorkerMpCommand command, IMessage? request) =>
-        CheckBinding(command, EvaluateRequest(command?.OperationId!, request));
+    /// <summary>
+    /// Decides one request, narrowed by the caller's restriction when it carries
+    /// one, and checks the mapped command's MP binding.
+    /// </summary>
+    public OperationPolicyDecision EvaluateRequest(
+        WorkerMpCommand command,
+        IMessage? request,
+        OperationCallerRestriction? callerRestriction = null) =>
+        CheckBinding(command, EvaluateRequest(command?.OperationId!, request, callerRestriction));
 
     /// <summary>
     /// Decides the operation's reviewed row alone, as discovery reports it. It
-    /// never classifies a request; enforcement uses <see cref="EvaluateRequest(string, IMessage)"/>.
+    /// never classifies a request; enforcement uses
+    /// <see cref="EvaluateRequest(string, IMessage, OperationCallerRestriction)"/>.
+    /// Discovery passes no caller restriction; the parameter keeps one evaluator
+    /// for a later discovery that honors one.
     /// </summary>
-    public OperationPolicyDecision Evaluate(string operationId) =>
-        EvaluateCore(operationId, classification: null);
+    public OperationPolicyDecision Evaluate(string operationId, OperationCallerRestriction? callerRestriction = null) =>
+        EvaluateCore(operationId, classification: null, callerRestriction);
 
     /// <summary>
     /// Returns the classification lookup this policy decides a registered
@@ -233,11 +258,13 @@ internal sealed class OperationPolicy
     /// the same evaluator that decides an actual request.
     /// </summary>
     public IReadOnlyList<(OperationConditionalOption Option, OperationPolicyDecision Decision)> EvaluateRequestOptions(
-        string operationId)
+        string operationId,
+        OperationCallerRestriction? callerRestriction = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(operationId);
         return _requestClassifier.OptionsFor(operationId)
-            .Select(option => (option, EvaluateCore(operationId, OperationRequestClassification.Enabling(option))))
+            .Select(option => (option,
+                EvaluateCore(operationId, OperationRequestClassification.Enabling(option), callerRestriction)))
             .ToArray();
     }
 
@@ -245,12 +272,16 @@ internal sealed class OperationPolicy
     /// Decides one typed request before mapping or dispatch. The request's
     /// enabled conditional options change its effective risks, duration, and
     /// isolation. An operation with reviewed options fails closed when the request
-    /// is missing or cannot be read.
+    /// is missing or cannot be read. A caller restriction can only turn the
+    /// server's admission into a denial.
     /// </summary>
-    public OperationPolicyDecision EvaluateRequest(string operationId, IMessage? request)
+    public OperationPolicyDecision EvaluateRequest(
+        string operationId,
+        IMessage? request,
+        OperationCallerRestriction? callerRestriction = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(operationId);
-        return EvaluateCore(operationId, _requestClassifier.Classify(operationId, request));
+        return EvaluateCore(operationId, _requestClassifier.Classify(operationId, request), callerRestriction);
     }
 
     private static OperationPolicyDecision CheckBinding(WorkerMpCommand command, OperationPolicyDecision decision)
@@ -265,9 +296,68 @@ internal sealed class OperationPolicy
 
     private OperationPolicyDecision EvaluateCore(
         string operationId,
-        OperationRequestClassification? classification)
+        OperationRequestClassification? classification,
+        OperationCallerRestriction? callerRestriction)
+    {
+        var decision = EvaluateConfiguration(operationId, classification, out var effective);
+        if (callerRestriction is null)
+        {
+            return decision;
+        }
+
+        // 8. Only an admission reaches the caller's restriction, so a denial by the
+        // server's configuration is reported exactly as it is without one.
+        return decision.Kind == OperationPolicyDecisionKind.Allowed
+            ? EvaluateCallerRestriction(decision, effective!.Value, callerRestriction)
+            : decision.WithCallerRestriction(callerRestriction);
+    }
+
+    // 8. The caller's restriction on the effective risks and effect that steps 4 to 7
+    // decided. Neither a flag set to allow nor an allow override helps it, and its
+    // profile keeps its own read-only effect filter.
+    private static OperationPolicyDecision EvaluateCallerRestriction(
+        OperationPolicyDecision admitted,
+        EffectiveRequest effective,
+        OperationCallerRestriction restriction)
+    {
+        var operation = admitted.Operation!;
+
+        // Caller flag denials first, as in step 6. The option is named only when the
+        // reviewed row alone had no flag the caller denies.
+        var deniedFlags = effective.Risks & restriction.DeniedFlags;
+        if (deniedFlags != OperationRisks.None)
+        {
+            var first = OperationRiskVocabulary.Members.First(risk => deniedFlags.HasFlag(risk));
+            return ((effective.RowRisks & restriction.DeniedFlags) == OperationRisks.None
+                ? CallerDenied(CallerOptionDeniedDiagnosticCode, operation,
+                    OperationPolicyDenial.CallerFlag(first, effective.Option!.Field))
+                : CallerDenied(CallerDeniedDiagnosticCode, operation, OperationPolicyDenial.CallerFlag(first)))
+                .WithCallerRestriction(restriction);
+        }
+
+        // Then the caller's profile alone, as in step 7 with nothing set to allow.
+        if (restriction.Profile is { } profile && !profile.Admits(effective.Risks, operation.Effect))
+        {
+            return (effective.Option is not null && profile.Admits(effective.RowRisks, operation.Effect)
+                ? CallerDenied(CallerOptionDeniedDiagnosticCode, operation,
+                    OperationPolicyDenial.CallerProfile(profile.Name, effective.Option.Field))
+                : CallerDenied(CallerDeniedDiagnosticCode, operation, OperationPolicyDenial.CallerProfile(profile.Name)))
+                .WithCallerRestriction(restriction);
+        }
+
+        // The admission stands unchanged: rule, duration class, and diagnostic code.
+        return admitted.WithCallerRestriction(restriction);
+    }
+
+    // Steps 1 to 7: the server's configuration alone, exactly as before #443. The
+    // effective request is set once a request reaches step 4, so every admission has one.
+    private OperationPolicyDecision EvaluateConfiguration(
+        string operationId,
+        OperationRequestClassification? classification,
+        out EffectiveRequest? effective)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(operationId);
+        effective = null;
 
         // 1. Registration.
         if (!_operations.TryGetValue(operationId, out var operation))
@@ -335,6 +425,7 @@ internal sealed class OperationPolicy
         var ui = classification?.First(OperationOptionEffect.InteractiveUi);
         var risks = ui is null ? row.Risks : row.Risks | OperationRisks.InteractiveUi;
         var duration = ui is null ? row.Duration : OperationDurationClass.Interactive;
+        effective = new EffectiveRequest(row.Risks, risks, ui);
 
         // 4 and 5. Per-operation overrides. A deny override is a static decision,
         // so it names no request option.
@@ -387,6 +478,19 @@ internal sealed class OperationPolicy
 
     private static OperationPolicyDecision Denied(OperationDescriptor operation, OperationPolicyDenial denial) =>
         OperationPolicyDecision.Deny("operation-policy-denied", operation, denial);
+
+    private static OperationPolicyDecision CallerDenied(
+        string diagnosticCode,
+        OperationDescriptor operation,
+        OperationPolicyDenial denial) =>
+        OperationPolicyDecision.Deny(diagnosticCode, operation, denial);
+
+    // The reviewed row's risks, the request's effective risks, and the first enabled
+    // option that opens operator UI, if any.
+    private readonly record struct EffectiveRequest(
+        OperationRisks RowRisks,
+        OperationRisks Risks,
+        OperationConditionalOption? Option);
 
     private static OperationDescriptor WithEffectiveScope(
         OperationDescriptor operation,
