@@ -242,6 +242,7 @@ function Get-RestoredPackageNotices {
             } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique -CaseSensitive)
         }
         $sources = @()
+        $sourceNotices = @()
         switch ($license.GetAttribute('type')) {
             'file' {
                 $declaredFile = $archive.GetEntry($declaration.Replace('\', '/'))
@@ -257,6 +258,10 @@ function Get-RestoredPackageNotices {
                     }
                     $primary = Add-ReviewedText $PackageRoot $review.text
                     $sources += $evidence.texts[$review.text].url
+                    foreach ($noticeName in ($review['notices'] ?? @())) {
+                        $sourceNotices += Add-ReviewedText $PackageRoot $noticeName
+                        $sources += $evidence.texts[$noticeName].url
+                    }
                 }
                 elseif ($declaration -cin @('Apache-2.0', 'MIT')) {
                     $primary = $null
@@ -284,7 +289,7 @@ function Get-RestoredPackageNotices {
             default { throw "Unrecognized license metadata for $Identity. Review the resolved package before packaging." }
         }
         $licenseFiles = @($primary) + @($licenseEntries | ForEach-Object { Add-PackageText $PackageRoot (Read-PackageText $_) })
-        $noticeFiles = @($noticeEntries | ForEach-Object { Add-PackageText $PackageRoot (Read-PackageText $_) })
+        $noticeFiles = $sourceNotices + @($noticeEntries | ForEach-Object { Add-PackageText $PackageRoot (Read-PackageText $_) })
         if ($id -ieq 'Microsoft.WindowsDesktop.App.Runtime.win-x64') {
             foreach ($framework in 'wpf', 'winforms') {
                 $noticeFiles += Add-ReviewedText $PackageRoot $framework

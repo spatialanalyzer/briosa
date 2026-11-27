@@ -11,6 +11,14 @@
     <UserSecretsId>spatialanalyzer-briosa-development</UserSecretsId>
     <BriosaDevelopmentWorkerOutput>$(MSBuildProjectDirectory)\..\Briosa.Worker\bin\$(Configuration)\$(TargetFramework)\</BriosaDevelopmentWorkerOutput>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(CliPinServerExtensions)' == 'true'">
+    <NuGetLockFilePath>packages.cli-pins.lock.json</NuGetLockFilePath>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(CliPinServerExtensions)' == 'true'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
 
   <ItemGroup Condition="'$(SourceRevisionId)' != ''">
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">

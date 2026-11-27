@@ -53,6 +53,22 @@
       "url": "https://raw.githubusercontent.com/protocolbuffers/protobuf/2c74169b34066ceb8ddb6b882fcb3fb32d737a55/LICENSE",
       "sha256": "6e5e117324afd944dcf67f36cf329843bc1a92229a8cd9bb573d7a83130fea7d"
     },
+    "MCP C# SDK 2.4.0 license": {
+      "file": "mcp-sdk-2.4.0-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/modelcontextprotocol/csharp-sdk/4cbf42ef107763f0bc75c358af8cb2dfe47a769a/LICENSE",
+      "sha256": "7c6a686d2b34b86ad8c726e0ac4d76903b525f251d73e617f8db3879fa8f11fc"
+    },
+    "MCP C# SDK 2.4.0 notices": {
+      "file": "mcp-sdk-2.4.0-THIRD-PARTY-NOTICES.txt",
+      "url": "https://raw.githubusercontent.com/modelcontextprotocol/csharp-sdk/4cbf42ef107763f0bc75c358af8cb2dfe47a769a/THIRD-PARTY-NOTICES.txt",
+      "rawSha256": "b9c35f6ab075077d5c2b644fdc58eb5696b8b70f539947f9e1e57331599fc5ce",
+      "sha256": "2f7f668d285953d085a0050b6350358ef490300298f2d712fdcdd0438d53a751"
+    },
+    ".NET extensions AI 10.11.0 MIT": {
+      "file": "dotnet-extensions-ai-10.11.0-MIT.txt",
+      "url": "https://raw.githubusercontent.com/dotnet/extensions/25f07afa51034e37b334210642d7dc5f191c142d/LICENSE",
+      "sha256": "47f0ad8ba753eae5de6178291cd8f38bbb42d2368b177f8e11714ad17c701275"
+    },
     ".NET Foundation MIT": {
       "file": "dotnet-foundation-MIT.txt",
       "url": "https://raw.githubusercontent.com/dotnet/dotnet/297acf930fb0f5c07fd4e51d78e521b4ad2e5d1f/src/runtime/LICENSE.TXT",
@@ -65,6 +81,80 @@
       "repository": "https://github.com/protocolbuffers/protobuf.git",
       "commit": "2c74169b34066ceb8ddb6b882fcb3fb32d737a55",
       "text": "Google.Protobuf/3.36.2"
+    },
+    "ModelContextProtocol/2.4.0": {
+      "expression": "Apache-2.0",
+      "repository": "https://github.com/modelcontextprotocol/csharp-sdk",
+      "commit": "4cbf42ef107763f0bc75c358af8cb2dfe47a769a",
+      "text": "MCP C# SDK 2.4.0 license",
+      "notices": ["MCP C# SDK 2.4.0 notices"]
+    },
+    "ModelContextProtocol.Core/2.4.0": {
+      "expression": "Apache-2.0",
+      "repository": "https://github.com/modelcontextprotocol/csharp-sdk",
+      "commit": "4cbf42ef107763f0bc75c358af8cb2dfe47a769a",
+      "text": "MCP C# SDK 2.4.0 license",
+      "notices": ["MCP C# SDK 2.4.0 notices"]
+    },
+    "Microsoft.Extensions.AI.Abstractions/10.11.0": {
+      "expression": "MIT",
+      "repository": "https://github.com/dotnet/extensions",
+      "commit": "25f07afa51034e37b334210642d7dc5f191c142d",
+      "text": ".NET extensions AI 10.11.0 MIT"
+    },
+    "Microsoft.Extensions.Caching.Abstractions/10.0.14": {
+      "expression": "MIT",
+      "repository": "https://github.com/dotnet/dotnet",
+      "commit": "0427b9abbead3fa64c6655eb4290c537397131fa",
+      "text": ".NET Foundation MIT"
+    },
+    "Microsoft.Extensions.Configuration.Abstractions/10.0.14": {
+      "expression": "MIT",
+      "repository": "https://github.com/dotnet/dotnet",
+      "commit": "0427b9abbead3fa64c6655eb4290c537397131fa",
+      "text": ".NET Foundation MIT"
+    },
+    "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.14": {
+      "expression": "MIT",
+      "repository": "https://github.com/dotnet/dotnet",
+      "commit": "0427b9abbead3fa64c6655eb4290c537397131fa",
+      "text": ".NET Foundation MIT"
+    },
+    "Microsoft.Extensions.Diagnostics.Abstractions/10.0.14": {
+      "expression": "MIT",
+      "repository": "https://github.com/dotnet/dotnet",
+      "commit": "0427b9abbead3fa64c6655eb4290c537397131fa",
+      "text": ".NET Foundation MIT"
+    },
+    "Microsoft.Extensions.FileProviders.Abstractions/10.0.14": {
+      "expression": "MIT",
+      "repository": "https://github.com/dotnet/dotnet",
+      "commit": "0427b9abbead3fa64c6655eb4290c537397131fa",
+      "text": ".NET Foundation MIT"
+    },
+    "Microsoft.Extensions.Hosting.Abstractions/10.0.14": {
+      "expression": "MIT",
+      "repository": "https://github.com/dotnet/dotnet",
+      "commit": "0427b9abbead3fa64c6655eb4290c537397131fa",
+      "text": ".NET Foundation MIT"
+    },
+    "Microsoft.Extensions.Logging.Abstractions/10.0.14": {
+      "expression": "MIT",
+      "repository": "https://github.com/dotnet/dotnet",
+      "commit": "0427b9abbead3fa64c6655eb4290c537397131fa",
+      "text": ".NET Foundation MIT"
+    },
+    "Microsoft.Extensions.Options/10.0.14": {
+      "expression": "MIT",
+      "repository": "https://github.com/dotnet/dotnet",
+      "commit": "0427b9abbead3fa64c6655eb4290c537397131fa",
+      "text": ".NET Foundation MIT"
+    },
+    "Microsoft.Extensions.Primitives/10.0.14": {
+      "expression": "MIT",
+      "repository": "https://github.com/dotnet/dotnet",
+      "commit": "0427b9abbead3fa64c6655eb4290c537397131fa",
+      "text": ".NET Foundation MIT"
     },
     "System.Diagnostics.DiagnosticSource/11.0.0": {
       "expression": "MIT",

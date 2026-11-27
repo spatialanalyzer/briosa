@@ -13,7 +13,9 @@ param(
 
     [switch]$NoRestore,
 
-    [switch]$PassNoticeExpectation
+    [switch]$PassNoticeExpectation,
+    [ValidateSet('None', 'Root', 'Isolated')]
+    [string]$SpikeCliLayout = 'None'
 )
 
 Set-StrictMode -Version Latest
@@ -26,6 +28,7 @@ $serverProject = Join-Path $repositoryRoot "src\Briosa.Server\Briosa.Server.cspr
 $workerProject = Join-Path $repositoryRoot "src\Briosa.Worker\Briosa.Worker.csproj"
 $desktopProject = Join-Path $repositoryRoot "src\Briosa.ControlCenter\Briosa.ControlCenter.csproj"
 $desktopLauncherProject = Join-Path $repositoryRoot "src\Briosa.ControlCenter.Launcher\Briosa.ControlCenter.Launcher.csproj"
+$cliProject = Join-Path $repositoryRoot "src\Briosa.Cli\Briosa.Cli.csproj"
 $targetVersion = "2026.1.0529.7"
 $interopRoot = Join-Path $repositoryRoot "interop\SpatialAnalyzer\2026.1.0529.7"
 $interopProvenancePath = Join-Path $interopRoot "Briosa.SpatialAnalyzer.Interop.provenance.json"
@@ -166,6 +169,7 @@ try {
     $workerOutput = Join-Path $temporaryRoot "worker"
     $desktopOutput = Join-Path $temporaryRoot "desktop"
     $desktopLauncherOutput = Join-Path $temporaryRoot "desktop-launcher"
+    $cliOutput = Join-Path $temporaryRoot "cli"
     $packageRoot = Join-Path $temporaryRoot "package"
     [IO.Directory]::CreateDirectory($serverOutput) | Out-Null
     [IO.Directory]::CreateDirectory($workerOutput) | Out-Null
@@ -180,6 +184,9 @@ try {
             "restore", $desktopProject, "--locked-mode", "-r", "win-x64")
         Invoke-DotNet @(
             "restore", $desktopLauncherProject, "--locked-mode", "-r", "win-x64")
+        if ($SpikeCliLayout -ne 'None') {
+            Invoke-DotNet @("restore", $cliProject, "--locked-mode", "-r", "win-x64")
+        }
     }
 
     $publishProperties = @(
@@ -222,6 +229,25 @@ try {
     Copy-PublishTree $workerOutput $packageRoot
     Copy-PublishTree $desktopLauncherOutput $packageRoot
     Copy-PublishTree $desktopOutput (Join-Path $packageRoot "desktop")
+    if ($SpikeCliLayout -ne 'None') {
+        $prefix = if ($SpikeCliLayout -eq 'Isolated') { 'cli/' } else { '' }
+        $publishes += Invoke-PublishWithReceipt (@("publish", $cliProject, "-c", $Configuration, "-r", "win-x64",
+            "--self-contained", "true", "--no-restore", "-o", $cliOutput) + $publishProperties) $cliOutput $prefix
+        $disagreements = @(foreach ($file in Get-ChildItem -LiteralPath $cliOutput -File -Recurse |
+            Where-Object Extension -NE ".pdb" | Sort-Object FullName) {
+            $relativePath = [IO.Path]::GetRelativePath($cliOutput, $file.FullName)
+            $rootFile = Join-Path $packageRoot $relativePath
+            if ((Test-Path -LiteralPath $rootFile) -and
+                ((Get-FileHash -LiteralPath $file.FullName).Hash -ne (Get-FileHash -LiteralPath $rootFile).Hash)) {
+                $rootVersion = [Diagnostics.FileVersionInfo]::GetVersionInfo($rootFile).ProductVersion
+                $cliVersion = [Diagnostics.FileVersionInfo]::GetVersionInfo($file.FullName).ProductVersion
+                "$relativePath root=$rootVersion CLI=$cliVersion"
+            }
+        })
+        foreach ($disagreement in $disagreements) { Write-Host "CLI root overlap differs: $disagreement" }
+        $destination = if ($prefix) { Join-Path $packageRoot 'cli' } else { $packageRoot }
+        Copy-PublishTree $cliOutput $destination
+    }
     Copy-Item -LiteralPath (Join-Path $repositoryRoot "docs\operations\control-center.md") `
         -Destination (Join-Path $packageRoot "CONTROL-CENTER.md")
     $brandMetadata = Join-Path $packageRoot "metadata\desktop-brand"

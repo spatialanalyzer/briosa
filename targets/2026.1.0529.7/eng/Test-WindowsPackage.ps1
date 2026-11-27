@@ -3,7 +3,9 @@ param(
     [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$')]
     [string]$Version = "0.1.0-ci",
 
-    [string]$OutputDirectory = "artifacts\package-smoke"
+    [string]$OutputDirectory = "artifacts\package-smoke",
+    [ValidateSet('None', 'Root', 'Isolated')]
+    [string]$SpikeCliLayout = 'None'
 )
 
 Set-StrictMode -Version Latest
@@ -82,12 +84,14 @@ try {
         Version = $Version
         SourceRevision = $sourceRevision
         OutputDirectory = $firstOutput
+        SpikeCliLayout = $SpikeCliLayout
     }
     & $packageScript @firstBuild
     $secondBuild = @{
         Version = $Version
         SourceRevision = $sourceRevision
         OutputDirectory = $secondOutput
+        SpikeCliLayout = $SpikeCliLayout
         NoRestore = $true
         PassNoticeExpectation = $true
     }
@@ -95,6 +99,8 @@ try {
 
     $firstHash = (Get-FileHash -LiteralPath $firstZip -Algorithm SHA256).Hash
     $secondHash = (Get-FileHash -LiteralPath $secondZip -Algorithm SHA256).Hash
+    Write-Host "First ZIP SHA-256: $firstHash"
+    Write-Host "Second ZIP SHA-256: $secondHash"
     Assert-Condition -Condition ($firstHash -eq $secondHash) -Message "Two clean package builds produced different SHA-256 hashes."
     $externalChecksumPath = "$firstZip.sha256"
     $externalChecksum = Get-Content -LiteralPath $externalChecksumPath -Raw
@@ -105,6 +111,11 @@ try {
     Assert-Condition -Condition (Test-Path -LiteralPath $packageRoot -PathType Container) -Message "The archive does not contain the expected package root."
     Assert-WindowsPackageNotices $packageRoot $noticeExpectation
     & (Join-Path $repositoryRoot '../../eng/Test-WindowsPackageNoticeGates.ps1') -PackageRoot $packageRoot -TargetDirectory $repositoryRoot -Expected $noticeExpectation
+    if ($SpikeCliLayout -ne 'None') {
+        $cliPath = if ($SpikeCliLayout -eq 'Isolated') { 'cli/Briosa.Cli.exe' } else { 'Briosa.Cli.exe' }
+        $cliVersion = & (Join-Path $packageRoot $cliPath) --version
+        Assert-Condition -Condition ($LASTEXITCODE -eq 0 -and $cliVersion) -Message 'Packaged CLI did not start.'
+    }
 
     $manifest = Get-Content -LiteralPath (Join-Path $packageRoot "manifest.json") -Raw | ConvertFrom-Json
     Assert-Condition -Condition ($manifest.briosaVersion -eq $Version) -Message "The manifest Briosa version is incorrect."
@@ -213,6 +224,10 @@ try {
     $standardOutput = Join-Path $temporaryRoot "server.stdout.log"
     $standardError = Join-Path $temporaryRoot "server.stderr.log"
     $defaultLogDirectory = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Briosa\logs\2026.1.0529.7'
+    if ($SpikeCliLayout -ne 'None') {
+        $defaultLogDirectory = Join-Path $temporaryRoot 'server-logs'
+        $env:Briosa__Logging__File__Directory = $defaultLogDirectory
+    }
     $previousLogs = @(Get-ChildItem -LiteralPath $defaultLogDirectory -Filter 'briosa-*.jsonl' -ErrorAction SilentlyContinue |
         Select-Object -ExpandProperty Name)
     # Launch from a foreign working directory whose poison settings (an unknown
@@ -330,12 +345,17 @@ try {
         -Message "The packaged host accepted a non-loopback endpoint."
     $serverProcess.Dispose()
     $serverProcess = $null
-    $desktopSmoke = Join-Path $repositoryRoot "tests/Briosa.ControlCenter.Smoke/Briosa.ControlCenter.Smoke.csproj"
-    Invoke-DotNet @("restore", $desktopSmoke, "--locked-mode")
-    Invoke-DotNet @("build", $desktopSmoke, "-c", "Release", "--no-restore")
-    Invoke-DotNet @("run", "--project", $desktopSmoke, "-c", "Release", "--no-build", "--no-restore", "--",
-        "--package", $packageRoot, (Join-Path $workerTestHostOutput "Briosa.Worker.TestHost.exe"))
-    Write-Host "Package reproducibility, checksums, diagnostics, desktop ownership, and launch smoke tests passed."
+    if ($SpikeCliLayout -eq 'None') {
+        $desktopSmoke = Join-Path $repositoryRoot "tests/Briosa.ControlCenter.Smoke/Briosa.ControlCenter.Smoke.csproj"
+        Invoke-DotNet @("restore", $desktopSmoke, "--locked-mode")
+        Invoke-DotNet @("build", $desktopSmoke, "-c", "Release", "--no-restore")
+        Invoke-DotNet @("run", "--project", $desktopSmoke, "-c", "Release", "--no-build", "--no-restore", "--",
+            "--package", $packageRoot, (Join-Path $workerTestHostOutput "Briosa.Worker.TestHost.exe"))
+        Write-Host "Package reproducibility, checksums, diagnostics, desktop ownership, and launch smoke tests passed."
+    }
+    else {
+        Write-Host 'Package reproducibility, checksums, notice gates, CLI version, diagnostics and launch smoke passed. Desktop ownership uses a state directory outside the spike worktree and was skipped.'
+    }
 }
 finally {
     if ($null -ne $serverProcess -and -not $serverProcess.HasExited) {

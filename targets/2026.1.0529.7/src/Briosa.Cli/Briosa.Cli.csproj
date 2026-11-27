@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <SpikeFlavor Condition="'$(UseMcpCore)' == 'true'">.core</SpikeFlavor>
+    <SpikeFlavor Condition="'$(CliPinDiagnosticSource)' == 'true'">$(SpikeFlavor).pin</SpikeFlavor>
+    <SpikeFlavor Condition="'$(CliSharedRuntime)' == 'true'">$(SpikeFlavor).shared</SpikeFlavor>
+    <SpikeFlavor Condition="'$(CliPinExtensions)' == 'true'">$(SpikeFlavor).extensions</SpikeFlavor>
+    <NuGetLockFilePath>packages$(SpikeFlavor).lock.json</NuGetLockFilePath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Briosa.Protocol/Briosa.Protocol.csproj" />
+    <PackageReference Include="Grpc.Net.Client" />
+    <PackageReference Include="ModelContextProtocol.Core" Condition="'$(UseMcpCore)' == 'true'" />
+    <PackageReference Include="ModelContextProtocol" Condition="'$(UseMcpCore)' != 'true'" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Condition="'$(CliPinDiagnosticSource)' == 'true'" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" Condition="'$(CliSharedRuntime)' == 'true'" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(CliPinExtensions)' == 'true'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+</Project>

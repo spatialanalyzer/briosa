@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/Briosa.Cli/Briosa.Cli.csproj" />
     <Project Path="src/Briosa.Desktop/Briosa.Desktop.csproj" />
     <Project Path="src/Briosa.ControlCenter/Briosa.ControlCenter.csproj" />
     <Project Path="src/Briosa.ControlCenter.Launcher/Briosa.ControlCenter.Launcher.csproj" />
