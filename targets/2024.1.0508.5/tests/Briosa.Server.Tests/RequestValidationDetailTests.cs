@@ -93,6 +93,17 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
         var outputTypeCleared = Change(report, "report_output_options.output_type", "absent");
         Assert.Contains(Problems(report, RequestFieldViolation.OneofRequired("report_output_options"), outputTypeCleared),
             problem => problem.Contains("for a change to", StringComparison.Ordinal));
+        // A oneof member set explicitly, even to an empty string, leaves the oneof set.
+        var pathSelected = Change(report, "report_output_options.external_path", "empty", oneofUnset: false);
+        Assert.Contains(Problems(report, RequestFieldViolation.OneofRequired("report_output_options"), pathSelected),
+            problem => problem.Contains("for a change to", StringComparison.Ordinal));
+
+        // A free-form string is not a named choice; a string the operation only accepts
+        // from a target's list is.
+        Assert.Contains(Problems(notes, RequestFieldViolation.SupportedChoice("collection.name"), blankName),
+            problem => problem.Contains("is not a named choice", StringComparison.Ordinal));
+        Assert.Empty(Problems(notes, RequestFieldViolation.SupportedChoice("collection.name"), blankName,
+            new HashSet<string>(StringComparer.Ordinal) { "collection.name" }));
     }
 
     // The one deliberately generic argument failure: a null request names no field.
@@ -120,6 +131,10 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
         foreach (var operation in ImplementedOperations())
         {
             var id = operation.Descriptor.OperationId;
+            // The string fields this operation accepts only from a target's list of names:
+            // the ones whose sentinel text the mapping rejected as an unsupported choice
+            // while the baseline was built.
+            var choicePaths = new HashSet<string>(StringComparer.Ordinal);
             void Check(Outcome outcome, FieldChange? change, string mutation)
             {
                 switch (outcome.Exception)
@@ -129,7 +144,7 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
                     case RequestFieldViolation violation:
                         reported.Add($"{id} {violation.FieldPath} {violation.Constraint}");
                         constraints[violation.Constraint] = constraints.GetValueOrDefault(violation.Constraint) + 1;
-                        foreach (var problem in Problems(operation.Request, violation, change))
+                        foreach (var problem in Problems(operation.Request, violation, change, choicePaths))
                         {
                             problems.Add($"{id}: {mutation}: {problem}");
                         }
@@ -143,10 +158,11 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
                 }
             }
 
+            var baseline = Baseline(operation, out var failure, choicePaths);
+
             var empty = (IMessage)Activator.CreateInstance(operation.Request.ClrType)!;
             Check(Build(operation, empty), null, "empty request");
 
-            var baseline = Baseline(operation, out var failure);
             if (baseline is null)
             {
                 unbuilt.Add($"{id}: {failure}");
@@ -168,7 +184,9 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
 
                     mutation.Apply(parent, field);
                     mutations++;
-                    Check(Build(operation, request), new(text, field, mutation), $"{text} {mutation.Name}");
+                    var oneofUnset = field.RealContainingOneof is { } oneof &&
+                        oneof.Accessor.GetCaseFieldDescriptor(parent) is null;
+                    Check(Build(operation, request), new(text, field, mutation, oneofUnset), $"{text} {mutation.Name}");
                 }
             }
         }
@@ -195,7 +213,9 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
             constraints.Keys.Order());
     }
 
-    internal static IEnumerable<string> Problems(MessageDescriptor request, RequestFieldViolation violation, FieldChange? change)
+    internal static IEnumerable<string> Problems(
+        MessageDescriptor request, RequestFieldViolation violation, FieldChange? change,
+        IReadOnlySet<string>? choicePaths = null)
     {
         var path = violation.FieldPath;
         var field = Resolve(request, path, out var unresolved);
@@ -208,6 +228,12 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
         if (Misfit(field, violation.Constraint) is { } misfit)
         {
             yield return $"'{path}' {violation.Constraint}: {misfit}";
+        }
+
+        if (violation.Constraint == Api.RequestFieldConstraint.SupportedChoice && field.FieldType == FieldType.String &&
+            choicePaths?.Contains(path) != true)
+        {
+            yield return $"'{path}' is not a named choice of this operation";
         }
 
         // The server's own check must publish every violation a mapping really reports.
@@ -234,7 +260,7 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
             }
         }
         else if (!(violation.Constraint == Api.RequestFieldConstraint.OneofRequired &&
-                   change.Field.RealContainingOneof is not null &&
+                   change.Field.RealContainingOneof is not null && change.OneofUnset &&
                    change.Path == $"{path}.{change.Field.Name}"))
         {
             yield return $"reported '{path}' for a change to '{change.Path}'";
@@ -242,10 +268,11 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
     }
 
     // The change the sweep would make to one field, for the self-test.
-    private static FieldChange Change(MessageDescriptor request, string path, string mutation)
+    private static FieldChange Change(MessageDescriptor request, string path, string mutation, bool oneofUnset = true)
     {
         var field = Resolve(request, path, out _)!;
-        return new(path, field, Mutations(field).Single(candidate => candidate.Name == mutation));
+        return new(path, field, Mutations(field).Single(candidate => candidate.Name == mutation),
+            field.RealContainingOneof is not null && oneofUnset);
     }
 
     internal static bool Leaks(byte[] bytes)
@@ -349,7 +376,8 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
 
     // A request the operation accepts: every field set, sentinel text and numbers where
     // the mapping takes them, and each reported violation repaired until none remains.
-    internal static IMessage? Baseline(ImplementedOperation operation, out string? failure)
+    internal static IMessage? Baseline(
+        ImplementedOperation operation, out string? failure, ISet<string>? choicePaths = null)
     {
         var request = Filled(operation.Request, 0);
         var attempts = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -366,6 +394,12 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
             {
                 failure = $"{outcome.Exception.GetType().Name}: {outcome.Exception.Message}";
                 return null;
+            }
+
+            if (violation.Constraint == Api.RequestFieldConstraint.SupportedChoice &&
+                Resolve(operation.Request, violation.FieldPath, out _) is { FieldType: FieldType.String })
+            {
+                choicePaths?.Add(violation.FieldPath);
             }
 
             var count = attempts[violation.FieldPath] = attempts.GetValueOrDefault(violation.FieldPath) + 1;
@@ -702,5 +736,6 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
     internal sealed record Mutation(
         string Name, Action<IMessage, FieldDescriptor> Apply, IReadOnlyList<Api.RequestFieldConstraint> Causes);
 
-    internal sealed record FieldChange(string Path, FieldDescriptor Field, Mutation Mutation);
+    // OneofUnset: the change left the oneof that holds Field with no field set.
+    internal sealed record FieldChange(string Path, FieldDescriptor Field, Mutation Mutation, bool OneofUnset);
 }

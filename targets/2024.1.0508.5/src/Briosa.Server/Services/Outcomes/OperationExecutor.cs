@@ -81,6 +81,7 @@ internal sealed class OperationExecutor(
         var startedAt = _timeProvider.GetTimestamp();
         var rpcStatus = StatusCode.Internal;
         WorkerExecutionOutcome? outcome = null;
+        OperationAuditSummary? failureSummary = null;
         var mapping = new RequestMappingAttempt<TRequest>(request, createCommand);
         try
         {
@@ -92,16 +93,19 @@ internal sealed class OperationExecutor(
                     effectiveCorrelationId,
                     cancellationToken).ConfigureAwait(false);
             }
-            catch (RequestFieldViolation violation) when (mapping.Completed && !mapping.Threw(violation))
+            catch (ArgumentException exception) when (mapping.FailedAfterMapping(exception))
             {
-                // A typed violation that the request mapping did not throw, after the
-                // mapped command left this executor: not a request validation failure,
-                // and Briosa cannot prove that the command did not start.
+                // A typed violation that the request mapping did not throw, or any argument
+                // failure after a repeated mapping, once a mapped command left this
+                // executor: not a request validation failure, and Briosa cannot prove that
+                // the command did not start. The audit records the same disposition.
+                const WorkerExecutionDisposition disposition = WorkerExecutionDisposition.StartedOutcomeUnknown;
+                failureSummary = OperationAuditSummary.WithoutExecution(disposition);
                 throw GrpcOperationOutcomeMapper.CreateInternalFailure(
                     operation.OperationId,
                     operation.ReplaySafety,
                     generation: 0,
-                    WorkerExecutionDisposition.StartedOutcomeUnknown,
+                    disposition,
                     "request-violation-after-mapping");
             }
             catch (ArgumentException exception)
@@ -158,7 +162,7 @@ internal sealed class OperationExecutor(
                 operation.OperationId,
                 outcome?.Generation ?? 0,
                 RequestDurationMilliseconds(startedAt),
-                OperationAuditSummary.Create(outcome, operation.OperationId),
+                failureSummary ?? OperationAuditSummary.Create(outcome, operation.OperationId),
                 exception.StatusCode,
                 GrpcOperationOutcomeMapper.GetDiagnosticCode(exception));
             throw;
