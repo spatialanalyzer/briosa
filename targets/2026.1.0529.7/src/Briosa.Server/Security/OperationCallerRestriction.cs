@@ -70,7 +70,58 @@ internal sealed record OperationCallerRestriction
     }
 
     /// <summary>
-    /// Reads the caller restriction from request metadata. No entry is
+    /// Reads the caller restriction of one call. A call hosted by ASP.NET Core, as every
+    /// server call is, is read from its raw request headers. Any other call context, such
+    /// as an in-process test's, has no raw headers and is read from its metadata.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="ServerCallContext.RequestHeaders"/> is not read for a hosted call: it
+    /// joins separate header fields of one name with a comma, which could form one valid
+    /// value from two, and it decodes every binary header, which throws on one that is
+    /// not valid base64 even when the header is not this one.
+    /// </remarks>
+    public static OperationCallerRestrictionHeader Read(ServerCallContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        HttpContext? http;
+        try
+        {
+            http = context.GetHttpContext();
+        }
+        catch (InvalidOperationException)
+        {
+            // Not hosted by ASP.NET Core.
+            http = null;
+        }
+
+        return http is null ? Read(context.RequestHeaders) : Read(http.Request.Headers);
+    }
+
+    /// <summary>
+    /// Reads the caller restriction from raw HTTP request headers. It looks up only the
+    /// header's text and binary names, by key, and never reads or decodes another
+    /// header. Neither name is <see cref="OperationCallerRestrictionHeader.Absent"/>.
+    /// The binary name, a text header with other than exactly one value (two header
+    /// fields of the name are two values), or a value that does not parse is malformed.
+    /// </summary>
+    public static OperationCallerRestrictionHeader Read(IHeaderDictionary headers)
+    {
+        ArgumentNullException.ThrowIfNull(headers);
+        var hasText = headers.TryGetValue(HeaderName, out var values);
+        var hasBinary = headers.ContainsKey(HeaderName + Metadata.BinaryHeaderSuffix);
+        if (!hasText && !hasBinary)
+        {
+            return OperationCallerRestrictionHeader.Absent;
+        }
+
+        return !hasBinary && values.Count == 1 && Parse(values[0]) is { } restriction
+            ? OperationCallerRestrictionHeader.Of(restriction)
+            : OperationCallerRestrictionHeader.Malformed;
+    }
+
+    /// <summary>
+    /// Reads the caller restriction from request metadata, for a call context that is
+    /// not hosted by ASP.NET Core. No entry is
     /// <see cref="OperationCallerRestrictionHeader.Absent"/>. More than one entry,
     /// a binary entry, or a value that does not parse is malformed.
     /// </summary>

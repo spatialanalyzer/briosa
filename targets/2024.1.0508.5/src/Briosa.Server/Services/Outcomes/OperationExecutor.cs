@@ -43,7 +43,9 @@ internal sealed class OperationExecutor(
             context.Deadline,
             Guid.NewGuid(),
             ClassifyActor(context.Peer),
-            OperationCallerRestriction.Read(context.RequestHeaders));
+            // Reads only the restriction's own header names, from the raw request headers.
+            // It never throws; a malformed header is rejected after RequestStarted.
+            OperationCallerRestriction.Read(context));
     }
 
     // gRPC receives at most 64 KiB. Budget eight bytes of retained work per
@@ -65,6 +67,8 @@ internal sealed class OperationExecutor(
         DateTime? deadline = null,
         Guid? correlationId = null,
         string actorCategory = "internal-unattributed",
+        // The call's restriction header as the public overload read it. A caller without a
+        // call context, such as a test, passes it explicitly; the default is no header.
         OperationCallerRestrictionHeader callerRestriction = default)
         where TRequest : class
         where TResponse : class

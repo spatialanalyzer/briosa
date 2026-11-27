@@ -250,16 +250,20 @@ The server reads the header before policy, request mapping, or dispatch. It
 rejects the call, and dispatches nothing, when the header:
 
 - is present but empty;
-- has more than one entry. ASP.NET Core joins repeated entries into one value
-  with `, `, which the grammar never accepts, and the server also rejects two
-  entries it receives separately;
-- is a binary entry, `briosa-caller-restriction-bin`;
+- has more than one entry. The server reads the request's raw HTTP headers,
+  where each header field of the name is a separate value, so two fields are
+  rejected even when joining them would form a valid value;
+- is a binary entry, `briosa-caller-restriction-bin`, whatever its value. The
+  server never decodes it;
 - has an unknown or repeated key, an unknown profile, an unknown or repeated
   flag, or a name in the wrong case;
 - has whitespace other than the one space after `;`, including leading or
   trailing whitespace;
 - has an empty clause, profile, or flag list, or a stray `;`, `,`, or `=`; or
 - has any other character, or more than 256 characters.
+
+The server reads only these two header names. It never reads or decodes any
+other request header, so an unrelated header cannot change a call's outcome.
 
 The outcome is `InvalidArgument` with the fixed text "The request is invalid.",
 kind `VALIDATION`, diagnostic code `caller-restriction-invalid`, disposition

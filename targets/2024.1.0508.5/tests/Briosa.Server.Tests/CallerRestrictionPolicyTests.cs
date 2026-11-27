@@ -34,6 +34,19 @@ public sealed class CallerRestrictionPolicyTests(ITestOutputHelper output)
     /// an admission the restriction keeps is unchanged, and a caller denial names the
     /// step the evaluator takes for the caller's limits alone.
     /// </summary>
+    /// <remarks>
+    /// What this establishes: given the server's own reading of each request, step 8
+    /// only narrows, and it decides exactly as steps 6 and 7 decide for a server
+    /// configured with the caller's limits. The reference is this same evaluator, and
+    /// both sides read each request through the same <see cref="OperationRequestClassifier"/>,
+    /// so a fault in how the classifier reads a request would affect both alike. That
+    /// reading is checked separately: this test's coverage step requires the classifier
+    /// to read every case as the case was built,
+    /// <see cref="WithoutARestrictionEveryDecisionIsTheReleasedPrecedence"/> derives each
+    /// case's enabled options from how it was built, and
+    /// <see cref="OperationConditionalOptionTests.ClassifierAgreesWithTheMpArgumentEachRequestSends"/>
+    /// checks the classifier against the MP argument each request sends.
+    /// </remarks>
     [Fact]
     public void ARestrictionAdmitsExactlyWhatBothTheServerAndTheCallersOwnLimitsAdmit()
     {
@@ -96,9 +109,16 @@ public sealed class CallerRestrictionPolicyTests(ITestOutputHelper output)
     /// <summary>
     /// Without a restriction, every decision over the same servers and cases is the
     /// one the released precedence (Server 0.10.1, steps 1 to 7) makes, transcribed
-    /// independently below: same kind, diagnostic code, rule, duration class, and
-    /// denial, and no caller restriction recorded.
+    /// separately below: same kind, diagnostic code, rule, duration class, and denial,
+    /// and no caller restriction recorded.
     /// </summary>
+    /// <remarks>
+    /// The transcription does not use the request classifier: each case's enabled
+    /// options come from how the case built its request, so a classifier that reads a
+    /// request wrongly fails this test. It does share the reviewed inputs: the
+    /// classification rows, the effective execution scopes of the descriptors, the
+    /// profile definitions, and the denial records the decisions are compared with.
+    /// </remarks>
     [Fact]
     public void WithoutARestrictionEveryDecisionIsTheReleasedPrecedence()
     {
@@ -113,7 +133,7 @@ public sealed class CallerRestrictionPolicyTests(ITestOutputHelper output)
             foreach (var candidate in cases)
             {
                 var actual = candidate.Decide(policy, null);
-                var expected = Released(configuration, operations[candidate.OperationId], candidate.Classification());
+                var expected = Released(configuration, operations[candidate.OperationId], candidate.Expected);
                 if (actual.Kind != expected.Kind || actual.DiagnosticCode != expected.Code ||
                     actual.PolicyRule != expected.Rule || actual.DurationClass != expected.Duration ||
                     !Equals(actual.Denial, expected.Denial) || actual.CallerRestriction is not null ||
@@ -544,10 +564,16 @@ public sealed class CallerRestrictionPolicyTests(ITestOutputHelper output)
             Assert.Equal(withOptions, cases.Count(candidate => candidate.Kind == kind));
         }
 
-        // Every option turned on alone enables exactly that option.
-        Assert.All(cases.Where(candidate => candidate.Kind == CaseKind.Enabled), candidate => Assert.Equal(
-            candidate.Field,
-            Assert.Single(candidate.Classification()!.EnabledOptions).Field));
+        // The classifier reads every request as it was built to be read.
+        Assert.All(cases.Where(candidate => candidate.Kind != CaseKind.Row), candidate =>
+        {
+            var read = candidate.Classification()!;
+            Assert.True(candidate.Expected!.IsClassified == read.IsClassified, candidate.Label);
+            Assert.True(
+                candidate.Expected.EnabledOptions.Select(option => option.Field)
+                    .SequenceEqual(read.EnabledOptions.Select(option => option.Field), StringComparer.Ordinal),
+                candidate.Label);
+        });
     }
 
     internal enum CaseKind
@@ -560,7 +586,16 @@ public sealed class CallerRestrictionPolicyTests(ITestOutputHelper output)
         Missing
     }
 
-    internal sealed record Case(CaseKind Kind, string OperationId, string? Field, IMessage? Request)
+    /// <summary>
+    /// One evaluated case. <paramref name="Expected"/> is the classification its request
+    /// was built to have, derived from the reviewed table, not read by the classifier.
+    /// </summary>
+    internal sealed record Case(
+        CaseKind Kind,
+        string OperationId,
+        string? Field,
+        IMessage? Request,
+        OperationRequestClassification? Expected)
     {
         public string Label => Field is null ? $"{OperationId} ({Kind})" : $"{OperationId}.{Field} ({Kind})";
 
@@ -583,21 +618,30 @@ public sealed class CallerRestrictionPolicyTests(ITestOutputHelper output)
         var cases = new List<Case>();
         foreach (var operation in SpatialAnalyzerApi.Operations)
         {
-            cases.Add(new(CaseKind.Row, operation.OperationId, null, null));
+            cases.Add(new(CaseKind.Row, operation.OperationId, null, null, Expected: null));
             var options = OperationRequestClassifier.Default.OptionsFor(operation.OperationId);
             if (options.Count == 0)
             {
                 continue;
             }
 
-            cases.Add(new(CaseKind.AllOff, operation.OperationId, null, Request(operation.OperationId, enabled: null)));
+            cases.Add(new(CaseKind.AllOff, operation.OperationId, null, Request(operation.OperationId, enabled: null),
+                OperationRequestClassification.NoOptions));
             foreach (var option in options)
             {
                 cases.Add(new(CaseKind.Enabled, operation.OperationId, option.Field,
-                    Request(operation.OperationId, enabled: option)));
+                    Request(operation.OperationId, enabled: option), OperationRequestClassification.Enabling(option)));
                 var omitted = Request(operation.OperationId, enabled: null);
                 omitted.Descriptor.FindFieldByName(option.Field).Accessor.Clear(omitted);
-                cases.Add(new(CaseKind.Omitted, operation.OperationId, option.Field, omitted));
+                // An omitted Boolean option is on when the value Briosa sends for it enables it.
+                var omissionEnables = option.Condition switch
+                {
+                    OperationOptionCondition.WhenTrue => option.Absence == OperationOptionAbsence.SendsTrue,
+                    OperationOptionCondition.WhenFalse => option.Absence == OperationOptionAbsence.SendsFalse,
+                    _ => false
+                };
+                cases.Add(new(CaseKind.Omitted, operation.OperationId, option.Field, omitted,
+                    omissionEnables ? OperationRequestClassification.Enabling(option) : OperationRequestClassification.NoOptions));
             }
 
             var all = Request(operation.OperationId, enabled: null);
@@ -606,8 +650,9 @@ public sealed class CallerRestrictionPolicyTests(ITestOutputHelper output)
                 Set(all.Descriptor.FindFieldByName(option.Field), all, option, enabled: true);
             }
 
-            cases.Add(new(CaseKind.AllOn, operation.OperationId, null, all));
-            cases.Add(new(CaseKind.Missing, operation.OperationId, null, null));
+            cases.Add(new(CaseKind.AllOn, operation.OperationId, null, all,
+                new OperationRequestClassification(true, [.. options])));
+            cases.Add(new(CaseKind.Missing, operation.OperationId, null, null, OperationRequestClassification.Unclassified));
         }
 
         return cases;

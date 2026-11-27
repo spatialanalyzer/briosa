@@ -1,5 +1,7 @@
 using Briosa.Server.Security;
 using Grpc.Core;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 
 namespace Briosa.Server.Tests;
 
@@ -205,7 +207,7 @@ public sealed class CallerRestrictionHeaderTests
     [Fact]
     public void ReadDistinguishesAbsentValidAndMalformed()
     {
-        Assert.Equal(OperationCallerRestrictionHeader.Absent, OperationCallerRestriction.Read(null));
+        Assert.Equal(OperationCallerRestrictionHeader.Absent, OperationCallerRestriction.Read((Metadata?)null));
         Assert.Equal(OperationCallerRestrictionHeader.Absent, OperationCallerRestriction.Read([]));
         var unrelated = OperationCallerRestriction.Read(new Metadata
         {
@@ -250,6 +252,67 @@ public sealed class CallerRestrictionHeaderTests
             Assert.True(read.IsMalformed);
             Assert.Null(read.Restriction);
         }
+    }
+
+    [Fact]
+    public void RawHeadersAreReadByNameWithoutDecodingAnything()
+    {
+        Assert.Equal(OperationCallerRestrictionHeader.Absent, OperationCallerRestriction.Read(new HeaderDictionary()));
+
+        // Unrelated headers, including a binary one that is not base64, are never read.
+        Assert.Equal(OperationCallerRestrictionHeader.Absent, OperationCallerRestriction.Read(new HeaderDictionary
+        {
+            ["x-unrelated-bin"] = "!!not base64!!",
+            ["x-unrelated"] = new StringValues(["a", "b"])
+        }));
+
+        var valid = OperationCallerRestriction.Read(new HeaderDictionary
+        {
+            ["x-unrelated-bin"] = "!!not base64!!",
+            [OperationCallerRestriction.HeaderName] = "profile=read-only; deny=interactive_ui"
+        });
+        Assert.False(valid.IsMalformed);
+        Assert.Equal(OperationAdmissionProfile.ReadOnly, valid.Restriction!.Profile);
+        Assert.Equal(OperationRisks.InteractiveUi, valid.Restriction.DeniedFlags);
+
+        foreach (var headers in new[]
+        {
+            // Two header fields are two values, even when joining them would parse.
+            new HeaderDictionary
+            {
+                [OperationCallerRestriction.HeaderName] =
+                    new StringValues(["profile=read-only; deny=interactive_ui", "filesystem_write"])
+            },
+            new HeaderDictionary { [OperationCallerRestriction.HeaderName] = string.Empty },
+            // The binary name is malformed by its presence; its value is never decoded.
+            new HeaderDictionary { [OperationCallerRestriction.HeaderName + "-bin"] = "!!not base64!!" },
+            new HeaderDictionary
+            {
+                [OperationCallerRestriction.HeaderName] = "profile=read-only",
+                [OperationCallerRestriction.HeaderName + "-bin"] = "cHJvZmlsZT1yZWFkLW9ubHk="
+            }
+        })
+        {
+            var read = OperationCallerRestriction.Read(headers);
+            Assert.True(read.IsMalformed);
+            Assert.Null(read.Restriction);
+        }
+    }
+
+    [Fact]
+    public void ACallContextNotHostedByAspNetCoreIsReadFromItsMetadata()
+    {
+        var absent = new InMemoryServerCallContext("/briosa.FileOperations/GetWorkingDirectory", null, CancellationToken.None);
+        Assert.Equal(OperationCallerRestrictionHeader.Absent, OperationCallerRestriction.Read(absent));
+
+        var restricted = new InMemoryServerCallContext("/briosa.FileOperations/GetWorkingDirectory", null, CancellationToken.None);
+        restricted.RequestHeaders.Add(OperationCallerRestriction.HeaderName, "deny=interactive_ui");
+        Assert.Equal(OperationRisks.InteractiveUi, OperationCallerRestriction.Read(restricted).Restriction!.DeniedFlags);
+
+        var repeated = new InMemoryServerCallContext("/briosa.FileOperations/GetWorkingDirectory", null, CancellationToken.None);
+        repeated.RequestHeaders.Add(OperationCallerRestriction.HeaderName, "deny=interactive_ui");
+        repeated.RequestHeaders.Add(OperationCallerRestriction.HeaderName, "deny=interactive_ui");
+        Assert.True(OperationCallerRestriction.Read(repeated).IsMalformed);
     }
 
     [Fact]
