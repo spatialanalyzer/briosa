@@ -82,7 +82,9 @@ briosa-<briosa-semver>-sa-<exact-target>-win-x64.zip
 
 The archive contains separate `Briosa.Server.exe` and `Briosa.Worker.exe`
 processes, the approved managed interop assembly, safe operator documentation,
-manifest and provenance data, internal file hashes, and the Apache-2.0 license. It
+the target's protobuf descriptor set (byte-identical to the one in the protocol
+artifact below), manifest and provenance data, internal file hashes, and the
+Apache-2.0 license. It
 does not contain SpatialAnalyzer, the SDK executable, the original type-library
 container, license material, or copied vendor documentation.
 

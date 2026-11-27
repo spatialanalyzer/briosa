@@ -651,7 +651,21 @@ first-party client may surface it; one that does:
 The detail does not move validation into the client: clients still do not
 pre-validate requests from it, and the server remains authoritative.
 
-### Caller restriction
+Server 0.10.2 also adds `OperationCapability.mp_step`, the exact name of the
+SpatialAnalyzer MP command that the operation executes
+([MP step](../../targets/2026.1.0529.7/docs/operations/health-and-discovery.md#mp-step)).
+The server sets it on every listed capability, admitted or denied; earlier
+servers leave it empty. Clients that predate the field ignore it and keep
+working. A client may surface it:
+
+- expose it with each capability exactly as the server reports it, without
+  normalizing, translating, or deriving it from the client's own operation
+  name. A client may use it to find an operation by its MP command name, as
+  [command identity](#command-identity-and-discovery) requires of the client's
+  own names;
+- treat an empty value as "not reported", never as an error; and
+- keep it descriptive. It never changes admission, never selects which RPC a
+  call uses, and never makes an operation callable.
 
 Server 0.10.2 also accepts a per-call caller restriction
 ([#443](https://github.com/spatialanalyzer/briosa/issues/443); see the
@@ -676,7 +690,9 @@ exactly. The rules every client follows:
   call would run under the server's configuration alone. A client that sends a
   restriction it relies on first requires compatibility major 3, revision 2 or
   later, from live discovery. Against an older server it fails before sending
-  the call; it never sends the call unrestricted in its place.
+  the call; it never sends the call unrestricted in its place. Unlike the
+  validation detail and `mp_step`, whose absence is normal, the restriction
+  needs this check, because an ignored header changes what the call may do.
 - **Fail closed.** A malformed, empty, repeated, or binary header rejects the
   call before dispatch with a `VALIDATION` failure, diagnostic
   `caller-restriction-invalid`, `NOT_STARTED`, and `DO_NOT_REPLAY`. It is a

@@ -287,6 +287,14 @@ public sealed class CallerRestrictionGrpcTests
         Assert.Equal("profile.standard", Text(admitted, "PolicyRule"));
         var serverDenied = Assert.Single(events, logEvent => Text(logEvent, "OperationId") == "file_operations.delete_general_file");
         Assert.Equal("not_evaluated", Text(serverDenied, "CallerRestrictionDecision"));
+
+        // The RpcFailed event of the caller denial agrees with its trailer: not started.
+        var failed = Assert.Single(sink.Events, logEvent => EventId(logEvent) == 2005 &&
+            Text(logEvent, "OperationId") == QueryPointsToObjects &&
+            Text(logEvent, "GrpcStatus") == nameof(StatusCode.PermissionDenied));
+        Assert.Equal("caller-restriction-option-denied", Text(failed, "DiagnosticCode"));
+        Assert.Equal("not_started", Text(failed, "ExecutionDisposition"));
+        Assert.Equal("not_started", Text(failed, "MpOutcome"));
         Assert.Equal("profile.standard", Text(serverDenied, "PolicyRule"));
 
         // The raw header text appears in no event.
@@ -343,7 +351,17 @@ public sealed class CallerRestrictionGrpcTests
             }
         }
 
-        Assert.Contains(sink.Events, logEvent => Text(logEvent, "DiagnosticCode") == "caller-restriction-invalid");
+        // Each rejection's RpcFailed event agrees with its trailer: invalid, and not started.
+        var rejections = sink.Events.Where(logEvent => EventId(logEvent) == 2005).ToArray();
+        Assert.Equal(failures.Count, rejections.Length);
+        Assert.All(rejections, logEvent =>
+        {
+            Assert.Equal("caller-restriction-invalid", Text(logEvent, "DiagnosticCode"));
+            Assert.Equal(nameof(StatusCode.InvalidArgument), Text(logEvent, "GrpcStatus"));
+            Assert.Equal("not_started", Text(logEvent, "ExecutionDisposition"));
+            Assert.Equal("not_started", Text(logEvent, "MpOutcome"));
+        });
+        Assert.DoesNotContain(sink.Events, logEvent => EventId(logEvent) is 2002 or 2003);
         Assert.All(sink.Events, logEvent => AssertNoSentinel(Render(logEvent)));
         Assert.NotEmpty(activities);
         foreach (var activity in activities)

@@ -279,6 +279,12 @@ message OperationCapability {
   // request options and leaves it absent; clients built for Server 0.10.0
   // ignore it.
   optional OperationRequestOptions request_options = 13;
+  // The exact name of the SpatialAnalyzer MP command that the operation
+  // executes, for example "Get Working Directory". It names the command only
+  // and never carries an argument or result value. Server 0.10.2 and later set
+  // it on every listed operation, admitted or denied. Earlier servers leave it
+  // empty, and clients that predate the field ignore it.
+  string mp_step = 14;
 }
 
 // The reviewed request options of one operation. A present message with an

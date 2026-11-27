@@ -17,7 +17,10 @@ param(
     # one scenario and never reports a run as compatibility evidence. Release and CI
     # packages never set it.
     [ValidatePattern('^[a-z0-9]+(?:-[a-z0-9]+)*$')]
-    [string]$SoakScenario
+    [string]$SoakScenario,
+
+    # The Buf executable the server package build uses for its bundled descriptor set.
+    [string]$BufPath = "buf"
 )
 
 Set-StrictMode -Version Latest
@@ -107,6 +110,7 @@ try {
         OutputDirectory = $serverArtifactRoot
         Configuration = $Configuration
         NoRestore = $NoRestore
+        BufPath = $BufPath
     }
     & $windowsPackageScript @serverPackageArguments
     $serverZip = Join-Path $serverArtifactRoot "briosa-$Version-sa-$targetVersion-win-x64.zip"

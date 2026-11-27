@@ -17,13 +17,14 @@ $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $monorepoRoot = [IO.Path]::GetFullPath((Join-Path $repositoryRoot "..\.."))
+# The descriptor build is shared with New-WindowsPackage.ps1, which ships the same file.
+Import-Module (Join-Path $PSScriptRoot "ProtocolDescriptor.psm1") -Force
 $deterministicZipScript = Join-Path $PSScriptRoot "New-DeterministicZip.ps1"
-$protoRoot = Join-Path $repositoryRoot "proto"
 $targetVersion = "2026.1.0529.7"
 $temporaryBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $temporaryRoot = Join-Path $temporaryBase "briosa-protocol-$([Guid]::NewGuid().ToString('N'))"
 $outputRoot = [IO.Path]::GetFullPath($OutputDirectory, $repositoryRoot)
-$bufCommand = Get-Command -Name $BufPath -CommandType Application -ErrorAction Stop
+$bufCommand = Resolve-BufCommand $BufPath
 
 function Write-Utf8File {
     param(
@@ -33,32 +34,6 @@ function Write-Utf8File {
 
     [IO.Directory]::CreateDirectory((Split-Path -Parent $Path)) | Out-Null
     [IO.File]::WriteAllText($Path, $Content, [Text.UTF8Encoding]::new($false))
-}
-
-function Copy-NormalizedTextFile {
-    param(
-        [Parameter(Mandatory)][string]$Source,
-        [Parameter(Mandatory)][string]$Destination
-    )
-
-    Write-Utf8File `
-        -Path $Destination `
-        -Content ([IO.File]::ReadAllText($Source).Replace("`r`n", "`n"))
-}
-
-function Copy-NormalizedTextTree {
-    param(
-        [Parameter(Mandatory)][string]$Source,
-        [Parameter(Mandatory)][string]$Destination
-    )
-
-    foreach ($file in Get-ChildItem -LiteralPath $Source -File -Recurse |
-        Sort-Object FullName) {
-        $relativePath = [IO.Path]::GetRelativePath($Source, $file.FullName)
-        Copy-NormalizedTextFile `
-            -Source $file.FullName `
-            -Destination (Join-Path $Destination $relativePath)
-    }
 }
 
 function Get-ContentFiles {
@@ -108,37 +83,19 @@ $externalProvenancePath = Join-Path $outputRoot "$artifactBase.provenance.json"
 try {
     $bundleRoot = Join-Path $temporaryRoot "bundle"
     [IO.Directory]::CreateDirectory($bundleRoot) | Out-Null
-    Copy-NormalizedTextFile `
-        -Source (Join-Path $repositoryRoot "buf.yaml") `
-        -Destination (Join-Path $bundleRoot "buf.yaml")
-    Copy-NormalizedTextTree `
-        -Source $protoRoot `
-        -Destination (Join-Path $bundleRoot "proto")
+    # Copies buf.yaml and the proto tree into the bundle with LF line endings and
+    # builds the descriptor from exactly those shipped copies.
+    New-ProtocolDescriptorSet `
+        -TargetRoot $repositoryRoot `
+        -SourceRoot $bundleRoot `
+        -OutputPath (Join-Path $bundleRoot "descriptor\briosa.protoset") `
+        -BufCommand $bufCommand
     Copy-NormalizedTextFile `
         -Source (Join-Path $repositoryRoot "docs\operations\protocol-artifacts.md") `
         -Destination (Join-Path $bundleRoot "README.md")
     Copy-NormalizedTextFile `
         -Source (Join-Path $monorepoRoot "LICENSE") `
         -Destination (Join-Path $bundleRoot "LICENSE.txt")
-
-    $descriptorPath = Join-Path $bundleRoot "descriptor\briosa.protoset"
-    [IO.Directory]::CreateDirectory((Split-Path -Parent $descriptorPath)) | Out-Null
-    # Generate the descriptor from the normalized sources that are actually
-    # shipped in the bundle. Building from the working tree can produce a
-    # different descriptor on Windows when Git checks text files out with
-    # CRLF line endings but the artifact normalizes them to LF.
-    Push-Location $bundleRoot
-    try {
-        & $bufCommand.Source build `
-            --as-file-descriptor-set `
-            --output $descriptorPath
-        if ($LASTEXITCODE -ne 0) {
-            throw "Buf descriptor generation failed with exit code $LASTEXITCODE."
-        }
-    }
-    finally {
-        Pop-Location
-    }
 
     $compatibilityRoot = Join-Path $bundleRoot "compatibility"
     [IO.Directory]::CreateDirectory($compatibilityRoot) | Out-Null

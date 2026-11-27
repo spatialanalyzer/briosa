@@ -8,6 +8,8 @@ A Debug build exposes standard gRPC server reflection only when the ASP.NET Core
 
 Reflection describes every mapped health, discovery, and exact-target service. A reflected method is not an enabled capability: reflection never invokes a worker, changes readiness, supplies identity evidence, or bypasses request validation and the admission policy. Treat `ListCapabilities` as the authority for the current process's admitted operation set.
 
+Without reflection, a tool such as `grpcurl` can describe and call a packaged server from the protobuf descriptor set that the Windows package ships at `descriptor/briosa.protoset`. It is the same file as in the protocol artifact for the same release; see the Windows package guide (`README.md` in the package). Like reflection, it describes the schema, not the admitted operations.
+
 ## Health checks
 
 Use a standard `grpc.health.v1.Health` client with one of these service names:
@@ -124,7 +126,7 @@ The response reports the active policy:
 | `admission_profile` | The resolved profile name: `read-only`, `standard`, `device`, or `full`. |
 | `policy_fingerprint` | The value-free `sha256:<hex>` policy fingerprint that startup also records in the audit log. It covers every admission input: the policy semantics version, the profile and its definition, the isolation mode, flag settings, overrides, and for every registered operation its descriptor metadata (MP step, effect, replay safety, execution scope, and author risk flags), reviewed classification, and request options. Any change to an input changes the fingerprint, and two servers with equal fingerprints make the same static admission decisions. It never reveals a configured value. |
 
-Each entry includes its stable operation ID, gRPC service and RPC, fully qualified method, reviewed read-only/mutating/unknown effect classification, replay safety, and execution scope, plus its reviewed classification row from [`OperationClassification.cs`](../../src/Briosa.Server/Security/OperationClassification.cs):
+Each entry includes its stable operation ID, gRPC service and RPC, fully qualified method, [MP step](#mp-step), reviewed read-only/mutating/unknown effect classification, replay safety, and execution scope, plus its reviewed classification row from [`OperationClassification.cs`](../../src/Briosa.Server/Security/OperationClassification.cs):
 
 | Field | Values |
 | --- | --- |
@@ -136,6 +138,12 @@ Each entry includes its stable operation ID, gRPC service and RPC, fully qualifi
 | `request_options` | The operation's reviewed request options; see [request options in discovery](#request-options-in-discovery). Server 0.10.1 and later send it on every entry, with an empty list when no option applies. |
 
 Server 0.10.0 sends neither `policy_denial` nor `request_options`, and clients built for Server 0.10.0, such as the 0.5.0 clients, ignore both. A client that reads them treats an absent `request_options` as "not described", never as "no options".
+
+### MP step
+
+`mp_step` is the exact name of the SpatialAnalyzer MP command that the operation executes, for example `Get Working Directory` for `file_operations.get_working_directory`. It comes from the handwritten operation registration that the server runs, so a person or tool that knows an MP command can find its operation, and its gRPC method, by that name. It names the command only and never carries an argument or result value.
+
+Server 0.10.2 and later set it on every entry, admitted or denied. Earlier servers leave it empty, and clients that predate the field ignore it. It never affects admission. `policy_fingerprint` already covered each operation's MP step, so reporting the step left the fingerprint unchanged.
 
 Discovery advertises the static row. A request option can still turn on operator UI or leave device work running at call time; the server then decides that request with the added `interactive_ui` flag or as an exclusive workflow, and can deny an advertised operation. See [request options](command-policy-and-auditing.md#request-options).
 

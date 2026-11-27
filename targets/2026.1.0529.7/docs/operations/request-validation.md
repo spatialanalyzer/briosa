@@ -23,9 +23,13 @@ The `OperationError` travels in the `briosa-operation-error-bin` trailer, as
 for every other typed failure. Nothing ran, so correcting the request and
 sending it again is safe. Sending the same request again fails the same way.
 
-The checks run after admission. A request that the active policy denies, or that
-arrives while the worker is not ready or the queue is full, fails for that
-reason first, before any of its fields are read.
+Admission runs first. The active policy decides from the operation's reviewed
+classification and, for an operation with request options, from the options the
+request turns on, such as `show_results_dialog`; see
+[request options](command-policy-and-auditing.md#request-options). A request that
+the policy denies, or that arrives while the worker is not ready or the queue is
+full, fails for that reason before its fields are validated, so it carries no
+validation detail.
 
 ## Which field
 
@@ -57,7 +61,7 @@ are:
 | `NOT_EMPTY` | have at least one element. |
 | `ELEMENT_COUNT` | have the exact number of elements its value needs, such as 16 for a transform. |
 | `RANGE` | be a number the target accepts, such as 0 to 255 for a color channel or a font size. |
-| `SUPPORTED_CHOICE` | hold a choice this operation supports on this target. For an enum, `UNSPECIFIED`, a number the schema does not define, and a value the operation does not accept all fail. A string that names a target choice fails for a name the target does not define. |
+| `SUPPORTED_CHOICE` | hold a choice this operation supports on this target. For an enum, a number the schema does not define and a value the operation does not accept fail. Each operation decides whether `UNSPECIFIED` fails: some read it as the operation's default, as `ScaleObjectsRequest` does for the `object_type` of an `objects` entry, and others reject it. A string that names a target choice fails for a name the target does not define. |
 | `ONEOF_REQUIRED` | set one field of its oneof. The path names the message that holds the oneof, such as `report_output_options` without `external_path` or `embedded_file`. |
 
 A newer server can send a constraint that an older client does not know. The
@@ -78,9 +82,14 @@ A client must treat an absent detail as normal.
 ## No request values
 
 The detail holds field names from the protobuf schema and a constraint, never
-the value the request sent. The server publishes a path only when it is a dotted
-list of lowercase protobuf field names. The status text stays fixed, and the
-audit records and telemetry of a failed request are unchanged: they carry the
-diagnostic code, not the field or its value. See
-[server observability](server-observability.md) and
+the value the request sent. The server publishes a path only when it resolves,
+field by field, to a field of the operation's request message and the constraint
+fits that field, and only for a failure that the request mapping itself reported.
+The status text stays fixed.
+
+The detail does not change what the server records. The audit event of a failed
+request records the operation, timing, execution disposition, gRPC status, and
+diagnostic code. The request span carries the operation and the gRPC status, and
+the request metrics carry the same two tags. None of them records the field path
+or a request value. See [server observability](server-observability.md) and
 [command policy and auditing](command-policy-and-auditing.md#audit-events).

@@ -618,6 +618,44 @@ public sealed class PolicyDenialDetailTests
     }
 
     [Fact]
+    public async Task OlderSchemaReadsACallerDenialWithItsKnownFieldsIntact()
+    {
+        // The server admits the dialog; the caller's restriction (#443) denies it.
+        var dispatcher = new RejectingDispatcher();
+        var executor = new PolicyEnforcingWorkerCommandExecutor(dispatcher, dispatcher,
+            Policy(settings: new() { ["Flags:interactive_ui"] = "allow" }),
+            new OperationAuditLogger(NullLogger<OperationAuditLogger>.Instance));
+        var host = await GrpcTestHost.StartAsync<AnalysisOperationsService>(executor).ConfigureAwait(true);
+        await using var hostLifetime = host.ConfigureAwait(true);
+
+        var exception = await Assert.ThrowsAsync<RpcException>(() =>
+            new Api.AnalysisOperations.AnalysisOperationsClient(host.Channel)
+                .QueryPointsToObjectsAsync(new Api.QueryPointsToObjectsRequest { ShowResultsDialog = true },
+                    new Metadata { { OperationCallerRestriction.HeaderName, "profile=read-only; deny=interactive_ui" } })
+                .ResponseAsync)
+            .ConfigureAwait(true);
+
+        Assert.Equal(0, dispatcher.DispatchCount);
+        var details = AssertDeniedCall(exception, QueryPointsToObjects, "caller-restriction-option-denied");
+        Assert.Equal(new Api.PolicyDenialDetails
+        {
+            Rule = Api.PolicyDenialRule.CallerFlag,
+            CallerDeniedFlag = "interactive_ui",
+            RequestOptionField = "show_results_dialog"
+        }, details);
+
+        // The caller detail travels inside field 11, and a denial carries no field 12.
+        var bytes = Assert.Single(exception.Trailers,
+            entry => entry.Key == GrpcOperationOutcomeMapper.ErrorTrailerName).ValueBytes;
+        var (known, unknown) = ReadWithOlderSchema(bytes, OperationErrorFieldsOfServer0100);
+        var expected = Api.OperationError.Parser.ParseFrom(bytes);
+        Assert.Null(expected.RequestValidation);
+        expected.PolicyDenial = null;
+        Assert.Equal(expected, Api.OperationError.Parser.ParseFrom(known));
+        Assert.Equal([11], unknown);
+    }
+
+    [Fact]
     public void OlderSchemaReadsEveryCapabilityWithItsKnownFieldsIntact()
     {
         var all = Discovery(Policy()).CreateCapabilities(includeDenied: true);
@@ -630,8 +668,11 @@ public sealed class PolicyDenialDetailTests
             var expected = capability.Clone();
             expected.PolicyDenial = null;
             expected.RequestOptions = null;
+            // mp_step (14) is unknown to Server 0.10.0 and set on every capability.
+            Assert.NotEmpty(capability.MpStep);
+            expected.MpStep = string.Empty;
 
-            int[] unknownFields = capability.PolicyDenial is null ? [13] : [12, 13];
+            int[] unknownFields = capability.PolicyDenial is null ? [13, 14] : [12, 13, 14];
             Assert.Equal(expected, Api.OperationCapability.Parser.ParseFrom(known));
             Assert.Equal(unknownFields, unknown);
         }

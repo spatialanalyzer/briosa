@@ -26,10 +26,15 @@ public sealed class LegacyTargetCompatibilityTests
     [Fact]
     public void CapturedQdasTimestampsAreNotDefaults()
     {
-        Assert.Contains("k0004_date_time_stamp", Assert.Throws<RequestFieldViolation>(() =>
-            PrepareQdasDataListOperation.CreateCommand(new())).Message, StringComparison.Ordinal);
-        Assert.Contains("k0004_date_time_stamp", Assert.Throws<RequestFieldViolation>(() =>
-            ExportQdasCharacteristicsOperation.CreateCommand(new())).Message, StringComparison.Ordinal);
+        foreach (var violation in new[]
+                 {
+                     Assert.Throws<RequestFieldViolation>(() => PrepareQdasDataListOperation.CreateCommand(new())),
+                     Assert.Throws<RequestFieldViolation>(() => ExportQdasCharacteristicsOperation.CreateCommand(new()))
+                 })
+        {
+            Assert.Equal("k0004_date_time_stamp", violation.FieldPath);
+            Assert.Equal(Api.RequestFieldConstraint.Required, violation.Constraint);
+        }
     }
 
     [Fact]

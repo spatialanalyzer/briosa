@@ -18,7 +18,9 @@ $temporaryRoot = Join-Path $temporaryBase "briosa-protocol-test-$([Guid]::NewGui
 $firstOutput = [IO.Path]::GetFullPath($OutputDirectory, $repositoryRoot)
 $secondOutput = Join-Path $temporaryRoot "second"
 $extractRoot = Join-Path $temporaryRoot "extracted"
-$bufCommand = Get-Command -Name $BufPath -CommandType Application -ErrorAction Stop
+# Resolved the way the artifact and package builds resolve it.
+Import-Module (Join-Path $PSScriptRoot "ProtocolDescriptor.psm1") -Force
+$bufCommand = [pscustomobject]@{ Source = Resolve-BufCommand $BufPath }
 $artifactBase = "briosa-protocol-$Version-sa-2024.1.0508.5"
 $zipName = "$artifactBase.zip"
 $firstZip = Join-Path $firstOutput $zipName
@@ -191,11 +193,14 @@ try {
     }
 
     $rebuiltDescriptor = Join-Path $temporaryRoot "rebuilt.protoset"
-    Push-Location $bundleRoot
+    # Buf reads the text after '#' in an output path as options, so name the
+    # output relative to the bundle instead of by its absolute path.
+    $relativeRebuiltDescriptor = [IO.Path]::GetRelativePath($bundleRoot, $rebuiltDescriptor)
+    Push-Location -LiteralPath $bundleRoot
     try {
         & $bufCommand.Source build `
             --as-file-descriptor-set `
-            --output $rebuiltDescriptor
+            --output $relativeRebuiltDescriptor
         if ($LASTEXITCODE -ne 0) {
             throw "Bundled protocol descriptor rebuild failed."
         }

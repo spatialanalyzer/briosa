@@ -13,7 +13,9 @@ param(
 
     [switch]$NoRestore,
 
-    [switch]$PassNoticeExpectation
+    [switch]$PassNoticeExpectation,
+
+    [string]$BufPath = "buf"
 )
 
 Set-StrictMode -Version Latest
@@ -22,6 +24,10 @@ $ErrorActionPreference = "Stop"
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $monorepoRoot = [IO.Path]::GetFullPath((Join-Path $repositoryRoot "..\.."))
 Import-Module (Join-Path $monorepoRoot 'eng/WindowsPackageNotices.psm1') -Force
+# The package ships the protocol artifact's descriptor set, built by the same step.
+Import-Module (Join-Path $PSScriptRoot 'ProtocolDescriptor.psm1') -Force
+# Fails before any publish when Buf is missing; the package never ships without the descriptor.
+$bufCommand = Resolve-BufCommand $BufPath
 $serverProject = Join-Path $repositoryRoot "src\Briosa.Server\Briosa.Server.csproj"
 $workerProject = Join-Path $repositoryRoot "src\Briosa.Worker\Briosa.Worker.csproj"
 $desktopProject = Join-Path $repositoryRoot "src\Briosa.ControlCenter\Briosa.ControlCenter.csproj"
@@ -237,6 +243,13 @@ try {
         -Destination (Join-Path $packageRoot "README.md")
     Copy-Item -LiteralPath (Join-Path $repositoryRoot "docs\operations\health-and-discovery.md") `
         -Destination (Join-Path $packageRoot "HEALTH-AND-DISCOVERY.md")
+    # Byte-identical to descriptor/briosa.protoset in the protocol artifact built
+    # from the same source revision. files.sha256 below lists it.
+    New-ProtocolDescriptorSet `
+        -TargetRoot $repositoryRoot `
+        -SourceRoot (Join-Path $temporaryRoot "protocol-source") `
+        -OutputPath (Join-Path $packageRoot "descriptor\briosa.protoset") `
+        -BufCommand $bufCommand
 
     $metadataRoot = Join-Path $packageRoot "metadata"
     [IO.Directory]::CreateDirectory($metadataRoot) | Out-Null

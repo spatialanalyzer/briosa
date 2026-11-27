@@ -104,9 +104,12 @@ The planned Server 0.10.2 raises the declared revision of both targets from 1 to
 2, once, for the three additive Phase 1 enablers of the agent interface
 ([#440](https://github.com/spatialanalyzer/briosa/issues/440)). The maintainer
 decided on one bump, made by the
-[#443](https://github.com/spatialanalyzer/briosa/issues/443) pull request, which
-merges last of the three, so that revision 2 is the first state that carries
-all three. A client that sees revision 2 or later can rely on each of them. The
+[#443](https://github.com/spatialanalyzer/briosa/issues/443) pull request,
+[#462](https://github.com/spatialanalyzer/briosa/pull/462), which merges last of
+the three, after [#460](https://github.com/spatialanalyzer/briosa/pull/460)
+(merged as `2425a64e`) and [#459](https://github.com/spatialanalyzer/briosa/pull/459)
+(merged as `b187cf9d`). Revision 2 is therefore the first state that carries all
+three, and a client that sees revision 2 or later can rely on each of them. The
 caller restriction is the reason the bump matters: a server before 0.10.2
 silently ignores the `briosa-caller-restriction` header, so a caller that relies
 on the header must require revision 2 first. The major stays 3. No request that
@@ -117,16 +120,17 @@ ignore the new fields.
 
 | Change | Issue and pull request | Class | Where it is described |
 | --- | --- | --- | --- |
-| A validation failure names the first invalid request field and the constraint it did not meet (`OperationError.request_validation`, field 12) | [#442](https://github.com/spatialanalyzer/briosa/issues/442), [#459](https://github.com/spatialanalyzer/briosa/pull/459) | Additive. No accepted request is rejected and no rejected request is accepted; only reporting changed. The status, text, kind, diagnostic code, disposition, and guidance are unchanged | [Client behavioral contract](../architecture/client-library-behavioral-contract.md#compatibility-and-capabilities), each target's `docs/operations/request-validation.md` |
-| Discovery reports each capability's exact MP step (`OperationCapability.mp_step`), and the server package bundles `descriptor/briosa.protoset` | [#444](https://github.com/spatialanalyzer/briosa/issues/444), [#460](https://github.com/spatialanalyzer/briosa/pull/460) | Additive. A response field and a package file; the 0.5.x clients ignore both | Each target's `docs/operations/health-and-discovery.md` and `docs/operations/windows-package.md` |
-| A per-call `briosa-caller-restriction` header narrows admission inside `OperationPolicy`; caller denials report `CALLER_PROFILE` or `CALLER_FLAG` with `caller_admission_profile` (field 5) or `caller_denied_flag` (field 6) | [#443](https://github.com/spatialanalyzer/briosa/issues/443) | Additive. A call without the header is decided, reported, and audited as before. Only a call that sends the new header can be rejected for it, and the 0.5.x clients never send it | [Client behavioral contract](../architecture/client-library-behavioral-contract.md#caller-restriction), each target's `docs/operations/command-policy-and-auditing.md` |
+| A validation failure names the first invalid request field and the constraint it did not meet (`OperationError.request_validation`, field 12) | [#442](https://github.com/spatialanalyzer/briosa/issues/442), [#459](https://github.com/spatialanalyzer/briosa/pull/459) (merged) | Additive. No accepted request is rejected and no rejected request is accepted; only reporting changed. The status, text, kind, diagnostic code, disposition, and guidance are unchanged | [Client behavioral contract](../architecture/client-library-behavioral-contract.md#compatibility-and-capabilities), each target's `docs/operations/request-validation.md` |
+| Discovery reports each capability's exact MP step (`OperationCapability.mp_step`), and the server package bundles `descriptor/briosa.protoset` | [#444](https://github.com/spatialanalyzer/briosa/issues/444), [#460](https://github.com/spatialanalyzer/briosa/pull/460) (merged) | Additive. A response field and a package file; the 0.5.x clients ignore both | Each target's `docs/operations/health-and-discovery.md` and `docs/operations/windows-package.md` |
+| A per-call `briosa-caller-restriction` header narrows admission inside `OperationPolicy`; caller denials report `CALLER_PROFILE` or `CALLER_FLAG` with `caller_admission_profile` (field 5) or `caller_denied_flag` (field 6) | [#443](https://github.com/spatialanalyzer/briosa/issues/443), [#462](https://github.com/spatialanalyzer/briosa/pull/462) | Additive. A call without the header is decided, reported, and audited as before. Only a call that sends the new header can be rejected for it, and the 0.5.x clients never send it | [Client behavioral contract](../architecture/client-library-behavioral-contract.md#compatibility-and-capabilities), each target's `docs/operations/command-policy-and-auditing.md` |
 
 The caller restriction adds step 8 to the admission precedence. It is a per-call
 input outside the policy fingerprint, which keeps describing the server's
 configuration. `OperationPolicy.SemanticsVersion` stays 1: its rule asks for a
 new version when the evaluator decides the same fingerprint inputs differently,
 and a call without the header is decided exactly as before. Discovery does not
-read the header.
+read the header; making it do so is
+[#463](https://github.com/spatialanalyzer/briosa/issues/463).
 
 The [compatibility matrix](../../compatibility/matrix.json) keeps recording 3.1
 until the Server 0.10.2 release evidence is recorded, as it did for the earlier

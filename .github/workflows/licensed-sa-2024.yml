@@ -53,6 +53,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      # The package build writes descriptor/briosa.protoset with Buf.
+      - name: Install Buf
+        uses: bufbuild/buf-setup-action@a47c93e0b1648d5651a065437926377d060baa99 # v1.50.0
+        with:
+          version: 1.72.0
+          github_token: ${{ github.token }}
+
       - name: Install .NET SDK
         uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
