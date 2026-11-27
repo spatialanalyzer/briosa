@@ -232,8 +232,8 @@ scenarios; the iteration passes only with exactly one validated pass of that
 scenario and that error. A connection capture package likewise ends a run of
 every scenario with its own error once every scenario has passed, and only a
 soak accepts that end, so the client's script never writes a report for a run
-with the capture module loaded into its fixture. It publishes, signs and releases nothing, and it uses
-no secrets and no environment. The release workflow policy check
+with the capture module loaded into its fixture. It publishes, signs and
+releases nothing, and it uses no secrets and no environment. The release workflow policy check
 (`eng/Verify-ReleaseWorkflowPolicy.ps1`) reads both workflows as parsed YAML. It
 fails, with the file and line, on any construct outside the plain block style
 they are written in, such as a quoted key, a flow collection or an anchor. It
