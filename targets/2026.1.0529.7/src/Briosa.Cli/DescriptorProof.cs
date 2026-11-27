@@ -123,6 +123,7 @@ internal sealed class DescriptorProof
             $"{set.File.Sum(file => file.SourceCodeInfo?.Location.Count(HasComments) ?? 0)} with comments; " +
             $"{set.File.Sum(file => file.SourceCodeInfo?.Location.Count(location => HasComments(location) &&
                 location.Path.Count == 4 && location.Path[0] == 6 && location.Path[2] == 2) ?? 0)} method comments");
+        Console.WriteLine($"Descriptor source info present in {set.File.Count(file => file.SourceCodeInfo?.Location.Count > 0)} files.");
     }
 
     private static bool HasComments(SourceCodeInfo.Types.Location location) =>
@@ -173,7 +174,9 @@ internal sealed class DescriptorProof
         var max = JsonParser.Default.Parse("""{"finite_milliseconds":"18446744073709551615"}""", duration);
         Require(!oneof.IsSynthetic && oneof.Accessor.GetCaseFieldDescriptor(max).Name == "finite_milliseconds",
             "Expected a real oneof selection.");
-        Console.WriteLine($"Real oneof and uint64: {Formatter.Format(max)}");
+        var boundJson = Formatter.Format(max);
+        Require(max.ToByteString().Equals(JsonParser.Default.Parse(boundJson, duration).ToByteString()), boundJson);
+        Console.WriteLine($"Real oneof and uint64: {boundJson}");
         var result = FindMessage("GetCalibrationApplianceDataResult");
         var values = JsonParser.Default.Parse("""{"real_values":["NaN","Infinity","-Infinity"]}""", result);
         var restored = JsonParser.Default.Parse(Formatter.Format(values), result);
@@ -183,11 +186,14 @@ internal sealed class DescriptorProof
         var details = FindMessage("MpExecutionDetails");
         var state = details.Fields.InFieldNumberOrder().First(field => field.FieldType == FieldType.Enum);
         var known = state.EnumType.Values.First(value => value.Number != 0);
-        foreach (var token in new[] { JsonSerializer.Serialize(known.Name), known.Number.ToString(
-            System.Globalization.CultureInfo.InvariantCulture), "99999" })
+        var knownName = JsonSerializer.Serialize(known.Name);
+        var knownNumber = known.Number.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        foreach (var (token, expected) in new[] { (knownName, knownName), (knownNumber, knownName), ("99999", "99999") })
         {
             var enumJson = $$"""{"{{state.Name}}":{{token}}}""";
             var canonical = Formatter.Format(JsonParser.Default.Parse(enumJson, details));
+            using var canonicalDocument = JsonDocument.Parse(canonical);
+            Require(canonicalDocument.RootElement.GetProperty(state.Name).GetRawText() == expected, canonical);
             Console.WriteLine($"Enum {enumJson} => {canonical}");
         }
 
