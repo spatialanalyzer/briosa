@@ -172,6 +172,19 @@ Use standard gRPC health checks named `briosa.liveness` and `briosa.readiness`. 
 
 If startup reports `OPERATOR_RECOVERY_REQUIRED`, do not repeatedly restart Briosa. Close affected SDK clients, establish a clean SpatialAnalyzer instance that owns the SDK ports, and then restart Briosa once to perform the explicit recovery cycle. If the diagnostic is `sa-modal-dialog-open`, first read and dismiss the dialog in SpatialAnalyzer.
 
+## Protocol descriptor
+
+`descriptor/briosa.protoset` is a protobuf descriptor set (`FileDescriptorSet`) of every service and message that this server's protocol defines, built with Buf from the same `.proto` sources as the server. It is byte-identical to `descriptor/briosa.protoset` in the protocol artifact for the same release, `briosa-protocol-<briosa-version>-sa-2024.1.0508.5.zip`, and `files.sha256` lists it.
+
+The package does not enable gRPC server reflection, so a tool that discovers services through reflection cannot list them from a running server. Give the tool the descriptor instead. For example, with [`grpcurl`](https://github.com/fullstorydev/grpcurl), from the package directory and with the server running on its default endpoint:
+
+```powershell
+grpcurl -plaintext -protoset descriptor/briosa.protoset 127.0.0.1:50051 list
+grpcurl -plaintext -protoset descriptor/briosa.protoset -d '{}' 127.0.0.1:50051 briosa.DiscoveryService/ListCapabilities
+```
+
+The descriptor describes the schema, which does not depend on configuration. `ListCapabilities` says which operations the running server admits; each entry's `mp_step` gives the exact MP command name that the operation executes (see `HEALTH-AND-DISCOVERY.md`). The descriptor carries few comments, so it is not a source of operation descriptions. To generate a client, use the protocol artifact.
+
 ## Provenance
 
 `manifest.json` records:
@@ -196,13 +209,13 @@ From a clean repository checkout:
 ./eng/New-WindowsPackage.ps1 -Version 0.1.0
 ```
 
-The script uses locked `win-x64` restores, clean self-contained publishes, deterministic ZIP ordering and timestamps, and writes the ZIP, external checksum, and external provenance manifest to `artifacts/`.
+The script uses locked `win-x64` restores, clean self-contained publishes, deterministic ZIP ordering and timestamps, and writes the ZIP, external checksum, and external provenance manifest to `artifacts/`. It needs [Buf](https://buf.build) on `PATH`, or its path in `-BufPath`, to build `descriptor/briosa.protoset` the same way as `New-ProtocolArtifact.ps1`; without Buf it stops before publishing anything.
 
-`Test-WindowsPackage.ps1` builds the archive twice and requires identical ZIP hashes. Its startup check explicitly selects the vendor-independent worker test host, so it never activates or connects to SpatialAnalyzer.
+`Test-WindowsPackage.ps1` builds the archive twice and requires identical ZIP hashes. It also requires the same `descriptor/briosa.protoset` bytes in both builds and in a protocol artifact built from the same source revision. Its startup check explicitly selects the vendor-independent worker test host, so it never activates or connects to SpatialAnalyzer.
 
 The Debug source-host composition is not a packaging input. The Release package script continues to publish server and worker independently, then merges their reviewed runtime cohorts. Package verification requires the production worker and approved interop assembly while rejecting `launchSettings.json`, `appsettings.Development.json`, and the Debug user-secrets project identity.
 
-Run `./eng/Test-WindowsPackage.ps1 -Version 0.1.0-test` to build twice and verify identical archive hashes, all checksums, manifest/default configuration, offline diagnostics, and host launch without SpatialAnalyzer.
+Run `./eng/Test-WindowsPackage.ps1 -Version 0.1.0-test` to build twice and verify identical archive hashes, the protocol descriptor, all checksums, manifest/default configuration, offline diagnostics, and host launch without SpatialAnalyzer.
 
 ## Release production
 

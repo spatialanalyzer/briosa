@@ -11,6 +11,8 @@ The protocol artifact is a deterministic snapshot of Briosa's handwritten protob
 
 It does not contain a command catalog, disposition ledger, generated conformance manifest, client-language template, or Briosa-specific operation generator.
 
+The descriptor set, `descriptor/briosa.protoset`, is also in the Windows server package for the same release, byte for byte. Packaged servers do not enable gRPC reflection, so a tool such as `grpcurl` can use this file to describe and call them (see the Windows package guide). It describes the schema only: `ListCapabilities` on the running server says which operations it admits, and each entry's `mp_step` gives the exact MP command name that the operation executes. The descriptor carries few comments and is not a source of operation descriptions.
+
 Create an artifact:
 
 ```powershell

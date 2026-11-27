@@ -89,6 +89,14 @@ jobs:
           $soak = Get-RetainedClientSoakMatrix -Plan $plan -Client $client -Iterations ([int]$env:ITERATIONS) -Scenario $env:SOAK_SCENARIO
           Write-Host "The soak will run $(@($soak.include).Count) iterations of $client."
 
+      # The server package inside the conformance package carries
+      # descriptor/briosa.protoset, which its build writes with Buf.
+      - name: Install Buf
+        uses: bufbuild/buf-setup-action@a47c93e0b1648d5651a065437926377d060baa99 # v1.50.0
+        with:
+          version: 1.72.0
+          github_token: ${{ github.token }}
+
       - name: Install .NET SDK
         uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:

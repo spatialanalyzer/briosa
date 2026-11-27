@@ -255,6 +255,7 @@ public sealed class DiscoveryServiceTests
             Assert.Equal(
                 descriptor.FullyQualifiedMethod,
                 operation.FullyQualifiedMethod);
+            Assert.Equal(descriptor.MpStep, operation.MpStep);
             Assert.Equal(
                 descriptor.Effect,
                 operation.Effect);
@@ -462,6 +463,38 @@ public sealed class DiscoveryServiceTests
         Assert.True(admitted.Operations.Count < all.Operations.Count);
     }
 
+    [Theory]
+    [InlineData("read-only", false)]
+    [InlineData("read-only", true)]
+    [InlineData("standard", false)]
+    [InlineData("standard", true)]
+    [InlineData("device", false)]
+    [InlineData("device", true)]
+    [InlineData("full", false)]
+    [InlineData("full", true)]
+    public async Task EveryListedCapabilityReportsTheMpStepOfItsDescriptor(string profile, bool includeDenied)
+    {
+        var policy = OperationPolicyTests.CreatePolicy(profile: profile);
+        var service = CreateService(policy);
+        var context = new InMemoryServerCallContext(
+            "/briosa.DiscoveryService/ListCapabilities", deadline: null, CancellationToken.None);
+
+        var response = await service.ListCapabilities(
+            new ListCapabilitiesRequest { IncludeDenied = includeDenied }, context).ConfigureAwait(true);
+
+        // include_denied lists every registered operation; the default lists the admitted ones.
+        var expected = (includeDenied ? SpatialAnalyzerApi.Operations : policy.AllowedOperations)
+            .ToDictionary(operation => operation.OperationId, operation => operation.MpStep, StringComparer.Ordinal);
+        Assert.Equal(expected.Keys.Order(StringComparer.Ordinal), response.Operations.Select(operation => operation.OperationId));
+        Assert.All(response.Operations, operation =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(operation.MpStep), operation.OperationId);
+            Assert.Equal(expected[operation.OperationId], operation.MpStep);
+        });
+        // Denied entries carry their step as well.
+        Assert.Equal(includeDenied, response.Operations.Any(operation => operation.Admission != OperationAdmission.Admitted));
+    }
+
     [Fact]
     public void UnreviewedOperationsAreReportedWithoutClassificationMetadata()
     {
@@ -479,6 +512,10 @@ public sealed class DiscoveryServiceTests
             candidate => candidate.OperationId == operationId);
 
         Assert.Equal(OperationAdmission.DeniedUnreviewed, operation.Admission);
+        // The MP step is descriptor metadata, so an unreviewed row keeps it.
+        Assert.Equal(
+            SpatialAnalyzerApi.Operations.Single(descriptor => descriptor.OperationId == operationId).MpStep,
+            operation.MpStep);
         Assert.Empty(operation.RiskFlags);
         Assert.Equal(OperationDurationClass.Unspecified, operation.DurationClass);
         Assert.Equal(OperationValidationStatus.Unspecified, operation.ValidationStatus);

@@ -451,8 +451,10 @@ function Get-WindowsPackageNoticeExpectation {
     param([string]$PackageRoot, $Notice)
 
     $files = @{}
-    $packageMetadata = @('CONTROL-CENTER.md', 'files.sha256', 'HEALTH-AND-DISCOVERY.md', 'LICENSE.txt', 'manifest.json',
-        'README.md', 'licenses/README.md', 'metadata/interop-provenance.json',
+    # First-party files outside every publish receipt. The descriptor set is built
+    # from the Apache-2.0 proto sources.
+    $packageMetadata = @('CONTROL-CENTER.md', 'descriptor/briosa.protoset', 'files.sha256', 'HEALTH-AND-DISCOVERY.md',
+        'LICENSE.txt', 'manifest.json', 'README.md', 'licenses/README.md', 'metadata/interop-provenance.json',
         'metadata/desktop-brand/icon-derivation.json', 'metadata/desktop-brand/provenance.json')
     foreach ($path in $Notice.PayloadPaths + $Notice.TextPaths + $packageMetadata | Sort-Object -Unique) {
         $files[$path] = (Get-FileHash -LiteralPath (Join-Path $PackageRoot $path)).Hash

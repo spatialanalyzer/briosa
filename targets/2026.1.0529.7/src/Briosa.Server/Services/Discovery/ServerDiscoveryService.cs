@@ -147,6 +147,8 @@ internal sealed class ServerDiscoveryService(
             GrpcService = operation.GrpcService,
             Rpc = operation.Rpc,
             FullyQualifiedMethod = operation.FullyQualifiedMethod,
+            // The handwritten descriptor is the only source of step names.
+            MpStep = operation.MpStep,
             Effect = operation.Effect,
             ExecutionScope = operation.ExecutionScope,
             ReplaySafety = operation.ReplaySafety,
