@@ -2,6 +2,12 @@
 
 Scope is SpatialAnalyzer `2026.1.0529.7`, Windows x64, with the fake worker. The branch preserves the proof for review. [Spike](https://github.com/spatialanalyzer/briosa/issues/441) · [Epic](https://github.com/spatialanalyzer/briosa/issues/440) · [Architecture record](https://github.com/orgs/spatialanalyzer/discussions/9)
 
+## Acceptance criteria
+
+- **Met** — Build, publish layout, signing selection, ZIP size, startup, reproducibility and license-notice findings are documented.
+- **Met** — Compiled descriptors and the bundled descriptor set agreed, and 4,072 default and populated JSON fixtures round-tripped with zero failures and no operation generation.
+- **Not met on GitHub** — Blockers and follow-up titles are recorded below. Filing and updating issues remains with the maintainer.
+
 ## 1. Build and restore
 
 On SDK `10.0.404`, both the full SDK and Core-only solution rebuilt in Release with **0 warnings, 0 errors**. The solution inherited `TreatWarningsAsErrors=true`, `AnalysisLevel=10.0-all`, locked restore and `NuGetAuditMode=all`. NuGet logged cache hits for the vulnerability index, base dataset and update snapshot through 2026-11-27 11:35 UTC. The restore source was a worktree-local empty directory and advisory data came from the pre-existing HTTP cache. There were no NuGet audit or analyzer diagnostics in either build. This is an audit against that snapshot.
@@ -108,3 +114,32 @@ Both variants of the 2026 package smoke passed the notice checks. The current Co
 The rebuilt protocol artifact came from `./eng/New-ProtocolArtifact.ps1 -Version 0.0.0-spike441 -SourceRevision (git rev-parse d947d95c) -OutputDirectory $output` with Buf 1.72.0. Its ZIP matched the inherited protocol ZIP, SHA-256 `3f200255fd491eb3a28ca05465b9dd41149e83e65d71f0b8b7a87fb1b4cbae4a`. The contained `descriptor/briosa.protoset` was 1,210,460 bytes, SHA-256 `6f0f5a430d6bb5583982a41f16035b4cce4446dfcb498b36bf0069f3700b4a04`. `FileDescriptor.BuildFromByteStrings` loaded all 25 files. Structural equality with the compiled graph held for all files, recursively covering 23 services, 1,029 RPCs, and 2,148 messages after omitting source locations and normalizing effective field JSON names. Compiled descriptors supply the CLR parsers and field accessors. The loaded file set supplies portable schema and source metadata.
 
 All 25 files had source info. 349 of the 37,054 locations carry leading, trailing, or detached comments. A separate `protoc --decode=google.protobuf.FileDescriptorSet` over the regenerated descriptor compared nonblank comment text by file against the bundled `.proto` sources. All 499 nonblank comment lines were present, including the inline comment, with no missing or extra text. There were three commented RPCs, `GetActiveCollectionName`, `GetServerInfo`, and `ListCapabilities`. The descriptor can carry schema and available comment text. Operation descriptions need reviewed metadata beyond comments. [Server and protocol enabler](https://github.com/spatialanalyzer/briosa/issues/444)
+
+
+## Layout recommendation
+
+Ship Core 2.4.0 with the CLI apphost at the package root, the same ASP.NET runtime pack as the server, and the existing DiagnosticSource 11.0.0 pin. The earlier matrix measured +729,163 compressed bytes and byte-identical shared product binaries. The fresh run verified bundled-runtime startup, deterministic output, signing selection, and notices.
+
+The runner-up is the measured self-contained `cli/` layout. It gives the CLI its own runtime and starts correctly, for +40,660,908 compressed bytes with the full SDK in the matrix. If the implementation needs the full SDK hosting integrations, full shared-root is a dependency choice within the recommended layout for another 34,887 compressed bytes in the matrix.
+
+## Phase 2 implementation changes
+
+| Area | Change |
+| --- | --- |
+| `Briosa.slnx`, CLI project and `Directory.Packages.props` | Add the target-scoped project, pin `ModelContextProtocol.Core 2.4.0`, use the existing gRPC and DiagnosticSource pins, add the CLI framework reference to `Microsoft.AspNetCore.App`, and commit its normal locked graph. Keep the four configurations in the spike only. |
+| `New-WindowsPackage.ps1` | Restore the CLI locked for win-x64. Publish it self-contained with the same release properties and runtime packs as the server, add its receipt using the root prefix, and call `Copy-PublishTree` with the existing byte-equality guard. Write notices, checksums and ZIP after the merge. Consume the fingerprinted descriptor artifact when the protocol bundling issue lands. |
+| `Test-WindowsPackage.ps1` | Assert the 2026 CLI exe/dll and descriptor exist. Compare the two unsigned archives, verify receipt ownership and text digests, and add packaged CLI/MCP and fake-worker smoke. Preserve the existing desktop ownership gate in CI. |
+| `ReleasePackageSigning.psm1` and `Test-ReleaseSigning.ps1` | Keep recursive selection and existing universal requirements. Exercise exact CLI selection in the signing fixture and no-CLI compatibility in the legacy fixture. Assert CLI presence in 2026 packaging or via target/version-aware metadata if a signing-stage presence check is needed. |
+| `WindowsPackageNotices.psm1` and `eng/licenses/reviewed-windows-evidence.json` | Retain source-license provenance checks and optional reviewed notice supplements. For Core shared-root, add the Core and AI package identity rows and three pinned text files from section 4. Keep the MCP notice-removal gate. Full SDK needs its own identity row and the isolated version additionally needs one review row for each shipped 10.0.14 package. |
+| `.github/workflows/ci.yml` and `.github/workflows/release.yml` | Use the existing target solution restore and package jobs, including locked win-x64 restore, all-mode advisory audit, double-build smoke, receipt validation and signing. Run packaged descriptor/CLI fake-worker scenarios on 2026. Produce and verify the descriptor before the package consumes it. Keep the legacy target in the matrix. |
+
+## Follow-up issues to file
+
+- **Guard CLI and server runtime-pack alignment on .NET servicing updates.** The root layout depends on identical shared bytes and receipt ownership. Require the merge, notices, and fake-worker smoke to pass when .NET or DiagnosticSource changes.
+- **Confirm MCP SDK redistribution terms and retain reviewed attribution.** Capture the exact MIT and Apache-2.0 transition evidence, preserve source notices, and review CC-BY-4.0 before distributing any upstream documentation.
+- **Source operation descriptions from reviewed metadata.** The artifact preserves source comments and only one MP RPC has a method comment. Use reviewed capability metadata, including the planned `mp_step`, and define any additional prose source explicitly. [Protocol enabler](https://github.com/spatialanalyzer/briosa/issues/444)
+- **Exercise the signed CLI package end-to-end in release CI.** Verify Authenticode for both selected binaries and run the packaged fake-worker conformance path before publishing.
+
+## Verification limits
+
+The spike used no licensed SpatialAnalyzer or real SDK calls. It verified signing selection and signing fixtures without a production certificate. Desktop ownership was skipped in the CLI-enabled local package run because its state directory lies outside the worktree. Startup used freshly copied directories and warm relaunches, with no post-reboot baseline. The alternative 11.0.0 extension pin was inspected and its unsuccessful design remains in the checkpoint. A package-only 10.0.15 pin was unavailable offline. The current full shared-root launch used the inherited ZIP, with no separate full shared-root double-build. Phase 2 functional and safety-tier conformance belongs to the implementation issue. [CLI MVP](https://github.com/spatialanalyzer/briosa/issues/445)
