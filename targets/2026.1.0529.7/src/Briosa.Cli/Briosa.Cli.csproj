@@ -6,7 +6,6 @@
     <SpikeFlavor Condition="'$(UseMcpCore)' == 'true'">.core</SpikeFlavor>
     <SpikeFlavor Condition="'$(CliPinDiagnosticSource)' == 'true'">$(SpikeFlavor).pin</SpikeFlavor>
     <SpikeFlavor Condition="'$(CliSharedRuntime)' == 'true'">$(SpikeFlavor).shared</SpikeFlavor>
-    <SpikeFlavor Condition="'$(CliPinExtensions)' == 'true'">$(SpikeFlavor).extensions</SpikeFlavor>
     <NuGetLockFilePath>packages$(SpikeFlavor).lock.json</NuGetLockFilePath>
   </PropertyGroup>
   <ItemGroup>
@@ -16,9 +15,5 @@
     <PackageReference Include="ModelContextProtocol" Condition="'$(UseMcpCore)' != 'true'" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Condition="'$(CliPinDiagnosticSource)' == 'true'" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" Condition="'$(CliSharedRuntime)' == 'true'" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(CliPinExtensions)' == 'true'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
 </Project>
