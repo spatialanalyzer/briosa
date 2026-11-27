@@ -70,9 +70,10 @@ public sealed class UnaryCallAuditPipelineTests(ITestOutputHelper output)
     }
 
     // Each status is the one the call ended with at that boundary: a status the
-    // handler assigned before returning, a handler fault, a deadline and a client
-    // cancellation, over HTTP/2 on loopback. A request path in another case reaches
-    // the same endpoint and is recorded by the endpoint's name.
+    // handler assigned before returning, a handler fault, a deadline the server
+    // reaches first, one the client reaches first, and a client cancellation, over
+    // HTTP/2 on loopback. A request path in another case reaches the same endpoint
+    // and is recorded by the endpoint's name.
     [Fact]
     public async Task RecordsTheStatusAtEachBoundaryOverHttp2()
     {
@@ -80,8 +81,18 @@ public sealed class UnaryCallAuditPipelineTests(ITestOutputHelper output)
         using var provider = new BriosaLogProvider(ObservabilityTests.Options(), new BriosaLogHealth(), sink);
         var app = await StartAsync(provider).ConfigureAwait(true);
         await using var running = app.ConfigureAwait(true);
-        using var channel = GrpcChannel.ForAddress(Assert.Single(app.Urls));
+        var address = Assert.Single(app.Urls);
+        using var channel = GrpcChannel.ForAddress(address);
         var client = new Api.SpatialAnalyzerSdkLifecycle.SpatialAnalyzerSdkLifecycleClient(channel);
+        // A client and the server usually share one deadline, and either may end the
+        // call first. Each deadline case below rewrites the grpc-timeout header the
+        // server reads, so one side's deadline is well before the other's and the
+        // order is fixed: the server's 300 ms against the client's 30 s, and the
+        // client's 300 ms against the server's 30 s.
+        using var serverDeadline = new TimeoutHeaderHandler("300m");
+        using var serverFirst = GrpcChannel.ForAddress(address, new GrpcChannelOptions { HttpHandler = serverDeadline });
+        using var clientDeadline = new TimeoutHeaderHandler("30S");
+        using var clientFirst = GrpcChannel.ForAddress(address, new GrpcChannelOptions { HttpHandler = clientDeadline });
         CallOptions Bounded() => new(deadline: DateTime.UtcNow.AddSeconds(30));
 
         await client.GetSpatialAnalyzerSdkStateAsync(new(), Bounded()).ResponseAsync.ConfigureAwait(true);
@@ -98,13 +109,24 @@ public sealed class UnaryCallAuditPipelineTests(ITestOutputHelper output)
             await client.ConnectToSpatialAnalyzerAsync(new() { ExpectedSdkGeneration = 424242 }, Bounded())
                 .ResponseAsync.ConfigureAwait(true)).ConfigureAwait(true);
         Assert.Equal(StatusCode.Unknown, faulted.StatusCode);
-        var deadline = await Assert.ThrowsAsync<RpcException>(async () =>
-            await client.ReconnectToSpatialAnalyzerAsync(new(), new CallOptions(deadline: DateTime.UtcNow.AddMilliseconds(300)))
+        // The server's deadline first: it sends DeadlineExceeded to a client still waiting.
+        var serverEnded = await Assert.ThrowsAsync<RpcException>(async () =>
+            await new Api.SpatialAnalyzerSdkLifecycle.SpatialAnalyzerSdkLifecycleClient(serverFirst)
+                .ReconnectToSpatialAnalyzerAsync(new(), Bounded()).ResponseAsync.ConfigureAwait(true)).ConfigureAwait(true);
+        Assert.Equal(StatusCode.DeadlineExceeded, serverEnded.StatusCode);
+        // The client's deadline first: it resets the stream while the server still waits.
+        var clientEnded = await Assert.ThrowsAsync<RpcException>(async () =>
+            await new Api.SpatialAnalyzerSdkLifecycle.SpatialAnalyzerSdkLifecycleClient(clientFirst)
+                .RecoverSpatialAnalyzerSdkAsync(new(), new CallOptions(deadline: DateTime.UtcNow.AddMilliseconds(300)))
                 .ResponseAsync.ConfigureAwait(true)).ConfigureAwait(true);
-        Assert.Equal(StatusCode.DeadlineExceeded, deadline.StatusCode);
-        await Until(() => Records(sink, "UnaryCallStarted", "ReconnectToSpatialAnalyzer").Length == 1).ConfigureAwait(true);
-        await Until(() => Records(sink, "UnaryCallResponseEnded", "ReconnectToSpatialAnalyzer").Length +
-            Records(sink, "UnaryCallResponseAbandoned", "ReconnectToSpatialAnalyzer").Length == 1).ConfigureAwait(true);
+        Assert.Equal(StatusCode.DeadlineExceeded, clientEnded.StatusCode);
+        // The response records follow the client's error, once the server's response
+        // processing ends.
+        foreach (var rpc in new[] { "ReconnectToSpatialAnalyzer", "RecoverSpatialAnalyzerSdk" })
+        {
+            await Until(() => Records(sink, "UnaryCallResponseEnded", rpc).Length +
+                Records(sink, "UnaryCallResponseAbandoned", rpc).Length == 1).ConfigureAwait(true);
+        }
         using (var cancellation = new CancellationTokenSource())
         {
             var call = client.StopSpatialAnalyzerSdkAsync(new(), new CallOptions(deadline: DateTime.UtcNow.AddSeconds(30),
@@ -140,10 +162,24 @@ public sealed class UnaryCallAuditPipelineTests(ITestOutputHelper output)
         Assert.Equal(1602, EventId(fault));
         Assert.Empty(Records(sink, "UnaryCallCompleted", "ConnectToSpatialAnalyzer"));
         Assert.Equal("Unknown", Text(Assert.Single(Records(sink, "UnaryCallResponseEnded", "ConnectToSpatialAnalyzer")), "GrpcStatus"));
-        // A deadline: the handler unwound without a status, and the server sent the
-        // deadline's status.
-        Assert.Single(Records(sink, "UnaryCallFaulted", "ReconnectToSpatialAnalyzer"));
-        Assert.Equal("DeadlineExceeded", Text(Assert.Single(Records(sink, "UnaryCallResponseEnded", "ReconnectToSpatialAnalyzer")), "GrpcStatus"));
+        // A deadline: the handler unwinds without a status either way. When the server
+        // reaches it first, the server commits DeadlineExceeded; when the client does,
+        // the client resets the stream and the response ends without a status.
+        foreach (var rpc in new[] { "ReconnectToSpatialAnalyzer", "RecoverSpatialAnalyzerSdk" })
+        {
+            Assert.Single(Records(sink, "UnaryCallStarted", rpc));
+            Assert.Equal(1602, EventId(Assert.Single(Records(sink, "UnaryCallFaulted", rpc))));
+            Assert.Empty(Records(sink, "UnaryCallCompleted", rpc));
+        }
+
+        var committed = Assert.Single(Records(sink, "UnaryCallResponseEnded", "ReconnectToSpatialAnalyzer"));
+        Assert.Equal(1603, EventId(committed));
+        Assert.Equal("DeadlineExceeded", Text(committed, "GrpcStatus"));
+        Assert.Empty(Records(sink, "UnaryCallResponseAbandoned", "ReconnectToSpatialAnalyzer"));
+        var reset = Assert.Single(Records(sink, "UnaryCallResponseAbandoned", "RecoverSpatialAnalyzerSdk"));
+        Assert.Equal(1604, EventId(reset));
+        Assert.False(reset.Properties.ContainsKey("GrpcStatus"));
+        Assert.Empty(Records(sink, "UnaryCallResponseEnded", "RecoverSpatialAnalyzerSdk"));
         // A client cancellation: the response ended without a status.
         Assert.Single(Records(sink, "UnaryCallFaulted", "StopSpatialAnalyzerSdk"));
         var abandoned = Assert.Single(Records(sink, "UnaryCallResponseAbandoned", "StopSpatialAnalyzerSdk"));
@@ -391,6 +427,37 @@ public sealed class UnaryCallAuditPipelineTests(ITestOutputHelper output)
             ArgumentNullException.ThrowIfNull(context);
             await Task.Delay(Timeout.Infinite, context.CancellationToken).ConfigureAwait(false);
             return new Api.StopSpatialAnalyzerSdkResponse();
+        }
+
+        public override async Task<Api.RecoverSpatialAnalyzerSdkResponse> RecoverSpatialAnalyzerSdk(
+            Api.RecoverSpatialAnalyzerSdkRequest request, ServerCallContext context)
+        {
+            ArgumentNullException.ThrowIfNull(context);
+            await Task.Delay(Timeout.Infinite, context.CancellationToken).ConfigureAwait(false);
+            return new Api.RecoverSpatialAnalyzerSdkResponse();
+        }
+    }
+
+    // Sends the client's calls with a grpc-timeout of its own, the deadline the
+    // server reads, in place of the one the client derives from its own deadline.
+    internal sealed class TimeoutHeaderHandler : DelegatingHandler
+    {
+        private readonly string _timeout;
+
+        // The delegating handler owns and disposes its inner handler.
+        public TimeoutHeaderHandler(string timeout)
+        {
+            _timeout = timeout;
+            InnerHandler = new SocketsHttpHandler();
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            request.Headers.Remove("grpc-timeout");
+            request.Headers.TryAddWithoutValidation("grpc-timeout", _timeout);
+            return base.SendAsync(request, cancellationToken);
         }
     }
 }

@@ -150,6 +150,12 @@ passes one gRPC interceptor that records it (#450):
   UnaryCallResponseAbandoned when the response ended without one, for example
   when the client reset the stream.
 
+A call ended by a deadline is recorded as UnaryCallFaulted (1602) followed by
+either UnaryCallResponseEnded (1603) with `DeadlineExceeded` or
+UnaryCallResponseAbandoned (1604), depending on whether the server or the client
+ends the stream first. A client and the server usually share one deadline, so
+either can happen.
+
 The response records come from the end of the server's response processing.
 They show what the server committed, not that the client received it. A call
 whose handler returned but whose response never ended stalled in the server's
@@ -164,8 +170,14 @@ the environment variable
 `Logging__LogLevel__Briosa.Server.Services.UnaryCallAuditInterceptor=Debug`. gRPC
 reads its interceptors once, as it builds its endpoints at startup, so the
 setting takes effect only when the server starts; like the other logging
-settings, a change needs a restart. At the default level the interceptor is not
-registered with gRPC at all, and gRPC builds the same call path as without it.
+settings, a change needs a restart. A server run with a broad Debug or Trace
+default log level, such as `Logging:LogLevel:Default=Debug` or Debug for the
+`Briosa.Server` category, turns these call records on without naming their
+category, and a level change takes effect only after a restart. The longest
+matching category applies, so a setting above Debug for
+`Briosa.Server.Services.UnaryCallAuditInterceptor` keeps them off. At the default
+level the interceptor is not registered with gRPC at all, and gRPC builds the
+same call path as without it.
 With the records on, each call adds three records of about 500 bytes, which
 matters for a client that polls state. The client conformance runner turns them
 on for its scenarios.
