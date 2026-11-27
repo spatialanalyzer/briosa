@@ -276,13 +276,13 @@ try {
         throw 'Retiring the previous-major clients must leave only the current-major release pairs.'
     }
 
-    # The committed inventory. Its Server 0.10.1 release plan must be exactly these jobs, so
-    # dropping or changing a committed entry fails here. Update the expected table with every
-    # change to compatibility/retained-clients.json.
+    # The committed inventory. Its release plan must be exactly these jobs, so dropping or
+    # changing a committed entry fails here. Update the expected table with every change to
+    # compatibility/retained-clients.json. The JavaScript client alone published 0.5.2.
     $repositoryRoot = Split-Path -Parent $PSScriptRoot
     $committed = Get-RetainedClientMatrix -Path (Join-Path $repositoryRoot 'compatibility/retained-clients.json') -ServerVersion '0.10.1' -RepositoryRoot $repositoryRoot
-    $expectedJobs = @(foreach ($version in @('0.4.0', '0.5.0', '0.5.1')) {
-            foreach ($language in $languages) {
+    $expectedJobs = @(foreach ($version in @('0.4.0', '0.5.0', '0.5.1', '0.5.2')) {
+            foreach ($language in @(if ($version -ceq '0.5.2') { 'js' } else { $languages })) {
                 foreach ($target in $targets) {
                     $rejected = $version -ceq '0.4.0'
                     '{0} {1} {2} published=True {3} requires={4}' -f $language, $target, $version,
@@ -297,7 +297,7 @@ try {
     $missingJobs = @($expectedJobs | Where-Object { $plannedJobs -cnotcontains $_ })
     $unexpectedJobs = @($plannedJobs | Where-Object { $expectedJobs -cnotcontains $_ })
     if ($missingJobs.Count -ne 0 -or $unexpectedJobs.Count -ne 0 -or $plannedJobs.Count -ne $expectedJobs.Count) {
-        throw ("The committed retained-client inventory must plan the $($expectedJobs.Count) expected Server 0.10.1 jobs; it plans $($plannedJobs.Count). " +
+        throw ("The committed retained-client inventory must plan the $($expectedJobs.Count) expected release jobs; it plans $($plannedJobs.Count). " +
             "Missing: $(if ($missingJobs.Count) { $missingJobs -join '; ' } else { 'none' }). Unexpected: $(if ($unexpectedJobs.Count) { $unexpectedJobs -join '; ' } else { 'none' }).")
     }
     # Each committed accepted job fails the gate when its list arrives empty or the runner
@@ -306,6 +306,20 @@ try {
         if ($job.expectIncompatible) { Invoke-Gate $job @(); continue }
         Assert-GateRejected $job @() "The retained-client plan for accepted client $($job.version) must require large-result." -Json '[]'
         Assert-GateRejected $job @() "Client $($job.version) must pass large-result exactly once."
+    }
+    # The published js 0.5.2 packages run on the fixture at their own v0.5.2 tag, which is the
+    # current js fixture. The loop above shows the floor covers them; a 0.5.2 job also passes
+    # only with exactly one large-result pass line, so a job that skipped the scenario fails.
+    $js052Revision = 'a4c3af8928db200f1912459362f6cfa6c0e67a96'
+    $js052 = @($committed.include | Where-Object { $_.language -ceq 'js' -and $_.version -ceq '0.5.2' })
+    if ($js052.Count -ne 2 -or
+        @($js052 | Where-Object { $_.sourceRevision -cne $js052Revision -or $_.fixtureSourceRevision -cne $js052Revision -or $_.expectIncompatible }).Count -ne 0) {
+        throw 'The published js 0.5.2 packages must be accepted jobs on the fixture at their own tag.'
+    }
+    foreach ($job in $js052) {
+        Invoke-Gate $job ($otherLines + $passLine)
+        Assert-GateRejected $job $otherLines 'Client 0.5.2 must pass large-result exactly once.'
+        Assert-GateRejected $job ($otherLines + $passLine + $passLine) 'Client 0.5.2 must pass large-result exactly once.'
     }
     # #450: a soak run repeats one accepted job of the committed plan, unchanged, once per
     # iteration, optionally narrowed to one scenario that the job runs.
@@ -457,7 +471,7 @@ try {
         Assert-NothingEchoed ($result.Output + $written) 'the summary of a rejected dispatch'
     }
 
-    Write-Host "Verified the #250 support window, retired-client identities, per-entry fixture pins, fixture optional scenarios, the large-result floor and its gate, compatible coverage, the published-client release gate, the $($expectedJobs.Count) jobs the committed inventory plans for Server 0.10.1, the soak plan, and the soak workflow's input checks."
+    Write-Host "Verified the #250 support window, retired-client identities, per-entry fixture pins, fixture optional scenarios, the large-result floor and its gate, compatible coverage, the published-client release gate, the $($expectedJobs.Count) jobs the committed inventory plans for a release, the soak plan, and the soak workflow's input checks."
 }
 finally {
     $resolved = [IO.Path]::GetFullPath($temporary)
