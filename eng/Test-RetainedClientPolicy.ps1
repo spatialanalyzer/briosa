@@ -362,7 +362,102 @@ try {
         catch { $failure = $_.Exception.Message }
         if ($failure -cne $case.Message) { throw "Expected the soak check '$($case.Message)', got '$failure'." }
     }
-    Write-Host "Verified the #250 support window, retired-client identities, per-entry fixture pins, fixture optional scenarios, the large-result floor and its gate, compatible coverage, the published-client release gate, the $($expectedJobs.Count) jobs the committed inventory plans for Server 0.10.1, and the soak plan."
+    # The soak workflow's own steps (#450), run from the workflow file. Its preflight
+    # plans an accepted dispatch and rejects any other before the package is built.
+    # Neither it nor the summary prints a rejected value, since the runner reads
+    # workflow commands such as ::error:: from the log.
+    Import-Module (Join-Path $PSScriptRoot 'WorkflowYaml.psm1') -Force
+    $repositoryRoot = Split-Path -Parent $PSScriptRoot
+    $soakWorkflow = ConvertFrom-WorkflowYaml -Path (Join-Path $repositoryRoot '.github/workflows/conformance-soak.yml')
+    $stepRoot = Join-Path $temporary 'soak-steps'
+    $null = New-Item -ItemType Directory -Path $stepRoot
+    $preflightPath = Join-Path $stepRoot 'preflight.ps1'
+    $summaryPath = Join-Path $stepRoot 'summary.ps1'
+    [IO.File]::WriteAllText($preflightPath, @($soakWorkflow.jobs.package.steps | Where-Object { $_['name'] -ceq 'Check the dispatch inputs' })[0]['run'])
+    [IO.File]::WriteAllText($summaryPath, @($soakWorkflow.jobs.summary.steps | Where-Object { $_['name'] -ceq 'Write the summary' })[0]['run'])
+    $shell = (Get-Process -Id $PID).Path
+    function Invoke-SoakStep([string]$Script, [hashtable]$Environment, [string]$WorkingDirectory) {
+        $saved = @{}
+        foreach ($name in $Environment.Keys) {
+            $saved[$name] = [Environment]::GetEnvironmentVariable($name)
+            [Environment]::SetEnvironmentVariable($name, $Environment[$name])
+        }
+        Push-Location -LiteralPath $WorkingDirectory
+        try {
+            $output = & $shell -NoProfile -File $Script 2>&1 | Out-String
+            [pscustomobject]@{ Exit = $LASTEXITCODE; Output = $output }
+        }
+        finally {
+            # A rejected step's exit code must not become this script's own.
+            $global:LASTEXITCODE = 0
+            Pop-Location
+            foreach ($name in $saved.Keys) { [Environment]::SetEnvironmentVariable($name, $saved[$name]) }
+        }
+    }
+    function Assert-NothingEchoed([string]$Text, [string]$Case) {
+        if ($Text.Contains('injected', [StringComparison]::Ordinal) -or
+            @($Text -split '\r?\n' | Where-Object { $_.TrimStart().StartsWith('::', [StringComparison]::Ordinal) }).Count -gt 0) {
+            throw "The soak workflow printed a rejected input for $Case."
+        }
+    }
+    $dispatch = @{ ITERATIONS = '20'; LANGUAGE = 'js'; TARGET = '2024.1.0508.5'; CLIENT_VERSION = '0.5.1'; SOAK_SCENARIO = '' }
+    foreach ($case in @(
+            @{ Change = @{}; Runs = 'The soak will run 20 iterations of js/2024.1.0508.5/0.5.1.' },
+            @{ Change = @{ ITERATIONS = '1'; SOAK_SCENARIO = 'capability-denied' }; Runs = 'The soak will run 1 iterations of js/2024.1.0508.5/0.5.1.' },
+            @{ Change = @{ ITERATIONS = '50'; LANGUAGE = 'py'; TARGET = '2026.1.0529.7' }; Runs = 'The soak will run 50 iterations of py/2026.1.0529.7/0.5.1.' })) {
+        $environment = $dispatch.Clone()
+        foreach ($name in $case.Change.Keys) { $environment[$name] = $case.Change[$name] }
+        $result = Invoke-SoakStep $preflightPath $environment $repositoryRoot
+        if ($result.Exit -ne 0 -or -not $result.Output.Contains($case.Runs, [StringComparison]::Ordinal)) {
+            throw "The soak preflight did not accept a valid dispatch: $($result.Output)"
+        }
+    }
+    $countMessage = 'The iterations input must be a whole number from 1 to 50, without leading zeroes.'
+    foreach ($case in @(
+            @{ Change = @{ ITERATIONS = '020' }; Message = $countMessage },
+            @{ Change = @{ ITERATIONS = '008' }; Message = $countMessage },
+            @{ Change = @{ ITERATIONS = '0' }; Message = $countMessage },
+            @{ Change = @{ ITERATIONS = '51' }; Message = $countMessage },
+            @{ Change = @{ ITERATIONS = '-1' }; Message = $countMessage },
+            @{ Change = @{ ITERATIONS = '2.5' }; Message = $countMessage },
+            @{ Change = @{ ITERATIONS = '1e1' }; Message = $countMessage },
+            @{ Change = @{ ITERATIONS = '' }; Message = $countMessage },
+            @{ Change = @{ ITERATIONS = "20`n::error::injected-count" }; Message = $countMessage },
+            @{ Change = @{ LANGUAGE = "js`n::error::injected-language" }; Message = 'The language input must be js, dotnet or py.' },
+            @{ Change = @{ TARGET = '::error::injected-target' }; Message = 'The target input must be an exact SpatialAnalyzer target.' },
+            @{ Change = @{ CLIENT_VERSION = "0.5.1`n::error::injected-client-version" }; Message = 'The client-version input must be a version, such as 0.5.1.' },
+            @{ Change = @{ CLIENT_VERSION = '::error::injected-client-version' }; Message = 'The client-version input must be a version, such as 0.5.1.' },
+            @{ Change = @{ SOAK_SCENARIO = "capability-denied`n::error::injected-scenario" }; Message = 'The scenario input must be empty or a scenario ID, such as capability-denied.' },
+            @{ Change = @{ CLIENT_VERSION = '9.9.9' }; Message = 'The retained-client plan has no job for client js/2024.1.0508.5/9.9.9.' },
+            @{ Change = @{ CLIENT_VERSION = '0.4.0' }; Message = 'A soak run repeats an accepted client; the gate expects js/2024.1.0508.5/0.4.0 to be rejected.' },
+            @{ Change = @{ SOAK_SCENARIO = 'no-such-scenario' }; Message = 'A soak run of js/2024.1.0508.5/0.5.1 can repeat only a scenario its job runs.' })) {
+        $environment = $dispatch.Clone()
+        foreach ($name in $case.Change.Keys) { $environment[$name] = $case.Change[$name] }
+        $label = ($case.Change.GetEnumerator() | ForEach-Object { "$($_.Key) $($_.Value -replace '[^A-Za-z0-9.-]', '?')" }) -join ', '
+        $result = Invoke-SoakStep $preflightPath $environment $repositoryRoot
+        if ($result.Exit -eq 0 -or -not $result.Output.Contains($case.Message, [StringComparison]::Ordinal)) {
+            throw "The soak preflight did not reject $label with '$($case.Message)': $($result.Output)"
+        }
+        Assert-NothingEchoed $result.Output "the preflight with $label"
+    }
+    # The summary of a soak whose preflight rejected its inputs: a fixed message only.
+    $summaryDispatch = @{ ITERATIONS = '20'; LANGUAGE = 'js'; TARGET = '2024.1.0508.5'; CLIENT_VERSION = '0.5.1'; SCENARIO = ''
+        SOAK_RESULT = 'skipped'; DOWNLOAD = 'failure' }
+    foreach ($change in @(@{ SCENARIO = "capability-denied`n::error::injected-scenario" }, @{ CLIENT_VERSION = '::error::injected-client-version' },
+            @{ ITERATIONS = '020' })) {
+        $environment = $summaryDispatch.Clone()
+        foreach ($name in $change.Keys) { $environment[$name] = $change[$name] }
+        $summaryFile = Join-Path $stepRoot "summary-$([Guid]::NewGuid().ToString('N')).md"
+        $environment.GITHUB_STEP_SUMMARY = $summaryFile
+        $result = Invoke-SoakStep $summaryPath $environment $stepRoot
+        $written = [IO.File]::ReadAllText($summaryFile)
+        if ($result.Exit -eq 0 -or -not $written.Contains('The dispatch inputs were not valid, so no iteration ran.', [StringComparison]::Ordinal)) {
+            throw "The soak summary did not report invalid dispatch inputs: $($result.Output)"
+        }
+        Assert-NothingEchoed ($result.Output + $written) 'the summary of a rejected dispatch'
+    }
+
+    Write-Host "Verified the #250 support window, retired-client identities, per-entry fixture pins, fixture optional scenarios, the large-result floor and its gate, compatible coverage, the published-client release gate, the $($expectedJobs.Count) jobs the committed inventory plans for Server 0.10.1, the soak plan, and the soak workflow's input checks."
 }
 finally {
     $resolved = [IO.Path]::GetFullPath($temporary)

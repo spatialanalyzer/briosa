@@ -10,7 +10,10 @@ $ErrorActionPreference = 'Stop'
 # in key position), flow mappings and flow sequences, anchors, aliases, tags, merge keys,
 # document markers and directives, tabs, repeated keys, and keys YAML would read as a
 # boolean, a null or a number, other than those listed below. Every scalar is returned
-# as a string, mappings as ordered dictionaries and sequences as lists.
+# as a string, mappings as ordered dictionaries and sequences as lists. With
+# -ScalarInfo, the same document is read under the same rules, and each scalar is
+# returned with its form instead: its text, whether it was plain, quoted or a block
+# scalar, and its line.
 
 # Keys that YAML 1.1 reads as booleans but GitHub Actions reads as the string itself.
 $script:StringKeys = @('on')
@@ -70,21 +73,28 @@ function Assert-NodeStart([object]$Reader, [string]$Text, [string]$Position) {
     if ($first -in @('%', '@', '`', ',', ']', '}')) { Stop-Unsupported $Reader "a reserved indicator ('$first') in $Position position." }
 }
 
+function New-Scalar([object]$Reader, [string]$Text, [string]$Style, [int]$Line) {
+    # A scalar as the caller asked for it: its text, or its text with its form.
+    if (-not $Reader.ScalarInfo) { return $Text }
+    [pscustomobject]@{ Text = $Text; Style = $Style; Line = $Line }
+}
+
 function ConvertFrom-Scalar([object]$Reader, [string]$Text) {
     if ($Text.Length -eq 0) { return $null }
     Assert-NodeStart $Reader $Text 'value'
     $first = $Text[0]
+    $line = $Reader.Index + 1
     if ($first -eq "'") {
         if ($Text -notmatch "\A'[^']*'\z") { Stop-Unsupported $Reader 'a single-quoted scalar with an escape or that does not end on its line.' }
-        return $Text.Substring(1, $Text.Length - 2)
+        return New-Scalar $Reader $Text.Substring(1, $Text.Length - 2) 'single-quoted' $line
     }
     if ($first -eq '"') {
         if ($Text -notmatch '\A"[^"\\]*"\z') { Stop-Unsupported $Reader 'a double-quoted scalar with an escape or that does not end on its line.' }
-        return $Text.Substring(1, $Text.Length - 2)
+        return New-Scalar $Reader $Text.Substring(1, $Text.Length - 2) 'double-quoted' $line
     }
     if ($Text -match '\A[-:](?: |\z)') { Stop-Unsupported $Reader "a block indicator ('$first') where a value belongs." }
     if ($Text -match ': |:\z') { Stop-Unsupported $Reader "a plain scalar that contains ': ', which YAML reads as a mapping." }
-    $Text
+    New-Scalar $Reader $Text 'plain' $line
 }
 
 function Get-MappingEntry([object]$Reader, [string]$Text) {
@@ -124,8 +134,9 @@ function Read-BlockScalar([object]$Reader, [int]$ParentIndent, [string]$Indicato
 function Read-Value([object]$Reader, [int]$Indent, [string]$Rest) {
     # The value after "key:" or "-": a block scalar, an inline scalar, or a nested block.
     if ($Rest -match '\A[|>][+-]?\z') {
+        $line = $Reader.Index + 1
         $Reader.Index++
-        return Read-BlockScalar $Reader $Indent $Rest
+        return New-Scalar $Reader (Read-BlockScalar $Reader $Indent $Rest) 'block' $line
     }
     if ($Rest.Length -gt 0) {
         $value = ConvertFrom-Scalar $Reader $Rest
@@ -202,7 +213,7 @@ function Read-Sequence([object]$Reader, [int]$Indent) {
 }
 
 function ConvertFrom-WorkflowYaml {
-    param([Parameter(Mandatory)][string]$Path)
+    param([Parameter(Mandatory)][string]$Path, [switch]$ScalarInfo)
     $name = [IO.Path]::GetFileName($Path)
     $lines = [Collections.Generic.List[string]]::new()
     foreach ($line in [IO.File]::ReadAllLines($Path)) { $lines.Add($line) }
@@ -212,7 +223,7 @@ function ConvertFrom-WorkflowYaml {
         if ($line -match '\A(---|\.\.\.)(\s|\z)') { throw "$name line $($index + 1): a document marker." }
         if ($line -match '\A%') { throw "$name line $($index + 1): a directive." }
     }
-    $reader = [pscustomobject]@{ Lines = $lines; Index = 0; Name = $name }
+    $reader = [pscustomobject]@{ Lines = $lines; Index = 0; Name = $name; ScalarInfo = [bool]$ScalarInfo }
     Skip-Blank $reader
     if ($reader.Index -ge $lines.Count) { throw "${name}: the workflow is empty." }
     if ((Get-Indent $lines[$reader.Index]) -ne 0) { Stop-Unsupported $reader 'a workflow whose first line is indented.' }

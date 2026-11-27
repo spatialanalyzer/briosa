@@ -288,9 +288,134 @@ function Get-ReusableWorkflowFindings([string]$Name, [string[]]$Triggers, [strin
     , $findings
 }
 
+function Get-ExpressionSpans([string]$Text) {
+    # Each ${{ }} in a scalar's text, found as Get-ExpressionTexts finds them: its start,
+    # its end after the closing braces (or the end of the text) and its body.
+    $spans = [Collections.Generic.List[object]]::new()
+    $index = 0
+    while (($start = $Text.IndexOf('${{', $index, [StringComparison]::Ordinal)) -ge 0) {
+        $position = $start + 3
+        $quoted = $false
+        while ($position -lt $Text.Length) {
+            if ($Text[$position] -eq "'") { $quoted = -not $quoted }
+            elseif (-not $quoted -and $Text[$position] -eq '}' -and $position + 1 -lt $Text.Length -and $Text[$position + 1] -eq '}') { break }
+            $position++
+        }
+        $end = [Math]::Min($Text.Length, $position + 2)
+        $spans.Add([pscustomobject]@{ Start = $start; End = $end; Body = $Text.Substring($start + 3, $position - $start - 3).Trim() })
+        $index = $end
+    }
+    , $spans
+}
+
+function Get-ExpressionType([string]$Body, [object]$DispatchInputs) {
+    # The type of one supported expression over a dispatch input, or $null for any other
+    # expression. A workflow_dispatch number input reaches the inputs context as a
+    # string, so only fromJSON() of a number or Boolean input gives that type.
+    $direct = [regex]::Match($Body, '\Ainputs\.(?<name>[A-Za-z_][A-Za-z0-9_-]*)\z')
+    $parsed = [regex]::Match($Body, '\A(?i:fromJSON)\(\s*inputs\.(?<name>[A-Za-z_][A-Za-z0-9_-]*)\s*\)\z')
+    $name = $(if ($direct.Success) { $direct.Groups['name'].Value } elseif ($parsed.Success) { $parsed.Groups['name'].Value })
+    if ($null -eq $name -or $DispatchInputs -isnot [Collections.Specialized.OrderedDictionary] -or -not $DispatchInputs.Contains($name)) {
+        return $null
+    }
+    $declared = $DispatchInputs[$name]
+    $type = $(if ($declared -is [Collections.Specialized.OrderedDictionary] -and $declared.Contains('type')) { [string]$declared['type'].Text } else { 'string' })
+    if ($direct.Success) {
+        return @{ string = 'string'; choice = 'string'; number = 'string'; boolean = 'boolean' }[$type]
+    }
+    @{ number = 'number'; boolean = 'boolean' }[$type]
+}
+
+function Get-PassedValueType([object]$Scalar, [object]$DispatchInputs) {
+    # The type a value in a job's with: mapping reaches the called workflow as; $null
+    # when it cannot be told. Actions evaluates the expressions in a scalar of any YAML
+    # style, so they are read first, and each must be a supported expression over a
+    # dispatch input. A plain or quoted scalar that is one expression alone has that
+    # expression's type; any other text with expressions is a string, as is a block
+    # scalar. A scalar without expressions has its YAML type, a quoted one a string.
+    if ($null -eq $Scalar -or $Scalar -isnot [pscustomobject]) { return $null }
+    $text = [string]$Scalar.Text
+    $spans = Get-ExpressionSpans $text
+    if ($spans.Count -gt 0) {
+        $types = @(foreach ($span in $spans) { Get-ExpressionType $span.Body $DispatchInputs })
+        if ($types.Count -ne $spans.Count -or @($types | Where-Object { $null -eq $_ }).Count -gt 0) { return $null }
+        if ($spans.Count -eq 1 -and $spans[0].Start -eq 0 -and $spans[0].End -eq $text.Length -and $Scalar.Style -cne 'block') {
+            return $types[0]
+        }
+        return 'string'
+    }
+    if ($Scalar.Style -cne 'plain') { return 'string' }
+    # Actions reads these spellings, and only these, as Booleans.
+    if ($text -cin @('true', 'True', 'TRUE', 'false', 'False', 'FALSE')) { return 'boolean' }
+    if ($text -cmatch '\A(?:[-+]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?|0x[0-9A-Fa-f]+|0o[0-7]+|[-+]?\.(?:inf|Inf|INF)|\.(?:nan|NaN|NAN))\z') {
+        return 'number'
+    }
+    if ($text -cmatch '\A(?:null|Null|NULL|~)\z') { return $null }
+    'string'
+}
+function Get-ReusableCallTypeFindings([string]$Name) {
+    # Each value a job of this dispatch-only workflow passes to a reusable workflow in
+    # this repository must reach it with the type the called workflow declares, and
+    # every input the called workflow requires must be passed. A workflow the reader
+    # does not accept is reported by the other checks.
+    $findings = [Collections.Generic.List[string]]::new()
+    try {
+        $yaml = ConvertFrom-WorkflowYaml -Path (Join-Path $resolvedDirectory $Name) -ScalarInfo
+    }
+    catch {
+        return , $findings
+    }
+    $on = $yaml['on']
+    $dispatch = $(if ($on -is [Collections.Specialized.OrderedDictionary] -and $on['workflow_dispatch'] -is [Collections.Specialized.OrderedDictionary]) {
+            $on['workflow_dispatch']['inputs'] })
+    $jobs = $(if ($yaml['jobs'] -is [Collections.Specialized.OrderedDictionary]) { $yaml['jobs'] } else { [ordered]@{} })
+    foreach ($job in $jobs.GetEnumerator()) {
+        if ($job.Value -isnot [Collections.Specialized.OrderedDictionary] -or $job.Value['uses'] -isnot [pscustomobject]) { continue }
+        $local = [regex]::Match([string]$job.Value['uses'].Text, '\A\./\.github/workflows/(?<file>[A-Za-z0-9_.-]+\.ya?ml)\z')
+        if (-not $local.Success) { continue }
+        $file = $local.Groups['file'].Value
+        try {
+            $called = ConvertFrom-WorkflowYaml -Path (Join-Path $resolvedDirectory $file)
+            $declared = $called['on']['workflow_call']['inputs']
+        }
+        catch {
+            # The called workflow's own check reports the form it was written in; only
+            # the retained-client gate may be called at all.
+            continue
+        }
+        if ($declared -isnot [Collections.Specialized.OrderedDictionary]) { $declared = [ordered]@{} }
+        $with = $(if ($job.Value['with'] -is [Collections.Specialized.OrderedDictionary]) { $job.Value['with'] } else { [ordered]@{} })
+        foreach ($entry in $with.GetEnumerator()) {
+            if (-not $declared.Contains($entry.Key)) {
+                $findings.Add("job '$($job.Key)' passes '$($entry.Key)', which $file does not declare")
+                continue
+            }
+            $want = [string]$declared[$entry.Key]['type']
+            $have = Get-PassedValueType $entry.Value $dispatch
+            $line = $(if ($entry.Value -is [pscustomobject]) { " at $Name line $($entry.Value.Line)" })
+            if ($null -eq $have) {
+                $findings.Add("job '$($job.Key)' passes '$($entry.Key)'$line a value whose type the policy cannot tell")
+            }
+            elseif ($have -cne $want) {
+                $hint = $(if ($have -ceq 'string' -and $want -cne 'string' -and [string]$entry.Value.Text -match '\A\$\{\{\s*inputs\.') {
+                        '; a workflow_dispatch number input reaches the inputs context as a string, so pass fromJSON() of it' })
+                $findings.Add("job '$($job.Key)' passes a $have to the $want input '$($entry.Key)' of $file$line$hint")
+            }
+        }
+        foreach ($input in $declared.GetEnumerator()) {
+            if ($input.Value -is [Collections.Specialized.OrderedDictionary] -and [string]$input.Value['required'] -ceq 'true' -and
+                -not $with.Contains($input.Key)) {
+                $findings.Add("job '$($job.Key)' does not pass the input '$($input.Key)' that $file requires")
+            }
+        }
+    }
+    , $findings
+}
+
 $soakFindings = Get-ReusableWorkflowFindings 'conformance-soak.yml' @('workflow_dispatch') @('./.github/workflows/retained-client-compatibility.yml')
+foreach ($finding in (Get-ReusableCallTypeFindings 'conformance-soak.yml')) { $soakFindings.Add($finding) }
 if ($soakFindings.Count -gt 0) {
-    throw "conformance-soak.yml must run only from workflow_dispatch, call only retained-client-compatibility.yml, and use no secrets, environment, write permissions or OIDC token: $($soakFindings -join '; ')."
+    throw "conformance-soak.yml must run only from workflow_dispatch, call only retained-client-compatibility.yml, pass it each input with the type it declares, and use no secrets, environment, write permissions or OIDC token: $($soakFindings -join '; ')."
 }
 $gateFindings = Get-ReusableWorkflowFindings 'retained-client-compatibility.yml' @('workflow_call') @()
 if ($gateFindings.Count -gt 0) {
@@ -301,4 +426,4 @@ Write-Host (
     'Release workflows never run on tag pushes, name environments only in reviewed jobs, ' +
     'limit signing to main or a release line, keep R2 credentials in the R2 environment, ' +
     'and leave tag creation to the published draft release. The conformance soak runs only ' +
-    'by dispatch and only the retained-client gate''s jobs, without secrets or write permissions.')
+    'by dispatch and only the retained-client gate''s jobs, passing each of its inputs with the declared type, without secrets or write permissions.')

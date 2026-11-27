@@ -233,8 +233,11 @@ Inputs:
 | `language` | `js` | `js`, `dotnet` or `py` |
 | `target` | `2024.1.0508.5` | the exact SpatialAnalyzer target |
 | `client-version` | `0.5.1` | a version `retained-clients.json` lists for that language and target; the gate must accept it |
-| `iterations` | `20` | 1 to 50 |
+| `iterations` | `20` | a whole number from 1 to 50 |
 | `scenario` | empty | one scenario the job runs, such as `capability-denied`; empty runs every scenario of the job |
+
+The workflow checks these inputs before it builds the package, and it plans
+the job exactly as the gate will.
 
 To dispatch it from the command line:
 
