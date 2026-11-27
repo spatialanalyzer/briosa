@@ -20,7 +20,7 @@ internal static class MakeGeometryFitOnlyRelationshipOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         if (!request.HasGeometryType)
-            throw new ArgumentException("Request field 'geometry_type' is required.", nameof(request));
+            throw RequestFieldViolation.Required("geometry_type");
         var inputs = new List<WorkerMpInputArgument>
         {
             new("Relationship Name", WorkerMpValueKind.CollectionItemName,

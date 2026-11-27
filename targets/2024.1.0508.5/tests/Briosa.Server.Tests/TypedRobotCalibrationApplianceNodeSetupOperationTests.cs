@@ -48,7 +48,7 @@ public sealed class TypedRobotCalibrationApplianceNodeSetupOperationTests
         Assert.Equal(new WorkerCollectionObjectNameValue("Calibration", "Node", WorkerObjectTypeValue.Any),
             Assert.Single(add.InputArguments).RequireValue<WorkerCollectionObjectNameValue>());
         Assert.Equal("SetCollectionObjectNameArg2", Assert.Single(delete.InputArguments).SdkBinding);
-        Assert.Throws<ArgumentException>(() => AddCalibrationApplianceNodeOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => AddCalibrationApplianceNodeOperation.CreateCommand(new()));
 
         var defaultAddress = SetCalibrationApplianceNodeCalibrationApplianceIpAddressOperation.CreateCommand(new()
         {
@@ -115,7 +115,7 @@ public sealed class TypedRobotCalibrationApplianceNodeSetupOperationTests
         });
         Assert.Equal("SetTransformArg", offset.InputArguments[1].SdkBinding);
         Assert.Equal(16, offset.InputArguments[1].RequireValue<WorkerTransformValue>().Values.Count);
-        Assert.Throws<ArgumentException>(() => SetCalibrationApplianceNodeMeasurementOffsetTransformOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetCalibrationApplianceNodeMeasurementOffsetTransformOperation.CreateCommand(new()
         {
             CalibrationApplianceNode = node,
             MeasurementOffsetTransform = new()

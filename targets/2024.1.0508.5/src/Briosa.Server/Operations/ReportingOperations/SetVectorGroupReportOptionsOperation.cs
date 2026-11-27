@@ -22,7 +22,7 @@ internal static class SetVectorGroupReportOptionsOperation
             new("Vector Group", WorkerMpValueKind.CollectionObjectName,
                 CollectionObjectNameMapper.Required(request.VectorGroup, "vector_group"), "SetCollectionObjectNameArg2"),
             new("Report Options", WorkerMpValueKind.PointDeltaReportOptions,
-                PointDeltaReportOptionsMapper.ToWorker(request.ReportOptions), "SetPointDeltaReportOptionsArg")
+                PointDeltaReportOptionsMapper.ToWorker(request.ReportOptions, "report_options"), "SetPointDeltaReportOptionsArg")
         ], []);
     }
 

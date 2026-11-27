@@ -27,10 +27,10 @@ internal static class AutoFilterCloudsToNominalGeometry3DOperation
                 new("Clouds", WorkerMpValueKind.CollectionObjectNameList,
                     CollectionObjectNameMapper.RequiredList(request.Clouds, "clouds"), "SetCollectionObjectNameRefListArg"),
                 new("Cloud Thinning Settings", WorkerMpValueKind.CloudThinningOptions,
-                    CloudThinningOptionsMapper.ToWorker(request.CloudThinningSettings), "SetCloudThinningOptionsArg"),
+                    CloudThinningOptionsMapper.ToWorker(request.CloudThinningSettings, "cloud_thinning_settings"), "SetCloudThinningOptionsArg"),
                 new("Filter Proximity Settings 3D", WorkerMpValueKind.AutoFilterProximitySettings,
                     RelationshipOperationValueMapper.RequiredProximity(request.FilterProximitySettings3D,
-                        "filter_proximity_settings_3D"), "SetAutoFilterProximitySettingsArg"),
+                        "filter_proximity_settings_3d"), "SetAutoFilterProximitySettingsArg"),
             ], []);
     }
 

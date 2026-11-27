@@ -44,7 +44,7 @@ public sealed class TypedInstrumentUncertaintyOperationTests
         });
         Assert.Equal(OperationIds[0], construct.OperationId);
         Assert.Equal("P1", construct.InputArguments[0].RequireValue<WorkerPointNameListValue>().Values[0].TargetName);
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             ConstructMeasuredPointUncertaintyEllipsoidsOperation.CreateCommand(new()));
 
         var matrix = CovarianceMatrix();
@@ -66,21 +66,21 @@ public sealed class TypedInstrumentUncertaintyOperationTests
             var values = setBase.InputArguments[row + 1].RequireValue<WorkerDoubleArrayValue>().Values;
             Assert.Equal(new[] { row + 1.0, row + 1.25, row + 1.5, row + 1.75, row + 2.0, row + 2.25 }, values);
         }
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             SetInstrumentBaseUncertaintyCovarianceMatrixWrtBaseOperation.CreateCommand(new()
             {
                 Instrument = Instrument()
             }));
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             GetInstrumentPartTemperatureOperation.CreateCommand(new()));
 
         // #243 D2 (R2): set_automatically is required. The three values are required when
         // it is false, and an omitted value is still sent as 0 when it is true.
-        Assert.Throws<ArgumentException>(() => SetInstrumentWeatherSettingOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetInstrumentWeatherSettingOperation.CreateCommand(new()
         {
             Instrument = Instrument()
         }));
-        Assert.Throws<ArgumentException>(() => SetInstrumentWeatherSettingOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetInstrumentWeatherSettingOperation.CreateCommand(new()
         {
             Instrument = Instrument(),
             SetAutomatically = false

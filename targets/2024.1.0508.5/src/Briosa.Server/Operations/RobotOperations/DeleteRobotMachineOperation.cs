@@ -16,8 +16,10 @@ internal static class DeleteRobotMachineOperation
     public static WorkerMpCommand CreateCommand(Api.DeleteRobotMachineRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.MachineId is null || string.IsNullOrWhiteSpace(request.MachineId.CollectionName))
-            throw new ArgumentException("Machine ID is required.", nameof(request));
+        if (request.MachineId is null)
+            throw RequestFieldViolation.Required("machine_id");
+        if (string.IsNullOrWhiteSpace(request.MachineId.CollectionName))
+            throw RequestFieldViolation.NotBlank("machine_id.collection_name");
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [new("Machine ID", WorkerMpValueKind.CollectionMachineId,
                 new WorkerCollectionMachineIdValue(request.MachineId.CollectionName, request.MachineId.MachineId),

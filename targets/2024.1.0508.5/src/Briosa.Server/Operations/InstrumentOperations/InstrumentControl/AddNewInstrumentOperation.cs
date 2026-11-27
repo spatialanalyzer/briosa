@@ -19,8 +19,11 @@ internal static class AddNewInstrumentOperation
     public static WorkerMpCommand CreateCommand(Api.AddNewInstrumentRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.InstrumentType is null || !WorkerInstrumentTypeNames.IsSupported(request.InstrumentType.Value))
-            throw new ArgumentException("Instrument type must be an exact SA 2024.1.0508.5 choice.", nameof(request));
+        if (request.InstrumentType is null)
+            throw RequestFieldViolation.Required("instrument_type");
+        // The name must be an exact SA 2024.1.0508.5 choice.
+        if (!WorkerInstrumentTypeNames.IsSupported(request.InstrumentType.Value))
+            throw RequestFieldViolation.SupportedChoice("instrument_type.value");
 
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [new("Instrument Type", WorkerMpValueKind.InstrumentTypeName,

@@ -10,7 +10,7 @@ internal static class VectorNameMapper
     {
         if (values.Count == 0)
         {
-            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(values));
+            throw RequestFieldViolation.NotEmpty(fieldName);
         }
 
         return new(values.Select(value => new WorkerVectorNameValue(value.CollectionName, value.GroupName, value.Name)).ToImmutableArray());

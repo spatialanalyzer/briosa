@@ -62,9 +62,14 @@ internal static class PrepareQdasDataListOperation
     private static string RequiredDateTimeStamp(bool hasValue, string value)
     {
         // Captured catalog timestamps are observations, not reusable defaults.
-        if (!hasValue || string.IsNullOrWhiteSpace(value))
+        if (!hasValue)
         {
-            throw new ArgumentException("Request field 'k0004_date_time_stamp' is required.", nameof(value));
+            throw RequestFieldViolation.Required("k0004_date_time_stamp");
+        }
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw RequestFieldViolation.NotBlank("k0004_date_time_stamp");
         }
 
         return value;

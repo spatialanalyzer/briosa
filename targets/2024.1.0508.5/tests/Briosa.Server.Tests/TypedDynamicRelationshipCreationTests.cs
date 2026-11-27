@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -56,42 +57,42 @@ public sealed class TypedDynamicRelationshipCreationTests
             point.InputArguments[1].RequireValue<WorkerChoiceValue<WorkerDynamicPointModeValue>>().Value);
         Assert.Equal("plane3", point.InputArguments[4].RequireValue<WorkerCollectionObjectNameValue>().ObjectName);
 
-        Assert.Throws<ArgumentException>(() => MakeDynamicCircleRelationshipOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => MakeDynamicCircleRelationshipOperation.CreateCommand(new()
         {
             RelationshipName = Relationship(), FirstReferenceGeometry = Geometry("sphere"),
             SecondReferenceGeometry = Geometry("plane")
         }));
-        Assert.Throws<ArgumentException>(() => MakeDynamicEllipseRelationshipOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => MakeDynamicEllipseRelationshipOperation.CreateCommand(new()
         {
             RelationshipName = Relationship(), ConstructionMode = (Api.DynamicEllipseMode)999,
             FirstReferenceGeometry = Geometry("cone"), SecondReferenceGeometry = Geometry("plane")
         }));
-        Assert.Throws<ArgumentException>(() => MakeDynamicEllipseRelationshipOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => MakeDynamicEllipseRelationshipOperation.CreateCommand(new()
         {
             RelationshipName = Relationship(), ConstructionMode = Api.DynamicEllipseMode.ConeAndPlaneIntersection,
             FirstReferenceGeometry = Geometry("cone")
         }));
-        Assert.Throws<ArgumentException>(() => MakeDynamicLineRelationshipOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => MakeDynamicLineRelationshipOperation.CreateCommand(new()
         {
             RelationshipName = Relationship(), FirstReferenceGeometry = Geometry("line1"),
             SecondReferenceGeometry = Geometry("line2")
         }));
-        Assert.Throws<ArgumentException>(() => MakeDynamicLineRelationshipOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => MakeDynamicLineRelationshipOperation.CreateCommand(new()
         {
             RelationshipName = Relationship(), ConstructionMode = Api.DynamicLineMode.BisectTwoLines,
             SecondReferenceGeometry = Geometry("line2")
         }));
-        Assert.Throws<ArgumentException>(() => MakeDynamicPlaneRelationshipOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => MakeDynamicPlaneRelationshipOperation.CreateCommand(new()
         {
             RelationshipName = Relationship(), ConstructionMode = (Api.DynamicPlaneMode)999,
             FirstReferenceGeometry = Geometry("plane1"), SecondReferenceGeometry = Geometry("plane2")
         }));
-        Assert.Throws<ArgumentException>(() => MakeDynamicPlaneRelationshipOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => MakeDynamicPlaneRelationshipOperation.CreateCommand(new()
         {
             RelationshipName = Relationship(), ConstructionMode = Api.DynamicPlaneMode.BisectTwoPlanes,
             FirstReferenceGeometry = Geometry("plane1")
         }));
-        Assert.Throws<ArgumentException>(() => MakeDynamicPointRelationshipOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => MakeDynamicPointRelationshipOperation.CreateCommand(new()
         {
             RelationshipName = Relationship(), ConstructionMode = Api.DynamicPointMode.IntersectionThreePlanes,
             FirstReferenceGeometry = Geometry("plane1"), SecondReferenceGeometry = Geometry("plane2")

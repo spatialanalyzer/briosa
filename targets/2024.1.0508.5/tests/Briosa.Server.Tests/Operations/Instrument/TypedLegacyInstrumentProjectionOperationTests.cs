@@ -33,7 +33,7 @@ public sealed class TypedLegacyInstrumentProjectionOperationTests
         Assert.Equal("SetCollectionNameArg,SetStringArg,SetColInstIdArg",
             string.Join(',', crib.InputArguments.Select(argument => argument.SdkBinding)));
         Assert.Contains("long-running", RunCribSheetOperation.Descriptor.RiskFlags);
-        Assert.Throws<ArgumentException>(() => RunCribSheetOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => RunCribSheetOperation.CreateCommand(new()
             { Collection = new Api.CollectionName { Name = "C" }, Instrument = instrument }));
         var project = ProjectObjectsOperation.CreateCommand(new()
         {
@@ -42,10 +42,10 @@ public sealed class TypedLegacyInstrumentProjectionOperationTests
         });
         Assert.Equal("SetCollectionObjectNameRefListArg", project.InputArguments[1].SdkBinding);
         Assert.Single(project.InputArguments[1].RequireValue<WorkerCollectionObjectNameListValue>().Values);
-        Assert.Throws<ArgumentException>(() => ProjectObjectsOperation.CreateCommand(new() { Instrument = instrument }));
+        Assert.Throws<RequestFieldViolation>(() => ProjectObjectsOperation.CreateCommand(new() { Instrument = instrument }));
         Assert.Equal("SetColInstIdArg", Assert.Single(StopProjectionOperation.CreateCommand(new()
             { Instrument = instrument }).InputArguments).SdkBinding);
-        Assert.Throws<ArgumentException>(() => StopProjectionOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => StopProjectionOperation.CreateCommand(new()));
     }
 
     [Fact]

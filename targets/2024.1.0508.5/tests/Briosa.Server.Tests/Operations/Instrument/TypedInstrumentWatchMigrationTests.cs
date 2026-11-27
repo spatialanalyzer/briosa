@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.InstrumentOperations;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -25,7 +26,7 @@ public sealed class TypedInstrumentWatchMigrationTests
         Assert.Equal(string.Empty, command.InputArguments[3].RequireValue<WorkerTextValue>().Value);
         Assert.Equal(0, command.InputArguments[8].RequireValue<WorkerIntegerValue>().Value);
         request.GroupsToConsider.Clear();
-        Assert.Throws<ArgumentException>(() => WatchClosestPointOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => WatchClosestPointOperation.CreateCommand(request));
     }
 
     [Fact]
@@ -42,7 +43,7 @@ public sealed class TypedInstrumentWatchMigrationTests
         Assert.Equal("Measurement Reference Objects ", command.InputArguments[2].Name);
         Assert.Equal("SetProjectionOptionsArg", command.InputArguments[3].SdkBinding);
         request.ProjectionOptions = null;
-        Assert.Throws<ArgumentException>(() => WatchPointToEdgeOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => WatchPointToEdgeOperation.CreateCommand(request));
     }
 
     [Fact]
@@ -57,7 +58,7 @@ public sealed class TypedInstrumentWatchMigrationTests
         Assert.Equal(10, command.InputArguments.Count);
         Assert.Equal("SetProjectionOptionsArg", command.InputArguments[2].SdkBinding);
         request.ObjectsToConsider.Clear();
-        Assert.Throws<ArgumentException>(() => WatchPointToObjectsOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => WatchPointToObjectsOperation.CreateCommand(request));
     }
 
     [Fact]
@@ -71,7 +72,7 @@ public sealed class TypedInstrumentWatchMigrationTests
         Assert.Equal(9, command.InputArguments.Count);
         Assert.False(command.InputArguments[4].RequireValue<WorkerBooleanValue>().Value);
         request.ReferencePoint = null;
-        Assert.Throws<ArgumentException>(() => WatchPointToPointOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => WatchPointToPointOperation.CreateCommand(request));
     }
 
     [Fact]
@@ -86,7 +87,7 @@ public sealed class TypedInstrumentWatchMigrationTests
             command.InputArguments.Select(argument => argument.SdkBinding));
         Assert.True(command.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
         request.ReferencePoint = null;
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             WatchPointToPointWithViewZoomingOperation.CreateCommand(request));
     }
 

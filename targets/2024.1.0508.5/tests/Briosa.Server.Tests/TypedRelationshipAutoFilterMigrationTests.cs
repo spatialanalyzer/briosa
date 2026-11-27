@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -21,7 +22,7 @@ public sealed class TypedRelationshipAutoFilterMigrationTests
         Assert.Equal(0.01, command.InputArguments[4].RequireValue<WorkerDoubleValue>().Value);
 
         request.FilterProximitySettings2D = null;
-        Assert.Throws<ArgumentException>(() => AutoFilterCloudsToNominalGeometry2DOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => AutoFilterCloudsToNominalGeometry2DOperation.CreateCommand(request));
     }
 
     [Fact]
@@ -32,7 +33,7 @@ public sealed class TypedRelationshipAutoFilterMigrationTests
         Assert.Equal(4, command.InputArguments.Count);
         Assert.Equal("SetAutoFilterProximitySettingsArg", command.InputArguments[3].SdkBinding);
         request.Clouds.Clear();
-        Assert.Throws<ArgumentException>(() => AutoFilterCloudsToNominalGeometry3DOperation.CreateCommand(request));
+        Assert.Throws<RequestFieldViolation>(() => AutoFilterCloudsToNominalGeometry3DOperation.CreateCommand(request));
     }
 
     [Fact]
@@ -54,7 +55,7 @@ public sealed class TypedRelationshipAutoFilterMigrationTests
         Assert.Equal("InspAutoFilteredCloud", command.InputArguments[10].RequireValue<WorkerTextValue>().Value);
         Assert.True(command.InputArguments[11].RequireValue<WorkerBooleanValue>().Value);
         request.OffsetDirection = (Api.OffsetDirectionType)999;
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             AutoFilterPointsGroupsCloudsToSurfaceFacesOperation.CreateCommand(request));
     }
 
@@ -71,7 +72,7 @@ public sealed class TypedRelationshipAutoFilterMigrationTests
         Assert.Equal(["SetCollectionObjectNameRefListArg", "SetPointNameRefListArg",
             "SetAutoFilterProximitySettingsArg"], command.InputArguments.Select(argument => argument.SdkBinding));
         request.Points.Clear();
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<RequestFieldViolation>(() =>
             AutoFilterPointsToNominalGeometry3DOperation.CreateCommand(request));
     }
 

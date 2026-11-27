@@ -26,10 +26,10 @@ internal static class SetObjectToObjectDirectionRelationshipTolerancesOperation
                     CollectionItemNameMapper.Required(request.RelationshipName, "relationship_name", WorkerItemTypeValue.Relationship), "SetCollectionObjectNameArg2"),
                 new("Angle Between Vectors Tolerances", WorkerMpValueKind.ToleranceScalarOptions,
                     ToleranceScalarOptionsMapper.ToWorker(request.AngleBetweenVectorsTolerances ??
-                        throw new ArgumentException("Request field 'angle_between_vectors_tolerances' is required.", nameof(request))), "SetToleranceScalarOptionsArg"),
+                        throw RequestFieldViolation.Required("angle_between_vectors_tolerances")), "SetToleranceScalarOptionsArg"),
                 new("Mutual Perpendicular Length Tolerances", WorkerMpValueKind.ToleranceScalarOptions,
                     ToleranceScalarOptionsMapper.ToWorker(request.MutualPerpendicularLengthTolerances ??
-                        throw new ArgumentException("Request field 'mutual_perpendicular_length_tolerances' is required.", nameof(request))), "SetToleranceScalarOptionsArg")
+                        throw RequestFieldViolation.Required("mutual_perpendicular_length_tolerances")), "SetToleranceScalarOptionsArg")
             ], []);
     }
 

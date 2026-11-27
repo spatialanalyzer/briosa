@@ -24,7 +24,7 @@ internal static class MakeCollectionObjectNameRefListWildcardSelectionOperation
                 new WorkerTextValue(request.HasCollectionWildcardCriteria ? request.CollectionWildcardCriteria : "*"), "SetStringArg"),
             new("Object Wildcard Criteria", WorkerMpValueKind.Text,
                 new WorkerTextValue(request.HasObjectWildcardCriteria ? request.ObjectWildcardCriteria : "*"), "SetStringArg"),
-            new("Object Type", WorkerMpValueKind.ObjectType, ObjectTypeMapper.Required(request.ObjectType), "SetObjectTypeArg")
+            new("Object Type", WorkerMpValueKind.ObjectType, ObjectTypeMapper.RequiredChoice(request.ObjectType, "object_type"), "SetObjectTypeArg")
         ], [new("Resultant Collection Object Name Reference List", WorkerMpValueKind.CollectionObjectNameList, "GetCollectionObjectNameRefListArg")]);
     }
 

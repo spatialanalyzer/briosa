@@ -24,7 +24,7 @@ internal static class ConstructPointCloudFromExistingCloudsOperation
             new("New Cloud Name", WorkerMpValueKind.CollectionObjectName,
                 CollectionObjectNameMapper.Required(request.NewCloudName, "new_cloud_name", WorkerObjectTypeValue.Cloud), "SetCollectionObjectNameArg2"),
             new("Cloud Thinning Settings", WorkerMpValueKind.CloudThinningOptions,
-                CloudThinningOptionsMapper.ToWorker(request.CloudThinningSettings), "SetCloudThinningOptionsArg"),
+                CloudThinningOptionsMapper.ToWorker(request.CloudThinningSettings, "cloud_thinning_settings"), "SetCloudThinningOptionsArg"),
             new("Hide Original Point Clouds", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(!request.HasHideOriginalPointClouds || request.HideOriginalPointClouds), "SetBoolArg")
         ], []);

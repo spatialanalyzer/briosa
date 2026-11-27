@@ -14,8 +14,10 @@ internal static class SetCalibrationApplianceNodeInstrumentOperation
     public static WorkerMpCommand CreateCommand(Api.SetCalibrationApplianceNodeInstrumentRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.Instrument is null || string.IsNullOrWhiteSpace(request.Instrument.CollectionName))
-            throw new ArgumentException("Instrument ID is required.", nameof(request));
+        if (request.Instrument is null)
+            throw RequestFieldViolation.Required("instrument");
+        if (string.IsNullOrWhiteSpace(request.Instrument.CollectionName))
+            throw RequestFieldViolation.NotBlank("instrument.collection_name");
 
         return CalibrationApplianceNodeOperation.MutatingCommand(Descriptor,
             CalibrationApplianceNodeOperation.NodeArgument(request.CalibrationApplianceNode),

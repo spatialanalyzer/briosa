@@ -43,8 +43,8 @@ public sealed class TypedGdtReportingFrameTests
     [Fact]
     public void RequiredNamesAndRegistryAreEnforced()
     {
-        Assert.Throws<ArgumentException>(() => GetFeatureCheckReportingFrameOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetFeatureCheckReportingFrameOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => GetFeatureCheckReportingFrameOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetFeatureCheckReportingFrameOperation.CreateCommand(new()
             { FeatureCheck = new Api.CollectionItemName { ItemName = "FC" } }));
         foreach (var id in new[] { GetFeatureCheckReportingFrameOperation.Descriptor.OperationId,
                      SetFeatureCheckReportingFrameOperation.Descriptor.OperationId })

@@ -10,7 +10,7 @@ internal static class CollectionVectorGroupNameListMapper
         IReadOnlyList<Api.CollectionVectorGroupName> values, string fieldName)
     {
         if (values.Count == 0)
-            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(values));
+            throw RequestFieldViolation.NotEmpty(fieldName);
         return new(values.Select(value =>
             new WorkerCollectionVectorGroupNameValue(value.CollectionName, value.VectorGroupName)).ToImmutableArray());
     }

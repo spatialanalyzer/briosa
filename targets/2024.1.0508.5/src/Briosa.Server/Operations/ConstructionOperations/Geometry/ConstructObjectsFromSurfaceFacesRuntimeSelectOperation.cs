@@ -18,10 +18,21 @@ internal static class ConstructObjectsFromSurfaceFacesRuntimeSelectOperation
     public static WorkerMpCommand CreateCommand(Api.ConstructObjectsFromSurfaceFacesRuntimeSelectRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (!request.HasConstructPlanes || !request.HasConstructCylinders || !request.HasConstructSpheres ||
-            !request.HasConstructCones || !request.HasConstructLines || !request.HasConstructPoints ||
-            !request.HasConstructCircles)
-            throw new ArgumentException("All seven construction choices are required for this SA target.", nameof(request));
+        // All seven construction choices are required for this SA target.
+        if (!request.HasConstructPlanes)
+            throw RequestFieldViolation.Required("construct_planes");
+        if (!request.HasConstructCylinders)
+            throw RequestFieldViolation.Required("construct_cylinders");
+        if (!request.HasConstructSpheres)
+            throw RequestFieldViolation.Required("construct_spheres");
+        if (!request.HasConstructCones)
+            throw RequestFieldViolation.Required("construct_cones");
+        if (!request.HasConstructLines)
+            throw RequestFieldViolation.Required("construct_lines");
+        if (!request.HasConstructPoints)
+            throw RequestFieldViolation.Required("construct_points");
+        if (!request.HasConstructCircles)
+            throw RequestFieldViolation.Required("construct_circles");
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Construct Planes?", WorkerMpValueKind.Logical, new WorkerBooleanValue(request.ConstructPlanes), "SetBoolArg"),

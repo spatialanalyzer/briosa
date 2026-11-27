@@ -23,17 +23,17 @@ internal static class SetPointsToPointsRelationshipAssociatedDataOperation
         var relationship = CollectionItemNameMapper.Required(
             request.RelationshipName, "relationship_name", WorkerItemTypeValue.Relationship);
         var nominalPoints = request.NominalPoints?.Values ??
-            throw new ArgumentException("Request field 'nominal_points' is required.", nameof(request));
+            throw RequestFieldViolation.Required("nominal_points");
         var actualPoints = request.ActualPoints?.Values ??
-            throw new ArgumentException("Request field 'actual_points' is required.", nameof(request));
+            throw RequestFieldViolation.Required("actual_points");
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [
                 new("Relationship Name", WorkerMpValueKind.CollectionItemName,
                     relationship, "SetCollectionObjectNameArg2"),
                 new("Nominal Points", WorkerMpValueKind.PointNameList,
-                    PointNameMapper.RequiredList(nominalPoints, "nominal_points"), "SetPointNameRefListArg"),
+                    PointNameMapper.RequiredList(nominalPoints, "nominal_points.values"), "SetPointNameRefListArg"),
                 new("Actual Points", WorkerMpValueKind.PointNameList,
-                    PointNameMapper.RequiredList(actualPoints, "actual_points"), "SetPointNameRefListArg"),
+                    PointNameMapper.RequiredList(actualPoints, "actual_points.values"), "SetPointNameRefListArg"),
                 new("Ignore Empty Arguments?", WorkerMpValueKind.Logical,
                     new WorkerBooleanValue(!request.HasIgnoreEmptyArguments || request.IgnoreEmptyArguments), "SetBoolArg")
             ], []);

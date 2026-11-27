@@ -112,8 +112,8 @@ public sealed class TypedInstrumentHardwareSettingOperationTests
             Channel = 3
         });
         Assert.Equal(3, wrtl.InputArguments[1].RequireValue<WorkerIntegerValue>().Value);
-        Assert.Throws<ArgumentException>(() => GetInstrumentScaleFactorOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetWrtlChannelOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetInstrumentScaleFactorOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetWrtlChannelOperation.CreateCommand(new()));
     }
 
     [Fact]

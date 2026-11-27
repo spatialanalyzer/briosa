@@ -158,6 +158,13 @@ public sealed class ArgumentDefaultsTests
         Assert.Equal(Api.OperationFailureKind.Validation, error.Kind);
         Assert.Equal("request-validation-failed", error.DiagnosticCode);
         Assert.Equal(Api.ExecutionDisposition.NotStarted, error.ExecutionDisposition);
+        // #442: the trailer also names the absent field, and nothing else changes.
+        Assert.Equal(new Api.RequestValidationDetails
+        {
+            FieldPath = "scale_factor",
+            Constraint = Api.RequestFieldConstraint.Required
+        }, error.RequestValidation);
+        Assert.Equal("The request is invalid.", exception.Status.Detail);
         Assert.Empty(worker.Commands);
     }
 

@@ -169,9 +169,11 @@ enum RequestFieldConstraint {
   // The number must be in the range the target accepts, for example 0 to 255
   // for a color channel.
   REQUEST_FIELD_CONSTRAINT_RANGE = 5;
-  // The enum field must hold a value this operation supports on this target.
-  // The UNSPECIFIED value, a number the schema does not define, and a defined
-  // value the operation does not accept all fail this check.
+  // The field must hold a choice this operation supports on this target. For
+  // an enum field, the UNSPECIFIED value, a number the schema does not define,
+  // and a defined value the operation does not accept all fail this check. A
+  // string field that names a target choice, such as an instrument type name,
+  // fails it for a name the target does not define.
   REQUEST_FIELD_CONSTRAINT_SUPPORTED_CHOICE = 6;
   // One field of a oneof must be set. field_path names the message that holds
   // the oneof.

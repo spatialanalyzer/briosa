@@ -45,8 +45,8 @@ public sealed class TypedGdtSurfaceFacesTests
     [Fact]
     public void RequiredInputsAndRegistryAreEnforced()
     {
-        Assert.Throws<ArgumentException>(() => MakeSurfaceFaceListFromSurfaceOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => RefreshDatumsFeatureChecksFromAnnotationsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => MakeSurfaceFaceListFromSurfaceOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => RefreshDatumsFeatureChecksFromAnnotationsOperation.CreateCommand(new()));
         foreach (var id in new[]
                  {
                      MakeSurfaceFaceListFromSurfaceOperation.Descriptor.OperationId,

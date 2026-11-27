@@ -41,6 +41,6 @@ internal static class SetGeomRelationshipAutoVectorsNominalAvnOperation
         Api.PointFilterInputType.CardinalPoints => WorkerPointFilterInputTypeValue.CardinalPoints,
         Api.PointFilterInputType.InputPoints => WorkerPointFilterInputTypeValue.InputPoints,
         Api.PointFilterInputType.NominalCardinalPoints => WorkerPointFilterInputTypeValue.NominalCardinalPoints,
-        _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Point filter input type is not supported.")
+        _ => throw RequestFieldViolation.SupportedChoice("points_type")
     };
 }

@@ -17,9 +17,10 @@ internal static class MakeSystemStringOperation
     public static WorkerMpCommand CreateCommand(Api.MakeSystemStringRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (!request.HasStringContent || request.StringContent == Api.SystemString.Unspecified ||
-            !Enum.IsDefined(request.StringContent))
-            throw new ArgumentException("Request field 'string_content' is required.", nameof(request));
+        if (!request.HasStringContent)
+            throw RequestFieldViolation.Required("string_content");
+        if (request.StringContent == Api.SystemString.Unspecified || !Enum.IsDefined(request.StringContent))
+            throw RequestFieldViolation.SupportedChoice("string_content");
         var inputs = new List<WorkerMpInputArgument>
         {
             new("String Content", WorkerMpValueKind.SystemString,

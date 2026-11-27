@@ -37,8 +37,8 @@ public sealed class TypedGdtCylinderEvalOptionsTests
     [Fact]
     public void RequiredFeatureCheckAndRegistryAreEnforced()
     {
-        Assert.Throws<ArgumentException>(() => GetFeatureCheckCylinderEvalOptionsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetFeatureCheckCylinderEvalOptionsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetFeatureCheckCylinderEvalOptionsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetFeatureCheckCylinderEvalOptionsOperation.CreateCommand(new()));
         foreach (var id in new[] { GetFeatureCheckCylinderEvalOptionsOperation.Descriptor.OperationId,
                      SetFeatureCheckCylinderEvalOptionsOperation.Descriptor.OperationId })
         {

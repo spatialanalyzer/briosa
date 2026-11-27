@@ -61,7 +61,7 @@ public sealed class TypedInstrumentScanModeAndAxesOperationTests
         Assert.Equal(WorkerTargetComputationMethodValue.UseOnlyMostRecentShot,
             targetOptions.InputArguments[0].RequireValue<WorkerChoiceValue<WorkerTargetComputationMethodValue>>().Value);
         Assert.False(targetOptions.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => SetTargetComputationOptionsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetTargetComputationOptionsOperation.CreateCommand(new()));
 
         var anchor = SetXyzReferenceFrameInstrumentBaseAnchorFrameOperation.CreateCommand(new()
         {

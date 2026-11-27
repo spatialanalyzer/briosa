@@ -18,7 +18,7 @@ internal static class MoveInstrumentsDragGraphicallyOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.Instruments.Count == 0)
-            throw new ArgumentException("Request field 'instruments' is required.", nameof(request));
+            throw RequestFieldViolation.NotEmpty("instruments");
         var instruments = new WorkerCollectionInstrumentIdListValue(request.Instruments
             .Select(item => new WorkerCollectionInstrumentIdValue(item.CollectionName, item.InstrumentId)).ToArray());
         return new(Descriptor.OperationId, Descriptor.MpStep,

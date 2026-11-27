@@ -51,8 +51,8 @@ public sealed class TypedPtxAndQdasFileOperationTests
         Assert.Equal("SetCollectionObjectNameRefListArg", ptx.InputArguments[1].SdkBinding);
         Assert.False(ptx.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
         Assert.False(ptx.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => ExportPtxPointCloudsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => ExportPtxPointCloudsOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ExportPtxPointCloudsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ExportPtxPointCloudsOperation.CreateCommand(new()
         {
             PtxFilePath = new() { Path = "cloud.ptx" }
         }));
@@ -64,12 +64,12 @@ public sealed class TypedPtxAndQdasFileOperationTests
         Assert.Equal("2026-09-26/12:00:00", export.InputArguments[11].RequireValue<WorkerTextValue>().Value);
         Assert.Equal(-1, export.InputArguments[12].RequireValue<WorkerIntegerValue>().Value);
         Assert.Equal("SetCollectionObjectNameRefListArg", export.InputArguments[15].SdkBinding);
-        Assert.Throws<ArgumentException>(() => ExportQdasCharacteristicsOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ExportQdasCharacteristicsOperation.CreateCommand(new()
         {
             QdasExportFilePath = new() { Path = "export.dfd" },
             K0004DateTimeStamp = string.Empty
         }));
-        Assert.Throws<ArgumentException>(() => ExportQdasCharacteristicsOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ExportQdasCharacteristicsOperation.CreateCommand(new()
         {
             QdasExportFilePath = new() { Path = "export.dfd" },
             K0004DateTimeStamp = "2026-09-26/12:00:00"
@@ -78,12 +78,12 @@ public sealed class TypedPtxAndQdasFileOperationTests
         Assert.Equal("SetFilePathArg", Assert.Single(
             ExportQdasDataListOperation.CreateCommand(new() { QdasExportFilePath = new() { Path = "data.dfd" } })
                 .InputArguments).SdkBinding);
-        Assert.Throws<ArgumentException>(() => ExportQdasDataListOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ExportQdasDataListOperation.CreateCommand(new()));
         Assert.Equal(string.Empty, GetQdasCatalogEntriesOperation.CreateCommand(new())
             .InputArguments[0].RequireValue<WorkerTextValue>().Value);
         Assert.Equal("GetStringRefListArg", Assert.Single(
             GetQdasCatalogEntriesOperation.CreateCommand(new()).OutputArguments).SdkBinding);
-        Assert.Throws<ArgumentException>(() => ImportQdasCatalogFileOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ImportQdasCatalogFileOperation.CreateCommand(new()));
         Assert.Equal("SetFilePathArg", Assert.Single(ImportQdasCatalogFileOperation.CreateCommand(new()
         {
             QdasDfdFilePath = new() { Path = "catalog.dfd" }
@@ -93,7 +93,7 @@ public sealed class TypedPtxAndQdasFileOperationTests
         Assert.Equal(17, prepare.InputArguments.Count);
         Assert.Equal("2026-09-26/12:00:00", prepare.InputArguments[10].RequireValue<WorkerTextValue>().Value);
         Assert.Equal(-1, prepare.InputArguments[11].RequireValue<WorkerIntegerValue>().Value);
-        Assert.Throws<ArgumentException>(() => PrepareQdasDataListOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => PrepareQdasDataListOperation.CreateCommand(new()));
     }
 
     [Fact]

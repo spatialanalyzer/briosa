@@ -20,7 +20,7 @@ internal static class MakeFeatureCheckRefListFromCollectionOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [new("Collection Name", WorkerMpValueKind.CollectionName,
-                GdtCollectionNameMapper.Required(request.Collection), "SetCollectionNameArg")],
+                GdtCollectionNameMapper.Required(request.Collection, "collection"), "SetCollectionNameArg")],
             [new("Feature Check Ref List", WorkerMpValueKind.CollectionItemNameList,
                 "GetCollectionObjectNameRefListArg")]);
     }

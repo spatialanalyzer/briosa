@@ -5,10 +5,10 @@ namespace Briosa.Server.Operations.Values;
 
 internal static class ObjectTypeMapper
 {
-    public static WorkerChoiceValue<WorkerObjectTypeValue> Required(Api.ObjectType value)
+    public static WorkerChoiceValue<WorkerObjectTypeValue> RequiredChoice(Api.ObjectType value, string fieldName)
     {
         if (value == Api.ObjectType.Unspecified || !Enum.IsDefined(value))
-            throw new ArgumentException("Object type must specify a supported value.", nameof(value));
+            throw RequestFieldViolation.SupportedChoice(fieldName);
         return new((WorkerObjectTypeValue)value);
     }
 
@@ -16,7 +16,7 @@ internal static class ObjectTypeMapper
     {
         if (value == Api.ObjectType.Unspecified || !Enum.IsDefined(value))
         {
-            throw new ArgumentOutOfRangeException(fieldName, "The object type is not supported by this SA target.");
+            throw RequestFieldViolation.SupportedChoice(fieldName);
         }
 
         return WorkerChoiceFactory.FromOrdinal(WorkerMpValueKind.ObjectType, (int)value - 1);

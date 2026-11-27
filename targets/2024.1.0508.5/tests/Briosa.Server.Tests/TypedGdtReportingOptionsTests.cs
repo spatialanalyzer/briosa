@@ -42,8 +42,8 @@ public sealed class TypedGdtReportingOptionsTests
     [Fact]
     public void RequiredFeatureCheckAndRegistryAreEnforced()
     {
-        Assert.Throws<ArgumentException>(() => GetFeatureCheckReportingOptionsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetFeatureCheckReportingOptionsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetFeatureCheckReportingOptionsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetFeatureCheckReportingOptionsOperation.CreateCommand(new()));
         foreach (var id in new[] { GetFeatureCheckReportingOptionsOperation.Descriptor.OperationId,
                      SetFeatureCheckReportingOptionsOperation.Descriptor.OperationId })
         {

@@ -7,8 +7,10 @@ internal static class InstrumentIdMapper
 {
     public static WorkerCollectionInstrumentIdValue Required(Api.CollectionInstrumentId? value, string fieldName)
     {
-        if (value is null || string.IsNullOrWhiteSpace(value.CollectionName))
-            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(value));
+        if (value is null)
+            throw RequestFieldViolation.Required(fieldName);
+        if (string.IsNullOrWhiteSpace(value.CollectionName))
+            throw RequestFieldViolation.NotBlank(RequestFieldViolation.Path(fieldName, "collection_name"));
 
         return new(value.CollectionName, value.InstrumentId);
     }
@@ -18,7 +20,7 @@ internal static class InstrumentIdMapper
         string fieldName)
     {
         if (values.Count == 0)
-            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(values));
+            throw RequestFieldViolation.NotEmpty(fieldName);
 
         return new(values.Select(value => new WorkerCollectionInstrumentIdValue(
             value.CollectionName, value.InstrumentId)).ToArray());

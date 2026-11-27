@@ -25,9 +25,9 @@ internal static class SetCustomTableCellColorOperation
             new("Row", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(request.Row), "SetIntegerArg"),
             new("Column", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(request.Column), "SetIntegerArg"),
             new("Foreground Color Name", WorkerMpValueKind.RgbColor,
-                ViewControlColorMapper.WithDefault(request.ForegroundColorName), "SetColorArg"),
+                ViewControlColorMapper.WithDefault(request.ForegroundColorName, "foreground_color_name"), "SetColorArg"),
             new("Background Color Name", WorkerMpValueKind.RgbColor,
-                ViewControlColorMapper.WithDefault(request.BackgroundColorName), "SetColorArg")
+                ViewControlColorMapper.WithDefault(request.BackgroundColorName, "background_color_name"), "SetColorArg")
         ], []);
     }
 

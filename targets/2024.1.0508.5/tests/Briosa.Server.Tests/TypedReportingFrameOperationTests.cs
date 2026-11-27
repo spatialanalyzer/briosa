@@ -32,8 +32,8 @@ public sealed class TypedReportingFrameOperationTests
 
         Assert.Equal(["fixture_validation_pending"], GetObjectReportingFrameOperation.Descriptor.RiskFlags);
         Assert.Equal(["fixture_validation_pending"], GetRelationshipReportingFrameOperation.Descriptor.RiskFlags);
-        Assert.Throws<ArgumentException>(() => GetObjectReportingFrameOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetRelationshipReportingFrameOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetObjectReportingFrameOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetRelationshipReportingFrameOperation.CreateCommand(new()));
     }
 
     [Fact]

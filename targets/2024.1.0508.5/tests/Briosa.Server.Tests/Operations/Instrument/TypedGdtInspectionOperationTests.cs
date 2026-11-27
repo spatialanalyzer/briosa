@@ -38,7 +38,7 @@ public sealed class TypedGdtInspectionOperationTests
             Collection = collection,
             Filter = Api.InspectionFilter.Datums
         }).InputArguments[1].RequireValue<WorkerTextValue>().Value);
-        Assert.Throws<ArgumentOutOfRangeException>(() => StartGdtInspectionDesignOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => StartGdtInspectionDesignOperation.CreateCommand(new()
         {
             Collection = collection,
             Filter = (Api.InspectionFilter)99

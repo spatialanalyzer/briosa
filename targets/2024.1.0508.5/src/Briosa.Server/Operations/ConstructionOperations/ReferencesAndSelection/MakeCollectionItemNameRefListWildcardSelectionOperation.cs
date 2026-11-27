@@ -22,8 +22,10 @@ internal static class MakeCollectionItemNameRefListWildcardSelectionOperation
     public static WorkerMpCommand CreateCommand(Api.MakeCollectionItemNameRefListWildcardSelectionRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (!request.HasItemType || request.ItemType == Api.ItemType.Unspecified || !Enum.IsDefined(request.ItemType))
-            throw new ArgumentException("Item type must specify a supported value.", nameof(request));
+        if (!request.HasItemType)
+            throw RequestFieldViolation.Required("item_type");
+        if (request.ItemType == Api.ItemType.Unspecified || !Enum.IsDefined(request.ItemType))
+            throw RequestFieldViolation.SupportedChoice("item_type");
 
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [

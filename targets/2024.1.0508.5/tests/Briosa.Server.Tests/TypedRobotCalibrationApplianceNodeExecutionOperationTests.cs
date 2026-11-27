@@ -97,7 +97,7 @@ public sealed class TypedRobotCalibrationApplianceNodeExecutionOperationTests
             CalibrationApplianceNode = node
         });
         Assert.Empty(emptyData.InputArguments[1].RequireValue<WorkerDoubleArrayValue>().Values);
-        Assert.Throws<ArgumentException>(() => GetCalibrationApplianceNodeStatusOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetCalibrationApplianceNodeStatusOperation.CreateCommand(new()));
     }
 
     [Fact]

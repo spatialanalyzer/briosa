@@ -34,7 +34,7 @@ public sealed class TypedChartOperationTests
     [Fact]
     public void ChartMappingsPreserveChoicesDefaultsAndOutputs()
     {
-        Assert.Throws<ArgumentException>(() => AddChartsToReportBarOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => AddChartsToReportBarOperation.CreateCommand(new()));
         var charts = AddChartsToReportBarOperation.CreateCommand(new()
         {
             Charts = { Item("Control Chart") }
@@ -43,7 +43,7 @@ public sealed class TypedChartOperationTests
             .RequireValue<WorkerCollectionItemNameListValue>().Values[0].ItemName);
         Assert.False(charts.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => CreateChartFromVectorGroupOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => CreateChartFromVectorGroupOperation.CreateCommand(new()));
         var chart = CreateChartFromVectorGroupOperation.CreateCommand(new()
         {
             NewChartName = new Api.ChartName { Name = "Run" },
@@ -62,7 +62,7 @@ public sealed class TypedChartOperationTests
             chart.InputArguments[4].RequireValue<WorkerChoiceValue<WorkerVectorComponentValue>>().Value);
         Assert.Equal("Template", chart.InputArguments[5].RequireValue<WorkerTextValue>().Value);
         Assert.False(chart.InputArguments[6].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => CreateChartFromVectorGroupOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => CreateChartFromVectorGroupOperation.CreateCommand(new()
         {
             NewChartName = new Api.ChartName { Name = "Run" },
             VectorGroupName = Object("Vectors"),
@@ -84,7 +84,7 @@ public sealed class TypedChartOperationTests
         Assert.Equal(6, withoutTemplate.InputArguments.Count);
         Assert.DoesNotContain(withoutTemplate.InputArguments, argument => argument.Name == "Template Chart Name (optional)");
         Assert.Equal("Show Interface?", withoutTemplate.InputArguments[5].Name);
-        Assert.Throws<ArgumentException>(() => CreateChartFromVectorGroupOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => CreateChartFromVectorGroupOperation.CreateCommand(new()
         {
             NewChartName = new Api.ChartName { Name = "Run" },
             VectorGroupName = Object("Vectors"),
@@ -94,13 +94,13 @@ public sealed class TypedChartOperationTests
             TemplateChartName = new Api.ChartName { Name = " " }
         }));
 
-        Assert.Throws<ArgumentException>(() => DeleteChartOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DeleteChartOperation.CreateCommand(new()));
         Assert.Equal("Chart Name", DeleteChartOperation.CreateCommand(new()
         {
             ChartName = Object("Run")
         }).InputArguments[0].Name);
 
-        Assert.Throws<ArgumentException>(() => MakeUtilityChartOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => MakeUtilityChartOperation.CreateCommand(new()));
         var utilityChart = MakeUtilityChartOperation.CreateCommand(new()
         {
             AsciiFilePath = new Api.FileReference { Path = "data.txt" },
@@ -120,7 +120,7 @@ public sealed class TypedChartOperationTests
         [new WorkerRetrievedOutput("Is Point Inside?", WorkerMpValueKind.Logical, new WorkerBooleanValue(true))]));
         Assert.True(utilityResult.IsPointInside);
 
-        Assert.Throws<ArgumentException>(() => SaveChartToJPegFileOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SaveChartToJPegFileOperation.CreateCommand(new()));
         var save = SaveChartToJPegFileOperation.CreateCommand(new()
         {
             ChartToSave = new Api.ChartName { Name = "Run" },

@@ -27,6 +27,13 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
     private const int MaximumDepth = 6;
     private const int RepairAttempts = 96;
 
+    // A string field that names an exact-target choice accepts only that target's names,
+    // which the sweep cannot guess, so it repairs such a field with a known valid name.
+    private static readonly Dictionary<string, string> TextChoices = new(StringComparer.Ordinal)
+    {
+        ["briosa.InstrumentTypeName.value"] = "API Radian"
+    };
+
     [Fact]
     public void EveryRegisteredOperationHasOneRequestMapping()
     {
@@ -238,7 +245,8 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
             FieldType.UInt32 or FieldType.Int64 or FieldType.UInt64 or FieldType.SInt32 or FieldType.SInt64 or
             FieldType.Fixed32 or FieldType.Fixed64 or FieldType.SFixed32 or FieldType.SFixed64 or FieldType.Double or
             FieldType.Float) => "the field is not a number",
-        Api.RequestFieldConstraint.SupportedChoice when field.FieldType != FieldType.Enum => "the field is not an enum",
+        Api.RequestFieldConstraint.SupportedChoice when field.IsRepeated ||
+            field.FieldType is not (FieldType.Enum or FieldType.String) => "the field is not an enum or a named choice",
         Api.RequestFieldConstraint.OneofRequired when field.IsRepeated || field.FieldType != FieldType.Message ||
             field.MessageType.Oneofs.All(oneof => oneof.IsSynthetic) => "the field does not hold a oneof",
         Api.RequestFieldConstraint.Unspecified => "the constraint is unspecified",
@@ -404,6 +412,14 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
                     list.Add(ElementValue(field));
                 }
 
+                return true;
+            case Api.RequestFieldConstraint.SupportedChoice when field.FieldType == FieldType.String:
+                if (attempt != 1 || !TextChoices.TryGetValue(field.FullName, out var choice))
+                {
+                    return false;
+                }
+
+                field.Accessor.SetValue(parent, choice);
                 return true;
             case Api.RequestFieldConstraint.Range or Api.RequestFieldConstraint.SupportedChoice when !field.IsRepeated:
                 return SetChoiceOrNumber(parent, field, attempt);

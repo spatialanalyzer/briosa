@@ -64,8 +64,8 @@ public sealed class TypedUtilitySelectionAndOpcOperationTests
         Assert.Equal(WorkerMpValueKind.CollectionItemNameList, lockTrapping.InputArguments[1].Kind);
         Assert.Equal(WorkerMpValueKind.CollectionObjectNameList, lockTrapping.InputArguments[2].Kind);
         Assert.False(lockTrapping.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => LockUnlockSelectedItemsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => LockUnlockTrappingControlOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => LockUnlockSelectedItemsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => LockUnlockTrappingControlOperation.CreateCommand(new()));
 
         var getDouble = GetOpcDaTagValueDoubleOperation.CreateCommand(new() { OpcServerDaTagName = "double" });
         var getInteger = GetOpcDaTagValueIntegerOperation.CreateCommand(new() { OpcServerDaTagName = "integer" });

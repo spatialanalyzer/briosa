@@ -39,7 +39,7 @@ public sealed class TypedReportContentAndBarOperationTests
     [Fact]
     public void ReportContentAndBarMappingsPreserveListBindingsAndOptionalDefaults()
     {
-        Assert.Throws<ArgumentException>(() => AddDatumsToReportBarOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => AddDatumsToReportBarOperation.CreateCommand(new()));
         var datums = AddDatumsToReportBarOperation.CreateCommand(new()
         {
             Datums = { Object("Datum", Api.ObjectType.Datum) }
@@ -60,7 +60,7 @@ public sealed class TypedReportContentAndBarOperationTests
         Assert.Equal("Check", checks.InputArguments[0]
             .RequireValue<WorkerCollectionItemNameListValue>().Values[0].ItemName);
 
-        Assert.Throws<ArgumentException>(() => AddObjectsToReportBarOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => AddObjectsToReportBarOperation.CreateCommand(new()));
         var objects = AddObjectsToReportBarOperation.CreateCommand(new()
         {
             Objects = { Object("Plane", Api.ObjectType.Plane) }
@@ -78,7 +78,7 @@ public sealed class TypedReportContentAndBarOperationTests
         Assert.Equal("SetCollectionObjectNameRefListArg", relationships.InputArguments[0].SdkBinding);
         Assert.False(relationships.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => AddItemToSaReportAtLocationOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => AddItemToSaReportAtLocationOperation.CreateCommand(new()));
         var reportItem = AddItemToSaReportAtLocationOperation.CreateCommand(new()
         {
             ReportName = Object("Report", Api.ObjectType.Unspecified),
@@ -90,7 +90,7 @@ public sealed class TypedReportContentAndBarOperationTests
             .Select(argument => argument.RequireValue<WorkerDoubleValue>().Value));
         Assert.False(reportItem.InputArguments[5].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => AppendItemsToSaReportOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => AppendItemsToSaReportOperation.CreateCommand(new()));
         var append = AppendItemsToSaReportOperation.CreateCommand(new()
         {
             ReportName = Object("Report", Api.ObjectType.Unspecified),
@@ -102,7 +102,7 @@ public sealed class TypedReportContentAndBarOperationTests
         Assert.False(append.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
         Assert.True(append.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => RefreshCalloutViewsInSaReportOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => RefreshCalloutViewsInSaReportOperation.CreateCommand(new()));
         var refreshCallouts = RefreshCalloutViewsInSaReportOperation.CreateCommand(new()
         {
             ReportName = Item("Report")

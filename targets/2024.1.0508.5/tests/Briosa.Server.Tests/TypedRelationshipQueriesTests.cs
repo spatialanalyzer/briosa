@@ -1,3 +1,4 @@
+using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -244,7 +245,7 @@ public sealed class TypedRelationshipQueriesTests
             setCriteriaCommand.InputArguments[3].RequireValue<WorkerToleranceScalarOptionsValue>());
         Assert.Equal(new WorkerDoubleValue(0.6), setCriteriaCommand.InputArguments[4].Value);
         Assert.Equal(new WorkerDoubleValue(0.4), setCriteriaCommand.InputArguments[5].Value);
-        Assert.Throws<ArgumentException>(() => SetGeomRelationshipCriteriaOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetGeomRelationshipCriteriaOperation.CreateCommand(new()));
         Assert.Equal("SetCollectionObjectNameArg2", projectionPlaneCommand.InputArguments[0].SdkBinding);
         Assert.Equal("GetCollectionObjectNameArg", projectionPlaneCommand.OutputArguments[0].SdkBinding);
         Assert.Equal(WorkerObjectTypeValue.Plane, projectionPlaneCommand.OutputArguments[0].ObjectTypeWhenOmitted);
@@ -261,7 +262,7 @@ public sealed class TypedRelationshipQueriesTests
         Assert.Equal(new WorkerProjectionOptionsValue("Object To Probe Vectors", true, true, 0.125, true, 0.02),
             projectionOptionsSetCommand.InputArguments[1].RequireValue<WorkerProjectionOptionsValue>());
         Assert.Equal("SetProjectionOptionsArg", projectionOptionsSetCommand.InputArguments[1].SdkBinding);
-        Assert.Throws<ArgumentException>(() => SetRelationshipProjectionOptionsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetRelationshipProjectionOptionsOperation.CreateCommand(new()));
         Assert.Equal(
             ["GetBoolArg", "GetIntegerArg", "GetBoolArg", "GetIntegerArg"],
             subSamplingOptionsCommand.OutputArguments.Select(output => output.SdkBinding));
@@ -296,16 +297,16 @@ public sealed class TypedRelationshipQueriesTests
         Assert.Equal(new WorkerToleranceLimit(true, 2.5),
             positionConstraintsCommand.InputArguments[1].RequireValue<WorkerToleranceVectorOptionsValue>().LowZ);
         Assert.Equal("SetToleranceVectorOptionsArg", positionConstraintsCommand.InputArguments[1].SdkBinding);
-        Assert.Throws<ArgumentException>(() => SetRelationshipToleranceScalarTypeOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetRelationshipToleranceVectorTypeOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetRelationshipToleranceScalarTypeOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetRelationshipToleranceVectorTypeOperation.CreateCommand(new()
         {
             RelationshipName = relation
         }));
-        Assert.Throws<ArgumentException>(() => SetRelationshipOrientationFitConstraintsVectorTypeOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetRelationshipOrientationFitConstraintsVectorTypeOperation.CreateCommand(new()
         {
             RelationshipName = relation
         }));
-        Assert.Throws<ArgumentException>(() => SetRelationshipPositionFitConstraintsVectorTypeOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetRelationshipPositionFitConstraintsVectorTypeOperation.CreateCommand(new()
         {
             RelationshipName = relation
         }));
@@ -317,7 +318,7 @@ public sealed class TypedRelationshipQueriesTests
         Assert.Equal(new WorkerDoubleValue(0), weightingSetDefaultCommand.InputArguments[1].Value);
         Assert.Equal("SetDoubleArg", weightingSetCommand.InputArguments[1].SdkBinding);
         Assert.Equal(new WorkerDoubleValue(1.75), weightingSetCommand.InputArguments[1].Value);
-        Assert.Throws<ArgumentException>(() => SetRelationshipWeightingOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetRelationshipWeightingOperation.CreateCommand(new()));
         Assert.Equal(new WorkerTextValue("collection"), normalizedWeightsDefaultCommand.InputArguments[0].Value);
         Assert.Equal("SetCollectionNameArg", normalizedWeightsDefaultCommand.InputArguments[0].SdkBinding);
         Assert.Equal(WorkerRelationshipWeightingModeValue.NormalizeEquationCount,
@@ -325,8 +326,8 @@ public sealed class TypedRelationshipQueriesTests
         Assert.Equal(WorkerRelationshipWeightingModeValue.NormalizeSquareRootAndToleranceWidth,
             normalizedWeightsCommand.InputArguments[1].RequireValue<WorkerChoiceValue<WorkerRelationshipWeightingModeValue>>().Value);
         Assert.Equal("SetRelWeightingModeArg", normalizedWeightsCommand.InputArguments[1].SdkBinding);
-        Assert.Throws<ArgumentException>(() => SetRelationshipWeightsNormalizedOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentOutOfRangeException>(() => SetRelationshipWeightsNormalizedOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetRelationshipWeightsNormalizedOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetRelationshipWeightsNormalizedOperation.CreateCommand(new()
         {
             CollectionName = new() { Name = "collection" },
             PickWeightingMode = Api.RelWeightingMode.Unspecified
@@ -334,14 +335,14 @@ public sealed class TypedRelationshipQueriesTests
         Assert.Equal(new WorkerCollectionObjectNameValue("frames", "reporting frame", WorkerObjectTypeValue.Frame),
             reportingFrameCommand.InputArguments[1].RequireValue<WorkerCollectionObjectNameValue>());
         Assert.Equal("SetCollectionObjectNameArg2", reportingFrameCommand.InputArguments[1].SdkBinding);
-        Assert.Throws<ArgumentException>(() => SetRelationshipReportingFrameOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetRelationshipReportingFrameOperation.CreateCommand(new()
         {
             RelationshipName = relation
         }));
         Assert.Equal(new WorkerCollectionItemNameValue("collection", "relationship to delete", WorkerItemTypeValue.Relationship),
             deleteRelationshipCommand.InputArguments[0].RequireValue<WorkerCollectionItemNameValue>());
         Assert.Contains("destructive", DeleteRelationshipOperation.Descriptor.RiskFlags);
-        Assert.Throws<ArgumentException>(() => DeleteRelationshipOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DeleteRelationshipOperation.CreateCommand(new()));
         Assert.Equal("SetCollectionObjectNameArg2", measuredGeometrySetCommand.InputArguments[1].SdkBinding);
         Assert.Equal("SetCollectionObjectNameArg2", nominalGeometrySetCommand.InputArguments[2].SdkBinding);
         Assert.True(nominalGeometrySetCommand.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
@@ -370,15 +371,15 @@ public sealed class TypedRelationshipQueriesTests
         Assert.Equal(WorkerItemTypeValue.Any, relationshipRefs[1].ItemType);
         Assert.True(dormantStatusCommand.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
         Assert.Equal("SetCollectionObjectNameRefListArg", dormantStatusCommand.InputArguments[0].SdkBinding);
-        Assert.Throws<ArgumentException>(() => SetRelationshipDormantStatusOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentOutOfRangeException>(() => SetGeomRelationshipAutoVectorsNominalAvnOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetRelationshipDormantStatusOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetGeomRelationshipAutoVectorsNominalAvnOperation.CreateCommand(new()
         {
             RelationshipName = relation,
             PointsType = Api.PointFilterInputType.Unspecified
         }));
-        Assert.Throws<ArgumentException>(() => SetRelationshipAutoVectorsFitAvfOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetRelationshipDesiredMeasCountOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetRelationshipTypeOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetRelationshipAutoVectorsFitAvfOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetRelationshipDesiredMeasCountOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetRelationshipTypeOperation.CreateCommand(new()));
 
         var worker = new RelationshipQueryWorker();
         var grpcHost = await GrpcTestHost.StartAsync<RelationshipOperationsService>(worker).ConfigureAwait(true);

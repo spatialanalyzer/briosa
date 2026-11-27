@@ -20,7 +20,7 @@ internal static class SetFontVariableOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [new("Name", WorkerMpValueKind.Text, new WorkerTextValue(request.Name), "SetStringArg"),
-             new("Value", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Value), "SetFontTypeArg")], []);
+             new("Value", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Value, "value"), "SetFontTypeArg")], []);
     }
 
     public static Api.SetFontVariableResult CreateResult(SuccessfulOperationExecution completed) =>

@@ -57,15 +57,15 @@ public sealed class TypedObjectReportingOperationTests
         }
         else
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => IsObjectOfTypeOperation.CreateCommand(new()
+            Assert.Throws<RequestFieldViolation>(() => IsObjectOfTypeOperation.CreateCommand(new()
             {
                 ObjectName = objectName,
                 ObjectType = enhancedCloud
             }));
         }
 
-        Assert.Throws<ArgumentException>(() => IsObjectOfTypeOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentOutOfRangeException>(() => IsObjectOfTypeOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => IsObjectOfTypeOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => IsObjectOfTypeOperation.CreateCommand(new()
         {
             ObjectName = objectName,
             ObjectType = Api.ObjectType.Unspecified
@@ -97,8 +97,8 @@ public sealed class TypedObjectReportingOperationTests
             command.InputArguments[0].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
         Assert.Equal(WorkerObjectTypeValue.Frame,
             command.InputArguments[1].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
-        Assert.Throws<ArgumentException>(() => SetObjectReportingFrameOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetObjectReportingFrameOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetObjectReportingFrameOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetObjectReportingFrameOperation.CreateCommand(new()
         {
             ObjectName = new Api.CollectionObjectName { ObjectName = "measured" }
         }));

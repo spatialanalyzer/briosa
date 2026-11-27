@@ -20,7 +20,7 @@ internal static class NotifyUserDoubleOperation
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("Leading Text", WorkerMpValueKind.Text, new WorkerTextValue(request.LeadingText), "SetStringArg"),
-            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font), "SetFontTypeArg"),
+            new("Font", WorkerMpValueKind.Font, FontMapper.WithDefaults(request.Font, "font"), "SetFontTypeArg"),
             new("Reported Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(request.ReportedValue), "SetDoubleArg"),
             new("Decimal Precision", WorkerMpValueKind.WholeNumber,
                 new WorkerIntegerValue(request.DecimalPrecision), "SetIntegerArg"),

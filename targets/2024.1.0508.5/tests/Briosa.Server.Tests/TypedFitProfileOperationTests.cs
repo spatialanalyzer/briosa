@@ -58,7 +58,7 @@ public sealed class TypedFitProfileOperationTests
         Assert.Equal(WorkerSphereFitComputationModeValue.Standard,
             sphere.InputArguments[6].RequireValue<WorkerChoiceValue<WorkerSphereFitComputationModeValue>>().Value);
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => MakeCircleFitProfileOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => MakeCircleFitProfileOperation.CreateCommand(new()
         {
             CircleComputationTechnique = Api.CompTechnique.Unspecified
         }));

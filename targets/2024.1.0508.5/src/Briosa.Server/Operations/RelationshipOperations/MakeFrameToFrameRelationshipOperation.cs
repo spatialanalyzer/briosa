@@ -29,7 +29,7 @@ internal static class MakeFrameToFrameRelationshipOperation
                     CollectionObjectNameMapper.Required(request.SecondFrameName, "second_frame_name", WorkerObjectTypeValue.Frame), "SetCollectionObjectNameArg2"),
                 new("Orientation Tolerance", WorkerMpValueKind.ToleranceScalarOptions,
                     ToleranceScalarOptionsMapper.ToWorker(request.OrientationTolerance ??
-                        throw new ArgumentException("Request field 'orientation_tolerance' is required.", nameof(request))), "SetToleranceScalarOptionsArg"),
+                        throw RequestFieldViolation.Required("orientation_tolerance")), "SetToleranceScalarOptionsArg"),
                 new("Position Tolerance", WorkerMpValueKind.ToleranceVectorOptions,
                     ToleranceVectorOptionsMapper.Required(request.PositionTolerance, "position_tolerance"), "SetToleranceVectorOptionsArg")
             ], []);

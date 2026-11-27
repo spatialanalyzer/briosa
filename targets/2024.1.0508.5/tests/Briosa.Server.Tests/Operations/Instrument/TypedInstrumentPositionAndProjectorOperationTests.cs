@@ -48,7 +48,7 @@ public sealed class TypedInstrumentPositionAndProjectorOperationTests
         });
         Assert.Equal("World", worldPosition.InputArguments[1].RequireValue<WorkerTextValue>().Value);
         Assert.True(worldPosition.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentOutOfRangeException>(() => GetCurrentInstrumentPositionUpdateOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => GetCurrentInstrumentPositionUpdateOperation.CreateCommand(new()
         {
             Instrument = instrument,
             ReportingFrame = (Api.InstrumentPositionReportingFrame)99

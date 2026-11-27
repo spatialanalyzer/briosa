@@ -50,7 +50,7 @@ public sealed class TypedFilePathsAndNativeProjectOperationTests
         Assert.Equal(new WorkerFileReferenceValue("copy.sa", false),
             copy.InputArguments[1].RequireValue<WorkerFileReferenceValue>());
         Assert.False(copy.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => CopyGeneralFileOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => CopyGeneralFileOperation.CreateCommand(new()));
 
         var findFiles = FindFilesInDirectoryOperation.CreateCommand(new());
         Assert.Equal(string.Empty, findFiles.InputArguments[0].RequireValue<WorkerTextValue>().Value);
@@ -75,7 +75,7 @@ public sealed class TypedFilePathsAndNativeProjectOperationTests
             { FileName = new Api.FileReference { Path = "new.sa" } });
         Assert.False(saveAs.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
         Assert.Equal(0, saveAs.InputArguments[2].RequireValue<WorkerIntegerValue>().Value);
-        Assert.Throws<ArgumentException>(() => OpenSaFileOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => OpenSaFileOperation.CreateCommand(new()));
 
         Assert.Empty(BackupNowOperation.CreateCommand(new()).InputArguments);
         Assert.Empty(NewSaFileOperation.CreateCommand(new()).InputArguments);

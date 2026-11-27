@@ -67,8 +67,8 @@ public sealed class TypedRobotMachineLifecycleOperationTests
     [Fact]
     public void DeleteRequiresMachineIdentityAndUsesMachineIdBinding()
     {
-        Assert.Throws<ArgumentException>(() => DeleteRobotMachineOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => DeleteRobotMachineOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => DeleteRobotMachineOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => DeleteRobotMachineOperation.CreateCommand(new()
         {
             MachineId = new() { MachineId = 7 }
         }));
@@ -94,7 +94,7 @@ public sealed class TypedRobotMachineLifecycleOperationTests
         Assert.Equal("GetDoubleArg", Assert.Single(get.OutputArguments).SdkBinding);
 
         // #243 D2 (R5): the parameter value is required; an omitted value is rejected instead of sent as 0.
-        Assert.Throws<ArgumentException>(() => SetRobotMachineParameterOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetRobotMachineParameterOperation.CreateCommand(new()
         {
             MachineId = new() { CollectionName = "Robot", MachineId = 4 }
         }));
@@ -117,10 +117,10 @@ public sealed class TypedRobotMachineLifecycleOperationTests
         Assert.Equal(0, start.InputArguments[1].RequireValue<WorkerIntegerValue>().Value);
         Assert.False(start.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => GetRobotMachineParameterOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetRobotMachineParameterOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => StartRobotMachineInterfaceOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => StopRobotMachineInterfaceOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetRobotMachineParameterOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetRobotMachineParameterOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => StartRobotMachineInterfaceOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => StopRobotMachineInterfaceOperation.CreateCommand(new()));
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public sealed class TypedRobotMachineLifecycleOperationTests
         Assert.Equal(WorkerObjectTypeValue.Frame,
             command.InputArguments[2].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
         Assert.Equal(0, command.InputArguments[3].RequireValue<WorkerIntegerValue>().Value);
-        Assert.Throws<ArgumentException>(() => SetRobotMachineBaseTransformOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetRobotMachineBaseTransformOperation.CreateCommand(new()));
     }
 
     [Fact]
@@ -169,7 +169,7 @@ public sealed class TypedRobotMachineLifecycleOperationTests
 
         // #243 D2 (R5): all 22 parameters are required; a partial request is rejected
         // instead of overwriting the omitted parameters with 0 or false.
-        Assert.Throws<ArgumentException>(() => SetRobotMachineModelLinkParametersOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetRobotMachineModelLinkParametersOperation.CreateCommand(new()
         {
             MachineId = new() { CollectionName = "Robot", MachineId = 4 },
             SegmentCgInSegment = new()
@@ -181,7 +181,7 @@ public sealed class TypedRobotMachineLifecycleOperationTests
         }));
         Assert.Equal("DH", defaults.InputArguments[2].RequireValue<WorkerTextValue>().Value);
         Assert.Equal("NONE", defaults.InputArguments[16].RequireValue<WorkerTextValue>().Value);
-        Assert.Throws<ArgumentException>(() => SetRobotMachineModelLinkParametersOperation.CreateCommand(WithLinkParameters(new()
+        Assert.Throws<RequestFieldViolation>(() => SetRobotMachineModelLinkParametersOperation.CreateCommand(WithLinkParameters(new()
         {
             MachineId = new() { CollectionName = "Robot", MachineId = 4 },
             LinkType = Api.RobotModelLinkType.Unspecified,
@@ -235,7 +235,7 @@ public sealed class TypedRobotMachineLifecycleOperationTests
         Assert.Equal("Old", delete.InputArguments[1].RequireValue<WorkerTextValue>().Value);
         Assert.Equal("Current", activate.InputArguments[1].RequireValue<WorkerTextValue>().Value);
         Assert.Contains("destructive", DeleteRobotCalibrationOperation.Descriptor.RiskFlags);
-        Assert.Throws<ArgumentException>(() => CreateRobotCalibrationOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => CreateRobotCalibrationOperation.CreateCommand(new()));
     }
 
     [Fact]
@@ -257,7 +257,7 @@ public sealed class TypedRobotMachineLifecycleOperationTests
         Assert.Equal("SetTransformArg", toolFrame.InputArguments[2].SdkBinding);
         Assert.Equal(transform.Values, toolFrame.InputArguments[2].RequireValue<WorkerTransformValue>().Values);
         Assert.Equal("Measurement Frame (relative to tool)", offset.InputArguments[2].Name);
-        Assert.Throws<ArgumentException>(() => SetRobotCalibrationToolFrameOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetRobotCalibrationToolFrameOperation.CreateCommand(new()
         {
             MachineId = new() { CollectionName = "Robot", MachineId = 4 }, ToolFrame = new()
         }));

@@ -16,10 +16,14 @@ internal static class StartStopRobotCalibrationTrappingOperation
     public static WorkerMpCommand CreateCommand(Api.StartStopRobotCalibrationTrappingRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.MachineId is null || string.IsNullOrWhiteSpace(request.MachineId.CollectionName))
-            throw new ArgumentException("Machine ID is required.", nameof(request));
-        if (request.InstrumentId is null || string.IsNullOrWhiteSpace(request.InstrumentId.CollectionName))
-            throw new ArgumentException("Instrument ID is required.", nameof(request));
+        if (request.MachineId is null)
+            throw RequestFieldViolation.Required("machine_id");
+        if (string.IsNullOrWhiteSpace(request.MachineId.CollectionName))
+            throw RequestFieldViolation.NotBlank("machine_id.collection_name");
+        if (request.InstrumentId is null)
+            throw RequestFieldViolation.Required("instrument_id");
+        if (string.IsNullOrWhiteSpace(request.InstrumentId.CollectionName))
+            throw RequestFieldViolation.NotBlank("instrument_id.collection_name");
 
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [

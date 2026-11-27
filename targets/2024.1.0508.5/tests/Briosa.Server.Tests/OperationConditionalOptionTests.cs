@@ -93,7 +93,7 @@ public sealed class OperationConditionalOptionTests
                 Assert.True(classified.HasValue, label);
                 if (value is null && entry.Absence == OperationOptionAbsence.Rejected)
                 {
-                    Assert.Throws<ArgumentException>(() => builder.Create(request));
+                    Assert.Throws<RequestFieldViolation>(() => builder.Create(request));
                     Assert.False(classified.Value, label);
                     checkedCases++;
                     continue;

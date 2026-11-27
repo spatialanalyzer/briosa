@@ -17,8 +17,10 @@ internal static class MoveInstrumentToAnotherCollectionOperation
     public static WorkerMpCommand CreateCommand(Api.MoveInstrumentToAnotherCollectionRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.CollectionName is null || string.IsNullOrWhiteSpace(request.CollectionName.Name))
-            throw new ArgumentException("Collection Name is required.", nameof(request));
+        if (request.CollectionName is null)
+            throw RequestFieldViolation.Required("collection_name");
+        if (string.IsNullOrWhiteSpace(request.CollectionName.Name))
+            throw RequestFieldViolation.NotBlank("collection_name.name");
 
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [

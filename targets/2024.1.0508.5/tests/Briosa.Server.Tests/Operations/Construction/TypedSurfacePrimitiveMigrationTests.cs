@@ -110,7 +110,7 @@ public sealed class TypedSurfacePrimitiveMigrationTests
         Assert.All(twoSurfaces.InputArguments.Skip(1).Take(2), argument =>
             Assert.Equal(WorkerObjectTypeValue.Surface, argument.RequireValue<WorkerCollectionObjectNameValue>().ObjectType));
         Assert.Equal(0.125, twoSurfaces.InputArguments[3].RequireValue<WorkerDoubleValue>().Value);
-        Assert.Throws<ArgumentException>(() => ConstructBSplineFromIntersectionOfSurfacesOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ConstructBSplineFromIntersectionOfSurfacesOperation.CreateCommand(new()
         {
             ResultingBSplineName = Object("intersection"), FirstSurfaceName = Object("left")
         }));
@@ -124,7 +124,7 @@ public sealed class TypedSurfacePrimitiveMigrationTests
             normal.InputArguments.Select(argument => argument.Name));
         Assert.Equal("SetPointNameArg", normal.InputArguments[2].SdkBinding);
         Assert.Equal(0, normal.InputArguments[3].RequireValue<WorkerDoubleValue>().Value);
-        Assert.Throws<ArgumentException>(() => ConstructPlaneNormalToObjectThroughPointOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ConstructPlaneNormalToObjectThroughPointOperation.CreateCommand(new()
         {
             ResultantPlaneName = Object("normal"), NormalToObjectName = Object("source")
         }));
@@ -140,7 +140,7 @@ public sealed class TypedSurfacePrimitiveMigrationTests
             Assert.Equal("SetCollectionObjectNameArg2", argument.SdkBinding);
             Assert.Equal(WorkerObjectTypeValue.Plane, argument.RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
         });
-        Assert.Throws<ArgumentException>(() => ConstructPlanesBisectTwoPlanesOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ConstructPlanesBisectTwoPlanesOperation.CreateCommand(new()
         {
             ResultantPlaneName = Object("middle"), FirstPlane = Object("left")
         }));

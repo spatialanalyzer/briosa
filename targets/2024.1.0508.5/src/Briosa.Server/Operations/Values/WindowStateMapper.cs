@@ -12,6 +12,7 @@ internal static class WindowStateMapper
         Api.WindowState.Restore => new(WorkerWindowStateValue.Restore),
         Api.WindowState.Show => new(WorkerWindowStateValue.Show),
         Api.WindowState.Hide => new(WorkerWindowStateValue.Hide),
-        _ => throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(value))
+        null => throw RequestFieldViolation.Required(fieldName),
+        _ => throw RequestFieldViolation.SupportedChoice(fieldName)
     };
 }

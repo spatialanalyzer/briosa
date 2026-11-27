@@ -21,19 +21,19 @@ internal static class AutoFilterPointsGroupsCloudsToSurfaceFacesOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         var points = request.Points?.Values ??
-            throw new ArgumentException("Request field 'points' is required.", nameof(request));
+            throw RequestFieldViolation.Required("points");
         var groups = request.Groups?.Values ??
-            throw new ArgumentException("Request field 'groups' is required.", nameof(request));
+            throw RequestFieldViolation.Required("groups");
         var clouds = request.Clouds?.Values ??
-            throw new ArgumentException("Request field 'clouds' is required.", nameof(request));
+            throw RequestFieldViolation.Required("clouds");
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [
                 new("Points", WorkerMpValueKind.PointNameList,
-                    PointNameMapper.RequiredList(points, "points"), "SetPointNameRefListArg"),
+                    PointNameMapper.RequiredList(points, "points.values"), "SetPointNameRefListArg"),
                 new("Groups", WorkerMpValueKind.CollectionObjectNameList,
-                    CollectionObjectNameMapper.RequiredList(groups, "groups"), "SetCollectionObjectNameRefListArg"),
+                    CollectionObjectNameMapper.RequiredList(groups, "groups.values"), "SetCollectionObjectNameRefListArg"),
                 new("Clouds", WorkerMpValueKind.CollectionObjectNameList,
-                    CollectionObjectNameMapper.RequiredList(clouds, "clouds"), "SetCollectionObjectNameRefListArg"),
+                    CollectionObjectNameMapper.RequiredList(clouds, "clouds.values"), "SetCollectionObjectNameRefListArg"),
                 new("Surface Offset", WorkerMpValueKind.FloatingPoint,
                     new WorkerDoubleValue(request.HasSurfaceOffset ? request.SurfaceOffset : 0.1), "SetDoubleArg"),
                 new("Edge Offset", WorkerMpValueKind.FloatingPoint,
@@ -50,7 +50,7 @@ internal static class AutoFilterPointsGroupsCloudsToSurfaceFacesOperation
                 new("Surfaces", WorkerMpValueKind.CollectionObjectNameList,
                     CollectionObjectNameMapper.RequiredList(request.Surfaces, "surfaces"), "SetCollectionObjectNameRefListArg"),
                 new("Cloud Thinning Settings", WorkerMpValueKind.CloudThinningOptions,
-                    CloudThinningOptionsMapper.ToWorker(request.CloudThinningSettings), "SetCloudThinningOptionsArg"),
+                    CloudThinningOptionsMapper.ToWorker(request.CloudThinningSettings, "cloud_thinning_settings"), "SetCloudThinningOptionsArg"),
                 new("Output Cloud Base Name", WorkerMpValueKind.Text,
                     new WorkerTextValue(request.HasOutputCloudBaseName ? request.OutputCloudBaseName : "InspAutoFilteredCloud"),
                     "SetStringArg"),

@@ -46,12 +46,12 @@ public sealed class TypedViewAppearanceAndHighlightingOperationTests
         });
         Assert.Equal(new WorkerRgbColorValue(12, 34, 56),
             explicitColor.InputArguments[0].RequireValue<WorkerRgbColorValue>());
-        Assert.Throws<ArgumentOutOfRangeException>(() => SetWorkingColorOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => SetWorkingColorOperation.CreateCommand(new()
         {
             NewWorkingColorName = new Api.Color { Red = 256 }
         }));
 
-        Assert.Throws<ArgumentException>(() => SetObjectsColorOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetObjectsColorOperation.CreateCommand(new()));
         var objectColor = SetObjectsColorOperation.CreateCommand(new()
         {
             ObjectsToChange = { new Api.CollectionObjectName
@@ -64,7 +64,7 @@ public sealed class TypedViewAppearanceAndHighlightingOperationTests
             objectColor.InputArguments[1].RequireValue<WorkerRgbColorValue>());
         Assert.False(objectColor.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
 
-        Assert.Throws<ArgumentException>(() => SetObjectsTranslucencyOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetObjectsTranslucencyOperation.CreateCommand(new()));
         var translucency = SetObjectsTranslucencyOperation.CreateCommand(new()
         {
             ObjectsToChange = { new Api.CollectionObjectName

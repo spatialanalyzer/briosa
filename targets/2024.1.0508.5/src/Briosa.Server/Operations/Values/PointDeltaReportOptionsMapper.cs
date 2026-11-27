@@ -5,10 +5,11 @@ namespace Briosa.Server.Operations.Values;
 
 internal static class PointDeltaReportOptionsMapper
 {
-    public static WorkerPointDeltaReportOptionsValue ToWorker(Api.PointDeltaReportOptions? value) => new(
+    public static WorkerPointDeltaReportOptionsValue ToWorker(Api.PointDeltaReportOptions? value, string fieldName) => new(
         (int)CoordinateSystemTypeMapper.OrDefault(
             value?.HasCoordinateSystem == true ? value.CoordinateSystem : null,
-            Api.CoordinateSystemType.Cartesian),
+            Api.CoordinateSystemType.Cartesian,
+            RequestFieldViolation.Path(fieldName, "coordinate_system")),
         value?.HasDetailsFormat == true ? value.DetailsFormat : "Single",
         value?.HasShowPointA != true || value.ShowPointA,
         value?.HasShowPointB != true || value.ShowPointB,

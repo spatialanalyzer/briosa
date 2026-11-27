@@ -8,14 +8,12 @@ internal static class CollectionInstrumentIdMapper
 {
     public static WorkerCollectionInstrumentIdValue Required(Api.CollectionInstrumentId? value, string fieldName)
     {
-        if (value is null || !value.HasCollectionName || string.IsNullOrWhiteSpace(value.CollectionName) ||
-            !value.HasInstrumentId)
+        if (value is null)
         {
-            throw new ArgumentException(
-                $"Request field '{fieldName}' requires a collection name and instrument ID.", nameof(value));
+            throw RequestFieldViolation.Required(fieldName);
         }
 
-        return new(value.CollectionName, value.InstrumentId);
+        return ToWorker(value, fieldName);
     }
 
     public static WorkerCollectionInstrumentIdListValue RequiredList(
@@ -24,18 +22,30 @@ internal static class CollectionInstrumentIdMapper
     {
         if (values.Count == 0)
         {
-            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(values));
+            throw RequestFieldViolation.NotEmpty(fieldName);
         }
 
-        return new(values.Select(value =>
-        {
-            if (!value.HasCollectionName || string.IsNullOrWhiteSpace(value.CollectionName) || !value.HasInstrumentId)
-            {
-                throw new ArgumentException(
-                    $"Every entry in '{fieldName}' requires a collection name and instrument ID.", nameof(values));
-            }
+        return new(values.Select(value => ToWorker(value, fieldName)).ToImmutableArray());
+    }
 
-            return new WorkerCollectionInstrumentIdValue(value.CollectionName, value.InstrumentId);
-        }).ToImmutableArray());
+    // Both members are required; an element of a list reports the list's path.
+    private static WorkerCollectionInstrumentIdValue ToWorker(Api.CollectionInstrumentId value, string fieldName)
+    {
+        if (!value.HasCollectionName)
+        {
+            throw RequestFieldViolation.Required(RequestFieldViolation.Path(fieldName, "collection_name"));
+        }
+
+        if (string.IsNullOrWhiteSpace(value.CollectionName))
+        {
+            throw RequestFieldViolation.NotBlank(RequestFieldViolation.Path(fieldName, "collection_name"));
+        }
+
+        if (!value.HasInstrumentId)
+        {
+            throw RequestFieldViolation.Required(RequestFieldViolation.Path(fieldName, "instrument_id"));
+        }
+
+        return new(value.CollectionName, value.InstrumentId);
     }
 }

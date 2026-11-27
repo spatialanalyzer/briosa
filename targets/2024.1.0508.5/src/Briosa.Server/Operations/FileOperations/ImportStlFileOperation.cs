@@ -20,7 +20,7 @@ internal static class ImportStlFileOperation
         [
             new("STL File Path", WorkerMpValueKind.FileReference, FileReferenceMapper.Required(request.StlFilePath, "stl_file_path"), "SetFilePathArg"),
             new("Units", WorkerMpValueKind.DistanceUnit, DistanceUnitMapper.OrDefault(
-                request.HasUnits ? request.Units : null, Api.DistanceUnits.Millimeters), "SetDistanceUnitsArg"),
+                request.HasUnits ? request.Units : null, Api.DistanceUnits.Millimeters, "units"), "SetDistanceUnitsArg"),
             new("Import Mesh", WorkerMpValueKind.Logical, new WorkerBooleanValue(!request.HasImportMesh || request.ImportMesh), "SetBoolArg"),
             new("Import Point Cloud", WorkerMpValueKind.Logical, new WorkerBooleanValue(request.HasImportPointCloud && request.ImportPointCloud), "SetBoolArg")
         ], []);

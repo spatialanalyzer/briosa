@@ -40,7 +40,7 @@ public sealed class TypedFileUiAndControlOperationTests
         var picture = ImportFileAsPictureOperation.CreateCommand(new() { ExternalFileName = file });
         Assert.Equal("SetFilePathArg", picture.InputArguments[0].SdkBinding);
         Assert.False(picture.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => ImportFileAsPictureOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ImportFileAsPictureOperation.CreateCommand(new()));
 
         var saImport = ImportSaFileOperation.CreateCommand(new()
         {
@@ -49,11 +49,11 @@ public sealed class TypedFileUiAndControlOperationTests
         Assert.False(saImport.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
         Assert.Equal("SetStringRefListArg", saImport.InputArguments[2].SdkBinding);
         Assert.Equal(["A", "B"], saImport.InputArguments[2].RequireValue<WorkerStringListValue>().Values);
-        Assert.Throws<ArgumentException>(() => ImportSaFileOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ImportSaFileOperation.CreateCommand(new()
         {
             SaFileName = new() { Path = "project.sa" }
         }));
-        Assert.Throws<ArgumentException>(() => ImportSaFileOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => ImportSaFileOperation.CreateCommand(new()
         {
             SelectedCollections = { "A" }
         }));
@@ -81,7 +81,7 @@ public sealed class TypedFileUiAndControlOperationTests
         });
         Assert.Equal(640, customized.InputArguments[1].RequireValue<WorkerIntegerValue>().Value);
         Assert.Equal(string.Empty, customized.InputArguments[6].RequireValue<WorkerTextValue>().Value);
-        Assert.Throws<ArgumentException>(() => LoadHtmlFormOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => LoadHtmlFormOperation.CreateCommand(new()));
 
         var edge = LoadHtmlFormInEdgeBrowserOperation.CreateCommand(new()
         {
@@ -92,7 +92,7 @@ public sealed class TypedFileUiAndControlOperationTests
         Assert.Equal(6, edge.InputArguments.Count);
         Assert.Equal(1000, edge.InputArguments[1].RequireValue<WorkerIntegerValue>().Value);
         Assert.Equal(800, edge.InputArguments[2].RequireValue<WorkerIntegerValue>().Value);
-        Assert.Throws<ArgumentException>(() => LoadHtmlFormInEdgeBrowserOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => LoadHtmlFormInEdgeBrowserOperation.CreateCommand(new()));
 
         var polyBay = PopPolyBayAnalysisWindowOperation.CreateCommand(new());
         Assert.Equal(string.Empty, polyBay.InputArguments[0].RequireValue<WorkerTextValue>().Value);

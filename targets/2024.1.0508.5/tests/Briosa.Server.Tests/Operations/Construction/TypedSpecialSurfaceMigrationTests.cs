@@ -70,11 +70,11 @@ public sealed class TypedSpecialSurfaceMigrationTests
             edge.InputArguments[1].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
         Assert.Equal("SetVectorArg", edge.InputArguments[3].SdkBinding);
         Assert.Equal(0.01, edge.InputArguments[4].RequireValue<WorkerDoubleValue>().Value);
-        Assert.Throws<ArgumentException>(() => GetGradientAtProjectedPointOnSurfaceEdgeOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => GetGradientAtProjectedPointOnSurfaceEdgeOperation.CreateCommand(new()
         {
             PointToProject = Point("source"), SurfaceEdge = Object("edge"), SurfaceName = Object("surface")
         }));
-        Assert.Throws<ArgumentException>(() => GetGradientAtProjectedPointOnSurfaceOperation.CreateCommand(new()
+        Assert.Throws<RequestFieldViolation>(() => GetGradientAtProjectedPointOnSurfaceOperation.CreateCommand(new()
         {
             PointToProject = Point("source")
         }));
@@ -91,7 +91,7 @@ public sealed class TypedSpecialSurfaceMigrationTests
         Assert.Equal([true, false, true, false, true, false, true],
             selected.InputArguments.Select(argument => argument.RequireValue<WorkerBooleanValue>().Value));
         Assert.All(selected.InputArguments, argument => Assert.Equal("SetBoolArg", argument.SdkBinding));
-        Assert.Throws<ArgumentException>(() => ConstructObjectsFromSurfaceFacesRuntimeSelectOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => ConstructObjectsFromSurfaceFacesRuntimeSelectOperation.CreateCommand(new()));
 
         OperationDescriptor[] descriptors =
         [

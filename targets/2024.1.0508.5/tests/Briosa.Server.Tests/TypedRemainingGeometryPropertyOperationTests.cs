@@ -39,17 +39,17 @@ public sealed class TypedRemainingGeometryPropertyOperationTests
     [Fact]
     public void GeometryQueriesRequireTheirObjectAndKeepTargetBindings()
     {
-        Assert.Throws<ArgumentException>(() => GetBSplinePropertiesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetConePropertiesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetCylinderPropertiesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetLinePropertiesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetPlanePropertiesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetSurfacePhysicalStatsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetSlotPropertiesOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetPointCoordinateOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetPointCoordinateCylindricalOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetPointCoordinatePolarOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => GetPointPropertiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetBSplinePropertiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetConePropertiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetCylinderPropertiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetLinePropertiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetPlanePropertiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetSurfacePhysicalStatsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetSlotPropertiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetPointCoordinateOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetPointCoordinateCylindricalOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetPointCoordinatePolarOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => GetPointPropertiesOperation.CreateCommand(new()));
 
         var spline = GetBSplinePropertiesOperation.CreateCommand(new()
             { BSplineName = new Api.CollectionObjectName { ObjectName = "spline" } });

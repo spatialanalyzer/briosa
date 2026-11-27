@@ -25,7 +25,7 @@ internal static class DirectCadAccessOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         if (!request.HasSurfaceCompatibilityMode)
-            throw new ArgumentException("Request field 'surface_compatibility_mode' is required.", nameof(request));
+            throw RequestFieldViolation.Required("surface_compatibility_mode");
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
             new("CAD File Name", WorkerMpValueKind.FileReference, FileReferenceMapper.Required(request.CadFileName, "cad_file_name"), "SetFilePathArg"),

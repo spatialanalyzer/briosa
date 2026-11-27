@@ -17,7 +17,7 @@ internal static class MakeFeatureChecksOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [new("Collection Name", WorkerMpValueKind.CollectionName,
-                GdtCollectionNameMapper.Required(request.Collection), "SetCollectionNameArg")], []);
+                GdtCollectionNameMapper.Required(request.Collection, "collection"), "SetCollectionNameArg")], []);
     }
     public static Api.MakeFeatureChecksResult CreateResult(SuccessfulOperationExecution completed) =>
         new() { Execution = completed.Details };

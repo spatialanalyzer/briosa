@@ -27,10 +27,10 @@ internal static class AutoFilterCloudsToNominalGeometry2DOperation
                 new("Clouds", WorkerMpValueKind.CollectionObjectNameList,
                     CollectionObjectNameMapper.RequiredList(request.Clouds, "clouds"), "SetCollectionObjectNameRefListArg"),
                 new("Cloud Thinning Settings", WorkerMpValueKind.CloudThinningOptions,
-                    CloudThinningOptionsMapper.ToWorker(request.CloudThinningSettings), "SetCloudThinningOptionsArg"),
+                    CloudThinningOptionsMapper.ToWorker(request.CloudThinningSettings, "cloud_thinning_settings"), "SetCloudThinningOptionsArg"),
                 new("Filter Proximity Settings 2D", WorkerMpValueKind.AutoFilterProximitySettings,
                     RelationshipOperationValueMapper.RequiredProximity(request.FilterProximitySettings2D,
-                        "filter_proximity_settings_2D"), "SetAutoFilterProximitySettingsArg"),
+                        "filter_proximity_settings_2d"), "SetAutoFilterProximitySettingsArg"),
                 new("Geometry Extraction Tolerance", WorkerMpValueKind.FloatingPoint,
                     new WorkerDoubleValue(request.HasGeometryExtractionTolerance ? request.GeometryExtractionTolerance : 0.01),
                     "SetDoubleArg")

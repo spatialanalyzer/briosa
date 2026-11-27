@@ -34,9 +34,9 @@ public sealed class TypedPointUncertaintyOperationTests
     [Fact]
     public void PointListsAreRequiredAndReviewedDefaultsAreApplied()
     {
-        Assert.Throws<ArgumentException>(() => CreatePointUncertaintyCloudPointSetsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => CreatePointUncertaintyFieldsOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => SetPointWeightsFromUncertaintiesOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => CreatePointUncertaintyCloudPointSetsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => CreatePointUncertaintyFieldsOperation.CreateCommand(new()));
+        Assert.Throws<RequestFieldViolation>(() => SetPointWeightsFromUncertaintiesOperation.CreateCommand(new()));
 
         var point = Point("P1");
         var cloudSets = CreatePointUncertaintyCloudPointSetsOperation.CreateCommand(new()
