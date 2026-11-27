@@ -1932,8 +1932,9 @@ function Write-ConnectionTimeline {
         else { [void]$entries.EnqueueDequeue($Text, $order); $counts.Omitted++ }
     }
     $script:timelineSequence = [long]0
+    # The digest reports oversized records; their placeholder has no time to place here.
     $kept = @("UnaryCallStarted", "UnaryCallCompleted", "UnaryCallFaulted", "UnaryCallResponseEnded",
-        "UnaryCallResponseAbandoned", "LogSinkDegraded", "LogRecordTooLarge")
+        "UnaryCallResponseAbandoned", "LogSinkDegraded")
     $instances = [Collections.Generic.List[string]]::new()
     foreach ($file in @(Get-ServerLogFiles -ScenarioRoot $ScenarioRoot)) {
         if ($file.Name -cmatch '\Abriosa-([0-9a-f]{32})-' -and -not $instances.Contains($Matches[1])) { $instances.Add($Matches[1]) }
