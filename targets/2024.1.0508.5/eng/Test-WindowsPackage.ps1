@@ -3,7 +3,9 @@ param(
     [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$')]
     [string]$Version = "0.1.0-ci",
 
-    [string]$OutputDirectory = "artifacts\package-smoke"
+    [string]$OutputDirectory = "artifacts\package-smoke",
+
+    [string]$BufPath = "buf"
 )
 
 Set-StrictMode -Version Latest
@@ -12,11 +14,14 @@ $ErrorActionPreference = "Stop"
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 Import-Module (Join-Path $repositoryRoot '../../eng/WindowsPackageNotices.psm1') -Force
 $packageScript = Join-Path $PSScriptRoot "New-WindowsPackage.ps1"
+$protocolScript = Join-Path $PSScriptRoot "New-ProtocolArtifact.ps1"
+$descriptorEntry = "descriptor/briosa.protoset"
 $workerTestHostProject = Join-Path $repositoryRoot "tests\Briosa.Worker.TestHost\Briosa.Worker.TestHost.csproj"
 $temporaryBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $temporaryRoot = Join-Path $temporaryBase "briosa-package-test-$([Guid]::NewGuid().ToString('N'))"
 $firstOutput = [IO.Path]::GetFullPath($OutputDirectory, $repositoryRoot)
 $secondOutput = Join-Path $temporaryRoot "second"
+$protocolOutput = Join-Path $temporaryRoot "protocol"
 $extractRoot = Join-Path $temporaryRoot "extracted"
 $workerTestHostOutput = Join-Path $temporaryRoot "worker-test-host"
 $serverProcess = $null
@@ -58,6 +63,30 @@ function Invoke-DotNet {
     }
 }
 
+function Get-ZipEntrySha256 {
+    param(
+        [Parameter(Mandatory)][string]$ZipPath,
+        [Parameter(Mandatory)][string]$EntryName
+    )
+
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $archive = [IO.Compression.ZipFile]::OpenRead($ZipPath)
+    try {
+        $entries = @($archive.Entries | Where-Object { $_.FullName -ceq $EntryName })
+        Assert-Condition -Condition ($entries.Count -eq 1) -Message "'$([IO.Path]::GetFileName($ZipPath))' must contain exactly one '$EntryName'."
+        $stream = $entries[0].Open()
+        try {
+            return [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($stream)).ToLowerInvariant()
+        }
+        finally {
+            $stream.Dispose()
+        }
+    }
+    finally {
+        $archive.Dispose()
+    }
+}
+
 $safeRepositoryRoot = $repositoryRoot.Replace('\', '/')
 $sourceRevision = (& git -c "safe.directory=$safeRepositoryRoot" -C $repositoryRoot rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or $sourceRevision -notmatch '^[0-9a-fA-F]{40}$') {
@@ -82,6 +111,7 @@ try {
         Version = $Version
         SourceRevision = $sourceRevision
         OutputDirectory = $firstOutput
+        BufPath = $BufPath
     }
     & $packageScript @firstBuild
     $secondBuild = @{
@@ -90,6 +120,7 @@ try {
         OutputDirectory = $secondOutput
         NoRestore = $true
         PassNoticeExpectation = $true
+        BufPath = $BufPath
     }
     $noticeExpectation = & $packageScript @secondBuild
 
@@ -100,9 +131,27 @@ try {
     $externalChecksum = Get-Content -LiteralPath $externalChecksumPath -Raw
     Assert-Condition -Condition ($externalChecksum.Trim() -eq "$firstHash  $zipName") -Message "The external ZIP checksum does not match the package."
 
+    # The bundled descriptor set: the same bytes in both package builds and in the
+    # protocol artifact built from the same source revision.
+    $firstDescriptorHash = Get-ZipEntrySha256 -ZipPath $firstZip -EntryName "$artifactBase/$descriptorEntry"
+    $secondDescriptorHash = Get-ZipEntrySha256 -ZipPath $secondZip -EntryName "$artifactBase/$descriptorEntry"
+    Assert-Condition -Condition ($firstDescriptorHash -ceq $secondDescriptorHash) -Message "Two clean package builds produced different protocol descriptor sets."
+    & $protocolScript -Version $Version -SourceRevision $sourceRevision -OutputDirectory $protocolOutput -BufPath $BufPath
+    $protocolBase = "briosa-protocol-$Version-sa-2024.1.0508.5"
+    $protocolDescriptorHash = Get-ZipEntrySha256 -ZipPath (Join-Path $protocolOutput "$protocolBase.zip") -EntryName "$protocolBase/$descriptorEntry"
+    $protocolManifest = Get-Content -LiteralPath (Join-Path $protocolOutput "$protocolBase.provenance.json") -Raw | ConvertFrom-Json
+    Assert-Condition -Condition ($protocolManifest.descriptor_set_sha256 -ceq $protocolDescriptorHash) -Message "The protocol artifact manifest does not fingerprint its own descriptor set."
+    Assert-Condition -Condition ($firstDescriptorHash -ceq $protocolDescriptorHash) -Message "The packaged descriptor set differs from the protocol artifact built from the same source revision."
+    Write-Host "Packaged $descriptorEntry SHA-256 $firstDescriptorHash matches the protocol artifact."
+
     Expand-Archive -LiteralPath $firstZip -DestinationPath $extractRoot
     $packageRoot = Join-Path $extractRoot $artifactBase
     Assert-Condition -Condition (Test-Path -LiteralPath $packageRoot -PathType Container) -Message "The archive does not contain the expected package root."
+    $packagedDescriptor = Join-Path $packageRoot $descriptorEntry
+    Assert-Condition -Condition (Test-Path -LiteralPath $packagedDescriptor -PathType Leaf) -Message "The package is missing '$descriptorEntry'."
+    $descriptorChecksums = @(Get-Content -LiteralPath (Join-Path $packageRoot "files.sha256") |
+        Where-Object { $_.EndsWith("  $descriptorEntry", [StringComparison]::Ordinal) })
+    Assert-Condition -Condition ($descriptorChecksums.Count -eq 1 -and $descriptorChecksums[0] -ieq "$firstDescriptorHash  $descriptorEntry") -Message "files.sha256 must list '$descriptorEntry' once with its SHA-256."
     Assert-WindowsPackageNotices $packageRoot $noticeExpectation
     & (Join-Path $repositoryRoot '../../eng/Test-WindowsPackageNoticeGates.ps1') -PackageRoot $packageRoot -TargetDirectory $repositoryRoot -Expected $noticeExpectation
 
@@ -335,7 +384,7 @@ try {
     Invoke-DotNet @("build", $desktopSmoke, "-c", "Release", "--no-restore")
     Invoke-DotNet @("run", "--project", $desktopSmoke, "-c", "Release", "--no-build", "--no-restore", "--",
         "--package", $packageRoot, (Join-Path $workerTestHostOutput "Briosa.Worker.TestHost.exe"))
-    Write-Host "Package reproducibility, checksums, diagnostics, desktop ownership, and launch smoke tests passed."
+    Write-Host "Package reproducibility, protocol descriptor, checksums, diagnostics, desktop ownership, and launch smoke tests passed."
 }
 finally {
     if ($null -ne $serverProcess -and -not $serverProcess.HasExited) {

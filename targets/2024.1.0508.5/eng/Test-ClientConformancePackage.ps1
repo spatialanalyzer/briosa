@@ -3,7 +3,9 @@ param(
     [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$')]
     [string]$Version = "0.2.0-ci",
 
-    [string]$OutputDirectory = "artifacts\client-conformance-smoke"
+    [string]$OutputDirectory = "artifacts\client-conformance-smoke",
+
+    [string]$BufPath = "buf"
 )
 
 Set-StrictMode -Version Latest
@@ -62,11 +64,13 @@ try {
     & $packageScript `
         -Version $Version `
         -SourceRevision $sourceRevision `
-        -OutputDirectory $firstOutput
+        -OutputDirectory $firstOutput `
+        -BufPath $BufPath
     & $packageScript `
         -Version $Version `
         -SourceRevision $sourceRevision `
         -OutputDirectory $secondOutput `
+        -BufPath $BufPath `
         -NoRestore
 
     $firstHash = (Get-FileHash -LiteralPath $firstZip -Algorithm SHA256).Hash

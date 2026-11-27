@@ -50,11 +50,12 @@ these results do not establish SpatialAnalyzer throughput.
   -PackagePath artifacts/package-smoke/briosa-0.1.0-local-sa-2024.1.0508.5-win-x64.zip
 ```
 
-- `New-WindowsPackage.ps1` creates the self-contained Briosa Windows package. It includes build and interop provenance but does not duplicate the runtime operation registry or include a catalog.
-- `Test-WindowsPackage.ps1` builds twice, checks byte reproducibility, manifests, checksums, diagnostics, loopback startup, and rejection of unsafe endpoint binding.
+- `New-WindowsPackage.ps1` creates the self-contained Briosa Windows package. It includes build and interop provenance and the protocol descriptor set `descriptor/briosa.protoset`, but does not duplicate the runtime operation registry or include a catalog. It requires Buf (`-BufPath`, default `buf`) and stops before publishing when Buf is missing.
+- `Test-WindowsPackage.ps1` builds twice, checks byte reproducibility, that the packaged descriptor set is the same in both builds and equals the one in a protocol artifact built from the same revision, manifests, checksums, diagnostics, loopback startup, and rejection of unsafe endpoint binding.
 - `New-ProtocolArtifact.ps1` packages the handwritten `.proto` sources and Buf descriptor set for normal ecosystem client generation.
+- `ProtocolDescriptor.psm1` is the one descriptor build that both scripts use: it copies `buf.yaml` and the `proto` tree with LF line endings and runs Buf on that copy.
 - `Test-ProtocolArtifact.ps1` verifies reproducibility, manifests, checksums, and descriptor equivalence.
-- `New-ClientConformancePackage.ps1` composes the real self-contained server, a deterministic fake worker, the handwritten scenario contract, and the language-neutral runner into a target-qualified first-party client test artifact.
+- `New-ClientConformancePackage.ps1` composes the real self-contained server (built by `New-WindowsPackage.ps1`, so it also needs Buf), a deterministic fake worker, the handwritten scenario contract, and the language-neutral runner into a target-qualified first-party client test artifact.
 - `Test-ClientConformancePackage.ps1` builds that artifact twice, verifies its manifest, schema, checksums, and byte reproducibility, and exercises the runner with a minimal fixture. The artifact requires no SpatialAnalyzer installation, SDK binary, or license.
 - `Test-ClientScenarios.ps1` starts the packaged server inert, uses the public lifecycle RPCs with a fake application and worker, and then runs standard generated gRPC scenarios. It covers success, unavailability, policy rejection, MP failure, getter failure, deadlines, cancellation, explicit watchdog recovery, and unsupported services.
 
