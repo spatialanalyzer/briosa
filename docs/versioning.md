@@ -16,7 +16,7 @@ Clients `0.4.x` and earlier do not work with Server `0.10.x`, and clients `0.5.x
 | `0.6.1` | `0.6.1` | `0.1.1`, `0.2.0`, `0.3.0` | `0.1.1`, `0.2.0`, `0.3.0` | Client `0.1.1` requires exactly Server `0.6.1` |
 | `0.6.0` | `0.6.0` | `0.1.0` | `0.1.0` | Client `0.1.0` requires exactly Server `0.6.0` |
 
-You can install Server `0.9.2` and Server `0.10.x` side by side. For the same SpatialAnalyzer target, client `0.4.0` selects `0.9.2` and clients `0.5.x` select `0.10.x`. Both reject the other installation before launch. When `0.10.0` and `0.10.1` are both installed for the same target, clients `0.5.x` select `0.10.1` unless the application selects a server explicitly.
+You can install Server `0.9.2`, `0.10.0`, and `0.10.1` side by side for the same SpatialAnalyzer target. On a fresh start with automatic selection, client `0.4.0` selects `0.9.2` when it is eligible. Clients `0.5.0` and `0.5.1`, and JavaScript/TypeScript client `0.5.2`, select `0.10.1` when both `0.10.0` and `0.10.1` are eligible. An explicit server selection takes precedence. Clients reject an incompatible installation before launch. A running session keeps its selected server through recovery.
 
 To move an application from Server `0.9.x` to Server `0.10.x`, upgrade to the matching `0.5.x` first-party client or regenerate direct gRPC bindings from the `0.10.x` exact-target protocol artifact (`briosa-protocol-<version>-sa-<target>.zip`).
 

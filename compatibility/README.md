@@ -149,8 +149,9 @@ release gate supplied the 2026-11-27 reports from
 [run 46039672611](https://github.com/spatialanalyzer/briosa/actions/runs/46039672611),
 in which no job was rerun: 18 released-package pairs. All six published `0.4.0`
 packages rejected the release before launch, proving installation/startup
-rejection only. All twelve published `0.5.0` and `0.5.1` packages passed all
-fifteen fake-SDK scenarios and `large-result` per target: 192 scenario runs.
+rejection only. On each target, the six published `0.5.0` and `0.5.1` packages
+passed all 15 required fake-SDK scenarios and `large-result`, for 192 scenario
+runs across both targets.
 The twelve published `0.2.0`/`0.3.0` packages remain retired from the live gate.
 Every report's server artifact hash matches the published conformance ZIP, and
 the server manifest inside both ZIPs records compatibility 3.1. The reports are
