@@ -159,4 +159,10 @@ check(unset.status === 0 && unset.stdout === 'report\n' && unset.stderr === `fix
   `Without the capture variable the fixture's output changed: ${JSON.stringify(unset.stderr)}`);
 check(readFileSync(capture, 'utf8') === text && !existsSync(join(scratch, 'client-connection.2.jsonl')),
   'A run without the capture variable wrote a capture file.');
+
+// A destination that cannot be written turns the capture off; the fixture runs as without it.
+const unwritable = run(join(scratch, 'no-such-directory', 'client-connection.jsonl'));
+check(unwritable.status === 0 && unwritable.stdout === 'report\n' && unwritable.stderr === `fixture-own-error-line ${marker}-own\n`,
+  `An unwritable capture destination changed the fixture: ${unwritable.status} ${JSON.stringify(unwritable.stderr)}`);
+check(!existsSync(join(scratch, 'no-such-directory')), 'An unwritable capture destination was created.');
 console.log(`Connection capture module checks passed on Node ${process.versions.node}: ${records.length} records, no marker.`);

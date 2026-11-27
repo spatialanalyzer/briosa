@@ -492,6 +492,12 @@ if ($mismatches.Count -gt 0) {
     [Console]::Error.WriteLine("capture-environment-mismatch: $($mismatches -join '; ')")
     exit 9
 }
+if ('__MODE__' -eq 'fail-unwritable') {
+    # The timeline's destination is taken by a directory.
+    [IO.Directory]::CreateDirectory((Join-Path $scenarioRoot 'connection-timeline.txt')) | Out-Null
+    [Console]::Error.WriteLine('capture-fixture-failed')
+    exit 7
+}
 if ('__MODE__' -eq 'fail') {
     # What the server and the client module write, beside values that must never print.
     [IO.Directory]::CreateDirectory($logDirectory) | Out-Null
@@ -625,6 +631,12 @@ $definition = Get-Content -LiteralPath $Contract -Raw | ConvertFrom-Json
                     "The connection timeline or digest printed '$secret'."
             }
         }
+
+        # A timeline that cannot be saved is reported and never hides the scenario's failure.
+        $unwritable = Invoke-CaptureRun $on "fail-unwritable" (Join-Path $temporaryRoot "capture-diagnostics-unwritable")
+        Assert-Condition ($unwritable.Failure -like "*failed scenario 'control-plane-only' with exit code 7: capture-fixture-failed*" -and
+            $unwritable.Output -contains "(the connection timeline could not be saved for control-plane-only)") `
+            "An unwritable connection timeline replaced the scenario's failure: $($unwritable.Failure)"
 
         foreach ($invalid in @('{"schema_version":2}', '{"schema_version":1,"scope":"all"}', 'missing-module')) {
             if ($invalid -ceq 'missing-module') {
