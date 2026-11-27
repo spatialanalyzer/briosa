@@ -285,64 +285,20 @@ and the second Connect then has about 2 seconds before the hold ends. The hold
 stays well inside the server's `StartupTimeout`, 30 seconds here, which bounds an
 accepted Connect, and its 5-second heartbeat timeout.
 
-## Client gRPC tracing
+## Client-side tracing
 
-Set `BRIOSA_CONFORMANCE_CLIENT_TRACE=js` to trace a JavaScript fixture's gRPC
-calls without changing the fixture (#450). The runner sets
-`GRPC_NODE_VERBOSITY=DEBUG` and `GRPC_NODE_TRACE` with the `channel`,
-`resolving_call` and `subchannel_call` tracers of `@grpc/grpc-js`, for the
-fixture and the processes it starts. The ordinary gate leaves tracing off; the
-conformance soak workflow turns it on for a JavaScript client. A passing
-scenario discards its trace; a rejected one keeps `client-trace.txt` and
-`client-calls.txt` with its diagnostics.
+Client-side tracing is not part of this runner, for any language (#450). A gRPC
+library's trace output and a fixture's own output share one stream, the
+fixture's stderr, and cannot be separated reliably: either writer can emit the
+same bytes. So the runner sets no gRPC library's trace switch, and it passes the
+fixture's stderr through unchanged, to the printed output, `fixture.stderr.txt`
+and the failure message.
 
-Python and .NET client tracing are not offered: their trace output could not be
-reduced to names and statuses reliably. Any other value, `py` and `dotnet`
-included, turns tracing off with a notice and sets nothing. For a Python or
-.NET fixture, the evidence is the server's unary call records in the server log
-digest, which show which calls reached the server and which it answered, and
-the process tree at a timeout, which shows which processes were still running
-and whether they were busy.
-
-Tracing is diagnostics only. A trace that cannot be separated or saved is
-reported in a notice; it never changes a scenario's result and never replaces
-the fixture's error or a timeout.
-
-grpc-js writes its trace to stderr with one `console.error` call per record, and
-a record's text can run over several lines. The runner takes each record of
-those three tracers out of the fixture's stderr whole: a header list through the
-empty line that ends it, whatever its header names; channel options through
-their closing brace; and a status message with line breaks, which a server can
-encode in its `grpc-message` trailer, through its last line. A status message
-with line breaks that no trailer announced ends at the first line that closes
-its quotes. The runner also takes out the two messages the library's Debug
-verbosity adds outside its tracers (`Config parsing failed with error` and
-`userinfo found in proxy URI`). A line that is not part of a record stays as it
-was in the stderr the runner prints and saves, and in the failure message: the
-fixture's own lines, even when they are indented or shaped like another
-tracer's records, and the library's own warnings and errors, which appear
-without tracing too. No text of those records reaches the fixture's stderr or
-the failure message.
-
-The runner never saves a record's text either. It keeps only events rendered
-from validated fields, and counts the rest: each call's creation with its method
-and its end with its status code, and each stream's trailers, with the names of
-the gRPC and Briosa trailers present but never their values, and its end with
-its status code. No address, header name or value, status message, trailer value
-or request reaches the file. The runner also prints, and saves as
-`client-calls.txt`, one line per client call: when it was created, its method,
-and its status and when it ended, or that it had no status when the fixture
-stopped. Consecutive calls to one method that ended with one status, such as a
-client polling the server while it starts, share a line. That line names the
-call the fixture was still waiting on.
-
-The record shapes are those of `@grpc/grpc-js` 1.14. Measured locally on
-Windows 11 with Node 24 and `@grpc/grpc-js` 1.14.6 (the published 0.5.1
-JavaScript fixture, `capability-denied`, eight runs with and eight without),
-these tracers wrote about 850 lines for the scenario, the fixture took a median
-3.5 s either way, and separating each run's trace left none of those lines in
-the fixture's stderr.
-
+What remains at a fixture timeout answers where a stall is. The process tree
+shows which process was idle or busy, and the server's unary call records in
+the server log digest show which calls arrived and which were answered. A stall
+where the server answered every call is therefore on the client or fixture
+side; one where a call arrived and was not answered is on the server side.
 ## Repeating one scenario
 
 The conformance soak workflow can repeat one scenario. It builds a soak package
