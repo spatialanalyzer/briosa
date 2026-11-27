@@ -74,6 +74,22 @@ try {
     & "$PSScriptRoot/Prepare-SignedPackage.ps1" -PackagePath $zip -OutputDirectory $staging
     $selected = @(Get-Content (Join-Path $staging 'authenticode-files.txt'))
     if ($selected.Count -ne 2 -or ($selected -match 'ThirdParty')) { throw 'Signing included third-party content or omitted entry points.' }
+    foreach ($layout in 'root', 'isolated') {
+        $cliTree = Join-Path $root "$layout/$name"
+        $null = [IO.Directory]::CreateDirectory($cliTree)
+        foreach ($leaf in 'manifest.json', 'Briosa.Server.exe', 'Briosa.Worker.exe') {
+            Copy-Item -LiteralPath (Join-Path $tree $leaf) -Destination $cliTree
+        }
+        $cliDirectory = if ($layout -eq 'root') { $cliTree } else { Join-Path $cliTree 'cli' }
+        $null = [IO.Directory]::CreateDirectory($cliDirectory)
+        foreach ($leaf in 'Briosa.Cli.exe', 'Briosa.Cli.dll', 'ModelContextProtocol.Core.dll', 'Microsoft.Extensions.AI.Abstractions.dll') {
+            [IO.File]::WriteAllText((Join-Path $cliDirectory $leaf), 'Inert signing test fixture.')
+        }
+        $selected = @(Get-ReleaseSigningFiles $cliTree | ForEach-Object Name | Sort-Object)
+        if (($selected -join ',') -cne 'Briosa.Cli.dll,Briosa.Cli.exe,Briosa.Server.exe,Briosa.Worker.exe') {
+            throw "Signing selection for the $layout CLI fixture differs."
+        }
+    }
     Assert-Fails { & "$PSScriptRoot/Complete-SignedPackage.ps1" -PackageRoot (Join-Path $staging $name) -OutputDirectory (Join-Path $root 'signed') -ExpectedPublisher 'Fixture' } 'Unsigned product could be finalized.'
     # Exercise archive finalization separately from production certificate access.
     Import-Module "$PSScriptRoot/ReleasePackageSigning.psm1" -Force

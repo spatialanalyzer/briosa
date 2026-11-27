@@ -26,7 +26,7 @@ if ($Timing) {
         # Distinct apphost/runtime directories give first launch and immediate
         # relaunch samples without changing system-wide cache state.
         $timingRoot = Join-Path $run "timing-$pair"
-        & robocopy (Split-Path -Parent $CliPath) $timingRoot /E /J /R:0 /W:0 /NFL /NDL /NJH /NJS /NP | Out-Null
+        & robocopy (Split-Path -Parent $CliPath) $timingRoot /J /R:0 /W:0 /NFL /NDL /NJH /NJS /NP | Out-Null
         if ($LASTEXITCODE -ge 8) { throw "Unbuffered timing copy failed with robocopy exit $LASTEXITCODE." }
         $executable = Join-Path $timingRoot 'Briosa.Cli.exe'
         foreach ($phase in 'first', 'warm') {
