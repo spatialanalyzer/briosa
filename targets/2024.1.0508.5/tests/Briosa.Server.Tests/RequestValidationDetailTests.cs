@@ -28,11 +28,14 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
     private const int MaximumDepth = 6;
     private const int RepairAttempts = 96;
 
-    // A string field that names an exact-target choice accepts only that target's names,
-    // which the sweep cannot guess, so it repairs such a field with a known valid name.
-    private static readonly Dictionary<string, string> TextChoices = new(StringComparer.Ordinal)
+    // The string fields that name an exact-target choice, by operation and field path, each
+    // with a name the target accepts. The sweep cannot guess such a name, so it repairs the
+    // field with this one. The table is written by hand and never learned from a mapping: a
+    // mapping that rejects free-form text as an unsupported choice fails the sweep, and so
+    // does an entry no mapping enforces.
+    private static readonly Dictionary<(string OperationId, string FieldPath), string> TextChoices = new()
     {
-        ["briosa.InstrumentTypeName.value"] = "API Radian"
+        [("instrument_operations.add_new_instrument", "instrument_type.value")] = "API Radian"
     };
 
     [Fact]
@@ -131,10 +134,11 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
         foreach (var operation in ImplementedOperations())
         {
             var id = operation.Descriptor.OperationId;
-            // The string fields this operation accepts only from a target's list of names:
-            // the ones whose sentinel text the mapping rejected as an unsupported choice
-            // while the baseline was built.
-            var choicePaths = new HashSet<string>(StringComparer.Ordinal);
+            // The string fields this operation accepts only from the target's list of names.
+            var choicePaths = TextChoices.Keys
+                .Where(key => key.OperationId == id)
+                .Select(key => key.FieldPath)
+                .ToHashSet(StringComparer.Ordinal);
             void Check(Outcome outcome, FieldChange? change, string mutation)
             {
                 switch (outcome.Exception)
@@ -158,7 +162,7 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
                 }
             }
 
-            var baseline = Baseline(operation, out var failure, choicePaths);
+            var baseline = Baseline(operation, out var failure);
 
             var empty = (IMessage)Activator.CreateInstance(operation.Request.ClrType)!;
             Check(Build(operation, empty), null, "empty request");
@@ -207,6 +211,13 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
         Assert.True(unexpected.Count == 0,
             "A request mapping threw something other than a typed violation:\n" + string.Join('\n', unexpected.Take(50)));
         Assert.True(problems.Count == 0, string.Join('\n', problems.Take(80)));
+        // Every hand-written named choice is one its mapping really enforces.
+        foreach (var (operationId, fieldPath) in TextChoices.Keys)
+        {
+            Assert.Contains(
+                $"{operationId} {fieldPath} {Api.RequestFieldConstraint.SupportedChoice}", reported);
+        }
+
         // Every constraint is one that some operation enforces.
         Assert.Equal(
             Enum.GetValues<Api.RequestFieldConstraint>().Where(value => value != Api.RequestFieldConstraint.Unspecified),
@@ -376,8 +387,7 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
 
     // A request the operation accepts: every field set, sentinel text and numbers where
     // the mapping takes them, and each reported violation repaired until none remains.
-    internal static IMessage? Baseline(
-        ImplementedOperation operation, out string? failure, ISet<string>? choicePaths = null)
+    internal static IMessage? Baseline(ImplementedOperation operation, out string? failure)
     {
         var request = Filled(operation.Request, 0);
         var attempts = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -396,14 +406,8 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
                 return null;
             }
 
-            if (violation.Constraint == Api.RequestFieldConstraint.SupportedChoice &&
-                Resolve(operation.Request, violation.FieldPath, out _) is { FieldType: FieldType.String })
-            {
-                choicePaths?.Add(violation.FieldPath);
-            }
-
             var count = attempts[violation.FieldPath] = attempts.GetValueOrDefault(violation.FieldPath) + 1;
-            if (!Repair(request, operation.Request, violation, count))
+            if (!Repair(request, operation, violation, count))
             {
                 failure = $"'{violation.FieldPath}' {violation.Constraint} could not be repaired";
                 return null;
@@ -414,19 +418,21 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
         return null;
     }
 
-    private static bool Repair(IMessage request, MessageDescriptor descriptor, RequestFieldViolation violation, int attempt)
+    private static bool Repair(IMessage request, ImplementedOperation operation, RequestFieldViolation violation, int attempt)
     {
+        var descriptor = operation.Request;
         if (Resolve(descriptor, violation.FieldPath, out _) is null)
         {
             return false;
         }
 
+        var textChoice = TextChoices.GetValueOrDefault((operation.Descriptor.OperationId, violation.FieldPath));
         var segments = violation.FieldPath.Split('.');
         var repaired = false;
         foreach (var parent in Parents(request, segments))
         {
             var field = parent.Descriptor.FindFieldByName(segments[^1]);
-            repaired |= RepairField(parent, field, violation.Constraint, attempt);
+            repaired |= RepairField(parent, field, violation.Constraint, attempt, textChoice);
         }
 
         return repaired;
@@ -461,7 +467,8 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
         return level;
     }
 
-    private static bool RepairField(IMessage parent, FieldDescriptor field, Api.RequestFieldConstraint constraint, int attempt)
+    private static bool RepairField(
+        IMessage parent, FieldDescriptor field, Api.RequestFieldConstraint constraint, int attempt, string? textChoice)
     {
         switch (constraint)
         {
@@ -492,12 +499,12 @@ public sealed class RequestValidationDetailTests(ITestOutputHelper output)
 
                 return true;
             case Api.RequestFieldConstraint.SupportedChoice when field.FieldType == FieldType.String:
-                if (attempt != 1 || !TextChoices.TryGetValue(field.FullName, out var choice))
+                if (attempt != 1 || textChoice is null)
                 {
                     return false;
                 }
 
-                field.Accessor.SetValue(parent, choice);
+                field.Accessor.SetValue(parent, textChoice);
                 return true;
             case Api.RequestFieldConstraint.Range or Api.RequestFieldConstraint.SupportedChoice when !field.IsRepeated:
                 return SetChoiceOrNumber(parent, field, attempt);
