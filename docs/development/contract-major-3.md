@@ -1,10 +1,11 @@
 # Contract major 3
 
 Status: released. Both exact-SA targets (`2026.1.0529.7` and `2024.1.0508.5`)
-declared behavioral contract major 3, revision 0, for Server 0.10.0. For Server
-0.10.1 they declare major 3, revision 1; see [revision 1](#revision-1). For the
-planned Server 0.10.2 they declare major 3, revision 2; see
-[revision 2](#revision-2).
+declared behavioral contract major 3, revision 0, for Server 0.10.0, and
+revision 1 for
+[Server 0.10.1](https://github.com/spatialanalyzer/briosa/releases/tag/v0.10.1);
+see [revision 1](#revision-1). For the planned Server 0.10.2 they declare major
+3, revision 2; see [revision 2](#revision-2).
 [Server 0.10.0](https://github.com/spatialanalyzer/briosa/releases/tag/v0.10.0)
 was published on 2026-11-21 at 03:03 UTC (tag `v0.10.0` at
 `ee16784d9fdaf67ce7d7bb0b68609a98fe403e1c`), with the first-party clients at
@@ -93,9 +94,9 @@ work with Server 0.10.0.
 | `GetServerInfo` reports the effective lifecycle bounds and the configured SpatialAnalyzer interaction mode | [#400](https://github.com/spatialanalyzer/briosa/issues/400), [#422](https://github.com/spatialanalyzer/briosa/pull/422) | Additive. Response fields only; the 0.5.0 clients ignore them | [Client behavioral contract](../architecture/client-library-behavioral-contract.md#startup-budget-from-published-lifecycle-bounds) |
 | A denied call carries typed denial detail; a denied capability names its flag; discovery describes request options | [#397](https://github.com/spatialanalyzer/briosa/issues/397), [#424](https://github.com/spatialanalyzer/briosa/pull/424) | Additive. No request that Server 0.10.0 accepts is rejected, and the denied call's status, kind, disposition, guidance, and diagnostic code are unchanged | [Client behavioral contract](../architecture/client-library-behavioral-contract.md#compatibility-and-capabilities) |
 
-The [compatibility matrix](../../compatibility/matrix.json) keeps declaring
-3.0 until the Server 0.10.1 release evidence is recorded, as it did for the
-earlier majors.
+The [compatibility matrix](../../compatibility/matrix.json) kept declaring
+3.0 until the Server 0.10.1 release evidence was recorded
+([#458](https://github.com/spatialanalyzer/briosa/pull/458)); it now records 3.1.
 
 ## Revision 2
 
@@ -110,8 +111,9 @@ caller restriction is the reason the bump matters: a server before 0.10.2
 silently ignores the `briosa-caller-restriction` header, so a caller that relies
 on the header must require revision 2 first. The major stays 3. No request that
 Server 0.10.0 accepts without the header is rejected. The published 0.5.0 and
-0.5.1 clients require revision 0, in installation selection and in live
-discovery, so they accept revision 2 and ignore the new fields.
+0.5.1 clients, and the JavaScript 0.5.2 clients, require revision 0, in
+installation selection and in live discovery, so they accept revision 2 and
+ignore the new fields.
 
 | Change | Issue and pull request | Class | Where it is described |
 | --- | --- | --- | --- |
@@ -126,9 +128,9 @@ new version when the evaluator decides the same fingerprint inputs differently,
 and a call without the header is decided exactly as before. Discovery does not
 read the header.
 
-The [compatibility matrix](../../compatibility/matrix.json) keeps its current
-declaration until the Server 0.10.2 release evidence is recorded, as it did for
-the earlier revisions.
+The [compatibility matrix](../../compatibility/matrix.json) keeps recording 3.1
+until the Server 0.10.2 release evidence is recorded, as it did for the earlier
+revisions.
 
 ## Protocol checkpoint
 

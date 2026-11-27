@@ -182,16 +182,17 @@ Server 0.10.1 release gate did not run client 0.5.2, so the matrix records no
 `0.5.2` pair and does not declare it until a release gate's reports for it are
 recorded.
 
-For the planned Server 0.10.2, each target's `compatibility.json` declares
-revision 2 of major 3, for the request validation detail
+For the planned Server 0.10.2, each target's `compatibility.json` records
+`major` 3 and `revision` 2, for the request validation detail
 ([#442](https://github.com/spatialanalyzer/briosa/issues/442)), `mp_step` in
 discovery and the bundled descriptor set
 ([#444](https://github.com/spatialanalyzer/briosa/issues/444)), and the caller
 restriction header ([#443](https://github.com/spatialanalyzer/briosa/issues/443)).
-The published `0.5.0` and `0.5.1` clients require revision 0, so the gate still
-runs them as compatible clients against Server 0.10.2, and the `0.4.0` packages
-still verify pre-launch rejection. The matrix keeps its current declaration
-until the 0.10.2 release gate's reports are recorded.
+The published `0.5.0` and `0.5.1` clients and the JavaScript `0.5.2` clients,
+whose `requiredContract` is 3.0, work with it, so the gate keeps running them
+as compatible clients, and the `0.4.0` packages still verify pre-launch
+rejection. The matrix keeps recording 3.1 in `contract` until the 0.10.2
+release gate's reports are recorded.
 
 Each new tested pair records `expectedCompatibility`. An accepted pair passed
 the fake-SDK scenarios listed in its report; a rejected pair proves
