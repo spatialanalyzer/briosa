@@ -216,11 +216,12 @@ internal static class MpOutcome
                 return BridgeOutcome.StartedOutcomeUnknown;
             default:
                 // Missing or unspecified disposition is never read as not started.
+                // The server's own codes stay as it sent them.
                 execution["completion_evidence"] = "unavailable";
-                envelope.Warn("completion-evidence-unavailable",
-                    "The server's error did not state whether the operation ran.");
+                envelope.Warn(DispositionUnrecognized,
+                    "The server's error did not state whether the operation ran (see execution.disposition). The " +
+                    "operation may have run.");
                 envelope.Guidance.Add(ReconcileGuidance);
-                envelope.Failure["diagnostic_code"] = DispositionUnrecognized;
                 return BridgeOutcome.CompletionEvidenceUnavailable;
         }
     }

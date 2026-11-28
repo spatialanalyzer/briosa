@@ -321,7 +321,10 @@ public sealed class CallOutcomeTests
         var run = await CliRun.RunAsync(CallArguments(server));
 
         Assert.Equal(10, run.ExitCode);
-        Assert.Equal(MpOutcome.DispositionUnrecognized, run.DiagnosticCode);
+        Assert.Equal("completion_evidence_unavailable", run.Outcome);
+        Assert.Equal("internal-operation-failure", run.DiagnosticCode);
+        Assert.Contains(MpOutcome.DispositionUnrecognized, Warnings(run));
+        Assert.Equal("unavailable", run.Execution["completion_evidence"]!.GetValue<string>());
         Assert.Equal("EXECUTION_DISPOSITION_UNSPECIFIED", run.Execution["disposition"]!.GetValue<string>());
         AssertOneRestrictedMpCall(server);
     }
