@@ -447,20 +447,32 @@ CLI manages every directory below `%LOCALAPPDATA%`:
   parent, never by path, and as itself rather than what a reparse point leads to.
   It refuses one that is a reparse point, such as a junction, or not a directory.
   It holds each one open without delete sharing, so it cannot be renamed, until the
-  file exists.
+  file exists. It asks only to read each directory's attributes and pass through
+  it. Where a directory is missing, the file system decides from the parent's own
+  permissions whether it may be created; a directory that already exists needs no
+  right to create anything.
 - Only then, through the held handle of `results`, it makes the current user the
   owner and gives it a protected access list for the current user and SYSTEM only,
-  with no inherited entries.
+  with no inherited entries. This is written to `results` alone and is not passed
+  on to anything already inside it, so existing files and folders in `results`,
+  including earlier spill files, keep their owner and access list unchanged.
+  Earlier spill files have their own protected list in any case.
 - It creates the file relative to that handle, with its own protected access list
   for the same two, owned by the current user. It reports the path the file
-  actually has, and checks that it is the spill tree's path; a file that is not
-  there is removed through its own handle.
+  actually has, and checks that it is the spill tree's path.
+- A spill file it created is removed through its own handle if anything fails
+  before it is written in full: the path check, any step of handing it over, or the
+  write itself. No partial spill file is left behind. Directories it created are
+  kept, as after a successful spill.
 
 What this guarantees: whatever happens to any path during the call, including a
 redirection of `%LOCALAPPDATA%` itself between two levels, the CLI changes owner or
 permissions only on the `results` directory inside the tree that `%LOCALAPPDATA%`
-led to when the CLI opened it, and writes only there. A test re-points the base
-after each level and checks that nothing outside that tree changed.
+led to when the CLI opened it, and on the new file, and writes only there. It
+changes nothing that was already in `results`. Tests re-point the base after each
+level and check that nothing outside that tree changed, and check that an ordinary
+file, a folder, and an earlier spill file in `results` keep their owner and access
+list byte for byte across two spills.
 
 What it does not guarantee: that `%LOCALAPPDATA%` leads where the user expects when
 the CLI opens it; whoever can redirect that folder chooses the tree. Another process
