@@ -262,8 +262,19 @@ rejects the call, and dispatches nothing, when the header:
 - has an empty clause, profile, or flag list, or a stray `;`, `,`, or `=`; or
 - has any other character, or more than 256 characters.
 
-The server reads only these two header names. It never reads or decodes any
-other request header, so an unrelated header cannot change a call's outcome.
+To find a restriction, the server reads only these two header names. It does
+not read or decode any other request header for that purpose, so looking for a
+restriction cannot fail a call because of an unrelated header. Other headers
+keep their own meaning: `grpc-timeout`, for example, still sets the call's
+deadline.
+
+The server can tell two entries apart only when it receives them as separate
+header fields. If something between the caller and the server has already
+combined two fields into one value, their boundary is gone, and a combined
+value that happens to be a valid flag list is read as one entry. The supported
+deployment is a caller connecting directly to the loopback endpoint;
+reverse-proxy deployments are unsupported (see the
+[threat model](../security/threat-model.md)).
 
 The outcome is `InvalidArgument` with the fixed text "The request is invalid.",
 kind `VALIDATION`, diagnostic code `caller-restriction-invalid`, disposition
