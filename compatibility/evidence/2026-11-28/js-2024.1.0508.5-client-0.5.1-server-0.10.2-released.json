@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-28T01:52:24.9546580+00:00",
+  "validationKind": "packaged-client-and-server-fake-sdk",
+  "expectedCompatibility": "accepted",
+  "passed": true,
+  "licensedSpatialAnalyzer": false,
+  "client": {
+    "version": "0.5.1",
+    "protocolArtifact": null,
+    "package": {
+      "name": "@spatialanalyzer/briosa-2024.1.0508.5",
+      "publishedUrl": "https://registry.npmjs.org/@spatialanalyzer/briosa-2024.1.0508.5/-/briosa-2024.1.0508.5-0.5.1.tgz",
+      "sourceRevision": "4e5ab1ce03d3f5de77fc88e165e3f57a17d93e8e",
+      "version": "0.5.1",
+      "sha256": "83a98adcee99004d735875c85b24073c636c993b5c8b0a1eb9c772a4c42a85cc"
+    },
+    "requiredContract": {
+      "minimumRevision": 0,
+      "major": 3
+    },
+    "fixtureProtocolArtifact": {
+      "name": "briosa-protocol-0.10.1-dev.1-sa-2024.1.0508.5",
+      "file_name": "briosa-protocol-0.10.1-dev.1-sa-2024.1.0508.5.zip",
+      "sha256": "39a13f82544f2b62486df1357bc3104f7cab710f59704b26c640627fce1baecf",
+      "briosa_version": "0.10.1-dev.1",
+      "source_revision": "d405779027085b3dc26dc09c62a669820db5c164",
+      "source_repository": "https://github.com/spatialanalyzer/briosa",
+      "source_channel": "source_commit_bootstrap"
+    },
+    "sourceRevision": "4e5ab1ce03d3f5de77fc88e165e3f57a17d93e8e",
+    "repository": "https://github.com/spatialanalyzer/briosa-js",
+    "fixtureSourceRevision": "a4c3af8928db200f1912459362f6cfa6c0e67a96",
+    "fixtureUncommittedChanges": false,
+    "uncommittedChanges": null
+  },
+  "server": {
+    "name": "briosa-client-conformance-0.10.2-sa-2024.1.0508.5-win-x64",
+    "source_channel": "release_candidate",
+    "sha256": "0eb5aad255f9da77d2279770a6c608822bf6b5c158ad5a5b1296c2f82e57f4a2",
+    "file_name": "briosa-client-conformance-0.10.2-sa-2024.1.0508.5-win-x64.zip",
+    "briosa_version": "0.10.2",
+    "source_revision": "5ca27a84ed7f80e7dd12cc0e6c0238e71090421e",
+    "source_repository": "https://github.com/spatialanalyzer/briosa"
+  },
+  "target": {
+    "runtime_identifier": "win-x64",
+    "spatial_analyzer": "2024.1.0508.5"
+  },
+  "scenarioContract": {
+    "schema_version": 1,
+    "id": "briosa.first-party-client.v1"
+  },
+  "scenarios": [
+    "control-plane-only",
+    "default-ready",
+    "attach-existing",
+    "identity-mismatch",
+    "capability-denied",
+    "mp-failure",
+    "output-failure",
+    "sdk-call-faulted",
+    "mp-partial-success",
+    "deadline",
+    "cancellation",
+    "lifecycle-cancellation",
+    "watchdog-recovery",
+    "sdk-loss-recovery",
+    "owned-cleanup",
+    "large-result"
+  ],
+  "optionalScenarios": [
+    "large-result"
+  ],
+  "fixtureTimeoutSeconds": 240
+}
