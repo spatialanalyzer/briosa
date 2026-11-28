@@ -56,6 +56,24 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
             }
 
             var allowedRiskFlags = FormatRiskFlags(decision.Operation?.RiskFlags ?? []);
+            if (decision.CallerRestriction is { } admittedRestriction)
+            {
+                var (admittedProfile, admittedFlags, admittedOutcome) = FormatCaller(admittedRestriction, decision);
+                CallerRestrictionEvents.PolicyAllowed(
+                    _logger,
+                    correlationId,
+                    operationId,
+                    effect,
+                    executionScope,
+                    allowedRiskFlags,
+                    decision.PolicyRule,
+                    decision.DiagnosticCode,
+                    admittedProfile,
+                    admittedFlags,
+                    admittedOutcome);
+                return;
+            }
+
             LogPolicyAllowed(
                 correlationId,
                 operationId,
@@ -73,6 +91,25 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
         }
 
         var rejectedRiskFlags = FormatRiskFlags(decision.Operation?.RiskFlags ?? []);
+        if (decision.CallerRestriction is { } rejectedRestriction)
+        {
+            var (rejectedProfile, rejectedFlags, rejectedOutcome) = FormatCaller(rejectedRestriction, decision);
+            CallerRestrictionEvents.PolicyRejected(
+                _logger,
+                correlationId,
+                operationId,
+                decision.Kind,
+                effect,
+                executionScope,
+                rejectedRiskFlags,
+                decision.PolicyRule,
+                decision.DiagnosticCode,
+                rejectedProfile,
+                rejectedFlags,
+                rejectedOutcome);
+            return;
+        }
+
         LogPolicyRejected(
             correlationId,
             operationId,
@@ -83,6 +120,23 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
             decision.PolicyRule,
             decision.DiagnosticCode);
     }
+
+    // Reviewed profile and flag names and a fixed outcome label, never header text.
+    private static (string Profile, string DeniedFlags, string Outcome) FormatCaller(
+        OperationCallerRestriction restriction,
+        OperationPolicyDecision decision) =>
+        (restriction.Profile?.Name ?? "none",
+            restriction.DeniedFlags == OperationRisks.None
+                ? "none"
+                : string.Join(',', OperationRiskVocabulary.GetNames(restriction.DeniedFlags)),
+            decision.CallerRestrictionOutcome switch
+            {
+                OperationCallerRestrictionOutcome.Admitted => "admitted",
+                OperationCallerRestrictionOutcome.Denied => "denied",
+                OperationCallerRestrictionOutcome.NotEvaluated => "not_evaluated",
+                var outcome => throw new ArgumentOutOfRangeException(nameof(decision), outcome,
+                    "The decision records no caller restriction.")
+            });
 
     public void OperationCompleted(
         Guid correlationId,
@@ -179,6 +233,55 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
         string riskFlags,
         string policyRule,
         string diagnosticCode);
+
+    /// <summary>
+    /// The PolicyAllowed (2002) and PolicyRejected (2003) events of a call that
+    /// carried a caller restriction (#443): the same event, level, and properties,
+    /// followed by the caller's profile, its denied flags, and what the restriction
+    /// decided. A call without one logs the events above, unchanged. A separate
+    /// class lets the two forms share their event IDs.
+    /// </summary>
+    private static partial class CallerRestrictionEvents
+    {
+        [LoggerMessage(
+            EventId = 2002,
+            EventName = nameof(LogPolicyAllowed),
+            Level = LogLevel.Debug,
+            SkipEnabledCheck = true,
+            Message = "Request {CorrelationId} policy allowed operation {OperationId}, effect {Effect}, execution scope {ExecutionScope}, risk flags {RiskFlags}, policy rule {PolicyRule}, diagnostic {DiagnosticCode}, caller profile {CallerProfile}, caller denied flags {CallerDeniedFlags}, caller restriction {CallerRestrictionDecision}.")]
+        public static partial void PolicyAllowed(
+            ILogger logger,
+            Guid correlationId,
+            string operationId,
+            string effect,
+            global::Briosa.OperationExecutionScope executionScope,
+            string riskFlags,
+            string policyRule,
+            string diagnosticCode,
+            string callerProfile,
+            string callerDeniedFlags,
+            string callerRestrictionDecision);
+
+        [LoggerMessage(
+            EventId = 2003,
+            EventName = nameof(LogPolicyRejected),
+            SkipEnabledCheck = true,
+            Level = LogLevel.Warning,
+            Message = "Request {CorrelationId} policy rejected operation {OperationId} as {PolicyDecision}, effect {Effect}, execution scope {ExecutionScope}, risk flags {RiskFlags}, policy rule {PolicyRule}, diagnostic {DiagnosticCode}, caller profile {CallerProfile}, caller denied flags {CallerDeniedFlags}, caller restriction {CallerRestrictionDecision}.")]
+        public static partial void PolicyRejected(
+            ILogger logger,
+            Guid correlationId,
+            string operationId,
+            OperationPolicyDecisionKind policyDecision,
+            string effect,
+            global::Briosa.OperationExecutionScope executionScope,
+            string riskFlags,
+            string policyRule,
+            string diagnosticCode,
+            string callerProfile,
+            string callerDeniedFlags,
+            string callerRestrictionDecision);
+    }
 
     [LoggerMessage(
         EventId = 2004,

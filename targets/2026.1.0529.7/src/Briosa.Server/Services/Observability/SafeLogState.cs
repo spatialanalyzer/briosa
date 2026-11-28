@@ -106,5 +106,6 @@ internal sealed class SafeLogState : IReadOnlyList<KeyValuePair<string, object?>
         "ConnectedSaIdentitySource" or "ConnectedSaIdentityMatchState" or "AdmissionMilliseconds" or
         "QueueMilliseconds" or "ExchangeMilliseconds" or "DurationClass" or "ExecutionBudgetMilliseconds" or "Rpc" or "ApplicationState" or "Ownership" or
         "DroppedRecords" or "SinkFailures" or "SaInteractionMode" or "MpInteractionMode" or
-        "MpDialogInteractionMode" or "Phase" or "ElapsedMilliseconds";
+        "MpDialogInteractionMode" or "Phase" or "ElapsedMilliseconds" or
+        "CallerProfile" or "CallerDeniedFlags" or "CallerRestrictionDecision";
 }

@@ -50,6 +50,8 @@ public sealed class PolicyDenialDetailTests
         var mapped = Enum.GetValues<OperationPolicyDenialReason>()
             .Select(reason => (Reason: reason, Public: OperationPolicyDenial.Map(reason)))
             .ToArray();
+        var configured = mapped.Where(item => item.Public.Admission is not null).ToArray();
+        var caller = mapped.Where(item => item.Public.Admission is null).ToArray();
 
         // Every denied admission and every specified rule appear exactly once.
         Assert.Equal(
@@ -57,19 +59,31 @@ public sealed class PolicyDenialDetailTests
                 .Where(value => value.Name.StartsWith("OPERATION_ADMISSION_DENIED_", StringComparison.Ordinal))
                 .Select(value => value.Number)
                 .Order(),
-            mapped.Select(item => (int)item.Public.Admission).Order());
+            configured.Select(item => (int)item.Public.Admission!.Value).Order());
         Assert.Equal(
             rules.Values.Where(value => value.Number != 0).Select(value => value.Number).Order(),
             mapped.Select(item => (int)item.Public.Rule).Order());
-        Assert.All(mapped, item =>
+        Assert.All(configured, item =>
         {
             // Matched by name: the two enums number the same steps differently.
             Assert.Equal(
-                admissions.FindValueByNumber((int)item.Public.Admission).Name["OPERATION_ADMISSION_DENIED_".Length..],
+                admissions.FindValueByNumber((int)item.Public.Admission!.Value).Name["OPERATION_ADMISSION_DENIED_".Length..],
                 rules.FindValueByNumber((int)item.Public.Rule).Name["POLICY_DENIAL_RULE_".Length..]);
-            Assert.NotEqual((int)item.Public.Admission, (int)item.Public.Rule);
+            Assert.NotEqual((int)item.Public.Admission!.Value, (int)item.Public.Rule);
             Assert.Equal(item.Reason.ToString(), item.Public.Rule.ToString());
         });
+
+        // Only a call carries a caller restriction (#443), so its rules have no admission.
+        Assert.Equal([OperationPolicyDenialReason.CallerProfile, OperationPolicyDenialReason.CallerFlag],
+            caller.Select(item => item.Reason));
+        Assert.All(caller, item =>
+        {
+            Assert.StartsWith("POLICY_DENIAL_RULE_CALLER_", rules.FindValueByNumber((int)item.Public.Rule).Name,
+                StringComparison.Ordinal);
+            Assert.Equal(item.Reason.ToString(), item.Public.Rule.ToString());
+        });
+        Assert.Throws<InvalidOperationException>(() =>
+            OperationPolicyDenial.CallerFlag(OperationRisks.InteractiveUi).ToAdmission());
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             OperationPolicyDenial.Map((OperationPolicyDenialReason)mapped.Length));
     }
@@ -601,6 +615,44 @@ public sealed class PolicyDenialDetailTests
         Assert.Equal(expected, Api.OperationError.Parser.ParseFrom(known));
         Assert.Equal([11], unknown);
         Assert.Equal(Api.OperationFailureKind.PolicyDenied, expected.Kind);
+    }
+
+    [Fact]
+    public async Task OlderSchemaReadsACallerDenialWithItsKnownFieldsIntact()
+    {
+        // The server admits the dialog; the caller's restriction (#443) denies it.
+        var dispatcher = new RejectingDispatcher();
+        var executor = new PolicyEnforcingWorkerCommandExecutor(dispatcher, dispatcher,
+            Policy(settings: new() { ["Flags:interactive_ui"] = "allow" }),
+            new OperationAuditLogger(NullLogger<OperationAuditLogger>.Instance));
+        var host = await GrpcTestHost.StartAsync<AnalysisOperationsService>(executor).ConfigureAwait(true);
+        await using var hostLifetime = host.ConfigureAwait(true);
+
+        var exception = await Assert.ThrowsAsync<RpcException>(() =>
+            new Api.AnalysisOperations.AnalysisOperationsClient(host.Channel)
+                .QueryPointsToObjectsAsync(new Api.QueryPointsToObjectsRequest { ShowResultsDialog = true },
+                    new Metadata { { OperationCallerRestriction.HeaderName, "profile=read-only; deny=interactive_ui" } })
+                .ResponseAsync)
+            .ConfigureAwait(true);
+
+        Assert.Equal(0, dispatcher.DispatchCount);
+        var details = AssertDeniedCall(exception, QueryPointsToObjects, "caller-restriction-option-denied");
+        Assert.Equal(new Api.PolicyDenialDetails
+        {
+            Rule = Api.PolicyDenialRule.CallerFlag,
+            CallerDeniedFlag = "interactive_ui",
+            RequestOptionField = "show_results_dialog"
+        }, details);
+
+        // The caller detail travels inside field 11, and a denial carries no field 12.
+        var bytes = Assert.Single(exception.Trailers,
+            entry => entry.Key == GrpcOperationOutcomeMapper.ErrorTrailerName).ValueBytes;
+        var (known, unknown) = ReadWithOlderSchema(bytes, OperationErrorFieldsOfServer0100);
+        var expected = Api.OperationError.Parser.ParseFrom(bytes);
+        Assert.Null(expected.RequestValidation);
+        expected.PolicyDenial = null;
+        Assert.Equal(expected, Api.OperationError.Parser.ParseFrom(known));
+        Assert.Equal([11], unknown);
     }
 
     [Fact]

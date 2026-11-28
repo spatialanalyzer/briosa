@@ -21,7 +21,19 @@ internal enum OperationPolicyDenialReason
     Exclusive,
 
     /// <summary>Unreviewed metadata, or a request that cannot be read against its reviewed options.</summary>
-    Unreviewed
+    Unreviewed,
+
+    /// <summary>
+    /// The server admitted the request, but the profile of the caller's own
+    /// restriction (#443) does not admit its effective risks or effect.
+    /// </summary>
+    CallerProfile,
+
+    /// <summary>
+    /// The server admitted the request, but the caller's own restriction (#443)
+    /// denies one of its effective risk flags.
+    /// </summary>
+    CallerFlag
 }
 
 /// <summary>
@@ -31,10 +43,12 @@ internal enum OperationPolicyDenialReason
 /// they cannot disagree.
 /// </summary>
 /// <remarks>
-/// It carries a risk flag only for <see cref="OperationPolicyDenialReason.Flag"/>,
-/// a profile name only for <see cref="OperationPolicyDenialReason.Profile"/>, and a
-/// request field name only when the policy attributed the denial to that field.
-/// It never carries a request value or a configuration key.
+/// It carries a risk flag only for <see cref="OperationPolicyDenialReason.Flag"/> and
+/// <see cref="OperationPolicyDenialReason.CallerFlag"/>, a profile name only for
+/// <see cref="OperationPolicyDenialReason.Profile"/> and
+/// <see cref="OperationPolicyDenialReason.CallerProfile"/>, and a request field name
+/// only when the policy attributed the denial to that field. It never carries a
+/// request value, a configuration key, or the text of a caller's header.
 /// </remarks>
 internal sealed record OperationPolicyDenial
 {
@@ -60,18 +74,29 @@ internal sealed record OperationPolicyDenial
 
     public OperationPolicyDenialReason Reason { get; }
 
-    /// <summary>The deciding risk flag, exactly one vocabulary member; set only for a flag denial.</summary>
+    /// <summary>
+    /// The deciding risk flag, exactly one vocabulary member; set only for a flag
+    /// denial and a caller flag denial.
+    /// </summary>
     public OperationRisks? DeniedFlag { get; }
 
-    /// <summary>The active admission profile; set only for a profile denial.</summary>
+    /// <summary>
+    /// The active admission profile of a profile denial, or the caller's profile of
+    /// a caller profile denial; set only for those two.
+    /// </summary>
     public string? AdmissionProfile { get; }
+
+    /// <summary>True when the caller's own restriction, not the server's configuration, denied.</summary>
+    public bool IsCallerRestriction =>
+        Reason is OperationPolicyDenialReason.CallerProfile or OperationPolicyDenialReason.CallerFlag;
 
     /// <summary>The request field the policy attributed the denial to, if any.</summary>
     public string? RequestOptionField { get; }
 
     /// <summary>
     /// The audit label of the deciding step: <c>classification</c>, <c>isolation</c>,
-    /// <c>override</c>, <c>flag.&lt;name&gt;</c>, or <c>profile.&lt;name&gt;</c>, and
+    /// <c>override</c>, <c>flag.&lt;name&gt;</c>, <c>profile.&lt;name&gt;</c>,
+    /// <c>caller.flag.&lt;name&gt;</c>, or <c>caller.profile.&lt;name&gt;</c>, and
     /// <c>option.&lt;field&gt;</c> or <c>option.&lt;field&gt;/&lt;rule&gt;</c> when a
     /// request option decided.
     /// </summary>
@@ -102,11 +127,30 @@ internal sealed record OperationPolicyDenial
             OptionalField(requestOptionField));
     }
 
+    /// <summary>The caller's restriction denies one of the request's effective risk flags.</summary>
+    public static OperationPolicyDenial CallerFlag(OperationRisks deniedFlag, string? requestOptionField = null)
+    {
+        // Throws unless the value is exactly one vocabulary member.
+        _ = OperationRiskVocabulary.GetName(deniedFlag);
+        return new(OperationPolicyDenialReason.CallerFlag, deniedFlag, admissionProfile: null,
+            OptionalField(requestOptionField));
+    }
+
+    /// <summary>The caller's profile does not admit the request's effective risks or effect.</summary>
+    public static OperationPolicyDenial CallerProfile(string callerProfile, string? requestOptionField = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(callerProfile);
+        return new(OperationPolicyDenialReason.CallerProfile, deniedFlag: null, callerProfile,
+            OptionalField(requestOptionField));
+    }
+
     /// <summary>
     /// The discovery admission for this denial. With <see cref="ToRule"/> it is the
-    /// one mapping from internal reasons to public values.
+    /// one mapping from internal reasons to public values. Discovery does not
+    /// evaluate caller restrictions, so a caller denial has no admission value.
     /// </summary>
-    public global::Briosa.OperationAdmission ToAdmission() => Map(Reason).Admission;
+    public global::Briosa.OperationAdmission ToAdmission() => Map(Reason).Admission ??
+        throw new InvalidOperationException("A caller restriction denial has no discovery admission.");
 
     /// <summary>The public rule for this denial.</summary>
     public global::Briosa.PolicyDenialRule ToRule() => Map(Reason).Rule;
@@ -115,9 +159,18 @@ internal sealed record OperationPolicyDenial
     public global::Briosa.PolicyDenialDetails ToDetails()
     {
         var details = new global::Briosa.PolicyDenialDetails { Rule = ToRule() };
+        // A caller denial uses its own fields, so that a client that does not know the
+        // caller rules never reads the caller's profile as the server's.
         if (DeniedFlag is { } flag)
         {
-            details.DeniedFlag = OperationRiskVocabulary.GetName(flag);
+            if (IsCallerRestriction)
+            {
+                details.CallerDeniedFlag = OperationRiskVocabulary.GetName(flag);
+            }
+            else
+            {
+                details.DeniedFlag = OperationRiskVocabulary.GetName(flag);
+            }
         }
 
         if (RequestOptionField is { } field)
@@ -127,7 +180,14 @@ internal sealed record OperationPolicyDenial
 
         if (AdmissionProfile is { } profile)
         {
-            details.AdmissionProfile = profile;
+            if (IsCallerRestriction)
+            {
+                details.CallerAdmissionProfile = profile;
+            }
+            else
+            {
+                details.AdmissionProfile = profile;
+            }
         }
 
         return details;
@@ -137,9 +197,11 @@ internal sealed record OperationPolicyDenial
     /// The exhaustive mapping of each reason to its denied
     /// <see cref="global::Briosa.OperationAdmission"/> value and its
     /// <see cref="global::Briosa.PolicyDenialRule"/>. The two public enums number
-    /// the same steps differently, so nothing may cast between them.
+    /// the same steps differently, so nothing may cast between them. A caller
+    /// restriction reason has a rule and no admission: discovery does not evaluate
+    /// caller restrictions.
     /// </summary>
-    internal static (global::Briosa.OperationAdmission Admission, global::Briosa.PolicyDenialRule Rule) Map(
+    internal static (global::Briosa.OperationAdmission? Admission, global::Briosa.PolicyDenialRule Rule) Map(
         OperationPolicyDenialReason reason) => reason switch
     {
         OperationPolicyDenialReason.Profile =>
@@ -152,6 +214,8 @@ internal sealed record OperationPolicyDenial
             (global::Briosa.OperationAdmission.DeniedExclusive, global::Briosa.PolicyDenialRule.Exclusive),
         OperationPolicyDenialReason.Unreviewed =>
             (global::Briosa.OperationAdmission.DeniedUnreviewed, global::Briosa.PolicyDenialRule.Unreviewed),
+        OperationPolicyDenialReason.CallerProfile => (null, global::Briosa.PolicyDenialRule.CallerProfile),
+        OperationPolicyDenialReason.CallerFlag => (null, global::Briosa.PolicyDenialRule.CallerFlag),
         _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "The policy denial reason is not reviewed.")
     };
 
@@ -176,6 +240,10 @@ internal sealed record OperationPolicyDenial
             OperationPolicyDenialReason.Flag =>
                 OperationPolicy.FlagRulePrefix + OperationRiskVocabulary.GetName(DeniedFlag!.Value),
             OperationPolicyDenialReason.Profile => OperationPolicy.ProfileRulePrefix + AdmissionProfile,
+            OperationPolicyDenialReason.CallerFlag => OperationPolicy.CallerRulePrefix +
+                OperationPolicy.FlagRulePrefix + OperationRiskVocabulary.GetName(DeniedFlag!.Value),
+            OperationPolicyDenialReason.CallerProfile =>
+                OperationPolicy.CallerRulePrefix + OperationPolicy.ProfileRulePrefix + AdmissionProfile,
             _ => throw new ArgumentOutOfRangeException(nameof(Reason), Reason, "The policy denial reason is not reviewed.")
         };
         if (RequestOptionField is not { } field)

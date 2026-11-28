@@ -42,7 +42,10 @@ internal sealed class OperationExecutor(
             context.CancellationToken,
             context.Deadline,
             Guid.NewGuid(),
-            ClassifyActor(context.Peer));
+            ClassifyActor(context.Peer),
+            // Reads only the restriction's own header names, from the raw request headers.
+            // It never throws; a malformed header is rejected after RequestStarted.
+            OperationCallerRestriction.Read(context));
     }
 
     // gRPC receives at most 64 KiB. Budget eight bytes of retained work per
@@ -63,7 +66,10 @@ internal sealed class OperationExecutor(
         CancellationToken cancellationToken,
         DateTime? deadline = null,
         Guid? correlationId = null,
-        string actorCategory = "internal-unattributed")
+        string actorCategory = "internal-unattributed",
+        // The call's restriction header as the public overload read it. A caller without a
+        // call context, such as a test, passes it explicitly; the default is no header.
+        OperationCallerRestrictionHeader callerRestriction = default)
         where TRequest : class
         where TResponse : class
     {
@@ -85,11 +91,24 @@ internal sealed class OperationExecutor(
         var mapping = new RequestMappingAttempt<TRequest>(request, createCommand);
         try
         {
+            // A malformed caller restriction fails closed before policy, the request
+            // mapping, or dispatch, so nothing started, and the audit records that
+            // disposition too. Neither the status text nor the trailer repeats the header.
+            if (callerRestriction.IsMalformed)
+            {
+                failureSummary = OperationAuditSummary.WithoutExecution(WorkerExecutionDisposition.NotStarted);
+                throw GrpcOperationOutcomeMapper.CreateValidationFailure(
+                    operation.OperationId,
+                    OperationCallerRestrictionHeader.InvalidDiagnosticCode,
+                    replaySafety: operation.ReplaySafety);
+            }
+
             try
             {
                 outcome = await _executor.ExecuteAsync(
                     new WorkerCommandSubmission(operation.OperationId, mapping.Create,
-                        RetainedRequestBudget(request), request as Google.Protobuf.IMessage),
+                        RetainedRequestBudget(request), request as Google.Protobuf.IMessage,
+                        CallerRestriction: callerRestriction.Restriction),
                     effectiveCorrelationId,
                     cancellationToken).ConfigureAwait(false);
             }

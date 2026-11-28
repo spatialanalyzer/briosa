@@ -68,6 +68,6 @@ public sealed class InstallationDiscoveryTests
         var first = ServerCompatibility.Create();
         first.Major = 99;
         Assert.Equal(3U, ServerCompatibility.Create().Major);
-        Assert.Equal(1U, ServerCompatibility.Create().Revision);
+        Assert.Equal(2U, ServerCompatibility.Create().Revision);
     }
 }

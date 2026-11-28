@@ -59,6 +59,26 @@ internal sealed record OperationPolicyDecision
     /// <summary>The structured denial; present exactly when <see cref="Kind"/> is denied.</summary>
     public OperationPolicyDenial? Denial { get; }
 
+    /// <summary>
+    /// The caller restriction the call carried (#443), whether or not it decided;
+    /// null when the call carried none. It never changes any other member of a
+    /// decision that the server's configuration made.
+    /// </summary>
+    public OperationCallerRestriction? CallerRestriction { get; private init; }
+
+    /// <summary>What the caller restriction decided, for audit.</summary>
+    public OperationCallerRestrictionOutcome CallerRestrictionOutcome => CallerRestriction is null
+        ? OperationCallerRestrictionOutcome.Absent
+        : Denial is { IsCallerRestriction: true }
+            ? OperationCallerRestrictionOutcome.Denied
+            : Kind == OperationPolicyDecisionKind.Allowed
+                ? OperationCallerRestrictionOutcome.Admitted
+                : OperationCallerRestrictionOutcome.NotEvaluated;
+
+    /// <summary>The same decision, recording the caller restriction the call carried.</summary>
+    internal OperationPolicyDecision WithCallerRestriction(OperationCallerRestriction callerRestriction) =>
+        this with { CallerRestriction = callerRestriction ?? throw new ArgumentNullException(nameof(callerRestriction)) };
+
     /// <summary>Creates a denied decision whose audit rule is derived from <paramref name="denial"/>.</summary>
     public static OperationPolicyDecision Deny(
         string diagnosticCode,

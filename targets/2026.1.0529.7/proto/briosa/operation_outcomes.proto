@@ -102,10 +102,12 @@ message MpExecutionDetails {
 }
 
 // The step of the active admission policy that denied a call or an operation.
-// Each value names the same step as one denied value of OperationAdmission in
-// discovery: PROFILE and DENIED_PROFILE, FLAG and DENIED_FLAG, OVERRIDE and
-// DENIED_OVERRIDE, EXCLUSIVE and DENIED_EXCLUSIVE, UNREVIEWED and
-// DENIED_UNREVIEWED. The numbers differ, so match the two enums by name.
+// Each value up to UNREVIEWED names the same step as one denied value of
+// OperationAdmission in discovery: PROFILE and DENIED_PROFILE, FLAG and
+// DENIED_FLAG, OVERRIDE and DENIED_OVERRIDE, EXCLUSIVE and DENIED_EXCLUSIVE,
+// UNREVIEWED and DENIED_UNREVIEWED. The numbers differ, so match the two enums
+// by name. The CALLER_ values name the caller's own restriction, which only a
+// call carries, so discovery has no matching value.
 enum PolicyDenialRule {
   POLICY_DENIAL_RULE_UNSPECIFIED = 0;
   // The profile, widened by flags set to allow, does not admit every risk flag,
@@ -121,11 +123,22 @@ enum PolicyDenialRule {
   // The operation's classification metadata is not reviewed, or the request
   // cannot be read against the operation's reviewed request options.
   POLICY_DENIAL_RULE_UNREVIEWED = 5;
+  // The server's configuration admitted the call, and the profile named by the
+  // caller's own briosa-caller-restriction request header does not admit every
+  // effective risk flag of the request, or its read-only effect filter excludes
+  // the operation. No flag set to allow and no override widens the caller's
+  // profile. Server 0.10.2 and later.
+  POLICY_DENIAL_RULE_CALLER_PROFILE = 6;
+  // The server's configuration admitted the call, and the caller's own
+  // briosa-caller-restriction request header denies one of the request's
+  // effective risk flags. Server 0.10.2 and later.
+  POLICY_DENIAL_RULE_CALLER_FLAG = 7;
 }
 
 // Value-free detail of a policy denial, shared by a denied call and by
 // discovery. Server 0.10.1 and later send it. Server 0.10.0 does not, and
 // clients built for Server 0.10.0, such as the 0.5.0 clients, ignore it.
+// Discovery never reports a CALLER_ rule.
 message PolicyDenialDetails {
   PolicyDenialRule rule = 1;
   // The risk flag set to deny that decided, as the lowercase suffix of its
@@ -140,11 +153,22 @@ message PolicyDenialDetails {
   // request turns on several options with the deciding effect, it names the
   // first in the server's reviewed order, which need not be the only cause.
   // Absent when the operation's reviewed row decided, and when the request could
-  // not be read against its reviewed options.
+  // not be read against its reviewed options. The CALLER_ rules set it in the
+  // same way.
   optional string request_option_field = 3;
   // The active admission profile: read-only, standard, device, or full.
   // Present exactly when rule is PROFILE.
   optional string admission_profile = 4;
+  // The profile the caller's own restriction named: read-only, standard,
+  // device, or full. Present exactly when rule is CALLER_PROFILE. It is never the
+  // server's profile, which admitted the call. Server 0.10.2 and later.
+  optional string caller_admission_profile = 5;
+  // The risk flag the caller's own restriction denied that decided, as the
+  // lowercase suffix of its OperationRiskFlag value name, like denied_flag.
+  // Present exactly when rule is CALLER_FLAG. When the caller denies several of
+  // the request's flags, it names the first in OperationRiskFlag declaration
+  // order. Server 0.10.2 and later.
+  optional string caller_denied_flag = 6;
 }
 
 // The constraint a request field did not meet. Each value names one kind of

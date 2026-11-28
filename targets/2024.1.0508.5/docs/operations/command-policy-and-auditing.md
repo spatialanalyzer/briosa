@@ -156,6 +156,7 @@ The first matching rule decides:
 | 5 | `Overrides:<service>:<operation>=allow` | `Allowed` | yes |
 | 6 | Any of the request's effective flags set to `Flags:<flag>=deny` | `Denied` (`operation-policy-denied`, or `operation-option-denied` when only a request option added the flag) | yes |
 | 7 | Every effective flag is in the profile set or set to `allow`, and the effect filter passes | `Allowed`, otherwise `Denied` (`operation-policy-denied`, or `operation-option-denied` when only a request option added the flag) | yes |
+| 8 | Only when steps 1 to 7 admit and the call carries a [caller restriction](#caller-restriction): any effective flag the caller denies, then the caller's profile alone, with its effect filter and nothing set to `allow` | `Allowed` unchanged, otherwise `Denied` (`caller-restriction-denied`, or `caller-restriction-option-denied` when only a request option made the caller's limits deny) | per call, by the caller; it only narrows |
 
 Specific settings beat general ones, and across an operation's flags any single
 `deny` wins. Policy denial happens before request mapping, worker enqueue, or
@@ -176,6 +177,8 @@ step that decided:
 | 4 | `OVERRIDE` | Nothing. A `deny` override is a static decision, even when a request option is on. |
 | 6 | `FLAG` | `denied_flag`: the first effective flag set to `deny`, in `risk_flags` order. `request_option_field` when only a request option added the flag. |
 | 7 | `PROFILE` | `admission_profile`, and `request_option_field` when only a request option made the profile deny the request. No flag: the profile or its effect filter can exclude a request for more than one reason. |
+| 8 | `CALLER_FLAG` | Server 0.10.2 and later. `caller_denied_flag`: the first effective flag the caller denies, in `risk_flags` order. `request_option_field` when only a request option added the flag. |
+| 8 | `CALLER_PROFILE` | Server 0.10.2 and later. `caller_admission_profile`: the profile the caller named, never the server's. `request_option_field` when only a request option made that profile deny the request. |
 
 The execution budget can deny one more request: an operation without a reviewed
 duration class never executes (`operation-duration-unreviewed`), and its `rule`
@@ -201,6 +204,130 @@ or `DENIED_PROFILE` (step 7). These are static decisions for the reviewed row;
 see the [discovery guide](health-and-discovery.md#capabilities). On Server 0.10.1
 and later, each denied entry also carries the same `policy_denial` detail, so a
 `DENIED_FLAG` entry names its flag.
+
+## Caller restriction
+
+Server 0.10.2 and later accept an optional request header on MP operation calls,
+`briosa-caller-restriction`. A caller sends it to keep one call within limits of
+its own, for example an inspection tool that must never change the job or open a
+dialog, even when the server it attaches to admits more. The server enforces the
+limits in step 8 of the precedence, on the same typed request and the same
+effective classification as steps 1 to 7. The header can only narrow what the
+server's configuration admits for that call.
+
+### Header grammar
+
+One ASCII gRPC metadata entry. Its value is one or two clauses separated by a
+semicolon and exactly one space:
+
+```abnf
+caller-restriction = clause [ "; " clause ]
+clause             = profile-clause / deny-clause
+profile-clause     = %s"profile=" profile
+deny-clause        = %s"deny=" risk-flag *( "," risk-flag )
+profile            = %s"read-only" / %s"standard" / %s"device" / %s"full"
+risk-flag          = %s"filesystem_metadata" / %s"filesystem_read" /
+                     %s"filesystem_write" / %s"filesystem_delete" /
+                     %s"destructive" / %s"code_execution" / %s"physical_motion" /
+                     %s"device_session" / %s"device_config" /
+                     %s"interactive_ui" / %s"external_io"
+```
+
+`%s` marks a case-sensitive string (RFC 7405). Each clause appears at most once,
+in either order, and each flag at most once, in any order. There is no other
+whitespace, quoting, or key. The longest valid value has 193 characters. For
+example:
+
+```text
+profile=read-only; deny=interactive_ui
+deny=interactive_ui,filesystem_write
+profile=standard
+```
+
+### Malformed headers fail closed
+
+The server reads the header before policy, request mapping, or dispatch. It
+rejects the call, and dispatches nothing, when the header:
+
+- is present but empty;
+- has more than one entry. The server reads the request's raw HTTP headers,
+  where each header field of the name is a separate value, so two fields are
+  rejected even when joining them would form a valid value;
+- is a binary entry, `briosa-caller-restriction-bin`, whatever its value. The
+  server never decodes it;
+- has an unknown or repeated key, an unknown profile, an unknown or repeated
+  flag, or a name in the wrong case;
+- has whitespace other than the one space after `;`, including leading or
+  trailing whitespace;
+- has an empty clause, profile, or flag list, or a stray `;`, `,`, or `=`; or
+- has any other character, or more than 256 characters.
+
+To find a restriction, the server reads only these two header names. It does
+not read or decode any other request header for that purpose, so looking for a
+restriction cannot fail a call because of an unrelated header. Other headers
+keep their own meaning: `grpc-timeout`, for example, still sets the call's
+deadline.
+
+The server can tell two entries apart only when it receives them as separate
+header fields. If something between the caller and the server has already
+combined two fields into one value, their boundary is gone, and a combined
+value that happens to be a valid flag list is read as one entry. The supported
+deployment is a caller connecting directly to the loopback endpoint;
+reverse-proxy deployments are unsupported (see the
+[threat model](../security/threat-model.md)).
+
+The outcome is `InvalidArgument` with the fixed text "The request is invalid.",
+kind `VALIDATION`, diagnostic code `caller-restriction-invalid`, disposition
+`NOT_STARTED`, and replay guidance `DO_NOT_REPLAY`. `request_validation` is
+absent, because the header is not a request field. A malformed header is a bug
+in the caller: fix it rather than retrying. The error and the audit log never
+repeat the header.
+
+### What a restriction decides
+
+Step 8 runs only when steps 1 to 7 admit the request. It reads the same
+effective risk flags and effect: a request option that turns on operator UI, by
+being set or by being omitted, adds `interactive_ui` here too.
+
+1. An effective flag in the `deny` list denies the request (`CALLER_FLAG`).
+2. Otherwise the named profile must admit every effective flag, and its effect
+   filter must pass (`CALLER_PROFILE`). The `read-only` profile admits only
+   read-only operations here too.
+
+Neither the server's `Flags:<flag>=allow` settings nor a per-operation `allow`
+override applies to the caller's limits. For example, against a server with
+`Flags:interactive_ui=allow`, or with an `allow` override for
+`analysis_operations.query_points_to_objects`, a call to that operation with
+`show_results_dialog=true` and `profile=read-only; deny=interactive_ui` is
+denied with `CALLER_FLAG`, `caller_denied_flag` set to `interactive_ui`, and
+`request_option_field` set to `show_results_dialog`.
+
+- **Never wider.** A denial by steps 1 to 7 is reported exactly as it is
+  without the header, and an admission that step 8 keeps is unchanged: the same
+  rule, duration class, and execution budget. Exclusive workflows and unreviewed
+  operations stay denied. For example,
+  `view_control.set_point_of_view_from_instrument_updates` is an exclusive
+  workflow, so it is denied at step 3, before the restriction is read.
+- **A wider profile admits nothing more.** A profile wider than the server's is
+  accepted, because step 8 can only turn an admission into a denial. It still
+  limits on its own terms: no profile admits `interactive_ui`, so
+  `profile=full` denies a request that the server admits through its
+  interactive opt-in.
+- **No header, no change.** A call without the header is decided, reported, and
+  audited exactly as before.
+
+### Scope and server versions
+
+- The header applies to MP operation calls only. Lifecycle, discovery, health,
+  and desktop RPCs have no operation policy and ignore it.
+- `ListCapabilities` reports the server's own decisions and does not read the
+  header.
+- The restriction is not part of the policy fingerprint, which describes the
+  server's configuration.
+- Server 0.10.1 and earlier ignore the header, so on them a call is decided by
+  the server's configuration alone. Before relying on a restriction, check that
+  `GetServerInfo` reports `compatibility.major` 3 and `compatibility.revision`
+  2 or later, as Server 0.10.2 and later do.
 
 ## Audit events
 
@@ -229,8 +356,16 @@ For each admitted or rejected request, Briosa records structural metadata:
 - actor category;
 - execution scope;
 - the policy rule that decided (`override`, `flag.<flag>`, `profile.<profile>`,
-  or one of the fixed `registry`, `classification`, and `isolation` steps),
-  prefixed with `option.<field>/` when a request option changed the decision;
+  `caller.flag.<flag>`, `caller.profile.<profile>`, or one of the fixed
+  `registry`, `classification`, and `isolation` steps), prefixed with
+  `option.<field>/` when a request option changed the decision;
+- for a call that carried a [caller restriction](#caller-restriction), on the
+  same policy event: the caller's profile (`CallerProfile`, or `none`), its
+  denied flags in `risk_flags` order (`CallerDeniedFlags`, or `none`), and what
+  the restriction decided (`CallerRestrictionDecision`: `admitted`, `denied`,
+  or `not_evaluated` when steps 1 to 7 had already denied the call). A call
+  without one records none of these properties. A malformed header records
+  diagnostic `caller-restriction-invalid`. The header text is never recorded;
 - worker generation;
 - request and SDK duration where available;
 - execution disposition;

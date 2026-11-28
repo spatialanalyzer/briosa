@@ -95,6 +95,12 @@ ServerInstanceId, SpatialAnalyzerTarget, and applicable event metadata.
 | 2003 | PolicyRejected | Warning |
 | 2004 / 2005 | RpcCompleted / RpcFailed | Information / Warning |
 
+PolicyAllowed and PolicyRejected of a call that carried a
+`briosa-caller-restriction` header also have CallerProfile, CallerDeniedFlags,
+and CallerRestrictionDecision, which hold reviewed profile and flag names and
+`admitted`, `denied`, or `not_evaluated`, never the header text. See
+[caller restriction](command-policy-and-auditing.md#caller-restriction).
+
 RPC completion and SDK completion are different observations. A cancelled RPC can record unknown
 execution and later have an ExecutionResolved event with a retrieved MP result.
 A request cancelled while still queued is abandoned instead. Its RpcFailed and

@@ -44,8 +44,20 @@ The first matching rule decides:
 3. `ExclusiveWorkflow`, which nothing can override (invariant 13);
 4. per-operation deny;
 5. per-operation allow;
-6. flag deny; and
-7. the profile.
+6. flag deny;
+7. the profile; and
+8. only when the steps above admit, a caller restriction the call carries.
+
+Step 8 is the per-call `briosa-caller-restriction` request header (Server
+0.10.2 and later). A caller names an admission profile and risk flags to deny,
+and the server checks them on the same effective risks and effect as steps 4
+to 7, with no help from the operator's `allow` flags or overrides. It can only
+turn an admission into a denial, so it never widens the operator's policy or
+admits an exclusive workflow. A malformed header fails the call closed before
+dispatch. Lifecycle and discovery RPCs ignore it. A caller must check for
+compatibility revision 2 or later before relying on it, because earlier
+servers ignore the header. See the
+[policy guide](../../targets/2026.1.0529.7/docs/operations/command-policy-and-auditing.md#caller-restriction).
 
 `interactive_ui` is in no profile and needs an explicit opt-in. Each request
 is also read against a reviewed table of caller options before mapping or
@@ -76,7 +88,9 @@ enqueue or SDK execution and returns a typed value-free `PermissionDenied` outco
 with `NotStarted` disposition.
 
 Command policy is deployment policy, not caller authorization. The initial server
-is single-tenant and suitable only for mutually trusting local callers.
+is single-tenant and suitable only for mutually trusting local callers. A caller
+restriction is a caller limiting itself, not authentication: any local caller
+can omit it.
 
 ## Audit and diagnostic data
 
