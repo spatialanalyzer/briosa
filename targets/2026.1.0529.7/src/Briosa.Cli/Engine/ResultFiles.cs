@@ -273,14 +273,23 @@ internal sealed class ResultFile : IDisposable
     /// Removes the file through its handle if nothing was written to it, then closes
     /// it. True when it was removed.
     /// </summary>
-    public bool RemoveIfEmpty()
+    public bool RemoveIfEmpty() => RemoveIfEmpty(out _);
+
+    /// <summary>
+    /// Removes the file through its handle if nothing was written to it, then closes
+    /// it. True when it was removed; <paramref name="length"/> is the size it measured,
+    /// or null when that could not be read.
+    /// </summary>
+    public bool RemoveIfEmpty(out long? length)
     {
+        length = null;
         if (IsClosed)
         {
             return false;
         }
 
-        if (Length() == 0)
+        length = Length();
+        if (length == 0)
         {
             return Remove();
         }

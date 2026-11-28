@@ -59,6 +59,21 @@ internal sealed class FileRecord(string path)
 
     public bool RemovalRefused { get; set; }
 
+    /// <summary>The handle operations in the order they happened: write, read, flush, flush-failed, close.</summary>
+    public List<string> Events { get; } = [];
+
+    /// <summary>
+    /// Whether a flush succeeded after the last write and the last read of the file, and
+    /// before it was closed.
+    /// </summary>
+    public bool FlushedAfterWriteAndReadBeforeClose()
+    {
+        var close = Events.IndexOf("close");
+        var after = Math.Max(Events.LastIndexOf("write"), Events.LastIndexOf("read"));
+        return close >= 0 && Events.Select((name, index) => (name, index))
+            .Any(entry => entry.name == "flush" && entry.index > after && entry.index < close);
+    }
+
     public override string ToString() =>
         $"written {Written?.Length.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "nothing"}" +
         $"{(WriteFailed ? " (failed)" : "")}, read {BytesRead}{(ReadFailed ? " (failed)" : "")}, flushes {Flushes}" +
@@ -97,6 +112,7 @@ internal sealed class FaultingIo(DeliveryFault fault, bool removalFails, FaultLo
     public void Write(SafeFileHandle file, ReadOnlySpan<byte> bytes, long offset)
     {
         var record = log.For(file);
+        record.Events.Add("write");
         switch (fault)
         {
             case DeliveryFault.WriteBeforeAnyByte:
@@ -129,6 +145,7 @@ internal sealed class FaultingIo(DeliveryFault fault, bool removalFails, FaultLo
     public long GetLength(SafeFileHandle file)
     {
         var record = log.For(file);
+        record.Events.Add("read");
         if (fault == DeliveryFault.ReadBackLength)
         {
             record.ReadFailed = true;
@@ -141,6 +158,7 @@ internal sealed class FaultingIo(DeliveryFault fault, bool removalFails, FaultLo
     public int Read(SafeFileHandle file, Span<byte> buffer, long offset)
     {
         var record = log.For(file);
+        record.Events.Add("read");
         if (fault == DeliveryFault.ReadBackRead)
         {
             record.ReadFailed = true;
@@ -160,8 +178,11 @@ internal sealed class FaultingIo(DeliveryFault fault, bool removalFails, FaultLo
         if (fault == DeliveryFault.FlushToDisk)
         {
             record.FlushFailed = true;
+            record.Events.Add("flush-failed");
             throw new IOException("The flush to disk failed.");
         }
+
+        record.Events.Add("flush");
     }
 
     public void DeleteOnClose(SafeFileHandle file)
@@ -181,6 +202,7 @@ internal sealed class FaultingIo(DeliveryFault fault, bool removalFails, FaultLo
         var record = log.For(file);
         Real.Close(file);
         record.Closed = true;
+        record.Events.Add("close");
         if (fault == DeliveryFault.Close)
         {
             record.CloseFailed = true;
@@ -440,6 +462,12 @@ public sealed class DeliveryFaultMatrixTests
             {
                 problems.Add("I3 data.result_file does not name the reservation that is left, or names one that is not");
             }
+            else if (data is not null && left && (primary!["bytes"]?.GetValue<long>() != new FileInfo(output).Length ||
+                primary["sha256"] is not null || primary["other_files"] is not JsonArray { Count: 0 }))
+            {
+                problems.Add($"I4 the reservation left is named with {primary["bytes"]?.ToJsonString() ?? "null"} bytes " +
+                    $"for {new FileInfo(output).Length} on disk, a SHA-256, or other files");
+            }
 
             return problems;
         }
@@ -479,6 +507,18 @@ public sealed class DeliveryFaultMatrixTests
                     problems.Add($"M-disk {Name(path)} holds {new FileInfo(path).Length} bytes, " +
                         $"{(Complete(path) ? "the result" : "not the result")}, not what its fault leaves");
                 }
+            }
+        }
+
+        // A file the faults leave matched was flushed after its last write and its
+        // read-back, and before it was closed.
+        foreach (var wanted in model.OnDisk.Where(file => file.Outcome == Expected.Matched))
+        {
+            var record = log.Records.LastOrDefault(record => IsOutput(record.Path) == wanted.Output);
+            if (record is null || !record.FlushedAfterWriteAndReadBeforeClose())
+            {
+                problems.Add($"M-order the {(wanted.Output ? "--output" : "spill")} file was not flushed after its " +
+                    $"last write and read and before its close: {(record is null ? "no record" : string.Join(" ", record.Events))}");
             }
         }
 

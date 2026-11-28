@@ -295,16 +295,19 @@ internal sealed partial class BridgeEngine
             // handle; a written result file has already been closed and is reported by
             // the delivery. One that cannot be removed is named, so nothing this call
             // created is left behind unreported.
-            if (ResultDelivery.Release(output))
+            if (ResultDelivery.Release(output, out var left))
             {
                 if (envelope.Data is JsonObject data && data["result_file"] is null)
                 {
-                    data["result_file"] = ResultDelivery.ReservationLeft(output!.Path);
+                    data["result_file"] = ResultDelivery.ReservationLeft(output!.Path, left);
                 }
 
                 // The path is the caller's own --output, resolved; never text from the server.
+                // It is called empty only when its size was measured.
                 envelope.Warn("output-reservation-left", "The --output file " + output!.Path + " was created " +
-                    "before the call, received no result, and could not be removed. It is empty; delete it.");
+                    "before the call, received no result, and could not be removed. " + (left == 0
+                        ? "It is empty; delete it."
+                        : "Its size could not be read, but the CLI wrote nothing to it; delete it."));
             }
         }
     }

@@ -92,21 +92,25 @@ internal sealed class ResultDelivery
 
     /// <summary>
     /// Removes a reserved output file that never received a result, through its own
-    /// handle. Returns true when it could not be removed and stays on disk. A file that
-    /// received a result has already been closed, and is reported by
+    /// handle. Returns true when it could not be removed and stays on disk;
+    /// <paramref name="bytes"/> is then its measured size, or null when that could not be
+    /// read. A file that received a result has already been closed, and is reported by
     /// <see cref="Deliver"/>.
     /// </summary>
-    public static bool Release(ResultFile? output) =>
-        output is not null && !output.IsClosed && !output.RemoveIfEmpty();
+    public static bool Release(ResultFile? output, out long? bytes)
+    {
+        bytes = null;
+        return output is not null && !output.IsClosed && !output.RemoveIfEmpty(out bytes);
+    }
 
     /// <summary>
     /// The reference to an unused <c>--output</c> reservation that could not be removed:
     /// empty, and labeled so that no one takes it for a result.
     /// </summary>
-    public static JsonObject ReservationLeft(string path) => new()
+    public static JsonObject ReservationLeft(string path, long? bytes) => new()
     {
         ["path"] = path,
-        ["bytes"] = 0,
+        ["bytes"] = bytes,
         ["sha256"] = null,
         ["reason"] = "reservation_not_removed",
         ["verification"] = "incomplete",
@@ -353,7 +357,7 @@ internal sealed class ResultDelivery
             : "The call's outcome is not established, and the result that came back";
         if (requested is not null)
         {
-            Warn(envelope, requested, subject, spilled: false);
+            Warn(envelope, requested, subject, spilled: false, sha256);
         }
 
         switch (spill?.Failure)
@@ -371,7 +375,7 @@ internal sealed class ResultDelivery
                 WarnLeft(envelope);
                 break;
             case SpillFailure.None:
-                Warn(envelope, spill.File!, subject, spilled: requested is null);
+                Warn(envelope, spill.File!, subject, spilled: requested is null, sha256);
                 break;
         }
 
@@ -379,16 +383,19 @@ internal sealed class ResultDelivery
         {
             envelope.Warn("result-lost", ResultLostMessage);
         }
-        else if (sha256 is null)
+
+        // Whatever the state: it says only that the SHA-256 is missing.
+        if (sha256 is null)
         {
-            envelope.Warn("result-hash-unavailable", "The result's SHA-256 could not be computed, so the files in " +
-                "data.result_file carry none. Each was still read back and compared byte for byte with the result.");
+            envelope.Warn("result-hash-unavailable", "The result's SHA-256 could not be computed, so data.result_file " +
+                "gives no SHA-256 for any file.");
         }
 
         return delivered;
     }
 
-    private static void Warn(BridgeEnvelope envelope, WrittenFile file, string subject, bool spilled)
+    // Each message says only what the file's record establishes.
+    private static void Warn(BridgeEnvelope envelope, WrittenFile file, string subject, bool spilled, string? sha256)
     {
         var where = file.Requested ? "the --output file" : "the spill directory";
         var backup = file.Requested ? " The CLI also tried the spill directory." : string.Empty;
@@ -402,17 +409,17 @@ internal sealed class ResultDelivery
             case FileContent.MatchedUnconfirmed:
                 envelope.Warn("result-file-unconfirmed", subject + " was written in full to " + where + " and read " +
                     "back intact, but the write, the flush to disk, or the close reported an error, so the CLI cannot " +
-                    "confirm that the file stays intact. The file is kept; see data.result_file.");
+                    "confirm that the file stays intact. The file is kept; see data.result_file." + CheckBeforeUse(sha256));
                 break;
             case FileContent.NotReadBack:
-                envelope.Warn("result-file-unverified", subject + " was written to " + where + ", but could not be " +
-                    "read back, so whether the file holds the whole result is not known. The file is kept; compare its " +
-                    "size and SHA-256 with the bytes and sha256 given for it in data.result_file." + backup);
+                envelope.Warn("result-file-unverified", subject + " was sent to " + where + ", but the file could not " +
+                    "be read back, so whether it holds the whole result is not known. The file is kept; see " +
+                    "data.result_file." + CheckBeforeUse(sha256) + backup);
                 break;
             case FileContent.Incomplete:
-                envelope.Warn(file.Requested ? "output-write-failed" : "spill-write-failed", subject + " could not " +
-                    "be written in full to " + where + "." + (file.OnDisk ? string.Empty : " The incomplete file was " +
-                    "removed.") + backup);
+                envelope.Warn(file.Requested ? "output-write-failed" : "spill-write-failed", subject + " did not read " +
+                    "back intact from " + where + ": the file is shorter than the result or differs from it." +
+                    (file.OnDisk ? string.Empty : " The incomplete file was removed.") + backup);
                 if (file.OnDisk)
                 {
                     WarnLeft(envelope);
@@ -424,8 +431,16 @@ internal sealed class ResultDelivery
 
     private static void WarnLeft(BridgeEnvelope envelope) =>
         envelope.Warn("incomplete-file-left", "An incomplete result file could not be removed; it is listed in " +
-            "data.result_file with the verification incomplete and the reason incomplete_not_removed. It does not " +
-            "hold the whole result; delete it.");
+            "data.result_file or its other_files with the verification incomplete and the reason " +
+            "incomplete_not_removed. It does not hold the whole result; delete it.");
+
+    // What to do before using a file whose content is not confirmed: check it against the
+    // size and SHA-256 when there is one; without a SHA-256, its size alone cannot verify it.
+    private static string CheckBeforeUse(string? sha256) => sha256 is not null
+        ? " Before using it, check that its size and SHA-256 equal the bytes and sha256 given for it in " +
+          "data.result_file."
+        : " Its SHA-256 could not be computed, so its size alone cannot verify it; do not use it without another " +
+          "way to confirm its content.";
 
     // The first failure: the --output file's when there is one, otherwise the spill's.
     private static string Error(WrittenFile? requested, SpillAttempt? spill) =>
