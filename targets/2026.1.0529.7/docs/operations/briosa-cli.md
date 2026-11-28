@@ -196,7 +196,8 @@ members in this order:
 tier), `result_delivery` (`none`, `inline`, `file`, `file_unconfirmed`,
 `file_unverified`, or `lost`; see [delivery states](#delivery-states)),
 `result_message`, `result_json_bytes`, `inline_cap_bytes`, `result`,
-`result_file`, `result_summary`, and `result_delivery_error`. It is null when the
+`result_file` (the best file the call left on disk, with any others in its
+`other_files`), `result_summary`, and `result_delivery_error`. It is null when the
 command stopped before it found the operation.
 
 Result data is the protobuf JSON of the result message with the exact field
@@ -431,9 +432,11 @@ What it prints is bounded instead:
 - A result whose JSON is at most the inline cap (65,536 bytes by default) is
   printed in `data.result`.
 - A larger result is written in full to a new file in the spill directory, and
-  the envelope gets `data.result_file` (path, size, SHA-256, and reason) and
-  `data.result_summary` (each top-level field with its type and, for a list, its
-  count), never the data. The warning `result-spilled` says so.
+  the envelope gets `data.result_file` (path, size, SHA-256, reason, what reading
+  it back showed, and any other file the call left; see
+  [delivery states](#delivery-states)) and `data.result_summary` (each top-level
+  field with its type and, for a list, its count), never the data. The warning
+  `result-spilled` says so.
 - With `--output`, the result always goes to that file and never to standard
   output.
 
@@ -461,12 +464,13 @@ CLI manages every directory below `%LOCALAPPDATA%`:
 - It creates the file relative to that handle, with its own protected access list
   for the same two, owned by the current user. It reports the path the file
   actually has, and checks that it is the spill tree's path.
-- It writes the result, reads it back through the file's own handle, and only then
-  flushes and closes the file (see [delivery states](#delivery-states)). A spill
-  file is removed through its own handle when it is known not to hold the whole
-  result: the path check or any step of handing it over failed, or it read back
-  shorter or different. Removal can itself fail, for example when the file has been
-  made read-only; the envelope then names the incomplete file. A file that may hold
+- It writes the result, reads it back through the file's own handle, flushes it to
+  the storage device, and closes it (see [delivery states](#delivery-states)). A
+  spill file is removed through its own handle when it is known not to hold the
+  whole result: the path check or any step of handing it over failed, or it read
+  back shorter or different. Removal can itself fail, for example when the file has
+  been made read-only; the envelope then names the incomplete file, including an
+  empty one left at hand-over, at the path it was created at. A file that may hold
   the whole result is never removed. Directories it created are kept, as after a
   successful spill.
 
@@ -485,50 +489,143 @@ running as the same user can still read or change the file, or its permissions,
 after the CLI has written it. A file named with `--output` is not a spill file: it
 takes the permissions of the directory the caller chose.
 
-On a volume that does not keep file permissions the CLI refuses to spill:
-`data.result_delivery` is `lost`, `data.result_delivery_error` is
-`spill-permissions-unsupported`, and the warning `spill-refused` says the result
-was discarded and is in no file and not in the envelope. If the call's own evidence
-established completion, the exit code is 12; otherwise the call's outcome stands.
+On a volume that does not keep file permissions the CLI refuses to spill and
+creates nothing there: the warning `spill-refused` says so. Without `--output`,
+`data.result_delivery` is then `lost`, `data.result_delivery_error` is
+`spill-permissions-unsupported`, and the warning `result-lost` says that no file
+holds the result. If the call's own evidence established completion, the exit code
+is 12; otherwise the call's outcome stands.
 
 Spill file names hold a UTC timestamp, the requested operation ID, and random
 characters, never text from the server or SpatialAnalyzer. The CLI does not
 delete spill files; remove them when they are no longer needed.
 
 A result is never fetched again by running the MP again. If an `--output` file
-cannot be shown to hold the whole result, the CLI writes the result to the spill
-directory instead and reports the spill file in `data.result_file`; the `--output`
-file may then be incomplete, and the CLI leaves it as it is. When the `--output`
-write fails and the spill is also refused because the volume keeps no permissions,
-`data.result_delivery_error` stays `output-write-failed`, the first failure, and the
-warning `spill-refused` reports the refused spill.
+cannot be shown to hold the whole result, the CLI also writes the result to the
+spill directory. An `--output` file that read back shorter or different is removed
+through its handle, as a spill file is, because the call created it; one that
+could not be read back is kept and named, because it may be the only copy.
+`data.result_delivery_error` then names the `--output` file's failure whatever the
+spill did, and the spill's own outcome is in its warnings and file entry.
 
 ### Delivery states
 
-The CLI writes a result file in three steps: it writes the bytes, reads them back
-through the file's own handle and compares them with the result, then flushes and
-closes the file. `data.result_delivery` says what that left:
+The CLI writes a result file in four steps, each through the handle it created the
+file with:
 
-| `result_delivery` | What it asserts | `data.result_file` | `data.result_delivery_error` |
-| --- | --- | --- | --- |
-| `none` | No result came back. | null | null |
-| `inline` | `data.result` holds the whole result. | null | null |
-| `file` | The file read back as exactly the result, and it flushed and closed without an error. | The file, with the result's size and SHA-256. | null, or `output-write-failed` when this is the spill copy of a failed `--output` file |
-| `file_unconfirmed` | The file read back as exactly the result, but the write, the flush, or the close reported an error, so the CLI cannot confirm that it stays intact. It is kept. | The file, with the result's size and SHA-256, which it held when read back. | `spill-finalize-failed` or `output-finalize-failed`, or `output-write-failed` for the spill copy of a failed `--output` file |
-| `file_unverified` | The spill file could not be read back, so whether it holds the whole result is not known. It is kept. | The file, with the size and SHA-256 the result has. | `spill-verify-failed`, or `output-write-failed` for the spill copy of a failed `--output` file |
-| `lost` | No file that the CLI can vouch for holds the result, and it is not in the envelope. | null, or an incomplete spill file the CLI could not remove: its size on disk, no SHA-256, and the reason `incomplete_not_removed` | `spill-write-failed`, `spill-permissions-unsupported`, or `output-write-failed` |
+1. It writes the result's bytes from the start of the file.
+2. It reads them back and compares every byte with the result. This reads what the
+   file system holds for the file, which can come from its cache rather than from
+   the storage device.
+3. It flushes the file to the storage device (`RandomAccess.FlushToDisk`, which is
+   `FlushFileBuffers` on Windows): the operating system is asked to write the
+   file's data and metadata to the device and must report that it did. Both kinds
+   of result file are also opened write-through. A device that acknowledges writes
+   it has not made durable, such as one whose volatile cache ignores flush requests,
+   is beyond what the CLI can check.
+4. It closes the handle. .NET does not report a failed close of a file handle, so in
+   practice the flush is the last step that can report an error.
 
-Warnings say the same: `result-spilled` for a spilled `file`,
-`result-file-unconfirmed`, `result-file-unverified`, `output-write-failed`,
-`spill-refused`, and `incomplete-file-left` when an incomplete spill file is left
-behind. An `--output` file that read back as the whole result is kept and reported,
-even when its flush or close failed, and nothing is spilled. One that read back
-shorter or different, or could not be read back, is left as it is and the result
-goes to the spill directory.
+Each file the call wrote, or created and could not remove, is described by an
+object with `path`, `bytes`, `sha256`, `reason`, and `verification`:
 
-Any state other than `inline` and `file`, and any failed `--output` file, is a
-failed delivery: exit code 12 when the call's own evidence established that the
-operation completed, and otherwise the call's outcome stands.
+| `verification` | What it asserts | `bytes` and `sha256` |
+| --- | --- | --- |
+| `matched` | The file read back as exactly the result, and the write, the flush to disk, and the close reported no error. | The result's size and SHA-256. |
+| `matched_unconfirmed` | The file read back as exactly the result, but the write, the flush to disk, or the close reported an error, so the CLI cannot confirm that it stays intact. It is kept. | The result's size and SHA-256, which the file held when read back. |
+| `not_read_back` | The file could not be read back, so whether it holds the whole result is not known. It is kept, because it may be the only copy. | The result's size and SHA-256, to compare the file with. |
+| `incomplete` | The file read back shorter or different, or nothing was written to it, and it could not be removed. It does not hold the result; delete it. | Its size on disk and no SHA-256. `reason` is `incomplete_not_removed`, or `reservation_not_removed` for an unused `--output` file. |
+
+A file that read back shorter or different is removed through its handle, on
+either destination, because the call created it. A file that may hold the whole
+result is never removed. The `reason` of any other file says why it was written:
+`inline_cap_exceeded`, `output_requested`, or `output_write_failed` for a spill
+that backs a failed `--output` file.
+
+`data.result_file` is the best of the files the call left on disk: `matched`
+first, then `matched_unconfirmed`, `not_read_back`, and `incomplete`; on a tie,
+the `--output` file. Its `other_files` lists every other file the call left on
+disk, in the same form, and is empty when there is none. `data.result_delivery` is
+the state of `data.result_file`:
+
+| `result_delivery` | What it asserts | `data.result_file` |
+| --- | --- | --- |
+| `none` | No result came back. | null, or an unused `--output` file that could not be removed |
+| `inline` | `data.result` holds the whole result. | null |
+| `file` | A file holds the result, read back and finished as `matched`. | `verification` is `matched` |
+| `file_unconfirmed` | A file held the result when read back, but a later step reported an error. | `verification` is `matched_unconfirmed` |
+| `file_unverified` | A file may hold the result; it could not be read back. | `verification` is `not_read_back` |
+| `lost` | No file the call left holds the result in full, and it is not in the envelope. | null, or an `incomplete` file |
+
+The CLI tries the `--output` file when one is given. It tries the spill directory
+when there is no `--output` and the result is larger than the cap, or when the
+`--output` file is neither `matched` nor `matched_unconfirmed`. The delivery
+succeeded only when the file it had to go to is `matched`: the `--output` file when
+one was given, otherwise the spill file. Then `data.result_delivery_error` is null.
+Otherwise it names the first failure, the `--output` file's whenever there is one:
+
+| `result_delivery_error` | The failure |
+| --- | --- |
+| `output-finalize-failed` | The `--output` file is `matched_unconfirmed`. Nothing is spilled. |
+| `output-verify-failed` | The `--output` file could not be read back. It is kept, and the result is also spilled. |
+| `output-write-failed` | The `--output` file read back shorter or different. It is removed, or named as `incomplete`, and the result is spilled. |
+| `spill-finalize-failed` | The spill file is `matched_unconfirmed`. |
+| `spill-verify-failed` | The spill file could not be read back. |
+| `spill-write-failed` | No spill file could be created, or it read back shorter or different. |
+| `spill-permissions-unsupported` | The volume keeps no file permissions, so nothing was spilled. |
+| `result-format-failed` | The result could not be formatted as JSON. Nothing was written. |
+
+Warnings name each event: `result-spilled` for a `matched` spill of a result over
+the cap; `result-file-unconfirmed` and `result-file-unverified` for a file in those
+states; `output-write-failed` and `spill-write-failed` for a failed write;
+`spill-refused`; `incomplete-file-left` for an incomplete file left on disk;
+`output-reservation-left` for an unused `--output` file that could not be removed;
+and `result-lost` whenever the delivery state is `lost`, and only then.
+
+Any state other than `inline` and `file`, and any `--output` file that is not
+`matched`, is a failed delivery: exit code 12 when the call's own evidence
+established that the operation completed, and otherwise the call's outcome stands.
+
+### Delivery invariants
+
+These hold for every combination of failures:
+
+1. **A possible copy is never lost.** If any file on disk may hold the whole
+   result, the envelope names it, with its `verification` and the result's size
+   and SHA-256. It is never removed, and the result is never reported as absent.
+2. **`file` is earned.** A file is `matched`, and the state is `file`, only when it
+   was read back in full as exactly the result and the write, the flush to disk,
+   and the close all succeeded.
+3. **Nothing is left silently.** Every file the call created and left on disk,
+   complete or not, is named in `data.result_file` or its `other_files`. An unused
+   `--output` file that could not be removed is also named by the warning
+   `output-reservation-left`. That warning is the only place it can be named when
+   the call stopped before it found the operation, because `data` is then null.
+4. **Incomplete is labeled.** A file known to be incomplete is `incomplete`, with
+   no SHA-256 and an explicit reason, and never `matched` or
+   `matched_unconfirmed`.
+5. **Exit code 12 asserts completion.** It is used only when the operation's
+   completion is established. Otherwise the outcome stays as the evidence dictates,
+   and `data.result_delivery_error` records the failed delivery beside it.
+6. **The envelope stays bounded.** Result data is in the envelope only for an
+   `inline` delivery within the cap, whatever fails.
+
+`DeliveryFaultMatrixTests` checks all six after each call, against the files on
+disk and a log of the real handle operations, never against the CLI's own account.
+It injects each fault point:
+
+- for a spill: opening a directory, setting the permissions of `results`, a volume
+  without permissions, creating the file, and the two hand-over checks;
+- for either destination: a write that fails before any byte, after a prefix, or
+  after the whole payload; the right length with different bytes; the read-back's
+  length query and its read; the flush to disk; and the close.
+
+It crosses them with the destination (inline, spill, or `--output`), the spill's
+own fault when the `--output` file fails, removal that works or is refused, and
+whether completion was established: 660 cells, and 4 more for an unused `--output`
+file. Two fault points can only be injected, not produced on a real disk: a close
+that reports an error, and a final path that differs from the path the file was
+created at.
 
 ## Bridge tiers
 
