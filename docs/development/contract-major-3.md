@@ -4,8 +4,10 @@ Status: released. Both exact-SA targets (`2026.1.0529.7` and `2024.1.0508.5`)
 declared behavioral contract major 3, revision 0, for Server 0.10.0, and
 revision 1 for
 [Server 0.10.1](https://github.com/spatialanalyzer/briosa/releases/tag/v0.10.1);
-see [revision 1](#revision-1). For the planned Server 0.10.2 they declare major
-3, revision 2; see [revision 2](#revision-2).
+see [revision 1](#revision-1). For
+[Server 0.10.2](https://github.com/spatialanalyzer/briosa/releases/tag/v0.10.2),
+published on 2026-11-28, they declare major 3, revision 2; see
+[revision 2](#revision-2).
 [Server 0.10.0](https://github.com/spatialanalyzer/briosa/releases/tag/v0.10.0)
 was published on 2026-11-21 at 03:03 UTC (tag `v0.10.0` at
 `ee16784d9fdaf67ce7d7bb0b68609a98fe403e1c`), with the first-party clients at
@@ -96,17 +98,20 @@ work with Server 0.10.0.
 
 The [compatibility matrix](../../compatibility/matrix.json) kept declaring
 3.0 until the Server 0.10.1 release evidence was recorded
-([#458](https://github.com/spatialanalyzer/briosa/pull/458)); it now records 3.1.
+([#458](https://github.com/spatialanalyzer/briosa/pull/458)); it then recorded
+3.1 until the Server 0.10.2 evidence replaced it (see [revision 2](#revision-2)).
 
 ## Revision 2
 
-The planned Server 0.10.2 raises the declared revision of both targets from 1 to
-2, once, for the three additive Phase 1 enablers of the agent interface
+[Server 0.10.2](https://github.com/spatialanalyzer/briosa/releases/tag/v0.10.2),
+published on 2026-11-28 (tag `v0.10.2` at
+`5ca27a84ed7f80e7dd12cc0e6c0238e71090421e`), raises the declared revision of
+both targets from 1 to 2, once, for the three additive Phase 1 enablers of the agent interface
 ([#440](https://github.com/spatialanalyzer/briosa/issues/440)). The maintainer
 decided on one bump, made by the
 [#443](https://github.com/spatialanalyzer/briosa/issues/443) pull request,
-[#462](https://github.com/spatialanalyzer/briosa/pull/462), which merges last of
-the three, after [#460](https://github.com/spatialanalyzer/briosa/pull/460)
+[#462](https://github.com/spatialanalyzer/briosa/pull/462) (merged as `5ca27a84`),
+which merged last of the three, after [#460](https://github.com/spatialanalyzer/briosa/pull/460)
 (merged as `2425a64e`) and [#459](https://github.com/spatialanalyzer/briosa/pull/459)
 (merged as `b187cf9d`). Revision 2 is therefore the first state that carries all
 three, and a client that sees revision 2 or later can rely on each of them. The
@@ -122,7 +127,7 @@ ignore the new fields.
 | --- | --- | --- | --- |
 | A validation failure names the first invalid request field and the constraint it did not meet (`OperationError.request_validation`, field 12) | [#442](https://github.com/spatialanalyzer/briosa/issues/442), [#459](https://github.com/spatialanalyzer/briosa/pull/459) (merged) | Additive. No accepted request is rejected and no rejected request is accepted; only reporting changed. The status, text, kind, diagnostic code, disposition, and guidance are unchanged | [Client behavioral contract](../architecture/client-library-behavioral-contract.md#compatibility-and-capabilities), each target's `docs/operations/request-validation.md` |
 | Discovery reports each capability's exact MP step (`OperationCapability.mp_step`), and the server package bundles `descriptor/briosa.protoset` | [#444](https://github.com/spatialanalyzer/briosa/issues/444), [#460](https://github.com/spatialanalyzer/briosa/pull/460) (merged) | Additive. A response field and a package file; the 0.5.x clients ignore both | Each target's `docs/operations/health-and-discovery.md` and `docs/operations/windows-package.md` |
-| A per-call `briosa-caller-restriction` header narrows admission inside `OperationPolicy`; caller denials report `CALLER_PROFILE` or `CALLER_FLAG` with `caller_admission_profile` (field 5) or `caller_denied_flag` (field 6) | [#443](https://github.com/spatialanalyzer/briosa/issues/443), [#462](https://github.com/spatialanalyzer/briosa/pull/462) | Additive. A call without the header is decided, reported, and audited as before. Only a call that sends the new header can be rejected for it, and the 0.5.x clients never send it | [Client behavioral contract](../architecture/client-library-behavioral-contract.md#compatibility-and-capabilities), each target's `docs/operations/command-policy-and-auditing.md` |
+| A per-call `briosa-caller-restriction` header narrows admission inside `OperationPolicy`; caller denials report `CALLER_PROFILE` or `CALLER_FLAG` with `caller_admission_profile` (field 5) or `caller_denied_flag` (field 6) | [#443](https://github.com/spatialanalyzer/briosa/issues/443), [#462](https://github.com/spatialanalyzer/briosa/pull/462) (merged) | Additive. A call without the header is decided, reported, and audited as before. Only a call that sends the new header can be rejected for it, and the 0.5.x clients never send it | [Client behavioral contract](../architecture/client-library-behavioral-contract.md#compatibility-and-capabilities), each target's `docs/operations/command-policy-and-auditing.md` |
 
 The caller restriction adds step 8 to the admission precedence. It is a per-call
 input outside the policy fingerprint, which keeps describing the server's
@@ -132,9 +137,13 @@ and a call without the header is decided exactly as before. Discovery does not
 read the header; making it do so is
 [#463](https://github.com/spatialanalyzer/briosa/issues/463).
 
-The [compatibility matrix](../../compatibility/matrix.json) keeps recording 3.1
-until the Server 0.10.2 release evidence is recorded, as it did for the earlier
-revisions.
+The [compatibility matrix](../../compatibility/matrix.json) kept recording 3.1
+until the Server 0.10.2 release evidence was recorded
+([#468](https://github.com/spatialanalyzer/briosa/pull/468)); it now records 3.2.
+The evidence is the 20 reports of the
+[release run](https://github.com/spatialanalyzer/briosa/actions/runs/46093557613)
+under `compatibility/evidence/2026-11-28/`, described in the
+[compatibility record](../../compatibility/README.md).
 
 ## Protocol checkpoint
 
