@@ -35,6 +35,7 @@
 ## Runtime and distribution
 
 - [Health and discovery](health-and-discovery.md)
+- [Briosa CLI](briosa-cli.md)
 - [Command policy and auditing](command-policy-and-auditing.md)
 - [Request validation](request-validation.md)
 - [Control center](control-center.md)

@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/Briosa.Cli/Briosa.Cli.csproj" />
     <Project Path="src/Briosa.Desktop/Briosa.Desktop.csproj" />
     <Project Path="src/Briosa.ControlCenter/Briosa.ControlCenter.csproj" />
     <Project Path="src/Briosa.ControlCenter.Launcher/Briosa.ControlCenter.Launcher.csproj" />
@@ -9,6 +10,7 @@
     <Project Path="src/Briosa.Worker/Briosa.Worker.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Briosa.Cli.Tests/Briosa.Cli.Tests.csproj" />
     <Project Path="tests/Briosa.ControlCenter.Smoke/Briosa.ControlCenter.Smoke.csproj" />
     <Project Path="tests/Briosa.LicensedProbes.Tests/Briosa.LicensedProbes.Tests.csproj" />
     <Project Path="tests/Briosa.Protocol.Tests/Briosa.Protocol.Tests.csproj" />
