@@ -33,11 +33,12 @@ dotnet run --project src/Briosa.Cli -c Release -- status
 - **No hidden MP calls, one submission.** The CLI sends exactly the one MP call
   that `call` asks for, once. It never retries, replays, or repeats a call to fetch
   a result again. This holds below the gRPC client too: the HTTP client may resend a
-  request on its own when the server refuses the HTTP/2 stream or closes the
-  connection before processing it, so the CLI lets each request open exactly one
-  HTTP/2 stream and never writes a second one. A blocked resend ends the call with
-  `request-resend-blocked` and exit code 10; see
-  [outcomes and exit codes](#outcomes-and-exit-codes).
+  request on its own, for example after the server refuses the HTTP/2 stream or
+  closes the connection, so the CLI lets each request open exactly one HTTP/2
+  stream and never writes a second one. A blocked resend ends the call with
+  `request-resend-blocked` and exit code 10. The CLI sees the second attempt, not
+  why the first one ended, so whether the server received or processed the first
+  attempt is not known; see [outcomes and exit codes](#outcomes-and-exit-codes).
 
 ## Server versions
 
@@ -222,55 +223,145 @@ For example, a partial success, shortened:
 
 ## When the CLI relies on what the server sent
 
-A typed error or a result counts as evidence about the call only when it is about
-this call and agrees with everything else that came back. The CLI applies these
-rules, and they are exactly the shapes the server's outcome mapper produces on this
-target:
+The CLI uses a discovery listing, a typed error, or a result only when it agrees
+with everything else that came back and with what the server's own code produces
+on this target. The rules below hold for every operation, without a table of
+operations; tests derive them from the server's outcome mapper and check them
+against it.
 
-1. A typed error names the requested operation in `operation_id`.
-2. Every output in its `mp_execution`, and every output of an OK result, names a
-   field of this operation's result message.
-3. Its failure kind is one the CLI knows, and the gRPC status, the disposition,
-   and the MP details are one of the combinations the server produces for that
-   kind:
+### The operation and its method
 
-   | Failure kind | gRPC status | Disposition | MP details |
-   | --- | --- | --- | --- |
-   | `VALIDATION` | `INVALID_ARGUMENT` | not started | none |
-   | `UNSUPPORTED` | `UNIMPLEMENTED` | not started | none |
-   | `OVERLOADED` | `RESOURCE_EXHAUSTED` | not started | none |
-   | `POLICY_DENIED` | `PERMISSION_DENIED` | not started | none |
-   | `CALLER_CANCELLED` | `CANCELLED` | not started or unknown | none |
-   | `CALLER_DEADLINE_EXCEEDED` | `DEADLINE_EXCEEDED` | not started or unknown | none |
-   | `WORKER_WATCHDOG_TIMEOUT`, `WORKER_FAILURE` | `UNAVAILABLE` | unknown | none |
-   | `SPATIAL_ANALYZER_UNAVAILABLE`, `WORKER_UNAVAILABLE` | `UNAVAILABLE` | not started or unknown | none |
-   | `SDK_ARGUMENT_REJECTED` | `FAILED_PRECONDITION` | not started | `ARGUMENT_REJECTED` |
-   | `EXECUTE_STEP_REJECTED` | `FAILED_PRECONDITION` | unknown | `EXECUTE_STEP_REJECTED` |
-   | `MP_RESULT_RETRIEVAL_FAILURE` | `INTERNAL` | unknown | `RESULT_UNAVAILABLE` |
-   | `MP_FAILURE` | `FAILED_PRECONDITION` | completed | `FAILED` |
-   | `OUTPUT_RETRIEVAL_FAILURE` | `DATA_LOSS` | completed | `SUCCEEDED` or `PARTIAL_SUCCESS`, at least one output failed |
-   | `SDK_CALL_FAULTED` | `INTERNAL` | not started | none |
-   | `SDK_CALL_FAULTED` | `INTERNAL` | unknown | `RESULT_UNAVAILABLE` |
-   | `SDK_CALL_FAULTED` | `DATA_LOSS` | completed | `SUCCEEDED` or `PARTIAL_SUCCESS`, at least one output failed |
-   | `INTERNAL` | `INTERNAL` | any, including unspecified | none |
-   | `INTERNAL` | `DATA_LOSS` | completed | `SUCCEEDED` or `PARTIAL_SUCCESS` |
+Before it uses any row of a discovery listing, the CLI checks the whole listing:
+each operation ID is well formed and appears once, each row names one method that
+no other row names, that method is `/<grpc_service>/<rpc>`, and the operation ID
+names that method. On this target an operation ID is its service and RPC names in
+snake case: with the underscores removed, `category.operation` equals
+`Service.Rpc`, ignoring ASCII case, where the service is named without the
+`briosa.` package. For example, `file_operations.get_working_directory` names
+`/briosa.FileOperations/GetWorkingDirectory`. This holds for all 1,018 operations
+this target registers, with no exception, and no operation ID names another
+registered method; a test pins both over the whole registry. A listing that breaks
+any of this is refused whole (`capabilities-inconsistent`, exit code 5) before
+anything else is sent, so no listing can send a call for one operation to another
+operation's method.
 
-4. Within the MP details, the state agrees with the code: `SUCCEEDED` has code 2,
-   `PARTIAL_SUCCESS` code 4, `FAILED` any code but 2, and the other states none.
-   Outputs were retrieved or failed only after code 2 or 4; otherwise none was
-   attempted.
-5. A gRPC OK carries no `briosa-operation-error-bin` trailer, and its `execution`
-   is `SUCCEEDED` with code 2 or `PARTIAL_SUCCESS` with code 4.
+### Typed errors
 
-When any rule fails, the CLI relies on none of it: the outcome is
+A typed error is evidence about the call only when all of the following hold:
+
+1. It names the requested operation in `operation_id`, and its `replay_safety` is
+   the one discovery reported for that operation; the server copies it into every
+   error. Otherwise: `operation-error-unrelated`.
+2. Its failure kind, disposition, recovery guidance, replay guidance, replay
+   safety, and any policy-denial rule are values this CLI knows. An unknown failure
+   kind is `operation-error-kind-unrecognized`; any other unknown value is
+   `operation-error-enum-unrecognized`.
+3. Its gRPC status, disposition, replay guidance, recovery guidance, diagnostic
+   code where the server fixes it, and MP details are one row of this table.
+   "Ambiguous" replay guidance is `MAY_REPLAY` for a `SAFE` operation and
+   `RECONCILE_BEFORE_REPLAY` for any other. Recovery guidance is `NONE` unless the
+   row says otherwise. A diagnostic code the table leaves open can be any code.
+
+   | Failure kind | gRPC status | Disposition: replay guidance | Recovery guidance | Diagnostic code | MP details |
+   | --- | --- | --- | --- | --- | --- |
+   | `VALIDATION` | `INVALID_ARGUMENT` | not started: `DO_NOT_REPLAY` | | | none |
+   | `UNSUPPORTED` | `UNIMPLEMENTED` | not started: `DO_NOT_REPLAY` | | | none |
+   | `OVERLOADED` | `RESOURCE_EXHAUSTED` | not started: `MAY_REPLAY` | | | none |
+   | `POLICY_DENIED` | `PERMISSION_DENIED` | not started: `DO_NOT_REPLAY` | | | none |
+   | `CALLER_CANCELLED` | `CANCELLED` | not started: `MAY_REPLAY`; unknown: ambiguous | | | none |
+   | `CALLER_DEADLINE_EXCEEDED` | `DEADLINE_EXCEEDED` | not started: `MAY_REPLAY`; unknown: ambiguous | | | none |
+   | `WORKER_WATCHDOG_TIMEOUT` | `UNAVAILABLE` | unknown: ambiguous | `OPERATOR_INTERVENTION_REQUIRED` | `sa-modal-dialog-open` | none |
+   | `WORKER_WATCHDOG_TIMEOUT` | `UNAVAILABLE` | unknown: ambiguous | `WORKER_REPLACEMENT` | any but `sa-modal-dialog-open` | none |
+   | `WORKER_FAILURE` | `UNAVAILABLE` | unknown: ambiguous | `WORKER_REPLACEMENT` | | none |
+   | `SPATIAL_ANALYZER_UNAVAILABLE` | `UNAVAILABLE` | not started: `MAY_REPLAY`; unknown: ambiguous | `WAIT_FOR_READINESS` or `OPERATOR_INTERVENTION_REQUIRED` | | none |
+   | `WORKER_UNAVAILABLE` | `UNAVAILABLE` | not started: `MAY_REPLAY`; unknown: ambiguous | `WAIT_FOR_READINESS` | | none |
+   | `SDK_ARGUMENT_REJECTED` | `FAILED_PRECONDITION` | not started: `DO_NOT_REPLAY` | | | `ARGUMENT_REJECTED`, no code, outputs not attempted |
+   | `EXECUTE_STEP_REJECTED` | `FAILED_PRECONDITION` | unknown: ambiguous | | | `EXECUTE_STEP_REJECTED`, no code, outputs not attempted |
+   | `MP_RESULT_RETRIEVAL_FAILURE` | `INTERNAL` | unknown: `RECONCILE_BEFORE_REPLAY` | | | `RESULT_UNAVAILABLE`, no code, outputs not attempted |
+   | `MP_FAILURE` | `FAILED_PRECONDITION` | completed: `DO_NOT_REPLAY` | | | `FAILED`, a code other than 2, outputs not attempted |
+   | `OUTPUT_RETRIEVAL_FAILURE` | `DATA_LOSS` | completed: `DO_NOT_REPLAY` | | | completed, outputs retrieved or failed, at least one failed unless the operation has no outputs |
+   | `SDK_CALL_FAULTED` | `INTERNAL` | not started: `DO_NOT_REPLAY` | | | none |
+   | `SDK_CALL_FAULTED` | `INTERNAL` | unknown: `RECONCILE_BEFORE_REPLAY` | | | `RESULT_UNAVAILABLE`, no code, outputs not attempted |
+   | `SDK_CALL_FAULTED` | `DATA_LOSS` | completed: `DO_NOT_REPLAY` | | | completed, outputs retrieved or failed, at least one failed unless the operation has no outputs |
+   | `INTERNAL` | `INTERNAL` | completed: `DO_NOT_REPLAY` | | `worker-output-shape-invalid` | none |
+   | `INTERNAL` | `INTERNAL` | unknown: ambiguous | | `request-violation-after-mapping` | none |
+   | `INTERNAL` | `DATA_LOSS` | completed: `DO_NOT_REPLAY` | | `result-mapping-failed` | completed, every output retrieved |
+
+   "Completed" MP details are `SUCCEEDED` with code 2 or `PARTIAL_SUCCESS` with
+   code 4. No disposition is ever unspecified.
+4. `worker_generation` is present and not negative. `policy_denial` is present
+   exactly on `POLICY_DENIED`, with a rule other than unspecified.
+   `request_validation` appears only on `VALIDATION`, with the diagnostic code
+   `request-validation-failed`.
+5. Its output rows name and cover the result, as described next.
+
+Otherwise: `operation-error-inconsistent`. A diagnostic code alone, known or not,
+is never a conflict.
+
+### Output rows
+
+In every MP details it sends, the server writes one row per output of the
+operation, named by that output's field name, all `NOT_ATTEMPTED` until an MP
+result permits outputs, then `RETRIEVED` or `FAILED`. A field name is a field of
+the result message, a dotted path into one, or the bare name of a field nested
+inside one, and an operation that collects several outputs into one field repeats
+its name. The CLI keeps no list of each operation's outputs, so it checks what
+holds for every operation:
+
+- Each row names something in this result: a top-level field other than
+  `execution`, a dotted path that resolves through it, or the bare name of a field
+  nested inside it. Otherwise: `result-output-unrelated` on an OK result,
+  `operation-error-unrelated` on an error.
+- Each top-level field of the result other than `execution` is named by at least
+  one row, by its own name, a dotted path that starts with it, or a bare name found
+  inside it. Otherwise: `result-output-missing` on an OK result,
+  `operation-error-inconsistent` on an error. Every result field of every operation
+  on this target is written from an output, so genuine replies always pass; a test
+  checks the genuine replies of all 1,018 operations.
+
+These rules cannot detect:
+
+- a missing row for a nested field when another row already names the same
+  top-level field, for example four of the five status fields of
+  `relationship_operations.get_relationship_status`;
+- extra, repeated, or reordered rows that name fields of this result, or the wrong
+  number of rows for an operation that repeats a name;
+- a reply that answers another call, or another operation with the same result
+  message;
+- whether a retrieved value is the one SpatialAnalyzer returned. A value left
+  unset reads as its default.
+
+Requiring a row for every nested field of a field named only through nested names
+would be stronger, but it is false for `gdt_operations.get_gdt_options`, whose
+result shares its `GdtOptions` message with a setter, so the CLI does not require
+it.
+
+### OK results
+
+A gRPC OK result is evidence of success only when it carries no
+`briosa-operation-error-bin` trailer, its `execution` is `SUCCEEDED` with code 2 or
+`PARTIAL_SUCCESS` with code 4, every output row is `RETRIEVED` (the server answers
+OK only when every output was retrieved), and its rows name and cover the result.
+Otherwise: `ok-with-operation-error`, `result-execution-missing`,
+`result-execution-contract-violation`, `result-output-unrelated`, or
+`result-output-missing`.
+
+### What the CLI cannot tell apart
+
+The server reports MP code 4 as an MP failure for four reviewed operations whose
+target documentation says code 4 leaves the work undone, and as partial success
+for every other operation. Without a table of operations the CLI cannot tell them
+apart: it accepts code 4 in an MP failure of any operation, and a partial success
+of those four. None of the four is in the read-only tier, so `call` never sends
+one; a test pins that.
+
+### When a rule fails
+
+The CLI relies on none of what came back: the outcome is
 `completion_evidence_unavailable`, exit code 10, with a null disposition, no
 recovery or replay guidance, the warning `operation-evidence-conflict`, and
 guidance to check SpatialAnalyzer's state. The diagnostic code says which rule
-failed: `operation-error-unrelated`, `operation-error-inconsistent`,
-`operation-error-kind-unrecognized`, `ok-with-operation-error`,
-`result-output-unrelated`, `result-execution-missing`, or
-`result-execution-contract-violation`. A
-conflicting answer never leads to advice to send the request again.
+failed. A conflicting answer never leads to advice to send the request again.
 
 A completed failure other than `MP_FAILURE` follows a terminal MP result whose
 outputs, or whole result, the server could not deliver, for example
@@ -286,12 +377,12 @@ outputs, or whole result, the server could not deliver, for example
 | 2 | `usage_error` | The command line could not be read. Nothing was sent. |
 | 3 | `rejected_locally` | The CLI refused before sending the operation: invalid input, unknown operation, a tier `call` does not serve, a non-loopback endpoint, an output file it cannot create, or cancellation before sending. Not started. |
 | 4 | `server_unreachable` | The server could not be reached, or discovery failed with `UNAVAILABLE`, `DEADLINE_EXCEEDED`, `INTERNAL`, or `UNKNOWN`. No operation was sent. |
-| 5 | `server_incompatible` | The server answered but is not one this command can use: the wrong target, package, or compatibility major; older than Server 0.10.2, for `call`; an inconsistent listing (`capabilities-inconsistent`: a duplicate operation ID or method, or a row whose method is not its service and RPC); a discovery reply larger than the CLI accepts (`discovery-response-too-large`); or another discovery status. No operation was sent. |
+| 5 | `server_incompatible` | The server answered but is not one this command can use: the wrong target, package, or compatibility major; older than Server 0.10.2, for `call`; an inconsistent listing (`capabilities-inconsistent`: a duplicate operation ID or method, a row whose method is not its service and RPC, or an operation ID that does not [name its method](#the-operation-and-its-method)); a discovery reply that declares a message larger than the CLI accepts (`discovery-response-too-large`); or another discovery status, including a `RESOURCE_EXHAUSTED` status without that evidence (`transport-resource-exhausted`). No operation was sent. |
 | 6 | `not_started` | The server reported `NOT_STARTED` for a reason other than validation: a policy denial (including the CLI's own restriction), readiness, capacity, or a similar reason. |
 | 7 | `invalid_request` | The server reported `NOT_STARTED` because request validation failed. `failure.request_validation` names the first invalid field. |
 | 8 | `mp_failed` | The server reported `COMPLETED` without success. Do not replay. |
-| 9 | `partial_success` or `outputs_incomplete` | MP code 4, or the operation completed but at least one output, or its whole result, was not delivered. Completed; do not replay to change the outcome or to recover an output. |
-| 10 | `completion_evidence_unavailable` | The request was sent, and no trustworthy evidence of how it ended came back: cancellation, the `--deadline-seconds` deadline, a dropped connection, a missing or malformed error trailer, [conflicting evidence](#when-the-cli-relies-on-what-the-server-sent), an OK result whose MP details are missing or inconsistent, or a blocked resend. The operation may have run. |
+| 9 | `partial_success` or `outputs_incomplete` | MP code 4, or the server reported that the operation completed but at least one output, or its whole result, was not delivered. Completed; do not replay to change the outcome or to recover an output. |
+| 10 | `completion_evidence_unavailable` | The request was sent, and no trustworthy evidence of how it ended came back: cancellation, the `--deadline-seconds` deadline, a dropped connection, a missing or malformed error trailer, [conflicting evidence](#when-the-cli-relies-on-what-the-server-sent), an OK result whose MP details are missing or inconsistent (including an output that was not retrieved), or a blocked resend. The operation may have run. |
 | 11 | `started_outcome_unknown` | The server reported `STARTED_OUTCOME_UNKNOWN`. The operation may have run. |
 | 12 | `output_write_failed` | The operation completed, as its own evidence established, but its result could not be written to the `--output` file or the spill directory. When completion is not established and the write also fails, the outcome stays `completion_evidence_unavailable` (exit code 10), and `data.result_delivery_error` records the failed write. |
 
@@ -317,14 +408,31 @@ What it prints is bounded instead:
 The spill directory is `%LOCALAPPDATA%\Briosa\cli\2026.1.0529.7\results`. The
 CLI manages every directory below `%LOCALAPPDATA%`:
 
-- It creates each one if needed and opens it as itself, without following a
+- It first checks that the volume keeps file permissions. On a volume that does
+  not, such as FAT32 or exFAT, it creates nothing and writes nothing there (see
+  below).
+- It creates each directory if needed and opens it as itself, without following a
   reparse point. It refuses one that is a reparse point, such as a junction.
 - It holds each one open, so it cannot be renamed or replaced, until the file
   exists.
-- It gives `results` access for the current user and SYSTEM only.
-- It creates the file through those directories and checks that the new file
-  resolves to exactly that path. A file that does not resolve there is removed
-  through its own handle.
+- Through its open handle, so on the directory it checked and not on whatever the
+  path leads to by then, it makes the current user the owner of `results` and gives
+  it a protected access list for the current user and SYSTEM only, with no
+  inherited entries. Files and directories created in it inherit those two entries.
+- It creates the file with its own protected access list for the same two, owned by
+  the current user, so the file does not depend on what it would inherit. It then
+  checks that the new file resolves to exactly the checked path. A file that does
+  not resolve there is removed through its own handle.
+
+Another process running as the same user can still read or change the file, or its
+permissions, after the CLI has written it. A file named with `--output` is not a
+spill file: it takes the permissions of the directory the caller chose.
+
+On a volume that does not keep file permissions the CLI refuses to spill:
+`data.result_delivery` is `lost`, `data.result_delivery_error` is
+`spill-permissions-unsupported`, and the warning `spill-refused` says the result
+was discarded and is in no file and not in the envelope. If the call's own evidence
+established completion, the exit code is 12; otherwise the call's outcome stands.
 
 Spill file names hold a UTC timestamp, the requested operation ID, and random
 characters, never text from the server or SpatialAnalyzer. The CLI does not
