@@ -291,8 +291,19 @@ internal sealed partial class BridgeEngine
         finally
         {
             // A reservation that never received a result is removed through its own
-            // handle; a written result file has already been closed and stays.
-            ResultDelivery.Release(output);
+            // handle; a written result file has already been closed and is reported by
+            // the delivery. One that cannot be removed is named, so nothing this call
+            // created is left behind unreported.
+            if (ResultDelivery.Release(output))
+            {
+                if (envelope.Data is JsonObject data && data["result_file"] is null)
+                {
+                    data["result_file"] = ResultDelivery.ReservationLeft(output!.Path);
+                }
+
+                envelope.Warn("output-reservation-left", "The --output file was created before the call, received " +
+                    "no result, and could not be removed. It is empty; delete it.");
+            }
         }
     }
 
@@ -430,9 +441,11 @@ internal sealed partial class BridgeEngine
         }
         catch (Exception)
         {
-            output?.Dispose();
+            // Only formatting the result can throw here, before any file is written: an
+            // --output reservation is still empty, and is removed (or named) on release.
             data["result_delivery"] = "lost";
             data["result_delivery_error"] = "result-format-failed";
+            envelope.Warn("result-lost", "The result is not in this envelope, and no file this call left holds it in full.");
             delivered = false;
         }
 

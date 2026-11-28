@@ -74,7 +74,7 @@ public sealed class SpillDirectoryTests
         {
             Assert.ThrowsAny<IOException>(() => File.Move(path, path + ".moved"));
             Assert.ThrowsAny<IOException>(() => File.Delete(path));
-            file.DiscardIfEmpty();
+            file.RemoveIfEmpty();
         }
 
         Assert.False(File.Exists(path));
@@ -92,7 +92,7 @@ public sealed class SpillDirectoryTests
 
         using (var created = ResultFileSystem.Instance.CreatePrivate(environment.Root, TestEnvironment.SpillComponents, "r.json"))
         {
-            created.Stream.Write("{}"u8);
+            created.Write("{}"u8);
         }
 
         var directory = new DirectoryInfo(environment.SpillDirectory).GetAccessControl(
@@ -212,7 +212,8 @@ public sealed class SpillDirectoryTests
         Assert.Null(run.Data["result"]);
         var warning = run.Envelope["warnings"]!.AsArray()
             .Single(entry => entry!["code"]!.GetValue<string>() == "spill-refused")!["message"]!.GetValue<string>();
-        Assert.Contains("discarded", warning, StringComparison.Ordinal);
+        // No file holds the result, which a warning of its own says.
+        Assert.Contains("result-lost", CallOutcomeTests.Warnings(run));
         Assert.Equal(completionEstablished, warning.StartsWith("The operation completed", StringComparison.Ordinal));
         Assert.False(Directory.Exists(Path.Combine(environment.Root, TestEnvironment.SpillComponents[0])));
     }

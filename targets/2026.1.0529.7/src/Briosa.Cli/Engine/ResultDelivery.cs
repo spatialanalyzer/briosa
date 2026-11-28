@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
@@ -83,31 +84,40 @@ internal sealed class ResultDelivery
 
     /// <summary>
     /// Removes a reserved output file that never received a result, through its own
-    /// handle. A file written in full has already been closed and stays.
+    /// handle. Returns true when it could not be removed and stays on disk. A file that
+    /// received a result has already been closed, and is reported by
+    /// <see cref="Deliver"/>.
     /// </summary>
-    public static void Release(ResultFile? output)
-    {
-        if (output is null || output.IsClosed)
-        {
-            return;
-        }
+    public static bool Release(ResultFile? output) =>
+        output is not null && !output.IsClosed && !output.RemoveIfEmpty();
 
-        try
-        {
-            output.DiscardIfEmpty();
-        }
-        catch (IOException)
-        {
-            // An empty reservation left behind holds no data.
-        }
-    }
+    /// <summary>
+    /// The reference to an unused <c>--output</c> reservation that could not be removed:
+    /// empty, and labeled so that no one takes it for a result.
+    /// </summary>
+    public static JsonObject ReservationLeft(string path) => new()
+    {
+        ["path"] = path,
+        ["bytes"] = 0,
+        ["sha256"] = null,
+        ["reason"] = "reservation_not_removed",
+        ["verification"] = "incomplete",
+        ["other_files"] = new JsonArray()
+    };
 
     /// <summary>
     /// Writes the result into <paramref name="data"/> or a file. Returns false when the
-    /// result could not be written where it had to go. <paramref name="completionEstablished"/>
+    /// result could not be delivered where it had to go. <paramref name="completionEstablished"/>
     /// says whether the call's own evidence shows that the operation completed; no
     /// message here claims a completion that evidence did not establish.
     /// </summary>
+    /// <remarks>
+    /// Everything reported comes from one record per file this call wrote: what reading
+    /// it back showed, whether a later step reported an error, and whether it is still
+    /// on disk. Nothing else is consulted, so every combination of failures is reported
+    /// by the same rules; DeliveryFaultMatrixTests checks the delivery invariants on
+    /// the operations page across those combinations.
+    /// </remarks>
     public bool Deliver(IMessage result, string operationId, ResultFile? output, int maximumInlineBytes,
         bool completionEstablished, BridgeEnvelope envelope, JsonObject data)
     {
@@ -128,91 +138,66 @@ internal sealed class ResultDelivery
 
         data["result"] = null;
         data["result_summary"] = Summarize(result);
-        var subject = completionEstablished
-            ? "The operation completed, but its result"
-            : "The call's outcome is not established, and the result that came back";
-        if (output is not null)
-        {
-            var written = Write(output, bytes, removeIncomplete: false);
-            if (written.State is WriteState.Complete or WriteState.Unconfirmed)
-            {
-                // The whole result was read back from the file the caller named.
-                data["result_file"] = FileReference(output.Path, bytes, "output_requested");
-                if (written.State == WriteState.Complete)
-                {
-                    data["result_delivery"] = "file";
-                    return true;
-                }
-
-                data["result_delivery"] = "file_unconfirmed";
-                data["result_delivery_error"] = "output-finalize-failed";
-                envelope.Warn("result-file-unconfirmed", subject + " was written in full to the --output file and " +
-                    "read back intact, but a later step (the write, flush, or close) reported an error, so the CLI " +
-                    "cannot confirm that the file stays intact. The file is kept; see data.result_file.");
-                return false;
-            }
-
-            // The --output file is kept as far as it got, as documented; the result goes
-            // to the spill directory instead.
-            envelope.Warn("output-write-failed", subject + " could not be written in full to the --output file, " +
-                "which may now be incomplete. The CLI tried the spill directory instead; see data.result_file.");
-            var fallback = Spill(bytes, operationId, "output_write_failed");
-            ReportSpill(fallback, subject, envelope, data, primaryError: "output-write-failed");
-            return false;
-        }
-
-        var spilled = Spill(bytes, operationId, "inline_cap_exceeded");
-        if (spilled.State == WriteState.Complete)
-        {
-            data["result_delivery"] = "file";
-            data["result_file"] = spilled.Reference;
-            envelope.Warn("result-spilled",
-                "The result is larger than the inline cap, so it was written in full to data.result_file and only " +
-                "a summary is shown. Do not run the call again to fetch it.");
-            return true;
-        }
-
-        ReportSpill(spilled, subject, envelope, data, primaryError: null);
-        return false;
+        var requested = output is null ? null : Write(output, bytes, requested: true, "output_requested");
+        // A requested file that read back as the whole result is not copied; any other
+        // outcome of it is backed by a spill.
+        var spill = requested is { Content: FileContent.Matched or FileContent.MatchedUnconfirmed }
+            ? null
+            : Spill(bytes, operationId, output is null ? "inline_cap_exceeded" : "output_write_failed");
+        return Report(bytes, requested, spill, completionEstablished, envelope, data);
     }
 
-    // What a write of the result left on disk.
-    private enum WriteState
+    // What a file this call wrote holds, as far as the CLI can tell.
+    private enum FileContent
     {
-        // Written, read back intact, flushed, and closed without an error.
-        Complete,
+        // Read back through its handle as exactly the result; the write, the flush to
+        // disk, and the close reported no error.
+        Matched,
 
-        // Read back intact, but the write, the flush, or the close reported an error.
-        Unconfirmed,
+        // Read back as exactly the result, but the write, the flush to disk, or the
+        // close reported an error.
+        MatchedUnconfirmed,
 
-        // Could not be read back: what the file holds is not known.
-        Unverified,
+        // Could not be read back: it may hold the whole result.
+        NotReadBack,
 
-        // Read back shorter or different: known not to hold the result.
-        Incomplete,
+        // Read back shorter or different, or never written: known not to hold the result.
+        Incomplete
+    }
 
-        // Refused before any file was created, because the volume keeps no permissions.
+    // A file this call wrote, or created. OnDisk is false only for an incomplete file
+    // that was removed through its handle; a file that may hold the result is never
+    // removed.
+    private sealed record WrittenFile(string Path, bool Requested, FileContent Content, bool OnDisk, long? BytesOnDisk,
+        string Reason);
+
+    private enum SpillFailure
+    {
+        None,
+
+        // The volume keeps no permissions, so nothing was created.
         Refused,
 
-        // No file could be created.
+        // No spill file could be created and handed over; File names one left behind.
         NotCreated
     }
 
-    private sealed record SpillReport(WriteState State, JsonObject? Reference, string? Leftover, long? LeftoverBytes);
+    private sealed record SpillAttempt(SpillFailure Failure, WrittenFile? File);
 
-    private sealed record WriteReport(WriteState State, bool Removed, long? Length);
-
-    // Writes the whole result, reads it back through the file's own handle, then flushes
-    // and closes it. Content known to be incomplete is removed through the handle when
-    // asked; anything else is kept, because it may be the only copy of the result.
-    private static WriteReport Write(ResultFile file, byte[] bytes, bool removeIncomplete)
+    // Writes the whole result, reads it back through the file's own handle and compares
+    // every byte, asks for it to be flushed to the storage device, and closes it. Content
+    // known to be incomplete is removed through the handle, on either destination: this
+    // call created the file. Anything else is kept, because it may be the only copy.
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types",
+        Justification = "Whatever a step throws, the file is still reported for what it holds.")]
+    private static WrittenFile Write(ResultFile file, byte[] bytes, bool requested, string reason)
     {
         var reported = false;
         try
         {
-            file.Stream.Write(bytes);
+            file.Write(bytes);
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or NotSupportedException)
+        catch (Exception)
         {
             reported = true;
         }
@@ -221,58 +206,29 @@ internal sealed class ResultDelivery
         if (content == ResultContent.Incomplete)
         {
             var length = file.Length();
-            var removed = false;
-            if (removeIncomplete)
-            {
-                try
-                {
-                    file.Discard();
-                    removed = true;
-                }
-                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-                {
-                    // The removal may still have happened when the close failed after it.
-                    removed = !File.Exists(file.Path);
-                }
-            }
-
-            Close(file);
-            return new WriteReport(WriteState.Incomplete, removed, length);
+            var removed = file.Remove();
+            return new WrittenFile(file.Path, requested, FileContent.Incomplete, !removed, length, reason);
         }
 
-        if (!reported)
-        {
-            try
-            {
-                file.Stream.Flush();
-            }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or NotSupportedException)
-            {
-                reported = true;
-            }
-        }
-
-        reported |= !Close(file);
-        return content == ResultContent.Unknown
-            ? new WriteReport(WriteState.Unverified, false, null)
-            : new WriteReport(reported ? WriteState.Unconfirmed : WriteState.Complete, false, bytes.Length);
-    }
-
-    // True when the file closed without an error.
-    private static bool Close(ResultFile file)
-    {
         try
         {
-            file.Dispose();
-            return true;
+            file.FlushToDisk();
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or NotSupportedException)
+        catch (Exception)
         {
-            return false;
+            reported = true;
         }
+
+        reported |= !file.TryClose();
+        var state = content == ResultContent.Unknown ? FileContent.NotReadBack
+            : reported ? FileContent.MatchedUnconfirmed
+            : FileContent.Matched;
+        return new WrittenFile(file.Path, requested, state, OnDisk: true, BytesOnDisk: null, reason);
     }
 
-    private SpillReport Spill(byte[] bytes, string operationId, string reason)
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types",
+        Justification = "Whatever stops the spill file from being created, the result is still reported.")]
+    private SpillAttempt Spill(byte[] bytes, string operationId, string reason)
     {
         ResultFile file;
         try
@@ -285,86 +241,172 @@ internal sealed class ResultDelivery
         }
         catch (SpillPermissionsUnsupportedException)
         {
-            return new SpillReport(WriteState.Refused, null, null, null);
+            return new SpillAttempt(SpillFailure.Refused, null);
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or
-            NotSupportedException or ArgumentException or InvalidOperationException)
+        catch (ResultFileLeftException left)
         {
-            return new SpillReport(WriteState.NotCreated, null, null, null);
+            // Created, but neither handed over nor removed: nothing was written to it.
+            return new SpillAttempt(SpillFailure.NotCreated,
+                new WrittenFile(left.Path, Requested: false, FileContent.Incomplete, OnDisk: true, BytesOnDisk: 0, reason));
+        }
+        catch (Exception)
+        {
+            return new SpillAttempt(SpillFailure.NotCreated, null);
         }
 
-        // A spill file known to be incomplete is removed, so no partial file can pass
-        // for a result; one the CLI could not remove is reported.
-        var written = Write(file, bytes, removeIncomplete: true);
-        return written.State == WriteState.Incomplete
-            ? new SpillReport(WriteState.Incomplete, null, written.Removed ? null : file.Path, written.Length)
-            : new SpillReport(written.State, FileReference(file.Path, bytes, reason), null, null);
+        return new SpillAttempt(SpillFailure.None, Write(file, bytes, requested: false, reason));
     }
 
-    // Everything but a complete spill: each state says what is on disk, and nothing
-    // claims a copy that the CLI cannot vouch for.
-    private static void ReportSpill(SpillReport spill, string subject, BridgeEnvelope envelope, JsonObject data,
-        string? primaryError)
+    // Everything the envelope says about the delivery, derived from the files alone.
+    private static bool Report(byte[] bytes, WrittenFile? requested, SpillAttempt? spill, bool completionEstablished,
+        BridgeEnvelope envelope, JsonObject data)
     {
-        data["result_file"] = spill.Reference;
-        switch (spill.State)
+        // Every file this call left on disk, best copy first; on a tie, the --output file.
+        var left = new[] { requested, spill?.File }.OfType<WrittenFile>().Where(file => file.OnDisk)
+            .OrderBy(file => file.Content).ToList();
+        var primary = left.FirstOrDefault();
+        if (primary is null)
         {
-            case WriteState.Complete:
-                data["result_delivery"] = "file";
+            data["result_file"] = null;
+        }
+        else
+        {
+            var reference = Reference(primary, bytes);
+            reference["other_files"] = new JsonArray([.. left.Skip(1).Select(file => (JsonNode)Reference(file, bytes))]);
+            data["result_file"] = reference;
+        }
+
+        data["result_delivery"] = primary?.Content switch
+        {
+            FileContent.Matched => "file",
+            FileContent.MatchedUnconfirmed => "file_unconfirmed",
+            FileContent.NotReadBack => "file_unverified",
+            _ => "lost"
+        };
+
+        // Delivered as asked: to the --output file when there is one, otherwise to the spill.
+        var delivered = (requested ?? spill?.File)?.Content == FileContent.Matched;
+        data["result_delivery_error"] = delivered ? null : Error(requested, spill);
+
+        var subject = completionEstablished
+            ? "The operation completed, but its result"
+            : "The call's outcome is not established, and the result that came back";
+        if (requested is not null)
+        {
+            Warn(envelope, requested, subject, spilled: false);
+        }
+
+        switch (spill?.Failure)
+        {
+            case SpillFailure.Refused:
+                envelope.Warn("spill-refused", subject + " could not be spilled. " + SpillRefusedMessage);
                 break;
-            case WriteState.Unconfirmed:
-                data["result_delivery"] = "file_unconfirmed";
-                envelope.Warn("result-file-unconfirmed", subject + " was written in full to the spill directory and " +
-                    "read back intact, but a later step (the write, flush, or close) reported an error, so the CLI " +
-                    "cannot confirm that the file stays intact. The file is kept; see data.result_file.");
-                break;
-            case WriteState.Unverified:
-                data["result_delivery"] = "file_unverified";
-                envelope.Warn("result-file-unverified", subject + " was written to the spill directory, but could " +
-                    "not be read back, so whether the file holds the whole result is not known. The file is kept; see " +
-                    "data.result_file.");
-                break;
-            case WriteState.Refused:
-                data["result_delivery"] = "lost";
-                envelope.Warn("spill-refused", subject + " could not be spilled. " + SpillRefusedMessage +
-                    " The result was discarded: it is not in this envelope or in any file.");
-                break;
-            default:
-                data["result_delivery"] = "lost";
-                envelope.Warn("output-write-failed", subject + " could not be written in full to the spill directory.");
-                if (spill.Leftover is { } leftover)
+            case SpillFailure.NotCreated:
+                envelope.Warn("spill-write-failed", subject + " could not be written to the spill directory: no " +
+                    "spill file could be created.");
+                if (spill.File is not null)
                 {
-                    // The incomplete file is named so that no one mistakes it for a result.
-                    data["result_file"] = new JsonObject
-                    {
-                        ["path"] = leftover,
-                        ["bytes"] = spill.LeftoverBytes,
-                        ["sha256"] = null,
-                        ["reason"] = "incomplete_not_removed"
-                    };
-                    envelope.Warn("incomplete-file-left", "An incomplete spill file could not be removed; see " +
-                        "data.result_file. It does not hold the whole result; delete it.");
+                    WarnLeft(envelope);
+                }
+
+                break;
+            case SpillFailure.None:
+                Warn(envelope, spill.File!, subject, spilled: requested is null);
+                break;
+        }
+
+        if (primary is null or { Content: FileContent.Incomplete })
+        {
+            envelope.Warn("result-lost", "The result is not in this envelope, and no file this call left holds it in full.");
+        }
+
+        return delivered;
+    }
+
+    private static void Warn(BridgeEnvelope envelope, WrittenFile file, string subject, bool spilled)
+    {
+        var where = file.Requested ? "the --output file" : "the spill directory";
+        var backup = file.Requested ? " The CLI also tried the spill directory." : string.Empty;
+        switch (file.Content)
+        {
+            case FileContent.Matched when spilled:
+                envelope.Warn("result-spilled",
+                    "The result is larger than the inline cap, so it was written in full to data.result_file and only " +
+                    "a summary is shown. Do not run the call again to fetch it.");
+                break;
+            case FileContent.MatchedUnconfirmed:
+                envelope.Warn("result-file-unconfirmed", subject + " was written in full to " + where + " and read " +
+                    "back intact, but the write, the flush to disk, or the close reported an error, so the CLI cannot " +
+                    "confirm that the file stays intact. The file is kept; see data.result_file.");
+                break;
+            case FileContent.NotReadBack:
+                envelope.Warn("result-file-unverified", subject + " was written to " + where + ", but could not be " +
+                    "read back, so whether the file holds the whole result is not known. The file is kept; compare its " +
+                    "size and SHA-256 with the bytes and sha256 given for it in data.result_file." + backup);
+                break;
+            case FileContent.Incomplete:
+                envelope.Warn(file.Requested ? "output-write-failed" : "spill-write-failed", subject + " could not " +
+                    "be written in full to " + where + "." + (file.OnDisk ? string.Empty : " The incomplete file was " +
+                    "removed.") + backup);
+                if (file.OnDisk)
+                {
+                    WarnLeft(envelope);
                 }
 
                 break;
         }
-
-        data["result_delivery_error"] = primaryError ?? spill.State switch
-        {
-            WriteState.Unconfirmed => "spill-finalize-failed",
-            WriteState.Unverified => "spill-verify-failed",
-            WriteState.Refused => SpillPermissionsUnsupported,
-            _ => "spill-write-failed"
-        };
     }
 
-    private static JsonObject FileReference(string path, byte[] bytes, string reason) => new()
-    {
-        ["path"] = path,
-        ["bytes"] = bytes.Length,
-        ["sha256"] = Convert.ToHexStringLower(SHA256.HashData(bytes)),
-        ["reason"] = reason
-    };
+    private static void WarnLeft(BridgeEnvelope envelope) =>
+        envelope.Warn("incomplete-file-left", "An incomplete result file could not be removed; it is listed in " +
+            "data.result_file with the verification incomplete and the reason incomplete_not_removed. It does not " +
+            "hold the whole result; delete it.");
+
+    // The first failure: the --output file's when there is one, otherwise the spill's.
+    private static string Error(WrittenFile? requested, SpillAttempt? spill) =>
+        requested is not null
+            ? requested.Content switch
+            {
+                FileContent.MatchedUnconfirmed => "output-finalize-failed",
+                FileContent.NotReadBack => "output-verify-failed",
+                _ => "output-write-failed"
+            }
+            : spill?.Failure switch
+            {
+                SpillFailure.Refused => SpillPermissionsUnsupported,
+                SpillFailure.None => spill.File!.Content switch
+                {
+                    FileContent.MatchedUnconfirmed => "spill-finalize-failed",
+                    FileContent.NotReadBack => "spill-verify-failed",
+                    _ => "spill-write-failed"
+                },
+                _ => "spill-write-failed"
+            };
+
+    // A file that may hold the result carries the result's size and SHA-256, to check it
+    // against; one known to be incomplete carries its size on disk and no SHA-256.
+    private static JsonObject Reference(WrittenFile file, byte[] bytes) => file.Content == FileContent.Incomplete
+        ? new JsonObject
+        {
+            ["path"] = file.Path,
+            ["bytes"] = file.BytesOnDisk,
+            ["sha256"] = null,
+            ["reason"] = "incomplete_not_removed",
+            ["verification"] = "incomplete"
+        }
+        : new JsonObject
+        {
+            ["path"] = file.Path,
+            ["bytes"] = bytes.Length,
+            ["sha256"] = Convert.ToHexStringLower(SHA256.HashData(bytes)),
+            ["reason"] = file.Reason,
+            ["verification"] = file.Content switch
+            {
+                FileContent.Matched => "matched",
+                FileContent.MatchedUnconfirmed => "matched_unconfirmed",
+                _ => "not_read_back"
+            }
+        };
 
     /// <summary>The set top-level fields of the result, with counts and no values.</summary>
     internal static JsonObject Summarize(IMessage result)

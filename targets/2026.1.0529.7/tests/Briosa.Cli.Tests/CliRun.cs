@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using Briosa.Cli.CommandLine;
 using Briosa.Cli.Engine;
+using Microsoft.Win32.SafeHandles;
 
 namespace Briosa.Cli.Tests;
 
@@ -105,16 +106,16 @@ public enum WriteFault
     /// <summary>Three bytes reach the file, then the write fails.</summary>
     AfterPrefix,
 
-    /// <summary>Three bytes reach the file and it is made read-only, so it cannot be removed, then the write fails.</summary>
+    /// <summary>Three bytes reach the file and it is made read-only, so the operating system refuses to remove it, then the write fails.</summary>
     AfterPrefixUnremovable,
 
-    /// <summary>The whole result reaches the file, then the flush fails.</summary>
+    /// <summary>The whole result reaches the file, then the flush to disk fails.</summary>
     AtFlush,
 
     /// <summary>The whole result reaches the file and is flushed, then the close fails.</summary>
     AtClose,
 
-    /// <summary>The whole result reaches the file, but reading it back fails.</summary>
+    /// <summary>The whole result reaches the file, but reading it back through its handle fails.</summary>
     ReadBack
 }
 
@@ -122,87 +123,61 @@ public enum WriteFault
 internal sealed class FailingWriteFileSystem(Func<string, bool> failsFor, WriteFault fault = WriteFault.BeforeAnyByte)
     : IResultFileSystem
 {
-    public ResultFile CreateNew(string path) => Wrap(ResultFileSystem.Instance.CreateNew(path));
+    public ResultFile CreateNew(string path) => For(path).CreateNew(path);
 
     public ResultFile CreatePrivate(string baseDirectory, IReadOnlyList<string> components, string fileName) =>
-        Wrap(ResultFileSystem.Instance.CreatePrivate(baseDirectory, components, fileName));
+        For(Path.Combine([baseDirectory, .. components, fileName])).CreatePrivate(baseDirectory, components, fileName);
 
-    private ResultFile Wrap(ResultFile file)
+    private ResultFileSystem For(string path) =>
+        failsFor(path) ? new ResultFileSystem(io: new FailingIo(fault)) : ResultFileSystem.Instance;
+
+    private sealed class FailingIo(WriteFault fault) : IResultFileIo
     {
-        if (failsFor(file.Path))
-        {
-            file.WrapStream(stream => new FailingStream(stream, fault, file));
-            if (fault == WriteFault.ReadBack)
-            {
-                file.ReplaceReadBack((_, _) => ResultContent.Unknown);
-            }
-        }
+        private static SystemResultFileIo Real => SystemResultFileIo.Instance;
 
-        return file;
-    }
-
-    private sealed class FailingStream(Stream inner, WriteFault fault, ResultFile file) : Stream
-    {
-        public override bool CanRead => false;
-
-        public override bool CanSeek => false;
-
-        public override bool CanWrite => true;
-
-        public override long Length => inner.Length;
-
-        public override long Position { get => inner.Position; set => throw new NotSupportedException(); }
-
-        public override void Flush()
-        {
-            inner.Flush();
-            if (fault == WriteFault.AtFlush)
-            {
-                throw new IOException("The flush failed.");
-            }
-        }
-
-        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
-
-        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
-
-        public override void SetLength(long value) => throw new NotSupportedException();
-
-        public override void Write(byte[] buffer, int offset, int count) => Write(buffer.AsSpan(offset, count));
-
-        public override void Write(ReadOnlySpan<byte> buffer)
+        public void Write(SafeFileHandle file, ReadOnlySpan<byte> bytes, long offset)
         {
             switch (fault)
             {
                 case WriteFault.BeforeAnyByte:
                     throw new IOException("There is not enough space on the disk.");
                 case WriteFault.AfterPrefix or WriteFault.AfterPrefixUnremovable:
-                    inner.Write(buffer[..Math.Min(3, buffer.Length)]);
-                    inner.Flush();
+                    Real.Write(file, bytes[..Math.Min(3, bytes.Length)], offset);
                     if (fault == WriteFault.AfterPrefixUnremovable)
                     {
-                        File.SetAttributes(file.Handle, FileAttributes.ReadOnly);
+                        File.SetAttributes(file, FileAttributes.ReadOnly);
                     }
 
                     throw new IOException("There is not enough space on the disk.");
                 default:
-                    inner.Write(buffer);
+                    Real.Write(file, bytes, offset);
                     break;
             }
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                inner.Dispose();
-                if (fault == WriteFault.AtClose)
-                {
-                    throw new IOException("The close failed.");
-                }
-            }
+        public long GetLength(SafeFileHandle file) => Real.GetLength(file);
 
-            base.Dispose(disposing);
+        public int Read(SafeFileHandle file, Span<byte> buffer, long offset) =>
+            fault == WriteFault.ReadBack ? throw new IOException("The read failed.") : Real.Read(file, buffer, offset);
+
+        public void FlushToDisk(SafeFileHandle file)
+        {
+            Real.FlushToDisk(file);
+            if (fault == WriteFault.AtFlush)
+            {
+                throw new IOException("The flush failed.");
+            }
+        }
+
+        public void DeleteOnClose(SafeFileHandle file) => Real.DeleteOnClose(file);
+
+        public void Close(SafeFileHandle file)
+        {
+            Real.Close(file);
+            if (fault == WriteFault.AtClose)
+            {
+                throw new IOException("The close failed.");
+            }
         }
     }
 }
@@ -215,48 +190,30 @@ internal sealed class FailingWriteFileSystem(Func<string, bool> failsFor, WriteF
 /// </summary>
 internal sealed class ReplacingFileSystem : IResultFileSystem
 {
-    public ResultFile CreateNew(string path)
-    {
-        var file = ResultFileSystem.Instance.CreateNew(path);
-        file.WrapStream(stream => new ReplacingStream(stream, path));
-        return file;
-    }
+    public ResultFile CreateNew(string path) => new ResultFileSystem(io: new ReplacingIo(path)).CreateNew(path);
 
     public ResultFile CreatePrivate(string baseDirectory, IReadOnlyList<string> components, string fileName) =>
         ResultFileSystem.Instance.CreatePrivate(baseDirectory, components, fileName);
 
-    private sealed class ReplacingStream(Stream inner, string path) : Stream
+    private sealed class ReplacingIo(string path) : IResultFileIo
     {
-        public override bool CanRead => false;
+        private static SystemResultFileIo Real => SystemResultFileIo.Instance;
 
-        public override bool CanSeek => false;
+        public void Write(SafeFileHandle file, ReadOnlySpan<byte> bytes, long offset) => Real.Write(file, bytes, offset);
 
-        public override bool CanWrite => true;
+        public long GetLength(SafeFileHandle file) => Real.GetLength(file);
 
-        public override long Length => inner.Length;
+        public int Read(SafeFileHandle file, Span<byte> buffer, long offset) => Real.Read(file, buffer, offset);
 
-        public override long Position { get => inner.Position; set => throw new NotSupportedException(); }
+        public void FlushToDisk(SafeFileHandle file) => Real.FlushToDisk(file);
 
-        public override void Flush() => inner.Flush();
+        public void DeleteOnClose(SafeFileHandle file) => Real.DeleteOnClose(file);
 
-        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
-
-        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
-
-        public override void SetLength(long value) => throw new NotSupportedException();
-
-        public override void Write(byte[] buffer, int offset, int count) => inner.Write(buffer, offset, count);
-
-        protected override void Dispose(bool disposing)
+        public void Close(SafeFileHandle file)
         {
-            if (disposing)
-            {
-                inner.Dispose();
-                // The handle is closed: someone else now creates a file of the same name.
-                File.WriteAllBytes(path, []);
-            }
-
-            base.Dispose(disposing);
+            Real.Close(file);
+            // The handle is closed: someone else now creates a file of the same name.
+            File.WriteAllBytes(path, []);
         }
     }
 }

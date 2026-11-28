@@ -248,8 +248,9 @@ public sealed class ReviewRoundFourTests
     }
 
     // Round 5, item 1: the --output file the caller named keeps a complete copy, and is
-    // reported as such, when only its flush or close fails; an incomplete one stays as
-    // far as it got, and the result goes to the spill directory.
+    // reported as such, when only its flush or close fails. Round 6: an incomplete one is
+    // removed through its handle, as a spill file is, and the result goes to the spill
+    // directory.
     [Theory]
     [InlineData(WriteFault.AtFlush, "file_unconfirmed", "output-finalize-failed", false)]
     [InlineData(WriteFault.AtClose, "file_unconfirmed", "output-finalize-failed", false)]
@@ -278,14 +279,14 @@ public sealed class ReviewRoundFourTests
         }
         else
         {
-            Assert.Equal(3, new FileInfo(output).Length);
+            Assert.False(File.Exists(output));
         }
     }
 
     private static void Spill(TestEnvironment environment, string name)
     {
         using var file = ResultFileSystem.Instance.CreatePrivate(environment.Root, TestEnvironment.SpillComponents, name);
-        file.Stream.Write("{}"u8);
+        file.Write("{}"u8);
     }
 
     // The owner and access list, byte for byte.
