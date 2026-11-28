@@ -528,11 +528,13 @@ file with:
 4. It closes the handle. .NET does not report a failed close of a file handle, so in
    practice the flush is the last step that can report an error.
 
-Before it creates any file, the CLI formats the result, summarizes it, and computes
-its SHA-256, so that nothing that runs once a file exists can fail and lose it. If
-the SHA-256 cannot be computed, every file entry carries a null `sha256`, the
-warning `result-hash-unavailable` says so, and the files are still read back and
-compared byte for byte.
+Before it writes any result bytes, the CLI formats the result, summarizes it, and
+computes its SHA-256, so that nothing that runs once a file holds result bytes can
+fail and lose it. (An `--output` file is already reserved, and empty, by then.) If
+the SHA-256 cannot be computed, every file entry carries a null `sha256`, and the
+warning `result-hash-unavailable` says so, whatever the delivery state. Reading a
+file back does not use the SHA-256: it compares the file's bytes with the result,
+when the file can be read back at all.
 
 Each file the call wrote, or created and could not remove, is described by an
 object with `path`, `bytes`, `sha256`, `reason`, and `verification`:
@@ -542,11 +544,14 @@ object with `path`, `bytes`, `sha256`, `reason`, and `verification`:
 | `matched` | The file read back as exactly the result, and the write, the flush to disk, and the close reported no error. | The result's size and SHA-256. |
 | `matched_unconfirmed` | The file read back as exactly the result, but the write, the flush to disk, or the close reported an error, so the CLI cannot confirm that it stays intact. It is kept. | The result's size and SHA-256, which the file held when read back. |
 | `not_read_back` | The file could not be read back, so whether it holds the whole result is not known. It is kept, because it may be the only copy. | The result's size and SHA-256, to compare the file with. |
-| `incomplete` | The file read back shorter or different, or nothing was written to it, and it could not be removed. It does not hold the result; delete it. | Its size on disk and no SHA-256. `reason` is `incomplete_not_removed`, or `reservation_not_removed` for an unused `--output` file. |
+| `incomplete` | The file read back shorter or different, or nothing was written to it, and it could not be removed. It does not hold the result; delete it. | Its size on disk, or null when that could not be read, and no SHA-256. `reason` is `incomplete_not_removed`, or `reservation_not_removed` for an unused `--output` file. |
 
 Before using a file labeled `not_read_back` or `matched_unconfirmed`, check that its
 size and SHA-256 equal `bytes` and `sha256`: the first was never read back, and the
-second may have changed after it was.
+second may have changed after it was. When `sha256` is null, because the SHA-256
+could not be computed, the size alone cannot verify such a file; do not use it
+without another way to confirm its content. The warnings for these files say which
+of the two applies.
 
 A file that read back shorter or different is removed through its handle, on
 either destination, because the call created it. A file that may hold the whole
@@ -594,8 +599,10 @@ the cap; `result-file-unconfirmed` and `result-file-unverified` for a file in th
 states; `output-write-failed` and `spill-write-failed` for a failed write;
 `spill-refused`; `incomplete-file-left` for an incomplete file left on disk;
 `output-reservation-left`, with the file's path, for an unused `--output` file that
-could not be removed; `result-hash-unavailable` when the SHA-256 could not be
-computed; and `result-lost` whenever the delivery state is `lost`, and only then.
+could not be removed, which calls it empty only when its size was read;
+`result-hash-unavailable` whenever the SHA-256 could not be computed, in any
+delivery state; and `result-lost` whenever the delivery state is `lost`, and only
+then. Each warning states only what the CLI established for that file.
 
 Any state other than `inline` and `file`, and any `--output` file that is not
 `matched`, is a failed delivery: exit code 12 when the call's own evidence
