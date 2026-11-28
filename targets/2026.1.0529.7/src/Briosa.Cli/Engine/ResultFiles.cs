@@ -68,8 +68,9 @@ internal sealed class SystemResultFileIo : IResultFileIo
 
     public int Read(SafeFileHandle file, Span<byte> buffer, long offset) => RandomAccess.Read(file, buffer, offset);
 
-    // FlushFileBuffers on Windows: the file's data and metadata, to the device.
-    public void FlushToDisk(SafeFileHandle file) => RandomAccess.FlushToDisk(file);
+    // FlushFileBuffers itself, with its result checked: the file's data and metadata, to
+    // the device. RandomAccess.FlushToDisk would report a denied flush as success.
+    public void FlushToDisk(SafeFileHandle file) => NativeMethods.FlushFileBuffers(file);
 
     public void DeleteOnClose(SafeFileHandle file) => NativeMethods.DeleteOnClose(file);
 
@@ -170,11 +171,20 @@ internal sealed class ResultFile : IDisposable
     /// Reads the file back through its own handle and compares every byte with
     /// <paramref name="expected"/>, before the file is closed.
     /// </summary>
+    public ResultContent ReadBack(byte[] expected) => ReadBack(expected, out _);
+
+    /// <summary>
+    /// Reads the file back through its own handle and compares every byte with
+    /// <paramref name="expected"/>, before the file is closed. <paramref name="length"/>
+    /// is the length it measured, or null when it could not measure one; it is always
+    /// set when the result is <see cref="ResultContent.Incomplete"/>.
+    /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types",
         Justification = "A read-back that fails in any way leaves the content unknown, never complete.")]
-    public ResultContent ReadBack(byte[] expected)
+    public ResultContent ReadBack(byte[] expected, out long? length)
     {
         ArgumentNullException.ThrowIfNull(expected);
+        length = null;
         if (IsClosed)
         {
             return ResultContent.Unknown;
@@ -182,7 +192,8 @@ internal sealed class ResultFile : IDisposable
 
         try
         {
-            if (_io.GetLength(Handle) != expected.Length)
+            length = _io.GetLength(Handle);
+            if (length != expected.Length)
             {
                 return ResultContent.Incomplete;
             }

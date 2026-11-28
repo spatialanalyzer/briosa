@@ -51,11 +51,11 @@ internal sealed class CliRun
 /// <summary>A per-test spill directory and file system.</summary>
 internal sealed class TestEnvironment : IDisposable
 {
-    private TestEnvironment(string root, IResultFileSystem files)
+    private TestEnvironment(string root, IResultFileSystem files, Func<byte[], byte[]>? sha256)
     {
         Root = root;
         SpillDirectory = Path.Combine([root, .. SpillComponents]);
-        Environment = new BridgeEnvironment(files, root, SpillComponents, TimeProvider.System);
+        Environment = new BridgeEnvironment(files, root, SpillComponents, TimeProvider.System, sha256);
     }
 
     /// <summary>The managed directories below the test root, as below %LOCALAPPDATA%.</summary>
@@ -70,11 +70,11 @@ internal sealed class TestEnvironment : IDisposable
     /// <summary>For tests that never deliver a result to a file.</summary>
     public static TestEnvironment Shared { get; } = Create();
 
-    public static TestEnvironment Create(IResultFileSystem? files = null)
+    public static TestEnvironment Create(IResultFileSystem? files = null, Func<byte[], byte[]>? sha256 = null)
     {
         var root = Path.Combine(Path.GetTempPath(), "briosa-cli-tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
-        return new TestEnvironment(root, files ?? ResultFileSystem.Instance);
+        return new TestEnvironment(root, files ?? ResultFileSystem.Instance, sha256);
     }
 
     public string[] SpilledFiles() =>

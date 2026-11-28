@@ -393,26 +393,137 @@ public sealed class DeliveryFaultMatrixTests
         JsonObject? EntryFor(string path) => entries.FirstOrDefault(entry => Same(PathOf(entry), path));
         FileRecord? RecordFor(string path) => log.Records.LastOrDefault(record => Same(record.Path, path));
 
+        var messages = run.Envelope["warnings"]!.AsArray().Select(warning => warning!["message"]!.GetValue<string>()).ToList();
+        bool IsOutput(string path) => string.Equals(Name(path), Name(output), StringComparison.OrdinalIgnoreCase);
+        var diskOutput = onDisk.Where(IsOutput).ToList();
+        var diskSpill = onDisk.Where(path => !IsOutput(path)).ToList();
+
         if (cell.Destination is Destination.OutputUnusedNoResult or Destination.OutputUnusedRefused)
         {
-            // I3: the only file this call created is the reservation; if it stays, it is named.
-            foreach (var path in onDisk)
+            // The model: the reservation is the only file, it stays only when its removal
+            // is refused, and then it is named, with its path.
+            var left = cell.RemovalFails;
+            if (!log.Records.Any(record => IsOutput(record.Path)))
             {
-                var named = Same(path, output) && warnings.Contains("output-reservation-left") &&
-                    (data is null || (EntryFor(path) is { } entry && Label(entry) == "incomplete" &&
-                        entry["reason"]?.GetValue<string>() == "reservation_not_removed"));
-                if (!named)
-                {
-                    problems.Add($"I3 {Name(path)} is on disk but not named");
-                }
+                problems.Add("M-attempts the reservation was never inspected");
             }
 
-            if (onDisk.Count == 0 && warnings.Contains("output-reservation-left"))
+            if (diskOutput.Count != (left ? 1 : 0) || diskSpill.Count != 0)
             {
-                problems.Add("I3 a reservation is reported as left but is not on disk");
+                problems.Add($"M-disk {diskOutput.Count} --output and {diskSpill.Count} spill files on disk");
+            }
+
+            var wantedExit = cell.Destination == Destination.OutputUnusedRefused ? 3 : 10;
+            if (run.ExitCode != wantedExit)
+            {
+                problems.Add($"I5 exit code {run.ExitCode}, not {wantedExit}");
+            }
+
+            var warning = messages.Where((_, index) => warnings[index] == "output-reservation-left").ToList();
+            if (warning.Count != (left ? 1 : 0))
+            {
+                problems.Add($"I3 output-reservation-left is {(left ? "missing" : "present")}");
+            }
+            else if (left && !warning[0].Contains(output, StringComparison.OrdinalIgnoreCase))
+            {
+                problems.Add("I3 output-reservation-left does not give the file's path");
+            }
+
+            if ((cell.Destination == Destination.OutputUnusedRefused) != (data is null))
+            {
+                problems.Add("M-data data is " + (data is null ? "null" : "present"));
+            }
+            else if (data is not null && (left
+                ? EntryFor(output) is not { } entry || Label(entry) != "incomplete" ||
+                  entry["reason"]?.GetValue<string>() != "reservation_not_removed"
+                : primary is not null))
+            {
+                problems.Add("I3 data.result_file does not name the reservation that is left, or names one that is not");
             }
 
             return problems;
+        }
+
+        // The model, from the injected faults alone: never from the envelope.
+        var model = Predict(cell, expected.Length);
+
+        // The write attempts the faults call for, in the handle log: the --output file
+        // when there is one, and a spill file whenever the faults say one is created,
+        // including the fallback behind an --output file that is not matched.
+        if (log.Records.Any(record => IsOutput(record.Path)) != model.OutputTried)
+        {
+            problems.Add($"M-attempts the --output file was {(model.OutputTried ? "not " : "")}written");
+        }
+
+        var spillAttempts = log.Records.Count(record => !IsOutput(record.Path));
+        if (spillAttempts != (model.SpillCreated ? 1 : 0))
+        {
+            problems.Add($"M-attempts {spillAttempts} spill files were created, not {(model.SpillCreated ? 1 : 0)}");
+        }
+
+        // What is on disk is what the faults leave: each file, its size, and whether it
+        // holds the whole result.
+        var wantedOutput = model.OnDisk.Where(file => file.Output).ToList();
+        var wantedSpill = model.OnDisk.Where(file => !file.Output).ToList();
+        if (diskOutput.Count != wantedOutput.Count || diskSpill.Count != wantedSpill.Count)
+        {
+            problems.Add($"M-disk {diskOutput.Count} --output and {diskSpill.Count} spill files on disk, not " +
+                $"{wantedOutput.Count} and {wantedSpill.Count}");
+        }
+        else
+        {
+            foreach (var (path, wanted) in diskOutput.Zip(wantedOutput).Concat(diskSpill.Zip(wantedSpill)))
+            {
+                if (new FileInfo(path).Length != wanted.Bytes || Complete(path) != (wanted.Outcome != Expected.Incomplete))
+                {
+                    problems.Add($"M-disk {Name(path)} holds {new FileInfo(path).Length} bytes, " +
+                        $"{(Complete(path) ? "the result" : "not the result")}, not what its fault leaves");
+                }
+            }
+        }
+
+        // The envelope names exactly those files, by the primary-file rule (the best
+        // verification first, the --output file first on a tie), each with its label.
+        var named = entries.Select(entry => $"{(IsOutput(PathOf(entry)) ? "output" : "spill")} {Label(entry)}").ToList();
+        var wantedNamed = model.Named.Select(file => $"{(file.Output ? "output" : "spill")} {LabelOf(file.Outcome)}").ToList();
+        if (named.FirstOrDefault() != wantedNamed.FirstOrDefault())
+        {
+            problems.Add($"M-primary data.result_file is {named.FirstOrDefault() ?? "null"}, not {wantedNamed.FirstOrDefault() ?? "null"}");
+        }
+        else if (!named.SequenceEqual(wantedNamed))
+        {
+            problems.Add($"M-named the files named are [{string.Join(", ", named)}], not [{string.Join(", ", wantedNamed)}]");
+        }
+
+        if (delivery != model.State)
+        {
+            problems.Add($"M-state result_delivery is {delivery}, not {model.State}");
+        }
+
+        var error = data?["result_delivery_error"]?.GetValue<string>();
+        if (error != model.Error)
+        {
+            problems.Add($"M-error result_delivery_error is {error ?? "null"}, not {model.Error ?? "null"}");
+        }
+
+        if (cell.Destination != Destination.Inline)
+        {
+            void Expect(string code, bool present)
+            {
+                if (warnings.Contains(code) != present)
+                {
+                    problems.Add($"M-warnings {code} is {(present ? "missing" : "present")}");
+                }
+            }
+
+            Expect("result-lost", model.State == "lost");
+            Expect("spill-refused", model.SpillTried && cell.SpillFault == DeliveryFault.VolumeRefused);
+            Expect("result-spilled", cell.Destination == Destination.Spill && model.State == "file");
+            Expect("incomplete-file-left", model.OnDisk.Any(file => file.Outcome == Expected.Incomplete));
+            if (diskSpill.Count > 0 && messages.Any(message => message.Contains("none is left there", StringComparison.Ordinal)))
+            {
+                problems.Add("M-warnings a warning says no spill file is left, but one is");
+            }
         }
 
         // I3: every file on disk is named in the envelope, and every named file is on disk.
@@ -459,8 +570,7 @@ public sealed class DeliveryFaultMatrixTests
             }
         }
 
-        // I2: matched only when the content read back in full and every step succeeded;
-        // the delivery state is the state of the best file named.
+        // I2: matched only when the content read back in full and every step succeeded.
         foreach (var entry in entries.Where(entry => Label(entry) is "matched" or "matched_unconfirmed"))
         {
             var path = PathOf(entry);
@@ -481,26 +591,6 @@ public sealed class DeliveryFaultMatrixTests
             {
                 problems.Add($"I2 {Name(path)} is labeled matched without every step succeeding: {record}");
             }
-        }
-
-        var best = primary is null ? null : Label(primary);
-        var state = cell.Destination == Destination.Inline ? "inline" : best switch
-        {
-            "matched" => "file",
-            "matched_unconfirmed" => "file_unconfirmed",
-            "not_read_back" => "file_unverified",
-            _ => "lost"
-        };
-        if (delivery != state)
-        {
-            problems.Add($"I2 result_delivery is {delivery}, but the best file named is {best ?? "none"}");
-        }
-
-        string[] ranking = ["matched", "matched_unconfirmed", "not_read_back", "incomplete"];
-        if (primary is not null && entries.Skip(1).Any(entry =>
-                Array.IndexOf(ranking, Label(entry)) < Array.IndexOf(ranking, Label(primary))))
-        {
-            problems.Add("I2 data.result_file is not the best file named");
         }
 
         // I4: a file known to be incomplete is labeled so, with no SHA-256 and an
@@ -535,24 +625,14 @@ public sealed class DeliveryFaultMatrixTests
         }
 
         // I5: exit code 12 only when completion was established; otherwise the evidence's
-        // outcome (exit code 10 here) stands and the failed delivery is recorded beside it.
-        var deliveredAsAsked = cell.Destination == Destination.Inline
-            ? delivery == "inline"
-            : delivery == "file" && (cell.Destination != Destination.Output || Same(primary is null ? null : PathOf(primary), output));
-        var wanted = !cell.CompletionEstablished ? 10 : deliveredAsAsked ? 0 : 12;
-        if (run.ExitCode != wanted)
+        // outcome (exit code 10 here) stands, and the failed delivery is recorded beside it
+        // (M-error above).
+        if (run.ExitCode != model.Exit)
         {
-            problems.Add($"I5 exit code {run.ExitCode}, not {wanted} ({delivery})");
+            problems.Add($"I5 exit code {run.ExitCode}, not {model.Exit} ({delivery})");
         }
 
-        if (deliveredAsAsked == (data?["result_delivery_error"] is not null))
-        {
-            problems.Add($"I5 result_delivery_error is {data?["result_delivery_error"]?.GetValue<string>() ?? "null"} " +
-                $"for a delivery that {(deliveredAsAsked ? "succeeded" : "failed")}");
-        }
-
-        var said = string.Join(' ', CallOutcomeTests.Guidance(run)) + " " + string.Join(' ',
-            run.Envelope["warnings"]!.AsArray().Select(warning => warning!["message"]!.GetValue<string>()));
+        var said = string.Join(' ', CallOutcomeTests.Guidance(run)) + " " + string.Join(' ', messages);
         if (!cell.CompletionEstablished && said.Contains("The operation completed", StringComparison.Ordinal))
         {
             problems.Add("I5 a message claims a completion that was not established");
@@ -573,5 +653,100 @@ public sealed class DeliveryFaultMatrixTests
         }
 
         return problems;
+    }
+
+    // What a destination's file holds after its fault, from the fault alone.
+    internal enum Expected
+    {
+        NotCreated,
+        Matched,
+        MatchedUnconfirmed,
+        NotReadBack,
+        Incomplete
+    }
+
+    internal static Expected Outcome(DeliveryFault fault) => fault switch
+    {
+        DeliveryFault.DirectoryOpen or DeliveryFault.Permissions or DeliveryFault.VolumeRefused or
+            DeliveryFault.FileCreate => Expected.NotCreated,
+        DeliveryFault.HandOverFinalPath or DeliveryFault.HandOverPathMismatch or DeliveryFault.WriteBeforeAnyByte or
+            DeliveryFault.WriteAfterPrefix or DeliveryFault.ContentMismatch => Expected.Incomplete,
+        DeliveryFault.WriteAfterPayload or DeliveryFault.FlushToDisk or DeliveryFault.Close => Expected.MatchedUnconfirmed,
+        DeliveryFault.ReadBackLength or DeliveryFault.ReadBackRead => Expected.NotReadBack,
+        _ => Expected.Matched
+    };
+
+    private static string LabelOf(Expected outcome) => outcome switch
+    {
+        Expected.Matched => "matched",
+        Expected.MatchedUnconfirmed => "matched_unconfirmed",
+        Expected.NotReadBack => "not_read_back",
+        _ => "incomplete"
+    };
+
+    /// <summary>One file the faults leave on disk, and the bytes it holds.</summary>
+    internal sealed record ExpectedFile(bool Output, Expected Outcome, long Bytes);
+
+    /// <summary>What the injected faults alone say a cell must do.</summary>
+    internal sealed record Model(bool OutputTried, bool SpillTried, bool SpillCreated, IReadOnlyList<ExpectedFile> OnDisk,
+        IReadOnlyList<ExpectedFile> Named, string State, string? Error, int Exit);
+
+    // The delivery rules of the operations page, applied to the faults of one cell.
+    internal static Model Predict(Cell cell, int length)
+    {
+        bool Stays(Expected outcome) => outcome is Expected.Matched or Expected.MatchedUnconfirmed or Expected.NotReadBack ||
+            (outcome == Expected.Incomplete && cell.RemovalFails);
+        long Bytes(Expected outcome, DeliveryFault fault) => outcome != Expected.Incomplete ? length : fault switch
+        {
+            DeliveryFault.WriteAfterPrefix => 3,
+            DeliveryFault.ContentMismatch => length,
+            _ => 0
+        };
+
+        Expected? output = cell.Destination == Destination.Output ? Outcome(cell.OutputFault) : null;
+        // A spill is tried without --output when the result is over the cap, and behind
+        // an --output file that is neither matched nor matched_unconfirmed.
+        var spillTried = cell.Destination == Destination.Spill || output is Expected.NotReadBack or Expected.Incomplete;
+        Expected? spill = spillTried ? Outcome(cell.SpillFault) : null;
+        var onDisk = new List<ExpectedFile>();
+        if (output is { } kept && Stays(kept))
+        {
+            onDisk.Add(new ExpectedFile(true, kept, Bytes(kept, cell.OutputFault)));
+        }
+
+        if (spill is { } spilled && spilled != Expected.NotCreated && Stays(spilled))
+        {
+            onDisk.Add(new ExpectedFile(false, spilled, Bytes(spilled, cell.SpillFault)));
+        }
+
+        // The primary-file rule: matched, then matched_unconfirmed, then not_read_back,
+        // then incomplete; on a tie, the --output file, which is listed first.
+        var named = onDisk.OrderBy(file => file.Outcome).ToList();
+        var state = cell.Destination == Destination.Inline ? "inline" : named.FirstOrDefault()?.Outcome switch
+        {
+            Expected.Matched => "file",
+            Expected.MatchedUnconfirmed => "file_unconfirmed",
+            Expected.NotReadBack => "file_unverified",
+            _ => "lost"
+        };
+        var target = cell.Destination == Destination.Output ? output : spill;
+        var delivered = cell.Destination == Destination.Inline || target == Expected.Matched;
+        var error = delivered ? null
+            : cell.Destination == Destination.Output ? output switch
+            {
+                Expected.MatchedUnconfirmed => "output-finalize-failed",
+                Expected.NotReadBack => "output-verify-failed",
+                _ => "output-write-failed"
+            }
+            : cell.SpillFault == DeliveryFault.VolumeRefused ? "spill-permissions-unsupported"
+            : spill switch
+            {
+                Expected.MatchedUnconfirmed => "spill-finalize-failed",
+                Expected.NotReadBack => "spill-verify-failed",
+                _ => "spill-write-failed"
+            };
+        var exit = !cell.CompletionEstablished ? 10 : delivered ? 0 : 12;
+        return new Model(output is not null, spillTried, spill is { } created && created != Expected.NotCreated, onDisk,
+            named, state, error, exit);
     }
 }

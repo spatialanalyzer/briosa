@@ -15,7 +15,8 @@ internal sealed record BridgeEnvironment(
     IResultFileSystem Files,
     string SpillBase,
     IReadOnlyList<string> SpillComponents,
-    TimeProvider Time)
+    TimeProvider Time,
+    Func<byte[], byte[]>? Sha256 = null)
 {
     public static BridgeEnvironment Default { get; } = new(ResultFileSystem.Instance, ResultFileSystem.DefaultSpillBase,
         ResultFileSystem.DefaultSpillComponents, TimeProvider.System);
@@ -74,7 +75,7 @@ internal sealed partial class BridgeEngine
         ArgumentNullException.ThrowIfNull(environment);
         _endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
         _delivery = new ResultDelivery(environment.Files, environment.SpillBase, environment.SpillComponents,
-            environment.Time);
+            environment.Time, environment.Sha256);
     }
 
     public static bool IsOperationId(string? text) => text is { Length: <= 128 } && OperationIdPattern().IsMatch(text);
@@ -301,8 +302,9 @@ internal sealed partial class BridgeEngine
                     data["result_file"] = ResultDelivery.ReservationLeft(output!.Path);
                 }
 
-                envelope.Warn("output-reservation-left", "The --output file was created before the call, received " +
-                    "no result, and could not be removed. It is empty; delete it.");
+                // The path is the caller's own --output, resolved; never text from the server.
+                envelope.Warn("output-reservation-left", "The --output file " + output!.Path + " was created " +
+                    "before the call, received no result, and could not be removed. It is empty; delete it.");
             }
         }
     }
@@ -441,11 +443,10 @@ internal sealed partial class BridgeEngine
         }
         catch (Exception)
         {
-            // Only formatting the result can throw here, before any file is written: an
-            // --output reservation is still empty, and is removed (or named) on release.
-            data["result_delivery"] = "lost";
-            data["result_delivery_error"] = "result-format-failed";
-            envelope.Warn("result-lost", "The result is not in this envelope, and no file this call left holds it in full.");
+            // Delivery reports its own failures, formatting included, and never throws by
+            // design; this only marks a defect as a failed delivery. Nothing delivery
+            // already put in data is removed, so a file it named stays named.
+            data["result_delivery_error"] ??= "result-report-failed";
             delivered = false;
         }
 

@@ -28,17 +28,25 @@ internal sealed class ResultDelivery
         "The spill directory is on a volume that does not keep file permissions, so the CLI did not write the " +
         "result there, where other users could read it.";
 
+    /// <summary>The warning given whenever the delivery state is <c>lost</c>.</summary>
+    public const string ResultLostMessage =
+        "The result is not in this envelope, and no file this call left holds it in full.";
+
     private readonly IResultFileSystem _files;
     private readonly string _spillBase;
     private readonly IReadOnlyList<string> _spillComponents;
     private readonly TimeProvider _time;
+    private readonly Func<byte[], byte[]> _sha256;
 
-    public ResultDelivery(IResultFileSystem files, string spillBase, IReadOnlyList<string> spillComponents, TimeProvider time)
+    /// <summary>Tests may replace the SHA-256 computation, to make it fail.</summary>
+    public ResultDelivery(IResultFileSystem files, string spillBase, IReadOnlyList<string> spillComponents, TimeProvider time,
+        Func<byte[], byte[]>? sha256 = null)
     {
         _files = files;
         _spillBase = spillBase;
         _spillComponents = spillComponents;
         _time = time;
+        _sha256 = sha256 ?? SHA256.HashData;
     }
 
     /// <summary>
@@ -112,39 +120,83 @@ internal sealed class ResultDelivery
     /// message here claims a completion that evidence did not establish.
     /// </summary>
     /// <remarks>
-    /// Everything reported comes from one record per file this call wrote: what reading
-    /// it back showed, whether a later step reported an error, and whether it is still
-    /// on disk. Nothing else is consulted, so every combination of failures is reported
-    /// by the same rules; DeliveryFaultMatrixTests checks the delivery invariants on
-    /// the operations page across those combinations.
+    /// Everything that can fail without touching a file runs first: formatting the
+    /// result, summarizing it, and computing its SHA-256. A formatting failure is
+    /// reported before any file exists; a SHA-256 that cannot be computed only leaves
+    /// that field empty. Once a file exists, the writes and the spill catch every
+    /// failure, and the report is built in memory from one record per file this call
+    /// wrote: what reading it back showed, whether a later step reported an error, and
+    /// whether it is still on disk. Nothing else is consulted, so every combination of
+    /// failures is reported by the same rules; DeliveryFaultMatrixTests checks the
+    /// delivery invariants on the operations page across those combinations.
     /// </remarks>
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types",
+        Justification = "A result that cannot be formatted is reported as such, before any file exists.")]
     public bool Deliver(IMessage result, string operationId, ResultFile? output, int maximumInlineBytes,
         bool completionEstablished, BridgeEnvelope envelope, JsonObject data)
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(envelope);
         ArgumentNullException.ThrowIfNull(data);
-        var json = ProtocolJson.Format(result);
-        var bytes = Encoding.UTF8.GetBytes(json);
+        byte[] bytes;
+        JsonNode? inline = null;
+        JsonObject? summary = null;
+        try
+        {
+            var json = ProtocolJson.Format(result);
+            bytes = Encoding.UTF8.GetBytes(json);
+            if (output is null && bytes.Length <= maximumInlineBytes)
+            {
+                inline = JsonNode.Parse(json);
+            }
+            else
+            {
+                summary = Summarize(result);
+            }
+        }
+        catch (Exception)
+        {
+            data["result_delivery"] = "lost";
+            data["result_delivery_error"] = "result-format-failed";
+            envelope.Warn("result-lost", ResultLostMessage);
+            return false;
+        }
+
         data["result_message"] = result.Descriptor.FullName;
         data["result_json_bytes"] = bytes.Length;
         data["inline_cap_bytes"] = maximumInlineBytes;
-        if (output is null && bytes.Length <= maximumInlineBytes)
+        if (inline is not null)
         {
             data["result_delivery"] = "inline";
-            data["result"] = JsonNode.Parse(json);
+            data["result"] = inline;
             return true;
         }
 
         data["result"] = null;
-        data["result_summary"] = Summarize(result);
+        data["result_summary"] = summary;
+        var sha256 = Sha256(bytes);
         var requested = output is null ? null : Write(output, bytes, requested: true, "output_requested");
         // A requested file that read back as the whole result is not copied; any other
         // outcome of it is backed by a spill.
         var spill = requested is { Content: FileContent.Matched or FileContent.MatchedUnconfirmed }
             ? null
             : Spill(bytes, operationId, output is null ? "inline_cap_exceeded" : "output_write_failed");
-        return Report(bytes, requested, spill, completionEstablished, envelope, data);
+        return Report(bytes.Length, sha256, requested, spill, completionEstablished, envelope, data);
+    }
+
+    // The result's SHA-256 in lowercase hex, or null when it cannot be computed.
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types",
+        Justification = "A SHA-256 that cannot be computed leaves that field empty; it never loses a file.")]
+    private string? Sha256(byte[] bytes)
+    {
+        try
+        {
+            return Convert.ToHexStringLower(_sha256(bytes));
+        }
+        catch (Exception)
+        {
+            return null;
+        }
     }
 
     // What a file this call wrote holds, as far as the CLI can tell.
@@ -178,8 +230,13 @@ internal sealed class ResultDelivery
         // The volume keeps no permissions, so nothing was created.
         Refused,
 
-        // No spill file could be created and handed over; File names one left behind.
-        NotCreated
+        // No spill file could be created, or one was created and removed when it failed
+        // its checks: nothing is left.
+        NotCreated,
+
+        // A spill file was created but failed its checks before anything was written to
+        // it, and could not be removed: File names it.
+        NotHandedOver
     }
 
     private sealed record SpillAttempt(SpillFailure Failure, WrittenFile? File);
@@ -202,10 +259,11 @@ internal sealed class ResultDelivery
             reported = true;
         }
 
-        var content = file.ReadBack(bytes);
+        // The read-back's own measurement is the incomplete file's size: no one else can
+        // write to it while this call holds it.
+        var content = file.ReadBack(bytes, out var length);
         if (content == ResultContent.Incomplete)
         {
-            var length = file.Length();
             var removed = file.Remove();
             return new WrittenFile(file.Path, requested, FileContent.Incomplete, !removed, length, reason);
         }
@@ -246,7 +304,7 @@ internal sealed class ResultDelivery
         catch (ResultFileLeftException left)
         {
             // Created, but neither handed over nor removed: nothing was written to it.
-            return new SpillAttempt(SpillFailure.NotCreated,
+            return new SpillAttempt(SpillFailure.NotHandedOver,
                 new WrittenFile(left.Path, Requested: false, FileContent.Incomplete, OnDisk: true, BytesOnDisk: 0, reason));
         }
         catch (Exception)
@@ -257,9 +315,11 @@ internal sealed class ResultDelivery
         return new SpillAttempt(SpillFailure.None, Write(file, bytes, requested: false, reason));
     }
 
-    // Everything the envelope says about the delivery, derived from the files alone.
-    private static bool Report(byte[] bytes, WrittenFile? requested, SpillAttempt? spill, bool completionEstablished,
-        BridgeEnvelope envelope, JsonObject data)
+    // Everything the envelope says about the delivery, derived from the files alone, in
+    // memory: nothing here calls out, so nothing here can fail and drop a file. The files
+    // are named first.
+    private static bool Report(int length, string? sha256, WrittenFile? requested, SpillAttempt? spill,
+        bool completionEstablished, BridgeEnvelope envelope, JsonObject data)
     {
         // Every file this call left on disk, best copy first; on a tie, the --output file.
         var left = new[] { requested, spill?.File }.OfType<WrittenFile>().Where(file => file.OnDisk)
@@ -271,8 +331,8 @@ internal sealed class ResultDelivery
         }
         else
         {
-            var reference = Reference(primary, bytes);
-            reference["other_files"] = new JsonArray([.. left.Skip(1).Select(file => (JsonNode)Reference(file, bytes))]);
+            var reference = Reference(primary, length, sha256);
+            reference["other_files"] = new JsonArray([.. left.Skip(1).Select(file => (JsonNode)Reference(file, length, sha256))]);
             data["result_file"] = reference;
         }
 
@@ -303,12 +363,12 @@ internal sealed class ResultDelivery
                 break;
             case SpillFailure.NotCreated:
                 envelope.Warn("spill-write-failed", subject + " could not be written to the spill directory: no " +
-                    "spill file could be created.");
-                if (spill.File is not null)
-                {
-                    WarnLeft(envelope);
-                }
-
+                    "spill file could be created and checked, and none is left there.");
+                break;
+            case SpillFailure.NotHandedOver:
+                envelope.Warn("spill-write-failed", subject + " could not be written to the spill directory: a " +
+                    "new spill file failed its checks before anything was written to it, and could not be removed.");
+                WarnLeft(envelope);
                 break;
             case SpillFailure.None:
                 Warn(envelope, spill.File!, subject, spilled: requested is null);
@@ -317,7 +377,12 @@ internal sealed class ResultDelivery
 
         if (primary is null or { Content: FileContent.Incomplete })
         {
-            envelope.Warn("result-lost", "The result is not in this envelope, and no file this call left holds it in full.");
+            envelope.Warn("result-lost", ResultLostMessage);
+        }
+        else if (sha256 is null)
+        {
+            envelope.Warn("result-hash-unavailable", "The result's SHA-256 could not be computed, so the files in " +
+                "data.result_file carry none. Each was still read back and compared byte for byte with the result.");
         }
 
         return delivered;
@@ -384,8 +449,9 @@ internal sealed class ResultDelivery
             };
 
     // A file that may hold the result carries the result's size and SHA-256, to check it
-    // against; one known to be incomplete carries its size on disk and no SHA-256.
-    private static JsonObject Reference(WrittenFile file, byte[] bytes) => file.Content == FileContent.Incomplete
+    // against, or a null SHA-256 when it could not be computed; one known to be
+    // incomplete carries its size on disk and no SHA-256.
+    private static JsonObject Reference(WrittenFile file, int length, string? sha256) => file.Content == FileContent.Incomplete
         ? new JsonObject
         {
             ["path"] = file.Path,
@@ -397,8 +463,8 @@ internal sealed class ResultDelivery
         : new JsonObject
         {
             ["path"] = file.Path,
-            ["bytes"] = bytes.Length,
-            ["sha256"] = Convert.ToHexStringLower(SHA256.HashData(bytes)),
+            ["bytes"] = length,
+            ["sha256"] = sha256,
             ["reason"] = file.Reason,
             ["verification"] = file.Content switch
             {

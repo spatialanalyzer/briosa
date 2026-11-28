@@ -247,6 +247,25 @@ internal static partial class NativeMethods
         ref FileDispositionInfo information,
         uint bufferSize);
 
+    [LibraryImport("kernel32.dll", EntryPoint = "FlushFileBuffers", SetLastError = true)]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool FlushFileBuffersNative(SafeFileHandle file);
+
+    /// <summary>
+    /// Asks Windows to write the file's buffered data and metadata to the storage
+    /// device, and throws when it reports any failure. .NET's own helper behind
+    /// <see cref="RandomAccess.FlushToDisk"/> treats <c>ERROR_ACCESS_DENIED</c> as success.
+    /// </summary>
+    public static void FlushFileBuffers(SafeFileHandle file)
+    {
+        if (!FlushFileBuffersNative(file))
+        {
+            throw new IOException("The file could not be flushed to disk.",
+                unchecked((int)0x8007_0000) | Marshal.GetLastPInvokeError());
+        }
+    }
+
     [LibraryImport("kernel32.dll", EntryPoint = "GetFinalPathNameByHandleW", SetLastError = true)]
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     private static unsafe partial uint GetFinalPathNameByHandle(SafeFileHandle file, char* path, uint length, uint flags);
