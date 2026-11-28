@@ -156,21 +156,21 @@ The twelve published `0.2.0`/`0.3.0` packages remain retired from the live gate.
 Every report's server artifact hash matches the published conformance ZIP, and
 the server manifest inside both ZIPs records compatibility 3.1. The reports are
 stored with the repository's LF line endings; their content is otherwise
-unchanged from the CI artifacts. The matrix now records 3.1 in `contract` and
-declares the published `0.5.0` and `0.5.1` clients. That brings the recorded
+unchanged from the CI artifacts. The matrix then recorded 3.1 in `contract` and
+declared the published `0.5.0` and `0.5.1` clients, bringing the recorded
 total to 162 evidence-backed pairs: 120 released-package pairs (36 with Server
 0.6.1 to 0.8.0, 54 with Server 0.9.x, and 30 with Server 0.10.x; 930 accepted
 scenario runs) and 42 development-candidate pairs. No licensed-SA coverage is
 implied.
 
-The two published JavaScript `0.5.2` packages, one per exact target, now join
+The two published JavaScript `0.5.2` packages, one per exact target, then joined
 the gate beside `0.5.1`. Client 0.5.2 has the same API as 0.5.1 and the same
 `requiredContract`, and raises the HTTP/2 receive window for the known issue in
 [#450](https://github.com/spatialanalyzer/briosa/issues/450). The packages were
-published from the briosa-js `v0.5.2` tag `a4c3af89`, which is now the current
+published from the briosa-js `v0.5.2` tag `a4c3af89`, which became the current
 JavaScript fixture source. Since `4e5ab1ce`, the fixture's `eng/`, `tools/`,
 `conformance.lock.json` and `tests/fixtures/` files are unchanged and the
-package manifests changed only their version. `4e5ab1ce` moves to
+package manifests changed only their version. `4e5ab1ce` moved to
 `historicalFixtureSources` with its `large-result` list, so the 2026-11-27
 JavaScript reports stay verifiable. Like the `0.5.1` packages before them, the
 `0.5.2` packages run on the current fixture without a pin of their own, and so
@@ -179,20 +179,40 @@ do the JavaScript `0.5.0` and `0.5.1` packages. The
 fails unless the packaged runner reports `large-result` as passed exactly once.
 The gate runs twenty jobs: six rejections and fourteen published accepts. The
 Server 0.10.1 release gate did not run client 0.5.2, so the matrix records no
-`0.5.2` pair and does not declare it until a release gate's reports for it are
-recorded.
+`0.5.2` pair for Server 0.10.1.
 
-For the planned Server 0.10.2, each target's `compatibility.json` records
-`major` 3 and `revision` 2, for the request validation detail
+For Server 0.10.2, each target's `compatibility.json` records `major` 3 and
+`revision` 2, for the request validation detail
 ([#442](https://github.com/spatialanalyzer/briosa/issues/442)), `mp_step` in
 discovery and the bundled descriptor set
 ([#444](https://github.com/spatialanalyzer/briosa/issues/444)), and the caller
 restriction header ([#443](https://github.com/spatialanalyzer/briosa/issues/443)).
 The published `0.5.0` and `0.5.1` clients and the JavaScript `0.5.2` clients,
-whose `requiredContract` is 3.0, work with it, so the gate keeps running them
-as compatible clients, and the `0.4.0` packages still verify pre-launch
-rejection. The matrix keeps recording 3.1 in `contract` until the 0.10.2
-release gate's reports are recorded.
+whose `requiredContract` is 3.0, work with it, and the `0.4.0` packages still
+verify pre-launch rejection. Its release gate ran the twenty jobs described
+above, unchanged: the accepted jobs used the fixtures `f03d2c8c`, `a4c3af89`,
+and `f101fcdf`, and the `0.4.0` jobs kept their explicit pins (`e6df2cab`,
+`d67ba80f`, and `6ee825e4`).
+
+The released Server `0.10.2` (source `5ca27a84ed7f80e7dd12cc0e6c0238e71090421e`)
+release gate supplied the 2026-11-28 reports from
+[run 46093557613](https://github.com/spatialanalyzer/briosa/actions/runs/46093557613),
+in which no job was rerun: 20 released-package pairs. It is the first release
+gate that ran the JavaScript `0.5.2` packages. All six published `0.4.0`
+packages rejected the release before launch, proving installation/startup
+rejection only. On each target, the six published `0.5.0` and `0.5.1` packages
+and the JavaScript `0.5.2` package passed all 15 required fake-SDK scenarios and
+`large-result`, for 224 scenario runs across both targets.
+The twelve published `0.2.0`/`0.3.0` packages remain retired from the live gate.
+Every report's server artifact hash matches the published conformance ZIP, and
+the server manifest inside both ZIPs records compatibility 3.2. The reports are
+stored with the repository's LF line endings; their content is otherwise
+unchanged from the CI artifacts. The matrix now records 3.2 in `contract` and
+declares the published `0.5.0` and `0.5.1` clients and the JavaScript `0.5.2`
+client. That brings the recorded total to 182 evidence-backed pairs: 140
+released-package pairs (36 with Server 0.6.1 to 0.8.0, 54 with Server 0.9.x, and
+50 with Server 0.10.x; 1,154 accepted scenario runs) and 42
+development-candidate pairs. No licensed-SA coverage is implied.
 
 Each new tested pair records `expectedCompatibility`. An accepted pair passed
 the fake-SDK scenarios listed in its report; a rejected pair proves
