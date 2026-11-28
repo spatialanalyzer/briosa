@@ -133,7 +133,7 @@ internal sealed class ResultDelivery
             : "The call's outcome is not established, and the result that came back";
         if (output is not null)
         {
-            if (TryWrite(output, bytes))
+            if (TryWrite(output, bytes, discardOnFailure: false))
             {
                 data["result_delivery"] = "file";
                 data["result_file"] = FileReference(output.Path, bytes, "output_requested");
@@ -191,7 +191,9 @@ internal sealed class ResultDelivery
             var name = string.Create(CultureInfo.InvariantCulture,
                 $"{_time.GetUtcNow():yyyyMMdd'T'HHmmssfff'Z'}-{operationId.Replace('.', '-')}-{Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(4))}.json");
             var file = _files.CreatePrivate(_spillBase, _spillComponents, name);
-            return TryWrite(file, bytes) ? FileReference(file.Path, bytes, reason) : null;
+            // A spill file that could not be written in full is removed, so no partial
+            // file can pass for a result.
+            return TryWrite(file, bytes, discardOnFailure: true) ? FileReference(file.Path, bytes, reason) : null;
         }
         catch (SpillPermissionsUnsupportedException)
         {
@@ -205,7 +207,9 @@ internal sealed class ResultDelivery
         }
     }
 
-    private static bool TryWrite(ResultFile file, byte[] bytes)
+    // An --output file the caller named is kept as far as it was written, as the
+    // documentation says; a spill file is removed through its own handle.
+    private static bool TryWrite(ResultFile file, byte[] bytes, bool discardOnFailure)
     {
         try
         {
@@ -216,7 +220,22 @@ internal sealed class ResultDelivery
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or NotSupportedException)
         {
-            file.Dispose();
+            try
+            {
+                if (discardOnFailure)
+                {
+                    file.Discard();
+                }
+                else
+                {
+                    file.Dispose();
+                }
+            }
+            catch (Exception cleanup) when (cleanup is IOException or UnauthorizedAccessException)
+            {
+                file.Dispose();
+            }
+
             return false;
         }
     }

@@ -16,12 +16,8 @@ internal static partial class NativeMethods
     public const uint GenericWrite = 0x4000_0000;
     public const uint Delete = 0x0001_0000;
     public const uint FileReadAttributes = 0x0000_0080;
-    public const uint FileListDirectory = 0x0000_0001;
-    public const uint FileAddFile = 0x0000_0002;
-    public const uint FileAddSubdirectory = 0x0000_0004;
     public const uint FileTraverse = 0x0000_0020;
     public const uint Synchronize = 0x0010_0000;
-    public const uint ReadControl = 0x0002_0000;
     public const uint WriteDac = 0x0004_0000;
     public const uint WriteOwner = 0x0008_0000;
 
@@ -80,6 +76,33 @@ internal static partial class NativeMethods
         uint* fileSystemFlags,
         char* fileSystemName,
         uint fileSystemNameSize);
+
+    private const uint OwnerSecurityInformation = 0x0000_0001;
+    private const uint DaclSecurityInformation = 0x0000_0004;
+
+    [LibraryImport("advapi32.dll", EntryPoint = "SetKernelObjectSecurity", SetLastError = true)]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static unsafe partial bool SetKernelObjectSecurity(SafeFileHandle handle, uint securityInformation,
+        byte* securityDescriptor);
+
+    /// <summary>
+    /// Writes the owner and the DACL of a self-relative security descriptor to the
+    /// object the handle holds, and to nothing else: unlike SetSecurityInfo, it does not
+    /// propagate inheritable entries to what is already inside a directory. The DACL's
+    /// protection comes from the descriptor's own control flags.
+    /// </summary>
+    public static unsafe void SetOwnerAndAccessList(SafeFileHandle handle, byte[] securityDescriptor)
+    {
+        fixed (byte* descriptor = securityDescriptor)
+        {
+            if (!SetKernelObjectSecurity(handle, OwnerSecurityInformation | DaclSecurityInformation, descriptor))
+            {
+                throw new IOException("The spill directory's permissions could not be set.",
+                    unchecked((int)0x8007_0000) | Marshal.GetLastPInvokeError());
+            }
+        }
+    }
 
     [LibraryImport("ntdll.dll", EntryPoint = "NtCreateFile")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]

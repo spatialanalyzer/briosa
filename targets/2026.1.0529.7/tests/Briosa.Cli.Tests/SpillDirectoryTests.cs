@@ -217,7 +217,7 @@ public sealed class SpillDirectoryTests
         Assert.False(Directory.Exists(Path.Combine(environment.Root, TestEnvironment.SpillComponents[0])));
     }
 
-    private static void AssertPrivate(FileSystemSecurity security, InheritanceFlags inheritance)
+    internal static void AssertPrivate(FileSystemSecurity security, InheritanceFlags inheritance)
     {
         using var identity = WindowsIdentity.GetCurrent();
         var system = new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null);

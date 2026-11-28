@@ -24,9 +24,11 @@ internal interface IResultFileSystem
     /// path, as itself rather than what a reparse point leads to; it is refused if it
     /// is a reparse point or not a directory, and held open so it cannot be renamed
     /// until the file exists. Only then does the last component get, through its held
-    /// handle, a protected DACL for the current user and SYSTEM only. The file is
-    /// created relative to that handle with its own protected DACL for the same two,
-    /// and must resolve to exactly the base's final path and the components.
+    /// handle, a protected DACL for the current user and SYSTEM only, set on it alone:
+    /// nothing already inside it changes. The file is created relative to that handle
+    /// with its own protected DACL for the same two, and must resolve to exactly the
+    /// base's final path and the components. A file it created is removed through its
+    /// own handle if anything fails before the file is handed over.
     /// </summary>
     ResultFile CreatePrivate(string baseDirectory, IReadOnlyList<string> components, string fileName);
 }
@@ -104,6 +106,11 @@ internal sealed class ResultFile : IDisposable
     /// <summary>Removes the file through its handle, whatever it holds; then closes it.</summary>
     public void Discard()
     {
+        if (IsClosed)
+        {
+            return;
+        }
+
         try
         {
             NativeMethods.DeleteOnClose(Handle);
@@ -122,8 +129,15 @@ internal sealed class ResultFile : IDisposable
         }
 
         IsClosed = true;
-        _stream.Dispose();
-        Handle.Dispose();
+        try
+        {
+            _stream.Dispose();
+        }
+        finally
+        {
+            // The handle closes even when the stream fails to.
+            Handle.Dispose();
+        }
     }
 }
 
@@ -132,16 +146,22 @@ internal sealed class ResultFileSystem : IResultFileSystem
 {
     private readonly Func<SafeFileHandle, bool> _keepsPermissions;
     private readonly Action<int>? _afterHeld;
+    private readonly Func<SafeFileHandle, string> _finalPath;
+    private readonly Func<SafeFileHandle, FileAttributes> _attributes;
 
     /// <summary>
     /// The real file system. Tests may replace the check that a volume keeps file
-    /// permissions, and act each time another spill directory is held: the argument
-    /// is how many are held, the base included.
+    /// permissions, act each time another spill directory is held (the argument is how
+    /// many are held, the base included), and replace the queries of a handle's final
+    /// path and attributes, to make them fail.
     /// </summary>
-    internal ResultFileSystem(Func<SafeFileHandle, bool>? keepsPermissions = null, Action<int>? afterHeld = null)
+    internal ResultFileSystem(Func<SafeFileHandle, bool>? keepsPermissions = null, Action<int>? afterHeld = null,
+        Func<SafeFileHandle, string>? finalPath = null, Func<SafeFileHandle, FileAttributes>? attributes = null)
     {
         _keepsPermissions = keepsPermissions ?? NativeMethods.KeepsPermissions;
         _afterHeld = afterHeld;
+        _finalPath = finalPath ?? NativeMethods.FinalPath;
+        _attributes = attributes ?? File.GetAttributes;
     }
 
     public static ResultFileSystem Instance { get; } = new();
@@ -169,8 +189,38 @@ internal sealed class ResultFileSystem : IResultFileSystem
             throw new IOException("The result file could not be created.", unchecked((int)0x8007_0000) | error);
         }
 
-        return new ResultFile(path, handle);
+        return Adopt(path, handle);
     }
+
+    // A file this process just created becomes a ResultFile, or is removed through its
+    // own handle: nothing it created is left behind.
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope",
+        Justification = "The handle passes to the returned file, or is removed and disposed here on failure.")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types",
+        Justification = "Removing a just-created file is best effort; the original failure is rethrown.")]
+    private static ResultFile Adopt(Func<SafeFileHandle, string> path, SafeFileHandle handle)
+    {
+        try
+        {
+            return new ResultFile(path(handle), handle);
+        }
+        catch
+        {
+            try
+            {
+                NativeMethods.DeleteOnClose(handle);
+            }
+            catch (Exception)
+            {
+                // The original failure is what the caller needs to see.
+            }
+
+            handle.Dispose();
+            throw;
+        }
+    }
+
+    private static ResultFile Adopt(string path, SafeFileHandle handle) => Adopt(_ => path, handle);
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope",
         Justification = "The verified file passes to the caller; any other is discarded through its own handle.")]
@@ -201,7 +251,7 @@ internal sealed class ResultFileSystem : IResultFileSystem
             // Known by construction to be the last component under the base it was
             // reached from, whatever any path leads to by now.
             ProtectDirectory(held[^1], user);
-            var expected = System.IO.Path.Combine([NativeMethods.FinalPath(held[0]), .. components, fileName]);
+            var expected = System.IO.Path.Combine([_finalPath(held[0]), .. components, fileName]);
             ResultFile? file = CreateChildFile(held[^1], fileName, PrivateFileSecurity(user));
             try
             {
@@ -230,12 +280,13 @@ internal sealed class ResultFileSystem : IResultFileSystem
         }
     }
 
-    // Access to look at a directory and to create the next one in it.
-    private const uint DirectoryAccess =
-        NativeMethods.FileReadAttributes | NativeMethods.FileTraverse | NativeMethods.FileAddSubdirectory;
+    // Access to look at a directory and pass through it. Creating the next directory, or
+    // the file, in it needs no right on this handle: the file system checks the
+    // directory's own permissions when, and only when, something is created.
+    private const uint DirectoryAccess = NativeMethods.FileReadAttributes | NativeMethods.FileTraverse;
 
     // The base, opened by path once, following a redirection of the user's folder.
-    private static SafeFileHandle OpenBase(string path)
+    private SafeFileHandle OpenBase(string path)
     {
         var handle = NativeMethods.CreateFile(path, DirectoryAccess,
             NativeMethods.FileShareRead | NativeMethods.FileShareWrite | NativeMethods.FileShareDelete,
@@ -251,39 +302,27 @@ internal sealed class ResultFileSystem : IResultFileSystem
     }
 
     // A managed component, opened or created relative to its held parent, as itself,
-    // and without delete sharing, so it cannot be renamed while held. The directory
-    // that will hold the file is also opened to have its permissions set.
-    private static SafeFileHandle OpenChild(SafeFileHandle parent, string name, bool last) =>
+    // and without delete sharing, so it cannot be renamed while held. Only the directory
+    // that will hold the file is opened to have its owner and permissions set. A
+    // directory this creates is kept, as after a successful spill.
+    private SafeFileHandle OpenChild(SafeFileHandle parent, string name, bool last) =>
         RequireDirectory(NativeMethods.OpenOrCreateChildDirectory(parent, name,
-            DirectoryAccess | (last
-                ? NativeMethods.FileAddFile | NativeMethods.ReadControl | NativeMethods.WriteDac | NativeMethods.WriteOwner
-                : 0),
+            DirectoryAccess | (last ? NativeMethods.WriteDac | NativeMethods.WriteOwner : 0),
             NativeMethods.FileShareRead | NativeMethods.FileShareWrite), managed: true);
 
-    private static SafeFileHandle RequireDirectory(SafeFileHandle handle, bool managed)
+    // The handle is returned only for a directory that is not a reparse point; on any
+    // failure, including of the check itself, it is closed here.
+    private SafeFileHandle RequireDirectory(SafeFileHandle handle, bool managed)
     {
-        var attributes = File.GetAttributes(handle);
-        if ((attributes & FileAttributes.Directory) == 0 || (managed && (attributes & FileAttributes.ReparsePoint) != 0))
-        {
-            handle.Dispose();
-            throw new IOException("A spill directory is a reparse point or not a directory.");
-        }
-
-        return handle;
-    }
-
-    // The new file, created relative to the held directory: delete access to remove it
-    // through this handle, and no sharing, so no one else can open, rename, or replace
-    // it while it is held. Its reported path is where it actually is.
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope",
-        Justification = "The handle passes to the returned file, or is disposed here on failure.")]
-    private static ResultFile CreateChildFile(SafeFileHandle directory, string fileName, byte[] securityDescriptor)
-    {
-        var handle = NativeMethods.CreateChildFile(directory, fileName, NativeMethods.GenericWrite | NativeMethods.Delete,
-            securityDescriptor);
         try
         {
-            return new ResultFile(NativeMethods.FinalPath(handle), handle);
+            var attributes = _attributes(handle);
+            if ((attributes & FileAttributes.Directory) == 0 || (managed && (attributes & FileAttributes.ReparsePoint) != 0))
+            {
+                throw new IOException("A spill directory is a reparse point or not a directory.");
+            }
+
+            return handle;
         }
         catch
         {
@@ -292,6 +331,13 @@ internal sealed class ResultFileSystem : IResultFileSystem
         }
     }
 
+    // The new file, created relative to the held directory: delete access to remove it
+    // through this handle, and no sharing, so no one else can open, rename, or replace
+    // it while it is held. Its reported path is where it actually is.
+    private ResultFile CreateChildFile(SafeFileHandle directory, string fileName, byte[] securityDescriptor) =>
+        Adopt(_finalPath, NativeMethods.CreateChildFile(directory, fileName,
+            NativeMethods.GenericWrite | NativeMethods.Delete, securityDescriptor));
+
     private static SecurityIdentifier CurrentUser()
     {
         using var identity = WindowsIdentity.GetCurrent();
@@ -299,20 +345,22 @@ internal sealed class ResultFileSystem : IResultFileSystem
     }
 
     // Owned by the current user, with a protected DACL that lets only the user and
-    // SYSTEM in, and that the files created in it inherit.
+    // SYSTEM in, and that what is created in it from now on inherits. It is written to
+    // the held directory alone (SetKernelObjectSecurity), never propagated: files and
+    // directories already inside keep their own owner and access lists.
     private static void ProtectDirectory(SafeFileHandle directory, SecurityIdentifier user)
     {
-        var security = new HandleSecurity();
+        var security = new DirectorySecurity();
         security.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
         security.SetOwner(user);
         foreach (var identity in new[] { user, new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null) })
         {
-            security.AddAccessRule(new AccessRule<FileSystemRights>(identity, FileSystemRights.FullControl,
+            security.AddAccessRule(new FileSystemAccessRule(identity, FileSystemRights.FullControl,
                 InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None,
                 AccessControlType.Allow));
         }
 
-        security.Apply(directory);
+        NativeMethods.SetOwnerAndAccessList(directory, security.GetSecurityDescriptorBinaryForm());
     }
 
     // The new file's own security, independent of anything it would inherit: owned by
@@ -328,9 +376,4 @@ internal sealed class ResultFileSystem : IResultFileSystem
         return security.GetSecurityDescriptorBinaryForm();
     }
 
-    // File-system security written through an open handle rather than a path.
-    private sealed class HandleSecurity() : ObjectSecurity<FileSystemRights>(isContainer: true, ResourceType.FileObject)
-    {
-        public void Apply(SafeHandle handle) => Persist(handle);
-    }
 }

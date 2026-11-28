@@ -319,9 +319,10 @@ public sealed class MapperEnumerationTests(ITestOutputHelper output)
         output.WriteLine($"genuine typed errors: {errors.Length}; mutation sources: {sources.Length}; single changes: {mutations}; " +
             $"producible and accepted: {accepted}; never produced and refused: {refused}; known gaps accepted: {gaps}; " +
             $"failures: {failures.Count}");
-        output.WriteLine("Known gap: the CLI has no per-operation table of the operations whose MP code 4 the server " +
-            "reports as an MP failure, so it accepts code 4 as an MP failure of any operation, and as a partial success " +
-            "followed by an output or mapping failure of those operations too.");
+        output.WriteLine("Known gap: for an operation outside the read-only tier, the CLI accepts code 4 as an MP " +
+            "failure, because it has no per-operation table of the operations whose code 4 the server reports as one, " +
+            "and accepts a partial success followed by an output or mapping failure of those operations. For a served " +
+            "read, code 4 in an MP failure is conflicting evidence: none of those operations is in the read-only tier.");
         foreach (var failure in failures.Take(40))
         {
             output.WriteLine(failure);
