@@ -55,14 +55,29 @@ internal sealed class SpillPermissionsUnsupportedException : IOException
     }
 }
 
+/// <summary>What reading a written result file back through its own handle showed.</summary>
+internal enum ResultContent
+{
+    /// <summary>The file holds exactly the bytes that were meant to be written.</summary>
+    Complete,
+
+    /// <summary>The file is shorter, or its bytes differ: it is known not to hold the result.</summary>
+    Incomplete,
+
+    /// <summary>The file could not be read back, so what it holds is not known.</summary>
+    Unknown
+}
+
 /// <summary>
 /// A result file created by this process and written once. Removing it goes through
 /// its own handle, never through its name, so a file that someone else put at the
-/// same path can never be removed in its place.
+/// same path can never be removed in its place. It is opened for reading too, so
+/// that what was written can be read back before it is trusted.
 /// </summary>
 internal sealed class ResultFile : IDisposable
 {
     private Stream _stream;
+    private Func<SafeFileHandle, byte[], ResultContent> _readBack = ReadBackThroughHandle;
 
     public ResultFile(string path, SafeFileHandle handle)
     {
@@ -81,6 +96,59 @@ internal sealed class ResultFile : IDisposable
 
     /// <summary>Lets a test interpose on writes and on closing.</summary>
     internal void WrapStream(Func<Stream, Stream> wrap) => _stream = wrap(_stream);
+
+    /// <summary>Lets a test make the read-back fail.</summary>
+    internal void ReplaceReadBack(Func<SafeFileHandle, byte[], ResultContent> readBack) => _readBack = readBack;
+
+    /// <summary>
+    /// Reads the file back through its own handle and compares it with
+    /// <paramref name="expected"/>, before the file is closed.
+    /// </summary>
+    public ResultContent ReadBack(byte[] expected) => IsClosed ? ResultContent.Unknown : _readBack(Handle, expected);
+
+    /// <summary>The file's length through its own handle, or null when it cannot be read.</summary>
+    public long? Length()
+    {
+        try
+        {
+            return IsClosed ? null : RandomAccess.GetLength(Handle);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ObjectDisposedException)
+        {
+            return null;
+        }
+    }
+
+    private static ResultContent ReadBackThroughHandle(SafeFileHandle handle, byte[] expected)
+    {
+        try
+        {
+            if (RandomAccess.GetLength(handle) != expected.Length)
+            {
+                return ResultContent.Incomplete;
+            }
+
+            var actual = new byte[expected.Length];
+            var total = 0;
+            while (total < actual.Length)
+            {
+                var read = RandomAccess.Read(handle, actual.AsSpan(total), total);
+                if (read == 0)
+                {
+                    return ResultContent.Incomplete;
+                }
+
+                total += read;
+            }
+
+            return actual.AsSpan().SequenceEqual(expected) ? ResultContent.Complete : ResultContent.Incomplete;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or
+            NotSupportedException or ObjectDisposedException)
+        {
+            return ResultContent.Unknown;
+        }
+    }
 
     /// <summary>Removes the file, through its handle, if nothing was written to it; then closes it.</summary>
     public void DiscardIfEmpty()
@@ -180,7 +248,7 @@ internal sealed class ResultFileSystem : IResultFileSystem
     {
         // Delete access lets the file be removed through this handle; no sharing
         // means no one else can open, rename, or replace it while it is held.
-        var handle = NativeMethods.CreateFile(path, NativeMethods.GenericWrite | NativeMethods.Delete, 0,
+        var handle = NativeMethods.CreateFile(path, NativeMethods.GenericRead | NativeMethods.GenericWrite | NativeMethods.Delete, 0,
             securityDescriptor: null, NativeMethods.CreateNew, NativeMethods.FileAttributeNormal | NativeMethods.FlagWriteThrough);
         if (handle.IsInvalid)
         {
@@ -331,12 +399,13 @@ internal sealed class ResultFileSystem : IResultFileSystem
         }
     }
 
-    // The new file, created relative to the held directory: delete access to remove it
-    // through this handle, and no sharing, so no one else can open, rename, or replace
-    // it while it is held. Its reported path is where it actually is.
+    // The new file, created relative to the held directory: read access to read it
+    // back, delete access to remove it through this handle, and no sharing, so no one
+    // else can open, rename, or replace it while it is held. Its reported path is
+    // where it actually is.
     private ResultFile CreateChildFile(SafeFileHandle directory, string fileName, byte[] securityDescriptor) =>
         Adopt(_finalPath, NativeMethods.CreateChildFile(directory, fileName,
-            NativeMethods.GenericWrite | NativeMethods.Delete, securityDescriptor));
+            NativeMethods.GenericRead | NativeMethods.GenericWrite | NativeMethods.Delete, securityDescriptor));
 
     private static SecurityIdentifier CurrentUser()
     {

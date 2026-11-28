@@ -94,8 +94,33 @@ internal sealed class TestEnvironment : IDisposable
     }
 }
 
-/// <summary>A file system whose writes fail, to prove a completed call reports a failed delivery.</summary>
-internal sealed class FailingWriteFileSystem(Func<string, bool> failsFor) : IResultFileSystem
+/// <summary>Where a <see cref="FailingWriteFileSystem"/> makes a result file fail.</summary>
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "CA1515:Consider making public types internal",
+    Justification = "xUnit theories take it as a parameter of their public test methods.")]
+public enum WriteFault
+{
+    /// <summary>The write fails before any byte reaches the file.</summary>
+    BeforeAnyByte,
+
+    /// <summary>Three bytes reach the file, then the write fails.</summary>
+    AfterPrefix,
+
+    /// <summary>Three bytes reach the file and it is made read-only, so it cannot be removed, then the write fails.</summary>
+    AfterPrefixUnremovable,
+
+    /// <summary>The whole result reaches the file, then the flush fails.</summary>
+    AtFlush,
+
+    /// <summary>The whole result reaches the file and is flushed, then the close fails.</summary>
+    AtClose,
+
+    /// <summary>The whole result reaches the file, but reading it back fails.</summary>
+    ReadBack
+}
+
+/// <summary>A file system whose result files fail at one point, to prove how each failure is delivered.</summary>
+internal sealed class FailingWriteFileSystem(Func<string, bool> failsFor, WriteFault fault = WriteFault.BeforeAnyByte)
+    : IResultFileSystem
 {
     public ResultFile CreateNew(string path) => Wrap(ResultFileSystem.Instance.CreateNew(path));
 
@@ -106,13 +131,17 @@ internal sealed class FailingWriteFileSystem(Func<string, bool> failsFor) : IRes
     {
         if (failsFor(file.Path))
         {
-            file.WrapStream(stream => new FailingStream(stream));
+            file.WrapStream(stream => new FailingStream(stream, fault, file));
+            if (fault == WriteFault.ReadBack)
+            {
+                file.ReplaceReadBack((_, _) => ResultContent.Unknown);
+            }
         }
 
         return file;
     }
 
-    private sealed class FailingStream(Stream inner) : Stream
+    private sealed class FailingStream(Stream inner, WriteFault fault, ResultFile file) : Stream
     {
         public override bool CanRead => false;
 
@@ -124,7 +153,14 @@ internal sealed class FailingWriteFileSystem(Func<string, bool> failsFor) : IRes
 
         public override long Position { get => inner.Position; set => throw new NotSupportedException(); }
 
-        public override void Flush() => inner.Flush();
+        public override void Flush()
+        {
+            inner.Flush();
+            if (fault == WriteFault.AtFlush)
+            {
+                throw new IOException("The flush failed.");
+            }
+        }
 
         public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
 
@@ -132,17 +168,38 @@ internal sealed class FailingWriteFileSystem(Func<string, bool> failsFor) : IRes
 
         public override void SetLength(long value) => throw new NotSupportedException();
 
-        public override void Write(byte[] buffer, int offset, int count) =>
-            throw new IOException("There is not enough space on the disk.");
+        public override void Write(byte[] buffer, int offset, int count) => Write(buffer.AsSpan(offset, count));
 
-        public override void Write(ReadOnlySpan<byte> buffer) =>
-            throw new IOException("There is not enough space on the disk.");
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            switch (fault)
+            {
+                case WriteFault.BeforeAnyByte:
+                    throw new IOException("There is not enough space on the disk.");
+                case WriteFault.AfterPrefix or WriteFault.AfterPrefixUnremovable:
+                    inner.Write(buffer[..Math.Min(3, buffer.Length)]);
+                    inner.Flush();
+                    if (fault == WriteFault.AfterPrefixUnremovable)
+                    {
+                        File.SetAttributes(file.Handle, FileAttributes.ReadOnly);
+                    }
+
+                    throw new IOException("There is not enough space on the disk.");
+                default:
+                    inner.Write(buffer);
+                    break;
+            }
+        }
 
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
                 inner.Dispose();
+                if (fault == WriteFault.AtClose)
+                {
+                    throw new IOException("The close failed.");
+                }
             }
 
             base.Dispose(disposing);

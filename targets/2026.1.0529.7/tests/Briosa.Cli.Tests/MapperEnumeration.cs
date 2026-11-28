@@ -378,11 +378,12 @@ public sealed class MapperEnumerationTests(ITestOutputHelper output)
         return Signature(produced.Operation, produced.ReplaySafety, produced.Reply.Error!.StatusCode, error);
     }
 
-    // The CLI cannot tell the operations whose MP code 4 the server reports as an MP
-    // failure from the others: it accepts code 4 as an MP failure of any operation,
-    // and as a partial success, after which an output or the mapping failed, of
-    // those operations too. Each is accepted here only when the same error with the
-    // other reading of code 4 is one the mapper produces.
+    // Outside the read-only tier, the CLI cannot tell the operations whose MP code 4
+    // the server reports as an MP failure from the others: it accepts code 4 as an MP
+    // failure of such an operation, and a partial success, after which an output or
+    // the mapping failed, of those operations too. For a served read, code 4 in an MP
+    // failure is conflicting evidence. Each gap is accepted here only when the same
+    // error with the other reading of code 4 is one the mapper produces.
     private static bool IsKnownGap(Produced source, StatusCode status, OperationError error, HashSet<string> producible)
     {
         var failsOnFour = GenuineResponses.PartialSuccessFailures.Contains(source.Operation.OperationId);

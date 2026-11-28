@@ -13,6 +13,7 @@ namespace Briosa.Cli.Engine;
 /// </summary>
 internal static partial class NativeMethods
 {
+    public const uint GenericRead = 0x8000_0000;
     public const uint GenericWrite = 0x4000_0000;
     public const uint Delete = 0x0001_0000;
     public const uint FileReadAttributes = 0x0000_0080;

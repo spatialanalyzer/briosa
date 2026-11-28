@@ -10,36 +10,94 @@ public sealed class ReviewRoundFourTests
     // 1: a spill changes the owner and access list of nothing already in results: not
     // an ordinary file or folder that inherited its permissions, and not an earlier
     // spill file, which has its own protected list. Only results and the new file end
-    // with the intended lists.
+    // with the intended lists. The test's own tree gets a known, protected access list
+    // first, so that the result does not depend on the temporary folder or the account:
+    // a BUILTIN\Users entry that any propagation from results would visibly remove, and
+    // a CREATOR OWNER entry, which resolves to the user under an ordinary token and to
+    // the Administrators group under an elevated one.
     [Fact]
     public void ASpillChangesNothingAlreadyInTheResultsDirectory()
     {
         using var environment = TestEnvironment.Create();
+        SeedTestTree(environment.Root);
         Directory.CreateDirectory(environment.SpillDirectory);
         var ordinary = Path.Combine(environment.SpillDirectory, "ordinary.txt");
         File.WriteAllText(ordinary, "kept");
         var folder = Path.Combine(environment.SpillDirectory, "folder");
         Directory.CreateDirectory(folder);
+        var first = Path.Combine(environment.SpillDirectory, "first.json");
+        var second = Path.Combine(environment.SpillDirectory, "second.json");
+        var stages = new List<string>();
+        void Record(string stage)
+        {
+            foreach (var (label, path) in new[] { ("root", environment.Root), ("results", environment.SpillDirectory),
+                         ("ordinary.txt", ordinary), ("folder", folder), ("first.json", first), ("second.json", second) })
+            {
+                if (File.Exists(path) || Directory.Exists(path))
+                {
+                    stages.Add($"{stage} {label}: {Sddl(path)}");
+                }
+            }
+        }
+
+        Record("before");
         var ordinaryBefore = Security(ordinary);
         var folderBefore = Security(folder);
-        Assert.Contains(new FileInfo(ordinary).GetAccessControl().GetAccessRules(true, true, typeof(SecurityIdentifier))
-            .Cast<FileSystemAccessRule>(), rule => rule.IsInherited);
+        Assert.Contains(Rules(ordinary), rule => rule.IsInherited && rule.IdentityReference.Value == BuiltinUsers.Value);
+        Assert.Contains(Rules(folder), rule => rule.IsInherited && rule.IdentityReference.Value == BuiltinUsers.Value);
 
         Spill(environment, "first.json");
-        var first = Path.Combine(environment.SpillDirectory, "first.json");
+        Record("after the first spill");
         var firstAfter = Security(first);
         Spill(environment, "second.json");
+        Record("after the second spill");
 
-        Assert.Equal(ordinaryBefore, Security(ordinary));
-        Assert.Equal(folderBefore, Security(folder));
-        Assert.Equal(firstAfter, Security(first));
+        var report = string.Join(Environment.NewLine, stages);
+        Assert.True(ordinaryBefore.SequenceEqual(Security(ordinary)), "ordinary.txt changed." + Environment.NewLine + report);
+        Assert.True(folderBefore.SequenceEqual(Security(folder)), "folder changed." + Environment.NewLine + report);
+        Assert.True(firstAfter.SequenceEqual(Security(first)), "first.json changed." + Environment.NewLine + report);
         SpillDirectoryTests.AssertPrivate(new FileInfo(first).GetAccessControl(AccessControlSections.Access | AccessControlSections.Owner),
             InheritanceFlags.None);
         SpillDirectoryTests.AssertPrivate(new DirectoryInfo(environment.SpillDirectory).GetAccessControl(
             AccessControlSections.Access | AccessControlSections.Owner), InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit);
-        SpillDirectoryTests.AssertPrivate(new FileInfo(Path.Combine(environment.SpillDirectory, "second.json")).GetAccessControl(
+        SpillDirectoryTests.AssertPrivate(new FileInfo(second).GetAccessControl(
             AccessControlSections.Access | AccessControlSections.Owner), InheritanceFlags.None);
     }
+
+    private static readonly SecurityIdentifier BuiltinUsers = new(WellKnownSidType.BuiltinUsersSid, null);
+
+    // A protected access list for the test's root that every account produces alike:
+    // the current user and SYSTEM in full, BUILTIN\Users to read, and CREATOR OWNER in
+    // full on what is created below, all inherited by files and folders.
+    private static void SeedTestTree(string root)
+    {
+        using var identity = WindowsIdentity.GetCurrent();
+        var security = new DirectorySecurity();
+        security.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
+        var both = InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit;
+        security.AddAccessRule(new FileSystemAccessRule(identity.User!, FileSystemRights.FullControl, both,
+            PropagationFlags.None, AccessControlType.Allow));
+        security.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null),
+            FileSystemRights.FullControl, both, PropagationFlags.None, AccessControlType.Allow));
+        security.AddAccessRule(new FileSystemAccessRule(BuiltinUsers, FileSystemRights.ReadAndExecute, both,
+            PropagationFlags.None, AccessControlType.Allow));
+        security.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(WellKnownSidType.CreatorOwnerSid, null),
+            FileSystemRights.FullControl, both, PropagationFlags.InheritOnly, AccessControlType.Allow));
+        new DirectoryInfo(root).SetAccessControl(security);
+    }
+
+    private static FileSystemAccessRule[] Rules(string path) =>
+        [.. (Directory.Exists(path)
+                ? (FileSystemSecurity)new DirectoryInfo(path).GetAccessControl()
+                : new FileInfo(path).GetAccessControl())
+            .GetAccessRules(includeExplicit: true, includeInherited: true, typeof(SecurityIdentifier))
+            .Cast<FileSystemAccessRule>()];
+
+    private static string Sddl(string path) =>
+        (Directory.Exists(path)
+            ? (FileSystemSecurity)new DirectoryInfo(path).GetAccessControl(AccessControlSections.Access | AccessControlSections.Owner)
+            : new FileInfo(path).GetAccessControl(AccessControlSections.Access | AccessControlSections.Owner))
+        .GetSecurityDescriptorSddlForm(AccessControlSections.Access | AccessControlSections.Owner);
 
     // 2: passing through a directory that already exists needs no right to create in
     // it, so an intermediate directory that denies new subdirectories is no obstacle
@@ -123,20 +181,105 @@ public sealed class ReviewRoundFourTests
         Assert.True(Directory.Exists(third + "-moved"));
     }
 
-    // 3: a spill whose write fails leaves no partial file that could pass for a result.
-    [Fact]
-    public async Task AFailedSpillWriteLeavesNoPartialFile()
+    // Round 5, items 1 and 2: a spill file is removed only when it is known not to hold
+    // the whole result; a complete copy is kept and reported, whatever fails after it.
+    [Theory]
+    [InlineData(WriteFault.BeforeAnyByte, "lost", "spill-write-failed", false)]
+    [InlineData(WriteFault.AfterPrefix, "lost", "spill-write-failed", false)]
+    [InlineData(WriteFault.AtFlush, "file_unconfirmed", "spill-finalize-failed", true)]
+    [InlineData(WriteFault.AtClose, "file_unconfirmed", "spill-finalize-failed", true)]
+    [InlineData(WriteFault.ReadBack, "file_unverified", "spill-verify-failed", true)]
+    public async Task AFailedSpillKeepsAFileOnlyWhenItMayHoldTheResult(WriteFault fault, string delivery, string error, bool kept)
     {
         await using var server = await FakeBriosaServer.StartAsync();
-        using var environment = TestEnvironment.Create(new FailingWriteFileSystem(_ => true));
+        using var environment = TestEnvironment.Create(new FailingWriteFileSystem(_ => true, fault));
+        var result = CallOutcomeTests.Result(MpExecutionState.Succeeded, 2);
+        server.Reply = _ => FakeReply.Ok(result);
+
+        var run = await CliRun.RunAsync(CallOutcomeTests.CallArguments(server, "--max-inline-bytes", "0"),
+            environment.Environment);
+
+        // Exit 12 asserts only that the operation completed and the delivery failed.
+        Assert.Equal(12, run.ExitCode);
+        Assert.Equal(delivery, run.Data["result_delivery"]!.GetValue<string>());
+        Assert.Equal(error, run.Data["result_delivery_error"]!.GetValue<string>());
+        if (kept)
+        {
+            var path = run.Data["result_file"]!["path"]!.GetValue<string>();
+            Assert.Equal(environment.SpilledFiles().Single(), path, StringComparer.OrdinalIgnoreCase);
+            CallOutcomeTests.AssertResultFile(result, await File.ReadAllBytesAsync(path));
+        }
+        else
+        {
+            Assert.Null(run.Data["result_file"]);
+            Assert.Empty(environment.SpilledFiles());
+        }
+    }
+
+    // Round 5, item 3: an incomplete spill file that cannot be removed is named, so no
+    // one takes it for a result.
+    [Fact]
+    public async Task AnIncompleteSpillFileThatCannotBeRemovedIsReported()
+    {
+        await using var server = await FakeBriosaServer.StartAsync();
+        using var environment = TestEnvironment.Create(new FailingWriteFileSystem(_ => true, WriteFault.AfterPrefixUnremovable));
         server.Reply = _ => FakeReply.Ok(CallOutcomeTests.Result(MpExecutionState.Succeeded, 2));
 
         var run = await CliRun.RunAsync(CallOutcomeTests.CallArguments(server, "--max-inline-bytes", "0"),
             environment.Environment);
 
+        var left = environment.SpilledFiles().Single();
+        try
+        {
+            Assert.Equal(12, run.ExitCode);
+            Assert.Equal("lost", run.Data["result_delivery"]!.GetValue<string>());
+            Assert.Equal("spill-write-failed", run.Data["result_delivery_error"]!.GetValue<string>());
+            var file = run.Data["result_file"]!;
+            Assert.Equal(left, file["path"]!.GetValue<string>(), StringComparer.OrdinalIgnoreCase);
+            Assert.Equal("incomplete_not_removed", file["reason"]!.GetValue<string>());
+            Assert.Equal(3, file["bytes"]!.GetValue<long>());
+            Assert.Null(file["sha256"]);
+            Assert.Contains("incomplete-file-left", CallOutcomeTests.Warnings(run));
+        }
+        finally
+        {
+            File.SetAttributes(left, FileAttributes.Normal);
+        }
+    }
+
+    // Round 5, item 1: the --output file the caller named keeps a complete copy, and is
+    // reported as such, when only its flush or close fails; an incomplete one stays as
+    // far as it got, and the result goes to the spill directory.
+    [Theory]
+    [InlineData(WriteFault.AtFlush, "file_unconfirmed", "output-finalize-failed", false)]
+    [InlineData(WriteFault.AtClose, "file_unconfirmed", "output-finalize-failed", false)]
+    [InlineData(WriteFault.AfterPrefix, "file", "output-write-failed", true)]
+    public async Task AFailedOutputWriteIsReportedForWhatIsOnDisk(WriteFault fault, string delivery, string error, bool spilled)
+    {
+        await using var server = await FakeBriosaServer.StartAsync();
+        using var probe = TestEnvironment.Create();
+        var output = Path.Combine(probe.Root, "result.json");
+        using var environment = TestEnvironment.Create(new FailingWriteFileSystem(path =>
+            string.Equals(path, output, StringComparison.OrdinalIgnoreCase), fault));
+        var result = CallOutcomeTests.Result(MpExecutionState.Succeeded, 2);
+        server.Reply = _ => FakeReply.Ok(result);
+
+        var run = await CliRun.RunAsync(CallOutcomeTests.CallArguments(server, "--output", output), environment.Environment);
+
         Assert.Equal(12, run.ExitCode);
-        Assert.Equal("spill-write-failed", run.DiagnosticCode);
-        Assert.Empty(environment.SpilledFiles());
+        Assert.Equal(delivery, run.Data["result_delivery"]!.GetValue<string>());
+        Assert.Equal(error, run.Data["result_delivery_error"]!.GetValue<string>());
+        var path = run.Data["result_file"]!["path"]!.GetValue<string>();
+        CallOutcomeTests.AssertResultFile(result, await File.ReadAllBytesAsync(path));
+        Assert.Equal(spilled ? 1 : 0, environment.SpilledFiles().Length);
+        if (!spilled)
+        {
+            Assert.Equal(output, path, StringComparer.OrdinalIgnoreCase);
+        }
+        else
+        {
+            Assert.Equal(3, new FileInfo(output).Length);
+        }
     }
 
     private static void Spill(TestEnvironment environment, string name)
