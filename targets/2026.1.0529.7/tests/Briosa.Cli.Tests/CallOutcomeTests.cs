@@ -67,19 +67,23 @@ public sealed class CallOutcomeTests
         AssertOneRestrictedMpCall(server);
     }
 
-    [Fact]
-    public async Task AnOutputThatWasNotRetrievedOnOkIsPartialOutput()
+    // The server answers OK only after every output was retrieved; an OK with an
+    // output that was not is not evidence of anything.
+    [Theory]
+    [InlineData(OutputRetrievalState.NotAttempted)]
+    [InlineData(OutputRetrievalState.Failed)]
+    [InlineData(OutputRetrievalState.Unspecified)]
+    public async Task AnOutputThatWasNotRetrievedOnOkIsNotEvidence(OutputRetrievalState state)
     {
         await using var server = await FakeBriosaServer.StartAsync();
         server.Reply = _ => FakeReply.Ok(Result(MpExecutionState.Succeeded, 2,
-            new OutputRetrievalDetails { FieldName = "point_name_only", State = OutputRetrievalState.NotAttempted }));
+            new OutputRetrievalDetails { FieldName = "complete_point_name", State = OutputRetrievalState.Retrieved },
+            new OutputRetrievalDetails { FieldName = "point_name_only", State = state },
+            new OutputRetrievalDetails { FieldName = "vector_in_working", State = OutputRetrievalState.Retrieved }));
 
         var run = await CliRun.RunAsync(CallArguments(server));
 
-        Assert.Equal(9, run.ExitCode);
-        Assert.Equal("outputs_incomplete", run.Outcome);
-        Assert.Equal(Codes.ResultOutputNotRetrieved, run.DiagnosticCode);
-        Assert.Contains(Warnings(run), code => code == "output-not-retrieved");
+        AssertEvidenceUnavailable(run, Codes.ResultExecutionContractViolation, "OK");
         AssertOneRestrictedMpCall(server);
     }
 
@@ -101,7 +105,8 @@ public sealed class CallOutcomeTests
                         FieldName = "point_name_only",
                         State = OutputRetrievalState.Failed,
                         DiagnosticCode = "sdk-output-retrieval-failed"
-                    }
+                    },
+                    new OutputRetrievalDetails { FieldName = "vector_in_working", State = OutputRetrievalState.Retrieved }
                 }
             }));
 
@@ -201,7 +206,7 @@ public sealed class CallOutcomeTests
         await using var server = await FakeBriosaServer.StartAsync();
         server.Reply = _ => FakeReply.Error(StatusCode.FailedPrecondition, Error(OperationFailureKind.MpFailure,
             "mp-command-failed", ExecutionDisposition.Completed, ReplayGuidance.DoNotReplay,
-            new MpExecutionDetails { State = MpExecutionState.Failed, MpResultCode = 0 }));
+            Details(MpExecutionState.Failed, 0, OutputRetrievalState.NotAttempted)));
 
         var run = await CliRun.RunAsync(CallArguments(server));
 
@@ -216,10 +221,11 @@ public sealed class CallOutcomeTests
     public async Task AConfirmedUnknownOutcomeSaysToReconcile()
     {
         await using var server = await FakeBriosaServer.StartAsync();
+        // The operation is SAFE, so the server says it may be replayed; the CLI
+        // still tells the caller to check SpatialAnalyzer first, and never replays.
         var error = Error(OperationFailureKind.WorkerWatchdogTimeout, "worker-watchdog-timeout",
-            ExecutionDisposition.StartedOutcomeUnknown, ReplayGuidance.ReconcileBeforeReplay);
+            ExecutionDisposition.StartedOutcomeUnknown, ReplayGuidance.MayReplay);
         error.RecoveryGuidance = RecoveryGuidance.WorkerReplacement;
-        error.WorkerGeneration = 3;
         server.Reply = _ => FakeReply.Error(StatusCode.Unavailable, error);
 
         var run = await CliRun.RunAsync(CallArguments(server));
@@ -228,7 +234,7 @@ public sealed class CallOutcomeTests
         Assert.Equal("started_outcome_unknown", run.Outcome);
         Assert.Equal("EXECUTION_DISPOSITION_STARTED_OUTCOME_UNKNOWN", run.Execution["disposition"]!.GetValue<string>());
         Assert.Equal("RECOVERY_GUIDANCE_WORKER_REPLACEMENT", run.Execution["recovery_guidance"]!.GetValue<string>());
-        Assert.Equal("REPLAY_GUIDANCE_RECONCILE_BEFORE_REPLAY", run.Execution["replay_guidance"]!.GetValue<string>());
+        Assert.Equal("REPLAY_GUIDANCE_MAY_REPLAY", run.Execution["replay_guidance"]!.GetValue<string>());
         Assert.Equal(3, run.Execution["worker_generation"]!.GetValue<int>());
         Assert.Contains(Guidance(run), text => text.Contains("never retries", StringComparison.Ordinal));
         AssertOneRestrictedMpCall(server);
@@ -312,6 +318,8 @@ public sealed class CallOutcomeTests
         AssertOneRestrictedMpCall(server);
     }
 
+    // The mapper never sends an unspecified disposition, so it is conflicting
+    // evidence, and none of the error's guidance is published.
     [Fact]
     public async Task AnUnspecifiedDispositionIsNeverReadAsNotStarted()
     {
@@ -321,12 +329,9 @@ public sealed class CallOutcomeTests
 
         var run = await CliRun.RunAsync(CallArguments(server));
 
-        Assert.Equal(10, run.ExitCode);
-        Assert.Equal("completion_evidence_unavailable", run.Outcome);
-        Assert.Equal("internal-operation-failure", run.DiagnosticCode);
-        Assert.Contains(Codes.DispositionUnrecognized, Warnings(run));
-        Assert.Equal("unavailable", run.Execution["completion_evidence"]!.GetValue<string>());
-        Assert.Equal("EXECUTION_DISPOSITION_UNSPECIFIED", run.Execution["disposition"]!.GetValue<string>());
+        AssertEvidenceUnavailable(run, Codes.ErrorInconsistent, "INTERNAL");
+        Assert.Null(run.Execution["disposition"]);
+        Assert.Null(run.Execution["replay_guidance"]);
         AssertOneRestrictedMpCall(server);
     }
 
@@ -501,8 +506,9 @@ public sealed class CallOutcomeTests
 
         var run = await CliRun.RunAsync(["call", Operation, "--json", "{}", "--endpoint", server.Endpoint]);
 
-        Assert.Equal(3, run.ExitCode);
-        Assert.Equal("operation-schema-unavailable", run.DiagnosticCode);
+        // The ID does not name that method, so the whole listing is refused.
+        Assert.Equal(5, run.ExitCode);
+        Assert.Equal("capabilities-inconsistent", run.DiagnosticCode);
         Assert.Empty(server.MpCalls);
     }
 
@@ -701,6 +707,23 @@ public sealed class CallOutcomeTests
         };
     }
 
+    // The operation's three output rows, all in one state.
+    internal static MpExecutionDetails Details(MpExecutionState state, int? code, OutputRetrievalState rows)
+    {
+        var details = new MpExecutionDetails { State = state };
+        if (code is { } value)
+        {
+            details.MpResultCode = value;
+        }
+
+        foreach (var name in new[] { "complete_point_name", "point_name_only", "vector_in_working" })
+        {
+            details.OutputRetrievals.Add(new OutputRetrievalDetails { FieldName = name, State = rows });
+        }
+
+        return details;
+    }
+
     internal static OperationError Error(OperationFailureKind kind, string code, ExecutionDisposition disposition,
         ReplayGuidance replay, MpExecutionDetails? execution = null)
     {
@@ -712,7 +735,9 @@ public sealed class CallOutcomeTests
             ExecutionDisposition = disposition,
             RecoveryGuidance = RecoveryGuidance.None,
             ReplayGuidance = replay,
-            ReplaySafety = ReplaySafety.Safe
+            ReplaySafety = ReplaySafety.Safe,
+            // The server always states the worker generation.
+            WorkerGeneration = 3
         };
         if (execution is not null)
         {

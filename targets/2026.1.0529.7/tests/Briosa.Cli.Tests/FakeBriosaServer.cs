@@ -35,6 +35,9 @@ internal sealed class FakeBriosaServer : IAsyncDisposable
 
     public ListCapabilitiesResponse AllCapabilities { get; set; } = ServerProjection.AllCapabilities;
 
+    /// <summary>When set, answers <c>ListCapabilities</c> instead of <see cref="AllCapabilities"/>.</summary>
+    public Func<FakeReply>? CapabilitiesReply { get; set; }
+
     /// <summary>The reply to the next MP call. Discovery is answered from the two properties above.</summary>
     public Func<ReceivedCall, FakeReply> Reply { get; set; } = _ => FakeReply.Status(StatusCode.Unimplemented);
 
@@ -116,6 +119,9 @@ internal sealed class FakeBriosaServer : IAsyncDisposable
         {
             case "/briosa.DiscoveryService/GetServerInfo":
                 reply = FakeReply.Ok(ServerInfo);
+                break;
+            case "/briosa.DiscoveryService/ListCapabilities" when CapabilitiesReply is { } capabilitiesReply:
+                reply = capabilitiesReply();
                 break;
             case "/briosa.DiscoveryService/ListCapabilities":
                 var request = ListCapabilitiesRequest.Parser.ParseFrom(payload);

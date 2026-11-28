@@ -22,6 +22,7 @@ internal sealed class BriosaConnection : IDisposable
     private readonly GrpcChannel _channel;
     private readonly DiscoveryService.DiscoveryServiceClient _discovery;
     private readonly SubmissionGuard _submissions = new();
+    private readonly ReceiveEvidence _received = new();
     private int _connectAttempts;
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope",
@@ -44,7 +45,8 @@ internal sealed class BriosaConnection : IDisposable
         };
         _channel = GrpcChannel.ForAddress(endpoint.Uri, new GrpcChannelOptions
         {
-            HttpHandler = new SubmissionHandler(_submissions, handler),
+            HttpHandler = new SubmissionHandler(_submissions,
+                new ReceiveEvidenceHandler(_received, BridgeContract.ClientReceiveLimitBytes, handler)),
             DisposeHttpClient = true,
             MaxReceiveMessageSize = BridgeContract.ClientReceiveLimitBytes,
             MaxSendMessageSize = BridgeContract.ServerReceiveLimitBytes,
@@ -63,6 +65,9 @@ internal sealed class BriosaConnection : IDisposable
 
     /// <summary>The HTTP stack tried to submit a request a second time and was stopped.</summary>
     public bool ResendBlocked => _submissions.ResendBlocked;
+
+    /// <summary>A response declared a message larger than this CLI's receive limit.</summary>
+    public bool ReceiveLimitExceeded => _received.LimitExceeded;
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope",
         Justification = "The returned stream owns the socket; on failure the socket is disposed here.")]

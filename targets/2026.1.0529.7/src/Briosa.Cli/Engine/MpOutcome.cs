@@ -15,10 +15,7 @@ namespace Briosa.Cli.Engine;
 internal static class MpOutcome
 {
     public const string ResultExecutionMissing = "result-execution-missing";
-    public const string ResultExecutionContractViolation = "result-execution-contract-violation";
-    public const string ResultOutputNotRetrieved = "result-output-not-retrieved";
     public const string TrailerMalformed = "operation-error-trailer-malformed";
-    public const string DispositionUnrecognized = "operation-error-disposition-unrecognized";
     public const string ClientCancelled = "client-cancelled";
     public const string ClientDeadlineExceeded = "client-deadline-exceeded";
     public const string ResendBlocked = "request-resend-blocked";
@@ -47,11 +44,12 @@ internal static class MpOutcome
         if (observation.ResendBlocked)
         {
             // The HTTP stack tried to submit the request a second time; the CLI
-            // stopped it, so whatever else arrived is not evidence of one call.
+            // stopped it, so whatever else arrived is not evidence of one call. The
+            // CLI saw only the second attempt, not why the first one ended.
             envelope.Warn(ResendBlocked,
-                "The connection gave up on the first attempt (the server refused the stream, or closed the " +
-                "connection, before processing it), and the HTTP client then tried to send the request again. The " +
-                "CLI blocked the second attempt, so the request was submitted at most once.");
+                "The HTTP client tried to send the request a second time on this connection, and the CLI blocked " +
+                "that attempt, so the request was submitted at most once. Whether the server received or processed " +
+                "the first attempt is not known.");
             return EvidenceUnavailable(execution, envelope, "cli", ResendBlocked);
         }
 
@@ -102,20 +100,20 @@ internal static class MpOutcome
             return Conflict(execution, envelope, ResultExecutionMissing);
         }
 
-        var succeeded = details.State == MpExecutionState.Succeeded && details is { HasMpResultCode: true, MpResultCode: 2 };
-        var partial = details.State == MpExecutionState.PartialSuccess && details is { HasMpResultCode: true, MpResultCode: 4 };
-        if (!succeeded && !partial)
+        if (EvidenceConsistency.CheckResult(details, call.ResultDescriptor) is { } conflict)
         {
-            // A missing code, or a state that disagrees with its code, is a
-            // protocol-contract failure: the MP result cannot be trusted.
-            execution["mp_execution"] = ProtocolJson.ToNode(details);
-            return Conflict(execution, envelope, ResultExecutionContractViolation);
+            // The server answers OK only with MP code 2 or 4 and every output
+            // retrieved, in rows that name and cover this result's fields. Anything
+            // else is not evidence of a success.
+            if (conflict == EvidenceConsistency.ResultExecutionContractViolation)
+            {
+                execution["mp_execution"] = ProtocolJson.ToNode(details);
+            }
+
+            return Conflict(execution, envelope, conflict);
         }
 
-        if (EvidenceConsistency.CheckResult(details, call.ResultDescriptor) is { } unrelated)
-        {
-            return Conflict(execution, envelope, unrelated);
-        }
+        var partial = details.State == MpExecutionState.PartialSuccess;
 
         // gRPC OK with a consistent MP result is the server's statement that the
         // operation completed (execution outcomes guide).
@@ -123,24 +121,15 @@ internal static class MpOutcome
         execution["disposition_source"] = "grpc_ok";
         execution["completion_evidence"] = "available";
         execution["mp_execution"] = ProtocolJson.ToNode(details);
-        var allRetrieved = details.OutputRetrievals.All(output => output.State == OutputRetrievalState.Retrieved);
         if (partial)
         {
             envelope.Warn("partial-success",
                 "SpatialAnalyzer returned MP code 4 (partial success): the command did its work but not its full " +
                 "intended effect. The call is complete. Do not run it again to change the outcome.");
+            return BridgeOutcome.PartialSuccess;
         }
 
-        if (!allRetrieved)
-        {
-            envelope.Warn("output-not-retrieved",
-                "At least one output was not retrieved. See execution.mp_execution.output_retrievals. The call is " +
-                "complete; running it again to recover an output is not safe in general.");
-            envelope.Failure = BridgeEngine.Failure("cli", ResultOutputNotRetrieved);
-            return BridgeOutcome.OutputsIncomplete;
-        }
-
-        return partial ? BridgeOutcome.PartialSuccess : BridgeOutcome.Succeeded;
+        return BridgeOutcome.Succeeded;
     }
 
     private static BridgeOutcome ClassifyFailure(MpCallObservation observation, MpCallContext call, JsonObject execution,
@@ -160,7 +149,7 @@ internal static class MpOutcome
             return EvidenceUnavailable(execution, envelope, malformed ? "cli" : "transport", code);
         }
 
-        if (EvidenceConsistency.CheckError(error, observation.Status, call.OperationId, call.ResultDescriptor) is { } conflict)
+        if (EvidenceConsistency.CheckError(error, observation.Status, call) is { } conflict)
         {
             return Conflict(execution, envelope, conflict);
         }
@@ -223,21 +212,13 @@ internal static class MpOutcome
                 envelope.Guidance.Add("The operation completed, but its result was not fully delivered. The call is " +
                     "complete; running it again to recover the result is not safe in general.");
                 return BridgeOutcome.OutputsIncomplete;
-            case ExecutionDisposition.StartedOutcomeUnknown:
+            default:
+                // STARTED_OUTCOME_UNKNOWN: the consistency rules admit no other disposition.
                 execution["completion_evidence"] = "available";
                 envelope.Warn("outcome-unknown",
                     "The server reports that the operation may have started and that its outcome is unknown.");
                 envelope.Guidance.Add(ReconcileGuidance);
                 return BridgeOutcome.StartedOutcomeUnknown;
-            default:
-                // An internal failure whose disposition the server could not state.
-                // The server's own codes stay as it sent them.
-                execution["completion_evidence"] = "unavailable";
-                envelope.Warn(DispositionUnrecognized,
-                    "The server's error did not state whether the operation ran (see execution.disposition). The " +
-                    "operation may have run.");
-                envelope.Guidance.Add(ReconcileGuidance);
-                return BridgeOutcome.CompletionEvidenceUnavailable;
         }
     }
 
@@ -301,9 +282,13 @@ internal static class MpOutcome
     }
 }
 
-/// <summary>What the classifier needs to know about the call it reads.</summary>
+/// <summary>
+/// What the classifier needs to know about the call it reads. The replay safety is
+/// the one discovery reported for the operation.
+/// </summary>
 internal sealed record MpCallContext(
     string OperationId,
     string FullyQualifiedMethod,
     string CallerRestriction,
-    MessageDescriptor ResultDescriptor);
+    MessageDescriptor ResultDescriptor,
+    ReplaySafety ReplaySafety);

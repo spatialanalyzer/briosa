@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using Briosa.Cli.Engine;
 
 namespace Briosa.Cli.Tests;
@@ -78,7 +80,109 @@ public sealed class SpillDirectoryTests
         Assert.False(File.Exists(path));
     }
 
-    private static void CreateJunction(string link, string target)
+    // D: what is on disk afterwards admits the current user and SYSTEM only. The
+    // directory is protected and passes its two entries on; the file has its own two,
+    // inherits nothing, and belongs to the user.
+    [Fact]
+    public void TheSpillDirectoryAndFileAdmitOnlyTheUserAndSystem()
+    {
+        using var environment = TestEnvironment.Create();
+        // A directory that already exists, with the permissions it inherited, is reused.
+        Directory.CreateDirectory(environment.SpillDirectory);
+
+        using (var created = ResultFileSystem.Instance.CreatePrivate(environment.Root, TestEnvironment.SpillComponents, "r.json"))
+        {
+            created.Stream.Write("{}"u8);
+        }
+
+        var directory = new DirectoryInfo(environment.SpillDirectory).GetAccessControl(
+            AccessControlSections.Access | AccessControlSections.Owner);
+        AssertPrivate(directory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit);
+        var file = new FileInfo(Path.Combine(environment.SpillDirectory, "r.json")).GetAccessControl(
+            AccessControlSections.Access | AccessControlSections.Owner);
+        AssertPrivate(file, InheritanceFlags.None);
+    }
+
+    // D: the permissions go to the directory that was verified and held, even when its
+    // path leads somewhere else by the time they are set.
+    [Fact]
+    public void TheDirectoryPermissionsAreSetThroughTheVerifiedHandle()
+    {
+        using var environment = TestEnvironment.Create();
+        var verified = Path.Combine(environment.Root, "verified");
+        var elsewhere = Path.Combine(environment.Root, "elsewhere");
+        var elsewhereResults = Path.Combine([elsewhere, .. TestEnvironment.SpillComponents]);
+        Directory.CreateDirectory(verified);
+        Directory.CreateDirectory(elsewhereResults);
+        var link = Path.Combine(environment.Root, "base");
+        CreateJunction(link, verified);
+        var files = new ResultFileSystem(afterDirectoriesHeld: () =>
+        {
+            // The base is the user's folder and may be redirected; here it is
+            // redirected after every directory below it was verified and held.
+            Directory.Delete(link);
+            CreateJunction(link, elsewhere);
+        });
+
+        Assert.ThrowsAny<IOException>(() => files.CreatePrivate(link, TestEnvironment.SpillComponents, "r.json"));
+
+        var verifiedResults = Path.Combine([verified, .. TestEnvironment.SpillComponents]);
+        Assert.True(new DirectoryInfo(verifiedResults).GetAccessControl().AreAccessRulesProtected);
+        Assert.False(new DirectoryInfo(elsewhereResults).GetAccessControl().AreAccessRulesProtected);
+        Assert.Empty(Directory.EnumerateFileSystemEntries(elsewhereResults));
+        Assert.Empty(Directory.EnumerateFileSystemEntries(verifiedResults));
+    }
+
+    // D: on a volume that keeps no permissions, nothing is spilled or created, and the
+    // envelope says the result is gone. Exit 12 only when completion was established.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AVolumeWithoutPermissionsIsNeverUsedForASpill(bool completionEstablished)
+    {
+        using var environment = TestEnvironment.Create(new ResultFileSystem(keepsPermissions: _ => false));
+        await using var server = await FakeBriosaServer.StartAsync();
+        server.Reply = _ => FakeReply.Ok(completionEstablished
+            ? CallOutcomeTests.Result(MpExecutionState.Succeeded, 2)
+            : new GetIthPointFromGroupResult { Execution = new MpExecutionDetails { State = MpExecutionState.Succeeded, MpResultCode = 2 } });
+
+        var run = await CliRun.RunAsync(CallOutcomeTests.CallArguments(server, "--max-inline-bytes", "0"),
+            environment.Environment);
+
+        Assert.Equal(completionEstablished ? 12 : 10, run.ExitCode);
+        Assert.Equal("lost", run.Data["result_delivery"]!.GetValue<string>());
+        Assert.Equal(Codes.SpillPermissionsUnsupported, run.Data["result_delivery_error"]!.GetValue<string>());
+        Assert.Null(run.Data["result_file"]);
+        Assert.Null(run.Data["result"]);
+        var warning = run.Envelope["warnings"]!.AsArray()
+            .Single(entry => entry!["code"]!.GetValue<string>() == "spill-refused")!["message"]!.GetValue<string>();
+        Assert.Contains("discarded", warning, StringComparison.Ordinal);
+        Assert.Equal(completionEstablished, warning.StartsWith("The operation completed", StringComparison.Ordinal));
+        Assert.False(Directory.Exists(Path.Combine(environment.Root, TestEnvironment.SpillComponents[0])));
+    }
+
+    private static void AssertPrivate(FileSystemSecurity security, InheritanceFlags inheritance)
+    {
+        using var identity = WindowsIdentity.GetCurrent();
+        var system = new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null);
+        Assert.True(security.AreAccessRulesProtected);
+        Assert.Equal(identity.User, security.GetOwner(typeof(SecurityIdentifier)));
+        var rules = security.GetAccessRules(includeExplicit: true, includeInherited: true, typeof(SecurityIdentifier))
+            .Cast<FileSystemAccessRule>().ToArray();
+        Assert.Equal(2, rules.Length);
+        Assert.All(rules, rule =>
+        {
+            Assert.False(rule.IsInherited);
+            Assert.Equal(AccessControlType.Allow, rule.AccessControlType);
+            Assert.Equal(FileSystemRights.FullControl, rule.FileSystemRights);
+            Assert.Equal(inheritance, rule.InheritanceFlags);
+            Assert.Equal(PropagationFlags.None, rule.PropagationFlags);
+        });
+        Assert.Equal(new IdentityReference[] { identity.User!, system }.Select(sid => sid.Value).Order(StringComparer.Ordinal),
+            rules.Select(rule => rule.IdentityReference.Value).Order(StringComparer.Ordinal));
+    }
+
+    internal static void CreateJunction(string link, string target)
     {
         using var process = Process.Start(new ProcessStartInfo("cmd.exe")
         {

@@ -375,7 +375,7 @@ internal sealed partial class BridgeEngine
         }
 
         var call = new MpCallContext(request.OperationId, capability.FullyQualifiedMethod,
-            BridgeContract.ReadOnlyCallerRestriction, method.OutputType);
+            BridgeContract.ReadOnlyCallerRestriction, method.OutputType, capability.ReplaySafety);
         return await SendAsync(envelope, connection, call, method, parsed.Message!, request, output, data,
             cancellationToken).ConfigureAwait(false);
     }
@@ -514,7 +514,7 @@ internal sealed partial class BridgeEngine
         catch (RpcException exception)
         {
             DiscoveryFailed(envelope, connection, "/briosa.DiscoveryService/GetServerInfo", exception.StatusCode,
-                cancellationToken);
+                connection.ReceiveLimitExceeded, cancellationToken);
             return null;
         }
 
@@ -547,7 +547,8 @@ internal sealed partial class BridgeEngine
         }
         catch (RpcException exception)
         {
-            DiscoveryFailed(envelope, connection, Method, exception.StatusCode, cancellationToken);
+            DiscoveryFailed(envelope, connection, Method, exception.StatusCode, connection.ReceiveLimitExceeded,
+                cancellationToken);
             return null;
         }
 
@@ -574,7 +575,9 @@ internal sealed partial class BridgeEngine
 
     /// <summary>
     /// Every row has a well-formed operation ID that no other row has, and names one
-    /// method, as its service and RPC, that no other row names.
+    /// method, as its service and RPC, that no other row names. The ID must also be
+    /// the one <see cref="NamesMethod"/> binds to that method, so a listing can never
+    /// send a call for one operation to another operation's method.
     /// </summary>
     internal static bool IsConsistent(ListCapabilitiesResponse capabilities)
     {
@@ -585,11 +588,30 @@ internal sealed partial class BridgeEngine
             identifiers.Add(operation.OperationId) &&
             string.Equals(operation.FullyQualifiedMethod, "/" + operation.GrpcService + "/" + operation.Rpc,
                 StringComparison.Ordinal) &&
+            NamesMethod(operation.OperationId, operation.GrpcService, operation.Rpc) &&
             methods.Add(operation.FullyQualifiedMethod));
     }
 
+    /// <summary>
+    /// Whether an operation ID names this method. On this target every operation ID
+    /// is its service name and RPC name in snake case: with the underscores removed,
+    /// <c>category.operation</c> equals <c>Service.Rpc</c>, ignoring ASCII case, where
+    /// the service is named without the protocol package. For example
+    /// <c>file_operations.get_working_directory</c> names
+    /// <c>briosa.FileOperations/GetWorkingDirectory</c>.
+    /// </summary>
+    internal static bool NamesMethod(string operationId, string grpcService, string rpc)
+    {
+        ArgumentNullException.ThrowIfNull(operationId);
+        ArgumentNullException.ThrowIfNull(grpcService);
+        var prefix = BridgeContract.ProtocolPackage + ".";
+        return grpcService.StartsWith(prefix, StringComparison.Ordinal) &&
+            string.Equals(operationId.Replace("_", "", StringComparison.Ordinal),
+                grpcService[prefix.Length..] + "." + rpc, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static void DiscoveryFailed(BridgeEnvelope envelope, BriosaConnection connection, string method,
-        StatusCode status, CancellationToken cancellationToken)
+        StatusCode status, bool receiveLimitExceeded, CancellationToken cancellationToken)
     {
         envelope.Transport = new JsonObject { ["method"] = method, ["status"] = ProtocolJson.StatusName(status) };
         if (cancellationToken.IsCancellationRequested)
@@ -599,9 +621,11 @@ internal sealed partial class BridgeEngine
             return;
         }
 
-        if (status == StatusCode.ResourceExhausted)
+        if (status == StatusCode.ResourceExhausted && receiveLimitExceeded)
         {
-            // The server answered; its reply is larger than this CLI accepts.
+            // The server answered with a message whose declared length is larger
+            // than this CLI accepts. A RESOURCE_EXHAUSTED status without that
+            // evidence is reported below as the status it is.
             envelope.Outcome = BridgeOutcome.ServerIncompatible;
             envelope.Failure = Failure("cli", "discovery-response-too-large");
             envelope.Guidance.Add("The server answered, but its discovery reply is larger than this CLI accepts. " +

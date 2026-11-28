@@ -37,19 +37,14 @@ public sealed class EvidenceConsistencyTests
         Add("validation that completed", StatusCode.InvalidArgument, startedValidation, "operation-error-inconsistent");
 
         var mpFailure = Error(OperationFailureKind.MpFailure, ExecutionDisposition.Completed);
-        mpFailure.MpExecution = new MpExecutionDetails { State = MpExecutionState.Succeeded, MpResultCode = 2 };
+        mpFailure.MpExecution = CallOutcomeTests.Details(MpExecutionState.Succeeded, 2, OutputRetrievalState.NotAttempted);
         Add("MP failure with MP success", StatusCode.FailedPrecondition, mpFailure, "operation-error-inconsistent");
 
         var noDetails = Error(OperationFailureKind.MpFailure, ExecutionDisposition.Completed);
         Add("MP failure without MP details", StatusCode.FailedPrecondition, noDetails, "operation-error-inconsistent");
 
         var stateCode = Error(OperationFailureKind.OutputRetrievalFailure, ExecutionDisposition.Completed);
-        stateCode.MpExecution = new MpExecutionDetails
-        {
-            State = MpExecutionState.Succeeded,
-            MpResultCode = 4,
-            OutputRetrievals = { new OutputRetrievalDetails { FieldName = "point_name_only", State = OutputRetrievalState.Failed } }
-        };
+        stateCode.MpExecution = CallOutcomeTests.Details(MpExecutionState.Succeeded, 4, OutputRetrievalState.Failed);
         Add("success state with code 4", StatusCode.DataLoss, stateCode, "operation-error-inconsistent");
 
         var unknownField = Error(OperationFailureKind.OutputRetrievalFailure, ExecutionDisposition.Completed);
@@ -62,10 +57,12 @@ public sealed class EvidenceConsistencyTests
         Add("output of another result", StatusCode.DataLoss, unknownField, "operation-error-unrelated");
 
         var policyStarted = Error(OperationFailureKind.PolicyDenied, ExecutionDisposition.StartedOutcomeUnknown);
+        policyStarted.PolicyDenial = new PolicyDenialDetails { Rule = PolicyDenialRule.Override };
         Add("policy denial that may have started", StatusCode.PermissionDenied, policyStarted, "operation-error-inconsistent");
 
         var notStartedMp = Error(OperationFailureKind.Overloaded, ExecutionDisposition.NotStarted);
-        notStartedMp.MpExecution = new MpExecutionDetails { State = MpExecutionState.Failed, MpResultCode = 0 };
+        notStartedMp.ReplayGuidance = ReplayGuidance.MayReplay;
+        notStartedMp.MpExecution = CallOutcomeTests.Details(MpExecutionState.Failed, 0, OutputRetrievalState.NotAttempted);
         Add("not started with an MP result", StatusCode.ResourceExhausted, notStartedMp, "operation-error-inconsistent");
 
         Add("unknown kind", StatusCode.Internal, Error((OperationFailureKind)99, ExecutionDisposition.NotStarted),
@@ -94,7 +91,7 @@ public sealed class EvidenceConsistencyTests
     {
         await using var server = await FakeBriosaServer.StartAsync();
         var error = Error(OperationFailureKind.MpFailure, ExecutionDisposition.Completed);
-        error.MpExecution = new MpExecutionDetails { State = MpExecutionState.Failed, MpResultCode = 0 };
+        error.MpExecution = CallOutcomeTests.Details(MpExecutionState.Failed, 0, OutputRetrievalState.NotAttempted);
         server.Reply = _ => FakeReply.OkWithTrailers(CallOutcomeTests.Result(MpExecutionState.Succeeded, 2),
             (ErrorTrailer, Convert.ToBase64String(error.ToByteArray())));
 
@@ -120,9 +117,12 @@ public sealed class EvidenceConsistencyTests
     public async Task AConsistentMpFailureWithCodeFourStaysAnMpFailure()
     {
         // Code 4 from an operation on the server's exception list arrives as MP failure.
+        // The CLI cannot tell which operations are on that list, so it accepts code 4
+        // in an MP failure of any operation; the genuine replies of the listed
+        // operations are checked in AllOperationsGenuineResponseTests.
         await using var server = await FakeBriosaServer.StartAsync();
         var error = Error(OperationFailureKind.MpFailure, ExecutionDisposition.Completed);
-        error.MpExecution = new MpExecutionDetails { State = MpExecutionState.Failed, MpResultCode = 4 };
+        error.MpExecution = CallOutcomeTests.Details(MpExecutionState.Failed, 4, OutputRetrievalState.NotAttempted);
         server.Reply = _ => FakeReply.Error(StatusCode.FailedPrecondition, error);
 
         var run = await CliRun.RunAsync(CallOutcomeTests.CallArguments(server));
@@ -157,7 +157,8 @@ public sealed class EvidenceConsistencyTests
         DiagnosticCode = "request-validation-failed",
         ExecutionDisposition = disposition,
         RecoveryGuidance = RecoveryGuidance.None,
-        ReplayGuidance = ReplayGuidance.MayReplay,
-        ReplaySafety = ReplaySafety.Safe
+        ReplayGuidance = ReplayGuidance.DoNotReplay,
+        ReplaySafety = ReplaySafety.Safe,
+        WorkerGeneration = 3
     };
 }

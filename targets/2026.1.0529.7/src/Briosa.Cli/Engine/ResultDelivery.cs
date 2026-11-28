@@ -20,6 +20,13 @@ internal sealed class ResultDelivery
     public const int DefaultMaximumInlineBytes = 64 * 1024;
     public const int MaximumInlineBytesLimit = 4 * 1024 * 1024;
 
+    /// <summary>The spill directory's volume does not keep file permissions, so nothing was written there.</summary>
+    public const string SpillPermissionsUnsupported = "spill-permissions-unsupported";
+
+    private const string SpillRefusedMessage =
+        "The spill directory is on a volume that does not keep file permissions, so the CLI did not write the " +
+        "result there, where other users could read it.";
+
     private readonly IResultFileSystem _files;
     private readonly string _spillBase;
     private readonly IReadOnlyList<string> _spillComponents;
@@ -133,16 +140,21 @@ internal sealed class ResultDelivery
                 return true;
             }
 
-            var fallback = Spill(bytes, operationId, "output_write_failed");
+            var fallback = Spill(bytes, operationId, "output_write_failed", out var fallbackRefused);
             envelope.Warn("output-write-failed", subject + " could not be written to the --output file, which may " +
                 "now be incomplete. The CLI tried the spill directory instead; see data.result_file.");
+            if (fallbackRefused)
+            {
+                envelope.Warn("spill-refused", SpillRefusedMessage + " The result is not stored anywhere else.");
+            }
+
             data["result_delivery_error"] = "output-write-failed";
             data["result_file"] = fallback;
             data["result_delivery"] = fallback is null ? "lost" : "file";
             return false;
         }
 
-        if (Spill(bytes, operationId, "inline_cap_exceeded") is { } spilled)
+        if (Spill(bytes, operationId, "inline_cap_exceeded", out var refused) is { } spilled)
         {
             data["result_delivery"] = "file";
             data["result_file"] = spilled;
@@ -152,15 +164,26 @@ internal sealed class ResultDelivery
             return true;
         }
 
-        envelope.Warn("output-write-failed", subject + " was larger than the inline cap and could not be written " +
-            "to the spill directory.");
-        data["result_delivery_error"] = "spill-write-failed";
+        if (refused)
+        {
+            envelope.Warn("spill-refused", subject + " was larger than the inline cap. " + SpillRefusedMessage +
+                " The result was discarded: it is not in this envelope or in any file.");
+            data["result_delivery_error"] = SpillPermissionsUnsupported;
+        }
+        else
+        {
+            envelope.Warn("output-write-failed", subject + " was larger than the inline cap and could not be " +
+                "written to the spill directory.");
+            data["result_delivery_error"] = "spill-write-failed";
+        }
+
         data["result_delivery"] = "lost";
         return false;
     }
 
-    private JsonObject? Spill(byte[] bytes, string operationId, string reason)
+    private JsonObject? Spill(byte[] bytes, string operationId, string reason, out bool refused)
     {
+        refused = false;
         try
         {
             // The name holds only the time, the validated operation ID, and random
@@ -169,6 +192,11 @@ internal sealed class ResultDelivery
                 $"{_time.GetUtcNow():yyyyMMdd'T'HHmmssfff'Z'}-{operationId.Replace('.', '-')}-{Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(4))}.json");
             var file = _files.CreatePrivate(_spillBase, _spillComponents, name);
             return TryWrite(file, bytes) ? FileReference(file.Path, bytes, reason) : null;
+        }
+        catch (SpillPermissionsUnsupportedException)
+        {
+            refused = true;
+            return null;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or
             NotSupportedException or ArgumentException or InvalidOperationException)

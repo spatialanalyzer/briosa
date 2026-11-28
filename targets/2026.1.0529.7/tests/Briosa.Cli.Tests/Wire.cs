@@ -46,9 +46,13 @@ internal static class Codes
 
     public const string ResultExecutionMissing = "result-execution-missing";
     public const string ResultExecutionContractViolation = "result-execution-contract-violation";
-    public const string ResultOutputNotRetrieved = "result-output-not-retrieved";
+    public const string ResultOutputUnrelated = "result-output-unrelated";
+    public const string ResultOutputMissing = "result-output-missing";
     public const string TrailerMalformed = "operation-error-trailer-malformed";
-    public const string DispositionUnrecognized = "operation-error-disposition-unrecognized";
+    public const string ErrorInconsistent = "operation-error-inconsistent";
+    public const string ErrorUnrelated = "operation-error-unrelated";
+    public const string ErrorEnumUnrecognized = "operation-error-enum-unrecognized";
+    public const string SpillPermissionsUnsupported = "spill-permissions-unsupported";
     public const string ClientCancelled = "client-cancelled";
     public const string ClientDeadlineExceeded = "client-deadline-exceeded";
 }
