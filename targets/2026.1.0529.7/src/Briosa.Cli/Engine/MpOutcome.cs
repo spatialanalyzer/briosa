@@ -284,11 +284,14 @@ internal static class MpOutcome
 
 /// <summary>
 /// What the classifier needs to know about the call it reads. The replay safety is
-/// the one discovery reported for the operation.
+/// the one discovery reported for the operation. <see cref="CodeFourMayBeFailure"/>
+/// says whether the server may report MP code 4 as an MP failure for it, which it
+/// does only for a few reviewed operations, none of them in the read-only tier.
 /// </summary>
 internal sealed record MpCallContext(
     string OperationId,
     string FullyQualifiedMethod,
     string CallerRestriction,
     MessageDescriptor ResultDescriptor,
-    ReplaySafety ReplaySafety);
+    ReplaySafety ReplaySafety,
+    bool CodeFourMayBeFailure);

@@ -44,7 +44,8 @@ internal static class ServerMapperShapes
             ("overloaded", "not_started", 6, Transport("Overloaded", "NotStarted", "worker-admission-full")),
             ("request-rejected", "invalid_request", 7, Transport("RequestRejected", "NotStarted", "request-encoding-rejected")),
             ("policy-denied", "not_started", 6,
-                Transport("PolicyDenied", "NotStarted", "operation-policy-denied", denial: GenuineResponses.PolicyDenials[0])),
+                Transport("PolicyDenied", "NotStarted", "operation-policy-denied", denial: GenuineResponses.PolicyDenials
+                    .First(denial => GenuineResponses.Details(denial).Rule == PolicyDenialRule.Profile))),
             ("unsupported-from-worker", "not_started", 6, Transport("Unsupported", "NotStarted", "operation-unsupported")),
             ("caller-cancelled-queued", "not_started", 6, Transport("ClientCancelled", "NotStarted", "queued-request-abandoned")),
             ("caller-cancelled-claimed", "started_outcome_unknown", 11,

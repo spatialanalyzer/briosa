@@ -103,34 +103,90 @@ public sealed class SpillDirectoryTests
         AssertPrivate(file, InheritanceFlags.None);
     }
 
-    // D: the permissions go to the directory that was verified and held, even when its
-    // path leads somewhere else by the time they are set.
-    [Fact]
-    public void TheDirectoryPermissionsAreSetThroughTheVerifiedHandle()
+    // C (round 3): the base is the user's folder and may be redirected at any time.
+    // Redirected after the base, after each managed directory, or after all of them
+    // are held, the spill still lands in the tree the base led to when it was opened,
+    // and nothing outside that tree changes: no permission, no entry.
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    public void ARedirectedBaseNeverChangesAnythingOutsideTheTreeItFirstLedTo(int heldWhenRedirected)
     {
         using var environment = TestEnvironment.Create();
         var verified = Path.Combine(environment.Root, "verified");
         var elsewhere = Path.Combine(environment.Root, "elsewhere");
-        var elsewhereResults = Path.Combine([elsewhere, .. TestEnvironment.SpillComponents]);
         Directory.CreateDirectory(verified);
-        Directory.CreateDirectory(elsewhereResults);
+        Directory.CreateDirectory(Path.Combine([elsewhere, .. TestEnvironment.SpillComponents]));
         var link = Path.Combine(environment.Root, "base");
         CreateJunction(link, verified);
-        var files = new ResultFileSystem(afterDirectoriesHeld: () =>
+        var before = Snapshot(environment.Root);
+        var files = new ResultFileSystem(afterHeld: held =>
         {
-            // The base is the user's folder and may be redirected; here it is
-            // redirected after every directory below it was verified and held.
-            Directory.Delete(link);
-            CreateJunction(link, elsewhere);
+            if (held == heldWhenRedirected)
+            {
+                Directory.Delete(link);
+                CreateJunction(link, elsewhere);
+            }
         });
 
-        Assert.ThrowsAny<IOException>(() => files.CreatePrivate(link, TestEnvironment.SpillComponents, "r.json"));
+        string? created = null;
+        IOException? refused = null;
+        try
+        {
+            using var file = files.CreatePrivate(link, TestEnvironment.SpillComponents, "r.json");
+            created = file.Path;
+        }
+        catch (IOException exception)
+        {
+            refused = exception;
+        }
 
+        // Every entry that existed before, other than the base link that the test
+        // re-pointed, keeps its owner and access list, and nothing new appears
+        // outside the verified tree.
+        var after = Snapshot(environment.Root);
         var verifiedResults = Path.Combine([verified, .. TestEnvironment.SpillComponents]);
+        foreach (var (path, security) in before.Where(entry => !string.Equals(entry.Key, link, StringComparison.OrdinalIgnoreCase)))
+        {
+            Assert.True(after.TryGetValue(path, out var now) && now == security, path);
+        }
+
+        Assert.All(after.Keys.Except(before.Keys, StringComparer.OrdinalIgnoreCase), path =>
+            Assert.StartsWith(verified + Path.DirectorySeparatorChar, path, StringComparison.OrdinalIgnoreCase));
+        Assert.Null(refused);
+        Assert.Equal(Path.Combine(verifiedResults, "r.json"), created, StringComparer.OrdinalIgnoreCase);
         Assert.True(new DirectoryInfo(verifiedResults).GetAccessControl().AreAccessRulesProtected);
-        Assert.False(new DirectoryInfo(elsewhereResults).GetAccessControl().AreAccessRulesProtected);
-        Assert.Empty(Directory.EnumerateFileSystemEntries(elsewhereResults));
-        Assert.Empty(Directory.EnumerateFileSystemEntries(verifiedResults));
+    }
+
+    // The owner and access list of the root and of every entry below it, without
+    // following junctions.
+    private static Dictionary<string, string> Snapshot(string root)
+    {
+        var entries = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        void Walk(string directory)
+        {
+            entries[directory] = new DirectoryInfo(directory)
+                .GetAccessControl(AccessControlSections.Access | AccessControlSections.Owner)
+                .GetSecurityDescriptorSddlForm(AccessControlSections.Access | AccessControlSections.Owner);
+            foreach (var child in new DirectoryInfo(directory).EnumerateFileSystemInfos())
+            {
+                if (child is DirectoryInfo { Attributes: var attributes } && (attributes & FileAttributes.ReparsePoint) == 0)
+                {
+                    Walk(child.FullName);
+                }
+                else
+                {
+                    entries[child.FullName] = child.Attributes.HasFlag(FileAttributes.ReparsePoint) ? "link"
+                        : new FileInfo(child.FullName).GetAccessControl(AccessControlSections.Access | AccessControlSections.Owner)
+                            .GetSecurityDescriptorSddlForm(AccessControlSections.Access | AccessControlSections.Owner);
+                }
+            }
+        }
+
+        Walk(root);
+        return entries;
     }
 
     // D: on a volume that keeps no permissions, nothing is spilled or created, and the

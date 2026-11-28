@@ -173,10 +173,10 @@ internal static class EvidenceConsistency
 
         if (!error.HasWorkerGeneration || error.WorkerGeneration < 0 ||
             (error.Kind == OperationFailureKind.PolicyDenied) != (error.PolicyDenial is not null) ||
-            error.PolicyDenial?.Rule == PolicyDenialRule.Unspecified ||
+            error.PolicyDenial is { } stated && !DenialFits(stated, call.CallerRestriction) ||
             error.RequestValidation is not null && (error.Kind != OperationFailureKind.Validation ||
                 !string.Equals(error.DiagnosticCode, RequestValidationFailed, StringComparison.Ordinal)) ||
-            !shapes.Any(shape => shape.Matches(error, status, call.ReplaySafety)) ||
+            !shapes.Any(shape => shape.Matches(error, status, call)) ||
             error.MpExecution is { } reported && !OutputsCovered(reported, call.ResultDescriptor))
         {
             return Inconsistent;
@@ -208,6 +208,57 @@ internal static class EvidenceConsistency
         return OutputsCovered(details, result) ? null : ResultOutputMissing;
     }
 
+    // A denial's detail carries exactly the fields its rule names, as the server's
+    // OperationPolicyDenial writes them. A caller rule names what this CLI's own
+    // restriction says: the server names the restriction's profile, and the first of
+    // the request's flags that the restriction itself denies.
+    private static bool DenialFits(PolicyDenialDetails denial, string callerRestriction)
+    {
+        var (profile, denied) = ReadRestriction(callerRestriction);
+        var option = !denial.HasRequestOptionField || Stated(denial.HasRequestOptionField, denial.RequestOptionField);
+        bool Only(bool deniedFlag = false, bool admissionProfile = false, bool callerProfile = false,
+            bool callerFlag = false) =>
+            denial.HasDeniedFlag == deniedFlag && denial.HasAdmissionProfile == admissionProfile &&
+            denial.HasCallerAdmissionProfile == callerProfile && denial.HasCallerDeniedFlag == callerFlag;
+        return denial.Rule switch
+        {
+            PolicyDenialRule.Profile => Only(admissionProfile: true) && option &&
+                Stated(denial.HasAdmissionProfile, denial.AdmissionProfile),
+            PolicyDenialRule.Flag => Only(deniedFlag: true) && option && Stated(denial.HasDeniedFlag, denial.DeniedFlag),
+            PolicyDenialRule.Override or PolicyDenialRule.Unreviewed => Only() && !denial.HasRequestOptionField,
+            PolicyDenialRule.Exclusive => Only() && option,
+            PolicyDenialRule.CallerProfile => Only(callerProfile: true) && option &&
+                string.Equals(denial.CallerAdmissionProfile, profile, StringComparison.Ordinal),
+            PolicyDenialRule.CallerFlag => Only(callerFlag: true) && option &&
+                denied.Contains(denial.CallerDeniedFlag, StringComparer.Ordinal),
+            _ => false
+        };
+    }
+
+    private static bool Stated(bool present, string value) => present && !string.IsNullOrWhiteSpace(value);
+
+    // The profile and the denied flags of a restriction header in the server's syntax,
+    // for example "profile=read-only; deny=interactive_ui".
+    private static (string? Profile, string[] Denied) ReadRestriction(string restriction)
+    {
+        string? profile = null;
+        string[] denied = [];
+        foreach (var clause in restriction.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = clause.Split('=', 2);
+            if (parts is ["profile", var name])
+            {
+                profile = name;
+            }
+            else if (parts is ["deny", var flags])
+            {
+                denied = flags.Split(',');
+            }
+        }
+
+        return (profile, denied);
+    }
+
     private static Shape[] Interrupted(StatusCode status) =>
     [
         new(status, Disposition.NotStarted, Replay.MayReplay),
@@ -234,9 +285,45 @@ internal static class EvidenceConsistency
     private static bool OutputsResolve(MpExecutionDetails details, MessageDescriptor result) =>
         details.OutputRetrievals.All(output => OutputFields(result).Any(field => Names(output.FieldName, field)));
 
-    // Every field of the result is written from some output, so each has a row.
-    private static bool OutputsCovered(MpExecutionDetails details, MessageDescriptor result) =>
-        OutputFields(result).All(field => details.OutputRetrievals.Any(output => Names(output.FieldName, field)));
+    // Every field of the result is written from its own outputs, so each field has a
+    // row of its own: the rows can be matched to the fields so that every field gets
+    // a different row that names it. One row never answers for two fields.
+    private static bool OutputsCovered(MpExecutionDetails details, MessageDescriptor result)
+    {
+        var fields = OutputFields(result).ToArray();
+        var rows = details.OutputRetrievals;
+        var names = fields.Select(field => rows.Select(row => Names(row.FieldName, field)).ToArray()).ToArray();
+
+        // Kuhn's augmenting paths: a maximum matching of fields to rows.
+        var owner = Enumerable.Repeat(-1, rows.Count).ToArray();
+        bool Assign(int field, bool[] tried)
+        {
+            for (var row = 0; row < rows.Count; row++)
+            {
+                if (names[field][row] && !tried[row])
+                {
+                    tried[row] = true;
+                    if (owner[row] < 0 || Assign(owner[row], tried))
+                    {
+                        owner[row] = field;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        for (var field = 0; field < fields.Length; field++)
+        {
+            if (!Assign(field, new bool[rows.Count]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     private static IEnumerable<FieldDescriptor> OutputFields(MessageDescriptor result) =>
         result.Fields.InFieldNumberOrder().Where(field => field.FieldNumber != ProtocolCatalog.ExecutionFieldNumber);
@@ -301,14 +388,14 @@ internal static class EvidenceConsistency
         string? Code = null,
         string? NotCode = null)
     {
-        public bool Matches(OperationError error, StatusCode status, ReplaySafety replaySafety) =>
+        public bool Matches(OperationError error, StatusCode status, MpCallContext call) =>
             status == Status &&
             error.ExecutionDisposition == (ExecutionDisposition)Disposition &&
             (Recoveries ?? [Recovery.None]).Any(recovery => error.RecoveryGuidance == (RecoveryGuidance)recovery) &&
-            error.ReplayGuidance == Expected(replaySafety) &&
+            error.ReplayGuidance == Expected(call.ReplaySafety) &&
             (Code is null || string.Equals(error.DiagnosticCode, Code, StringComparison.Ordinal)) &&
             (NotCode is null || !string.Equals(error.DiagnosticCode, NotCode, StringComparison.Ordinal)) &&
-            MpMatches(error.MpExecution);
+            MpMatches(error.MpExecution, call.CodeFourMayBeFailure);
 
         private ReplayGuidance Expected(ReplaySafety replaySafety) => Replay switch
         {
@@ -321,14 +408,17 @@ internal static class EvidenceConsistency
         // The state, the MP code, and the output rows agree as the mapper sets them:
         // no code before a result was retrieved, and no output attempted before
         // MP code 2 or 4.
-        private bool MpMatches(MpExecutionDetails? details) => Mp switch
+        private bool MpMatches(MpExecutionDetails? details, bool codeFourMayBeFailure) => Mp switch
         {
             Mp.None => details is null,
             Mp.ArgumentRejected => NotRetrieved(details, MpExecutionState.ArgumentRejected),
             Mp.ExecuteStepRejected => NotRetrieved(details, MpExecutionState.ExecuteStepRejected),
             Mp.ResultUnavailable => NotRetrieved(details, MpExecutionState.ResultUnavailable),
+            // Code 2 is never a failure. Code 4 is one only for the server's reviewed
+            // exceptions, none of which a read-only call can reach.
             Mp.Failed => details is { State: MpExecutionState.Failed, HasMpResultCode: true } &&
-                details.MpResultCode != 2 && AllRows(details, OutputRetrievalState.NotAttempted),
+                details.MpResultCode != 2 && (codeFourMayBeFailure || details.MpResultCode != 4) &&
+                AllRows(details, OutputRetrievalState.NotAttempted),
             Mp.OutputsFailed => details is not null && IsCompleted(details) &&
                 details.OutputRetrievals.All(output => output.State is OutputRetrievalState.Retrieved or
                     OutputRetrievalState.Failed) &&

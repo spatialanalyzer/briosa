@@ -113,22 +113,21 @@ public sealed class EvidenceConsistencyTests
         AssertConflict(run, "result-output-unrelated");
     }
 
+    // The server reports code 4 as an MP failure only for its reviewed exceptions,
+    // none of which call serves (ReviewRoundThreeTests covers a served read). Outside
+    // the read-only tier, the genuine reply of each one is still an MP failure.
     [Fact]
-    public async Task AConsistentMpFailureWithCodeFourStaysAnMpFailure()
+    public void AGenuineCodeFourFailureOutsideTheReadOnlyTierStaysAnMpFailure()
     {
-        // Code 4 from an operation on the server's exception list arrives as MP failure.
-        // The CLI cannot tell which operations are on that list, so it accepts code 4
-        // in an MP failure of any operation; the genuine replies of the listed
-        // operations are checked in AllOperationsGenuineResponseTests.
-        await using var server = await FakeBriosaServer.StartAsync();
-        var error = Error(OperationFailureKind.MpFailure, ExecutionDisposition.Completed);
-        error.MpExecution = CallOutcomeTests.Details(MpExecutionState.Failed, 4, OutputRetrievalState.NotAttempted);
-        server.Reply = _ => FakeReply.Error(StatusCode.FailedPrecondition, error);
+        Assert.All(GenuineResponses.PartialSuccessFailures, operationId =>
+        {
+            var operation = GenuineResponses.Operation(operationId);
+            Assert.True(operation.Context.CodeFourMayBeFailure);
 
-        var run = await CliRun.RunAsync(CallOutcomeTests.CallArguments(server));
+            var envelope = GenuineResponses.Classify(operation, GenuineResponses.Complete(operation, 4));
 
-        Assert.Equal(8, run.ExitCode);
-        Assert.Equal("mp_failed", run.Outcome);
+            Assert.Equal(Engine.BridgeOutcome.MpFailed, envelope.Outcome);
+        });
     }
 
     internal static void AssertConflict(CliRun run, string code)

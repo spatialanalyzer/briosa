@@ -22,8 +22,10 @@ internal static class MapperEnumeration
         "mapper must replace, not every string. MP result codes: a sample of nine. Operations: six representative " +
         "ones (no outputs, several outputs, nested and dotted output names, repeated output names, and one whose MP " +
         "code 4 is a failure); AllOperationsGenuineResponseTests covers the completed paths of every operation. " +
-        "Worker generations: 0 and 3. Policy denials: one per rule the real policy reaches for the read-only and " +
-        "full profiles. Output values: one typed value per kind.";
+        "Worker generations: 0 and 3. Policy denials: the server's own rules from its denial factory, over every " +
+        "profile, every risk flag, and with and without a request option; the caller rules from the real policy with " +
+        "this CLI's restriction, over every operation and reviewed request option; a denial is not crossed with " +
+        "connections or deadlines, which the mapper does not read for it. Output values: one typed value per kind.";
 
     /// <summary>Each code the mapper writes itself or falls back to, and one ordinary worker code.</summary>
     public static IReadOnlyList<string> WorkerCodes { get; } =
@@ -89,14 +91,20 @@ internal static class MapperEnumeration
         {
             foreach (var status in statuses)
             {
-                var denials = status == "PolicyDenied" ? GenuineResponses.PolicyDenials.Cast<object?>().ToArray() : new object?[] { null };
+                // A denial is mapped from the status, disposition, code, and denial
+                // alone, so its many payloads are not crossed with connections and
+                // deadlines, which the mapper reads only for other statuses.
+                var denied = status == "PolicyDenied";
+                var denials = denied ? GenuineResponses.PolicyDenials.Cast<object?>().ToArray() : new object?[] { null };
+                var connections = denied ? [null] : Connections().ToArray();
+                var deadlines = denied ? new[] { false } : [false, true];
                 foreach (var disposition in dispositions)
                 {
-                    foreach (var connection in Connections())
+                    foreach (var connection in connections)
                     {
                         foreach (var code in WorkerCodes.Append(UnnormalizedCode))
                         {
-                            foreach (var deadline in new[] { false, true })
+                            foreach (var deadline in deadlines)
                             {
                                 foreach (var denial in denials)
                                 {
@@ -331,7 +339,8 @@ public sealed class MapperEnumerationTests(ITestOutputHelper output)
 
     // Everything the mapper's output depends on, with free-form detail reduced to the
     // facts the mapper fixes: which row states occur, whether an MP code is 2, 4, or
-    // another value, and whether a policy rule is a defined one.
+    // another value, and a denial's rule with which of its fields are set, blank, or
+    // absent, and the exact caller values, which name the restriction this CLI sent.
     private static string Signature(GenuineOperation operation, ReplaySafety replaySafety, StatusCode status, OperationError error)
     {
         var mp = error.MpExecution is { } details
@@ -339,9 +348,14 @@ public sealed class MapperEnumerationTests(ITestOutputHelper output)
                 $"{(int)details.State}/{(details.HasMpResultCode ? details.MpResultCode is 2 or 4 ? details.MpResultCode.ToString(CultureInfo.InvariantCulture) : "other" : "none")}/" +
                 $"{(details.OutputRetrievals.Count == 0 ? "no-rows" : string.Join(',', details.OutputRetrievals.Select(row => (int)row.State).Distinct().Order()))}")
             : "none";
+        static string Field(bool present, string value) =>
+            !present ? "absent" : string.IsNullOrWhiteSpace(value) ? "blank" : "set";
         var rule = error.PolicyDenial is not { } denial ? "absent"
-            : !Enum.IsDefined(denial.Rule) ? "undefined"
-            : denial.Rule == PolicyDenialRule.Unspecified ? "unspecified" : "defined";
+            : string.Create(CultureInfo.InvariantCulture,
+                $"{(int)denial.Rule}:{Field(denial.HasDeniedFlag, denial.DeniedFlag)}:{Field(denial.HasAdmissionProfile, denial.AdmissionProfile)}:" +
+                $"{Field(denial.HasRequestOptionField, denial.RequestOptionField)}:" +
+                $"{(denial.HasCallerAdmissionProfile ? "=" + denial.CallerAdmissionProfile : "absent")}:" +
+                $"{(denial.HasCallerDeniedFlag ? "=" + denial.CallerDeniedFlag : "absent")}");
         var generation = !error.HasWorkerGeneration ? "none" : error.WorkerGeneration >= 0 ? "present" : "negative";
         // Only MP details depend on the operation's own outputs; every other error the
         // mapper builds is the same for every operation, apart from its ID.
@@ -372,7 +386,9 @@ public sealed class MapperEnumerationTests(ITestOutputHelper output)
     {
         var failsOnFour = GenuineResponses.PartialSuccessFailures.Contains(source.Operation.OperationId);
         var other = error.Clone();
-        if (!failsOnFour && error is { Kind: OperationFailureKind.MpFailure, MpExecution: { HasMpResultCode: true, MpResultCode: 4 } })
+        // Outside the read-only tier only: a served read never reports code 4 as a failure.
+        if (!failsOnFour && source.Operation.Context.CodeFourMayBeFailure &&
+            error is { Kind: OperationFailureKind.MpFailure, MpExecution: { HasMpResultCode: true, MpResultCode: 4 } })
         {
             other.MpExecution.MpResultCode = 0;
         }
@@ -387,6 +403,35 @@ public sealed class MapperEnumerationTests(ITestOutputHelper output)
         }
 
         return producible.Contains(Signature(source.Operation, source.ReplaySafety, status, other));
+    }
+
+    // Each detail field cleared, blank, or set, and each caller field set to a value
+    // this CLI's restriction does or does not name.
+    private static IEnumerable<(string Label, Action<PolicyDenialDetails> Change)> DenialFieldChanges(PolicyDenialDetails denial)
+    {
+        yield return (denial.HasDeniedFlag ? "no-denied-flag" : "denied-flag", denial.HasDeniedFlag
+            ? details => details.ClearDeniedFlag()
+            : details => details.DeniedFlag = "physical_motion");
+        yield return ("blank-denied-flag", details => details.DeniedFlag = "");
+        yield return (denial.HasAdmissionProfile ? "no-admission-profile" : "admission-profile", denial.HasAdmissionProfile
+            ? details => details.ClearAdmissionProfile()
+            : details => details.AdmissionProfile = "standard");
+        yield return ("blank-admission-profile", details => details.AdmissionProfile = "");
+        yield return (denial.HasRequestOptionField ? "no-option" : "option", denial.HasRequestOptionField
+            ? details => details.ClearRequestOptionField()
+            : details => details.RequestOptionField = "show_results_dialog");
+        yield return ("blank-option", details => details.RequestOptionField = "");
+        yield return ("no-caller-profile", details => details.ClearCallerAdmissionProfile());
+        foreach (var profile in new[] { "read-only", "standard", "full", "" })
+        {
+            yield return ($"caller-profile={profile}", details => details.CallerAdmissionProfile = profile);
+        }
+
+        yield return ("no-caller-flag", details => details.ClearCallerDeniedFlag());
+        foreach (var flag in new[] { "interactive_ui", "physical_motion", "filesystem_read", "" })
+        {
+            yield return ($"caller-flag={flag}", details => details.CallerDeniedFlag = flag);
+        }
     }
 
     private static IEnumerable<(string Label, StatusCode Status, OperationError Error)> Mutations(
@@ -441,9 +486,15 @@ public sealed class MapperEnumerationTests(ITestOutputHelper output)
             Change(error => error.PolicyDenial = error.PolicyDenial is null ? new PolicyDenialDetails { Rule = PolicyDenialRule.Override } : null));
         if (original.PolicyDenial is not null)
         {
-            yield return ("rule=unspecified", status, Change(error => error.PolicyDenial.Rule = PolicyDenialRule.Unspecified));
-            yield return ("rule=99", status, Change(error => error.PolicyDenial.Rule = (PolicyDenialRule)99));
-            yield return ("rule=override", status, Change(error => error.PolicyDenial.Rule = PolicyDenialRule.Override));
+            foreach (var value in Enum.GetValues<PolicyDenialRule>().Append((PolicyDenialRule)99))
+            {
+                yield return ($"rule={value}", status, Change(error => error.PolicyDenial.Rule = value));
+            }
+
+            foreach (var (label, change) in DenialFieldChanges(original.PolicyDenial))
+            {
+                yield return (label, status, Change(error => change(error.PolicyDenial)));
+            }
         }
 
         yield return (original.RequestValidation is null ? "add-request-validation" : "remove-request-validation", status,

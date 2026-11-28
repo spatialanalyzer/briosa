@@ -4,16 +4,23 @@ using Microsoft.Win32.SafeHandles;
 namespace Briosa.Cli.Engine;
 
 /// <summary>
-/// The Win32 calls result files need and .NET does not expose: opening a directory
-/// without following a reparse point, creating a file with delete access and its own
-/// security, deleting it through its handle, reading the path a handle actually
-/// refers to, and asking whether a handle's volume keeps file permissions.
+/// The Win32 and native calls result files need and .NET does not expose: opening a
+/// directory without following a reparse point, opening or creating a directory or
+/// file relative to a held directory handle rather than by path, creating a file with
+/// delete access and its own security, deleting it through its handle, reading the
+/// path a handle actually refers to, and asking whether a handle's volume keeps file
+/// permissions.
 /// </summary>
 internal static partial class NativeMethods
 {
     public const uint GenericWrite = 0x4000_0000;
     public const uint Delete = 0x0001_0000;
     public const uint FileReadAttributes = 0x0000_0080;
+    public const uint FileListDirectory = 0x0000_0001;
+    public const uint FileAddFile = 0x0000_0002;
+    public const uint FileAddSubdirectory = 0x0000_0004;
+    public const uint FileTraverse = 0x0000_0020;
+    public const uint Synchronize = 0x0010_0000;
     public const uint ReadControl = 0x0002_0000;
     public const uint WriteDac = 0x0004_0000;
     public const uint WriteOwner = 0x0008_0000;
@@ -39,6 +46,16 @@ internal static partial class NativeMethods
     private const int FileDispositionInfoClass = 4;
     private const uint FilePersistentAcls = 0x0000_0008;
 
+    // NtCreateFile dispositions, options, and object attributes.
+    private const uint FileCreateDisposition = 2;
+    private const uint FileOpenIfDisposition = 3;
+    private const uint FileDirectoryFile = 0x0000_0001;
+    private const uint FileWriteThroughOption = 0x0000_0002;
+    private const uint FileSynchronousIoNonalert = 0x0000_0020;
+    private const uint FileNonDirectoryFile = 0x0000_0040;
+    private const uint FileOpenReparsePointOption = 0x0020_0000;
+    private const uint ObjectCaseInsensitive = 0x0000_0040;
+
     [LibraryImport("kernel32.dll", EntryPoint = "CreateFileW", SetLastError = true,
         StringMarshalling = StringMarshalling.Utf16)]
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
@@ -63,6 +80,100 @@ internal static partial class NativeMethods
         uint* fileSystemFlags,
         char* fileSystemName,
         uint fileSystemNameSize);
+
+    [LibraryImport("ntdll.dll", EntryPoint = "NtCreateFile")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static unsafe partial int NtCreateFile(
+        out SafeFileHandle handle,
+        uint desiredAccess,
+        ObjectAttributes* objectAttributes,
+        IoStatusBlock* ioStatusBlock,
+        long* allocationSize,
+        uint fileAttributes,
+        uint shareAccess,
+        uint createDisposition,
+        uint createOptions,
+        void* eaBuffer,
+        uint eaLength);
+
+    [LibraryImport("ntdll.dll", EntryPoint = "RtlNtStatusToDosError")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static partial uint RtlNtStatusToDosError(int status);
+
+    /// <summary>
+    /// Opens the directory <paramref name="name"/> inside the directory that
+    /// <paramref name="parent"/> holds, creating it if it does not exist. The name is
+    /// resolved against that directory object itself, never against a path, so a
+    /// redirected path cannot change which directory it is. A reparse point at the
+    /// name is opened as itself, not followed.
+    /// </summary>
+    public static SafeFileHandle OpenOrCreateChildDirectory(SafeFileHandle parent, string name, uint desiredAccess,
+        uint shareMode) =>
+        CreateRelative(parent, name, desiredAccess | Synchronize, 0, shareMode, FileOpenIfDisposition,
+            FileDirectoryFile | FileOpenReparsePointOption | FileSynchronousIoNonalert, securityDescriptor: null);
+
+    /// <summary>
+    /// Creates the new file <paramref name="name"/> inside the directory that
+    /// <paramref name="parent"/> holds, with <paramref name="securityDescriptor"/> and no
+    /// sharing. It fails when the name exists.
+    /// </summary>
+    public static SafeFileHandle CreateChildFile(SafeFileHandle parent, string name, uint desiredAccess,
+        byte[] securityDescriptor) =>
+        CreateRelative(parent, name, desiredAccess | Synchronize, FileAttributeNormal, 0, FileCreateDisposition,
+            FileNonDirectoryFile | FileWriteThroughOption | FileSynchronousIoNonalert, securityDescriptor);
+
+    private static unsafe SafeFileHandle CreateRelative(SafeFileHandle parent, string name, uint desiredAccess,
+        uint fileAttributes, uint shareMode, uint disposition, uint options, byte[]? securityDescriptor)
+    {
+        // One path element: the name can never walk up or across.
+        if (name.Length == 0 || name is "." or ".." || name.AsSpan().IndexOfAny('\\', '/', ':') >= 0)
+        {
+            throw new ArgumentException("A spill path element must be a single name.", nameof(name));
+        }
+
+        var added = false;
+        parent.DangerousAddRef(ref added);
+        try
+        {
+            fixed (char* characters = name)
+            fixed (byte* descriptor = securityDescriptor)
+            {
+                var objectName = new UnicodeString
+                {
+                    Length = (ushort)(name.Length * sizeof(char)),
+                    MaximumLength = (ushort)(name.Length * sizeof(char)),
+                    Buffer = (IntPtr)characters
+                };
+                var attributes = new ObjectAttributes
+                {
+                    Length = (uint)sizeof(ObjectAttributes),
+                    RootDirectory = parent.DangerousGetHandle(),
+                    ObjectName = (IntPtr)(&objectName),
+                    Attributes = ObjectCaseInsensitive,
+                    SecurityDescriptor = (IntPtr)descriptor,
+                    SecurityQualityOfService = IntPtr.Zero
+                };
+                IoStatusBlock status;
+                var result = NtCreateFile(out var handle, desiredAccess, &attributes, &status, null, fileAttributes,
+                    shareMode, disposition, options, null, 0);
+                if (result < 0)
+                {
+                    handle.Dispose();
+                    throw new IOException("A spill path element could not be opened or created.",
+                        unchecked((int)0x8007_0000) | (int)RtlNtStatusToDosError(result));
+                }
+
+                return handle;
+            }
+        }
+        finally
+        {
+            if (added)
+            {
+                parent.DangerousRelease();
+            }
+        }
+    }
 
     /// <summary>
     /// Opens or creates a file. A new file gets <paramref name="securityDescriptor"/>,
@@ -168,5 +279,31 @@ internal static partial class NativeMethods
         public uint Length;
         public IntPtr SecurityDescriptor;
         public int InheritHandle;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct UnicodeString
+    {
+        public ushort Length;
+        public ushort MaximumLength;
+        public IntPtr Buffer;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct ObjectAttributes
+    {
+        public uint Length;
+        public IntPtr RootDirectory;
+        public IntPtr ObjectName;
+        public uint Attributes;
+        public IntPtr SecurityDescriptor;
+        public IntPtr SecurityQualityOfService;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct IoStatusBlock
+    {
+        public IntPtr Status;
+        public IntPtr Information;
     }
 }

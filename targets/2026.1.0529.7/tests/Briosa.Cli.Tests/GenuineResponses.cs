@@ -26,6 +26,7 @@ internal static class GenuineResponses
     private static readonly Type Exceptions = Server.GetType("Briosa.Server.Services.MpPartialSuccessExceptions", true)!;
     private static readonly Lazy<IReadOnlyList<GenuineOperation>> LazyOperations = new(Load);
     private static readonly Lazy<IReadOnlyList<object>> LazyDenials = new(LoadDenials);
+    private static readonly Lazy<IReadOnlyList<object>> LazyPolicyCallerDenials = new(LoadPolicyCallerDenials);
 
     public static IReadOnlyList<GenuineOperation> Operations => LazyOperations.Value;
 
@@ -36,8 +37,24 @@ internal static class GenuineResponses
     public static IReadOnlySet<string> PartialSuccessFailures { get; } =
         ((IEnumerable<string>)Exceptions.GetProperty("OperationIds")!.GetValue(null)!).ToHashSet(StringComparer.Ordinal);
 
-    /// <summary>Policy denials the server's real operation policy makes, one per rule it can reach here.</summary>
+    /// <summary>
+    /// Policy denials as the server's denial factory makes them, each with its
+    /// payload: the server's own rules over every profile, every risk flag, and with
+    /// and without a request option; the caller rules with the values the policy
+    /// takes from the restriction this CLI sends (its profile, and a flag it denies),
+    /// with and without a request option.
+    /// </summary>
     public static IReadOnlyList<object> PolicyDenials => LazyDenials.Value;
+
+    /// <summary>
+    /// The caller denials the real policy makes with the restriction this CLI sends,
+    /// for every operation and every reviewed request option.
+    /// </summary>
+    public static IReadOnlyList<object> PolicyCallerDenials => LazyPolicyCallerDenials.Value;
+
+    /// <summary>The public detail of a denial.</summary>
+    public static PolicyDenialDetails Details(object denial) =>
+        (PolicyDenialDetails)denial.GetType().GetMethod("ToDetails")!.Invoke(denial, null)!;
 
     /// <summary>A completed MP sequence with the given code and every output retrieved.</summary>
     public static GenuineReply Complete(GenuineOperation operation, int code) =>
@@ -152,38 +169,73 @@ internal static class GenuineResponses
         return envelope;
     }
 
-    // One denial per rule the real policy reaches for a server configuration, and one
-    // for the caller's own read-only restriction.
     private static List<object> LoadDenials()
     {
+        var denialType = Server.GetType("Briosa.Server.Security.OperationPolicyDenial", true)!;
+        var vocabulary = Server.GetType("Briosa.Server.Security.OperationRiskVocabulary", true)!;
+        var profiles = Server.GetType("Briosa.Server.Security.OperationAdmissionProfile", true)!;
+        object Make(string factory, params object?[] arguments) =>
+            denialType.GetMethod(factory, BindingFlags.Public | BindingFlags.Static)!.Invoke(null, arguments)!;
+        var flags = ((System.Collections.IEnumerable)vocabulary.GetProperty("Members")!.GetValue(null)!).Cast<object>().ToArray();
+        var profileNames = ((System.Collections.IEnumerable)profiles.GetProperty("All")!.GetValue(null)!).Cast<object>()
+            .Select(profile => (string)profiles.GetProperty("Name")!.GetValue(profile)!).ToArray();
+        var interactive = flags.Single(flag => (string)vocabulary.GetMethod("GetName", [flag.GetType()])!
+            .Invoke(null, [flag])! == "interactive_ui");
+        var denials = new List<object> { Make("Unreviewed"), Make("Override") };
+        foreach (var option in new[] { null, "show_results_dialog" })
+        {
+            denials.Add(Make("Exclusive", option));
+            denials.AddRange(profileNames.Select(name => Make("Profile", name, option)));
+            denials.AddRange(flags.Select(flag => Make("Flag", flag, option)));
+            denials.Add(Make("CallerProfile", "read-only", option));
+            denials.Add(Make("CallerFlag", interactive, option));
+        }
+
+        return denials;
+    }
+
+    private static List<object> LoadPolicyCallerDenials()
+    {
+        // The caller rules, from the real policy with the restriction this CLI sends.
         var api = Server.GetType("Briosa.Server.Operations.SpatialAnalyzerApi", true)!;
         var operations = api.GetProperty("Operations", BindingFlags.Public | BindingFlags.Static)!.GetValue(null);
         var policyType = Server.GetType("Briosa.Server.Security.OperationPolicy", true)!;
         var restrictionType = Server.GetType("Briosa.Server.Security.OperationCallerRestriction", true)!;
         var restriction = restrictionType.GetMethod("Parse", BindingFlags.Public | BindingFlags.Static)!
             .Invoke(null, [Wire.ReadOnlyRestriction])!;
-        var denials = new Dictionary<PolicyDenialRule, object>();
-        foreach (var (profile, caller) in new[] { ("read-only", (object?)null), ("full", restriction) })
+        // The server admits everything it can, so the caller's restriction decides.
+        var vocabulary = Server.GetType("Briosa.Server.Security.OperationRiskVocabulary", true)!;
+        var settings = new Dictionary<string, string?> { ["Briosa:Security:Operations:Profile"] = "full" };
+        foreach (var flag in ((System.Collections.IEnumerable)vocabulary.GetProperty("Members")!.GetValue(null)!).Cast<object>())
         {
-            var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+            settings["Briosa:Security:Operations:Flags:" + vocabulary.GetMethod("GetName", [flag.GetType()])!.Invoke(null, [flag])] = "allow";
+        }
+
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(settings).Build();
+        var policy = policyType.GetMethod("Create", BindingFlags.Public | BindingFlags.Static)!
+            .Invoke(null, [configuration, operations, null, null])!;
+        var evaluate = policyType.GetMethod("Evaluate", [typeof(string), restrictionType])!;
+        var evaluateOptions = policyType.GetMethod("EvaluateRequestOptions")!;
+        var callers = new Dictionary<string, object>(StringComparer.Ordinal);
+        void Keep(object decision)
+        {
+            if (decision.GetType().GetProperty("Denial")!.GetValue(decision) is { } denial &&
+                Details(denial) is { Rule: PolicyDenialRule.CallerFlag or PolicyDenialRule.CallerProfile } details)
             {
-                ["Briosa:Security:Operations:Profile"] = profile
-            }).Build();
-            var policy = policyType.GetMethod("Create", BindingFlags.Public | BindingFlags.Static)!
-                .Invoke(null, [configuration, operations, null, null])!;
-            var evaluate = policyType.GetMethod("Evaluate", [typeof(string), restrictionType])!;
-            foreach (var capability in ServerProjection.AllCapabilities.Operations)
-            {
-                var decision = evaluate.Invoke(policy, [capability.OperationId, caller])!;
-                if (decision.GetType().GetProperty("Denial")!.GetValue(decision) is { } denial)
-                {
-                    var details = (PolicyDenialDetails)denial.GetType().GetMethod("ToDetails")!.Invoke(denial, null)!;
-                    denials.TryAdd(details.Rule, denial);
-                }
+                callers.TryAdd(Convert.ToBase64String(details.ToByteArray()), denial);
             }
         }
 
-        return [.. denials.OrderBy(entry => entry.Key).Select(entry => entry.Value)];
+        foreach (var capability in ServerProjection.AllCapabilities.Operations)
+        {
+            Keep(evaluate.Invoke(policy, [capability.OperationId, restriction])!);
+            foreach (var entry in (System.Collections.IEnumerable)evaluateOptions.Invoke(policy, [capability.OperationId, restriction])!)
+            {
+                Keep(entry.GetType().GetField("Item2")!.GetValue(entry)!);
+            }
+        }
+
+        return [.. callers.OrderBy(entry => entry.Key, StringComparer.Ordinal).Select(entry => entry.Value)];
     }
 
     private static object CompletedOutcome(WorkerMpExecutionResult execution)
@@ -322,8 +374,9 @@ internal sealed record GenuineOperation(
     Google.Protobuf.Reflection.MessageDescriptor Result,
     BridgeTier Tier)
 {
+    // As the engine sets it: code 4 can be a failure outside the read-only tier.
     public MpCallContext Context => new(OperationId, FullyQualifiedMethod, Wire.ReadOnlyRestriction, Result,
-        ReplaySafety);
+        ReplaySafety, CodeFourMayBeFailure: Tier != BridgeTier.ReadOnly);
 }
 
 /// <summary>A reply: a result, or the server's exception. A result keeps the MP details the mapper built for it.</summary>

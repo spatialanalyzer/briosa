@@ -374,8 +374,13 @@ internal sealed partial class BridgeEngine
             return RejectLocally(envelope, "client-cancelled-before-send");
         }
 
+        // The server reports MP code 4 as an MP failure only for its reviewed exceptions,
+        // and none of them is in the read-only tier (pinned by
+        // ReviewRoundTwoTests.NoOperationWhoseCodeFourIsAFailureIsServedByCall). A tier
+        // that serves mutating operations must keep this true for them.
         var call = new MpCallContext(request.OperationId, capability.FullyQualifiedMethod,
-            BridgeContract.ReadOnlyCallerRestriction, method.OutputType, capability.ReplaySafety);
+            BridgeContract.ReadOnlyCallerRestriction, method.OutputType, capability.ReplaySafety,
+            CodeFourMayBeFailure: tier != BridgeTier.ReadOnly);
         return await SendAsync(envelope, connection, call, method, parsed.Message!, request, output, data,
             cancellationToken).ConfigureAwait(false);
     }
