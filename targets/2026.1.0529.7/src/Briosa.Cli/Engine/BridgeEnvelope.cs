@@ -104,17 +104,14 @@ internal sealed class BridgeEnvelope
     public string Diagnostic()
     {
         var builder = new StringBuilder("briosa-cli: ").Append(BridgeOutcomes.Name(Outcome));
-        if (Failure?["diagnostic_code"]?.GetValue<string>() is { } code && IsSafeCode(code))
+        if (DiagnosticVocabulary.Printable(Failure?["source"]?.GetValue<string>(),
+                Failure?["diagnostic_code"]?.GetValue<string>()) is { } code)
         {
             builder.Append(" (").Append(code).Append(')');
         }
 
         return builder.ToString();
     }
-
-    // Diagnostic codes are curated kebab-case words; anything else is not printed.
-    private static bool IsSafeCode(string code) =>
-        code.Length is > 0 and <= 80 && code.All(character => character is (>= 'a' and <= 'z') or (>= '0' and <= '9') or '-');
 }
 
 /// <summary>A fixed warning. Its message never contains text from SpatialAnalyzer or the caller.</summary>

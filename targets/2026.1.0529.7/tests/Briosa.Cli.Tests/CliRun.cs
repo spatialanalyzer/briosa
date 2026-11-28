@@ -53,9 +53,12 @@ internal sealed class TestEnvironment : IDisposable
     private TestEnvironment(string root, IResultFileSystem files)
     {
         Root = root;
-        SpillDirectory = Path.Combine(root, "spill");
-        Environment = new BridgeEnvironment(files, SpillDirectory, TimeProvider.System);
+        SpillDirectory = Path.Combine([root, .. SpillComponents]);
+        Environment = new BridgeEnvironment(files, root, SpillComponents, TimeProvider.System);
     }
+
+    /// <summary>The managed directories below the test root, as below %LOCALAPPDATA%.</summary>
+    public static IReadOnlyList<string> SpillComponents { get; } = ["Briosa", "cli", "results"];
 
     public string Root { get; }
 
@@ -94,15 +97,20 @@ internal sealed class TestEnvironment : IDisposable
 /// <summary>A file system whose writes fail, to prove a completed call reports a failed delivery.</summary>
 internal sealed class FailingWriteFileSystem(Func<string, bool> failsFor) : IResultFileSystem
 {
-    public Stream CreateNew(string path)
+    public ResultFile CreateNew(string path) => Wrap(ResultFileSystem.Instance.CreateNew(path));
+
+    public ResultFile CreatePrivate(string baseDirectory, IReadOnlyList<string> components, string fileName) =>
+        Wrap(ResultFileSystem.Instance.CreatePrivate(baseDirectory, components, fileName));
+
+    private ResultFile Wrap(ResultFile file)
     {
-        var stream = ResultFileSystem.Instance.CreateNew(path);
-        return failsFor(path) ? new FailingStream(stream) : stream;
+        if (failsFor(file.Path))
+        {
+            file.WrapStream(stream => new FailingStream(stream));
+        }
+
+        return file;
     }
-
-    public void DeleteIfEmpty(string path) => ResultFileSystem.Instance.DeleteIfEmpty(path);
-
-    public void EnsurePrivateDirectory(string path) => ResultFileSystem.Instance.EnsurePrivateDirectory(path);
 
     private sealed class FailingStream(Stream inner) : Stream
     {
@@ -135,6 +143,60 @@ internal sealed class FailingWriteFileSystem(Func<string, bool> failsFor) : IRes
             if (disposing)
             {
                 inner.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
+    }
+}
+
+/// <summary>
+/// Puts a new, empty file at a reservation's path the moment the CLI closes the
+/// reservation's handle, as a concurrent process could. A release that deletes by
+/// name after closing would delete that file; one that deletes through the handle
+/// cannot.
+/// </summary>
+internal sealed class ReplacingFileSystem : IResultFileSystem
+{
+    public ResultFile CreateNew(string path)
+    {
+        var file = ResultFileSystem.Instance.CreateNew(path);
+        file.WrapStream(stream => new ReplacingStream(stream, path));
+        return file;
+    }
+
+    public ResultFile CreatePrivate(string baseDirectory, IReadOnlyList<string> components, string fileName) =>
+        ResultFileSystem.Instance.CreatePrivate(baseDirectory, components, fileName);
+
+    private sealed class ReplacingStream(Stream inner, string path) : Stream
+    {
+        public override bool CanRead => false;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => true;
+
+        public override long Length => inner.Length;
+
+        public override long Position { get => inner.Position; set => throw new NotSupportedException(); }
+
+        public override void Flush() => inner.Flush();
+
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => inner.Write(buffer, offset, count);
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                inner.Dispose();
+                // The handle is closed: someone else now creates a file of the same name.
+                File.WriteAllBytes(path, []);
             }
 
             base.Dispose(disposing);

@@ -184,6 +184,47 @@ internal sealed class FakeReply
             return Task.CompletedTask;
         });
 
+    /// <summary>Exactly the status, text, and trailers a server-side exception carries.</summary>
+    public static FakeReply FromRpcException(RpcException exception) => new(context =>
+    {
+        context.Response.ContentType = "application/grpc";
+        context.Response.AppendTrailer("grpc-status", ((int)exception.StatusCode).ToString(CultureInfo.InvariantCulture));
+        context.Response.AppendTrailer("grpc-message", exception.Status.Detail);
+        foreach (var entry in exception.Trailers)
+        {
+            context.Response.AppendTrailer(entry.Key, entry.IsBinary ? Convert.ToBase64String(entry.ValueBytes) : entry.Value);
+        }
+
+        return Task.CompletedTask;
+    });
+
+    /// <summary>An OK response that also carries extra trailers, such as an error trailer.</summary>
+    public static FakeReply OkWithTrailers(IMessage message, params (string Name, string Value)[] trailers) => new(async context =>
+    {
+        context.Response.ContentType = "application/grpc";
+        await context.Response.StartAsync().ConfigureAwait(false);
+        var bytes = message.ToByteArray();
+        var header = new byte[5];
+        BinaryPrimitives.WriteUInt32BigEndian(header.AsSpan(1), (uint)bytes.Length);
+        await context.Response.Body.WriteAsync(header).ConfigureAwait(false);
+        await context.Response.Body.WriteAsync(bytes).ConfigureAwait(false);
+        context.Response.AppendTrailer("grpc-status", "0");
+        foreach (var (name, value) in trailers)
+        {
+            context.Response.AppendTrailer(name, value);
+        }
+    });
+
+    /// <summary>
+    /// Refuses the HTTP/2 stream with RST_STREAM REFUSED_STREAM before reading the
+    /// request, as a server does that has not processed it.
+    /// </summary>
+    public static FakeReply RefuseStream() => new(context =>
+    {
+        context.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpResetFeature>()!.Reset(0x7);
+        return Task.CompletedTask;
+    });
+
     /// <summary>Holds the call open until the client gives up.</summary>
     public static FakeReply Hang() => new(async context =>
     {

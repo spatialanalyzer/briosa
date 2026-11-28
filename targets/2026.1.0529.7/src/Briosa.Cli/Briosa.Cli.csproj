@@ -5,6 +5,8 @@
     <PlatformTarget>x64</PlatformTarget>
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <Prefer32Bit>false</Prefer32Bit>
+    <!-- The source-generated Win32 calls for handle-bound result files (Engine/NativeMethods.cs). -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Description>Attach-only JSON command line that inspects SpatialAnalyzer through a local Briosa server.</Description>
   </PropertyGroup>
 

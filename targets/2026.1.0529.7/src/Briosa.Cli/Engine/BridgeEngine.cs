@@ -6,11 +6,19 @@ using Grpc.Core;
 
 namespace Briosa.Cli.Engine;
 
-/// <summary>Where result files go, and the clock that names them.</summary>
-internal sealed record BridgeEnvironment(IResultFileSystem Files, string SpillDirectory, TimeProvider Time)
+/// <summary>
+/// Where result files go, and the clock that names them. Spill files go in the
+/// directory <see cref="SpillComponents"/> names below <see cref="SpillBase"/>; every
+/// component below the base is managed and verified by the CLI.
+/// </summary>
+internal sealed record BridgeEnvironment(
+    IResultFileSystem Files,
+    string SpillBase,
+    IReadOnlyList<string> SpillComponents,
+    TimeProvider Time)
 {
-    public static BridgeEnvironment Default { get; } =
-        new(ResultFileSystem.Instance, ResultFileSystem.DefaultSpillDirectory, TimeProvider.System);
+    public static BridgeEnvironment Default { get; } = new(ResultFileSystem.Instance, ResultFileSystem.DefaultSpillBase,
+        ResultFileSystem.DefaultSpillComponents, TimeProvider.System);
 }
 
 /// <summary>A search over discovery metadata.</summary>
@@ -48,8 +56,6 @@ internal sealed record CallRequest(
 /// </summary>
 internal sealed partial class BridgeEngine
 {
-    private const string ServerConnectionReplaced = "server-connection-replaced";
-
     private static readonly UTF8Encoding StrictUtf8 = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
     private const string MetrologyGuidance =
@@ -67,7 +73,8 @@ internal sealed partial class BridgeEngine
     {
         ArgumentNullException.ThrowIfNull(environment);
         _endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
-        _delivery = new ResultDelivery(environment.Files, environment.SpillDirectory, environment.Time);
+        _delivery = new ResultDelivery(environment.Files, environment.SpillBase, environment.SpillComponents,
+            environment.Time);
     }
 
     public static bool IsOperationId(string? text) => text is { Length: <= 128 } && OperationIdPattern().IsMatch(text);
@@ -212,7 +219,7 @@ internal sealed partial class BridgeEngine
             return envelope;
         }
 
-        var capability = capabilities.Operations.FirstOrDefault(operation =>
+        var capability = capabilities.Operations.SingleOrDefault(operation =>
             string.Equals(operation.OperationId, operationId, StringComparison.Ordinal));
         if (capability is null)
         {
@@ -265,6 +272,33 @@ internal sealed partial class BridgeEngine
             return RejectLocally(envelope, inputCode!);
         }
 
+        // The output file is created before any RPC, so a path that cannot be written
+        // is refused while nothing has been sent at all.
+        ResultFile? output = null;
+        if (request.OutputPath is not null)
+        {
+            output = _delivery.Reserve(request.OutputPath, out var outputCode);
+            if (output is null)
+            {
+                return RejectLocally(envelope, outputCode!);
+            }
+        }
+
+        try
+        {
+            return await AttachAndSendAsync(envelope, request, input, output, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            // A reservation that never received a result is removed through its own
+            // handle; a written result file has already been closed and stays.
+            ResultDelivery.Release(output);
+        }
+    }
+
+    private async Task<BridgeEnvelope> AttachAndSendAsync(BridgeEnvelope envelope, CallRequest request, byte[] input,
+        ResultFile? output, CancellationToken cancellationToken)
+    {
         using var connection = new BriosaConnection(_endpoint);
         if (await AttachAsync(envelope, connection, cancellationToken).ConfigureAwait(false) is not { } assessment)
         {
@@ -286,7 +320,8 @@ internal sealed partial class BridgeEngine
             return envelope;
         }
 
-        var capability = capabilities.Operations.FirstOrDefault(operation =>
+        // The listing was checked for duplicate IDs, so at most one row matches.
+        var capability = capabilities.Operations.SingleOrDefault(operation =>
             string.Equals(operation.OperationId, request.OperationId, StringComparison.Ordinal));
         if (capability is null)
         {
@@ -334,78 +369,59 @@ internal sealed partial class BridgeEngine
             return envelope;
         }
 
-        ReservedOutput? output = null;
-        try
+        if (cancellationToken.IsCancellationRequested)
         {
-            if (request.OutputPath is not null)
-            {
-                output = _delivery.Reserve(request.OutputPath, out var outputCode);
-                if (output is null)
-                {
-                    return RejectLocally(envelope, outputCode!);
-                }
-            }
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-                _delivery.Release(output);
-                return RejectLocally(envelope, "client-cancelled-before-send");
-            }
-
-            return await SendAsync(envelope, connection, capability, method, parsed.Message!, request, output, data,
-                cancellationToken).ConfigureAwait(false);
+            return RejectLocally(envelope, "client-cancelled-before-send");
         }
-        finally
-        {
-            // Delivery writes or releases the file; disposing again is harmless.
-            output?.Dispose();
-        }
+
+        var call = new MpCallContext(request.OperationId, capability.FullyQualifiedMethod,
+            BridgeContract.ReadOnlyCallerRestriction, method.OutputType);
+        return await SendAsync(envelope, connection, call, method, parsed.Message!, request, output, data,
+            cancellationToken).ConfigureAwait(false);
     }
 
     [SuppressMessage("Design", "CA1031:Do not catch general exception types",
         Justification = "Once the request is sent, every failure must still produce an envelope that says so.")]
     private async Task<BridgeEnvelope> SendAsync(BridgeEnvelope envelope, BriosaConnection connection,
-        OperationCapability capability, Google.Protobuf.Reflection.MethodDescriptor method,
-        Google.Protobuf.IMessage message, CallRequest request, ReservedOutput? output, JsonObject data,
-        CancellationToken cancellationToken)
+        MpCallContext call, Google.Protobuf.Reflection.MethodDescriptor method, Google.Protobuf.IMessage message,
+        CallRequest request, ResultFile? output, JsonObject data, CancellationToken cancellationToken)
     {
         MpCallObservation observation;
         try
         {
             DateTime? deadline = request.Deadline is { } after ? DateTime.UtcNow.Add(after) : null;
             observation = await MpInvoker.InvokeAsync(connection.Invoker, method, message,
-                BridgeContract.ReadOnlyCallerRestriction, deadline, cancellationToken).ConfigureAwait(false);
+                call.CallerRestriction, deadline, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception)
         {
-            _delivery.Release(output);
             envelope.Outcome = MpOutcome.Classify(
                 new MpCallObservation(null, StatusCode.Unknown, null, cancellationToken.IsCancellationRequested, false),
-                capability.FullyQualifiedMethod, BridgeContract.ReadOnlyCallerRestriction, envelope);
+                call, envelope);
             envelope.Failure!["diagnostic_code"] = "client-fault-after-send";
             return envelope;
         }
 
-        var outcome = MpOutcome.Classify(observation, capability.FullyQualifiedMethod,
-            BridgeContract.ReadOnlyCallerRestriction, envelope);
-        if (observation.Response is null)
+        observation = observation with
         {
-            if (connection.ReconnectRefused && envelope.Failure?["source"]?.GetValue<string>() == "transport")
-            {
-                // The verified connection was lost; nothing reached another server.
-                envelope.Failure["diagnostic_code"] = ServerConnectionReplaced;
-            }
-
-            _delivery.Release(output);
+            ResendBlocked = connection.ResendBlocked,
+            ReconnectRefused = connection.ReconnectRefused
+        };
+        var outcome = MpOutcome.Classify(observation, call, envelope);
+        if (observation.Response is null || observation.ResendBlocked)
+        {
             envelope.Outcome = outcome;
             return envelope;
         }
 
+        // Completion is established only by the call's own consistent evidence.
+        var completionEstablished = outcome is BridgeOutcome.Succeeded or BridgeOutcome.PartialSuccess or
+            BridgeOutcome.OutputsIncomplete;
         bool delivered;
         try
         {
-            delivered = _delivery.Deliver(observation.Response, capability.OperationId, output,
-                request.MaximumInlineBytes, envelope, data);
+            delivered = _delivery.Deliver(observation.Response, call.OperationId, output, request.MaximumInlineBytes,
+                completionEstablished, envelope, data);
         }
         catch (Exception)
         {
@@ -415,8 +431,11 @@ internal sealed partial class BridgeEngine
             delivered = false;
         }
 
-        if (!delivered)
+        if (!delivered && completionEstablished)
         {
+            // Exit code 12 asserts that the operation completed, so it is used only
+            // when the evidence established that. Otherwise the unestablished outcome
+            // stands, and data.result_delivery_error records the failed delivery.
             envelope.Failure ??= Failure("cli", data["result_delivery_error"]?.GetValue<string>() ?? "output-write-failed");
             envelope.Guidance.Add("The operation completed. Its result could not be delivered as requested; do not " +
                 "run it again to fetch the result unless you have confirmed that doing so is safe.");
@@ -541,7 +560,32 @@ internal sealed partial class BridgeEngine
             return null;
         }
 
+        if (!IsConsistent(capabilities))
+        {
+            // Tiers, counts, and the method a call dispatches all come from this
+            // listing, so an inconsistent one is refused whole, never resolved.
+            envelope.Outcome = BridgeOutcome.ServerIncompatible;
+            envelope.Failure = Failure("cli", "capabilities-inconsistent");
+            return null;
+        }
+
         return capabilities;
+    }
+
+    /// <summary>
+    /// Every row has a well-formed operation ID that no other row has, and names one
+    /// method, as its service and RPC, that no other row names.
+    /// </summary>
+    internal static bool IsConsistent(ListCapabilitiesResponse capabilities)
+    {
+        var identifiers = new HashSet<string>(StringComparer.Ordinal);
+        var methods = new HashSet<string>(StringComparer.Ordinal);
+        return capabilities.Operations.All(operation =>
+            IsOperationId(operation.OperationId) &&
+            identifiers.Add(operation.OperationId) &&
+            string.Equals(operation.FullyQualifiedMethod, "/" + operation.GrpcService + "/" + operation.Rpc,
+                StringComparison.Ordinal) &&
+            methods.Add(operation.FullyQualifiedMethod));
     }
 
     private static void DiscoveryFailed(BridgeEnvelope envelope, BriosaConnection connection, string method,
@@ -555,9 +599,28 @@ internal sealed partial class BridgeEngine
             return;
         }
 
+        if (status == StatusCode.ResourceExhausted)
+        {
+            // The server answered; its reply is larger than this CLI accepts.
+            envelope.Outcome = BridgeOutcome.ServerIncompatible;
+            envelope.Failure = Failure("cli", "discovery-response-too-large");
+            envelope.Guidance.Add("The server answered, but its discovery reply is larger than this CLI accepts. " +
+                "No operation was sent.");
+            return;
+        }
+
+        if (status is not (StatusCode.Unavailable or StatusCode.DeadlineExceeded or StatusCode.Internal or
+            StatusCode.Unknown or StatusCode.Cancelled))
+        {
+            // The server answered the discovery RPC with a status this CLI cannot use.
+            envelope.Outcome = BridgeOutcome.ServerIncompatible;
+            envelope.Failure = Failure("transport", ProtocolJson.TransportCode(status));
+            return;
+        }
+
         envelope.Outcome = BridgeOutcome.ServerUnreachable;
         envelope.Failure = Failure("transport",
-            connection.ReconnectRefused ? ServerConnectionReplaced : ProtocolJson.TransportCode(status));
+            connection.ReconnectRefused ? MpOutcome.ServerConnectionReplaced : ProtocolJson.TransportCode(status));
         envelope.Guidance.Add("This CLI attaches to a server that is already running and never starts one. Start " +
             "the server with the Control Center or the application that owns it, then try again.");
     }

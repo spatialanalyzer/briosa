@@ -34,7 +34,9 @@ internal static class MpInvoker
         {
             using var call = invoker.AsyncUnaryCall(grpcMethod, host: null, options, request);
             var response = await call.ResponseAsync.ConfigureAwait(false);
-            return new MpCallObservation(response, StatusCode.OK, Trailers: null, CallerCancelled: false,
+            // An OK response is read with its trailers, so an error trailer that
+            // contradicts the OK is seen.
+            return new MpCallObservation(response, StatusCode.OK, call.GetTrailers(), CallerCancelled: false,
                 CallerDeadlineReached: false);
         }
         catch (RpcException exception)
@@ -58,4 +60,6 @@ internal sealed record MpCallObservation(
     StatusCode Status,
     Metadata? Trailers,
     bool CallerCancelled,
-    bool CallerDeadlineReached);
+    bool CallerDeadlineReached,
+    bool ResendBlocked = false,
+    bool ReconnectRefused = false);

@@ -48,10 +48,18 @@ internal static class CommandParser
 
     public static IReadOnlyCollection<string> Commands => Grammars.Keys.ToArray();
 
-    public static ParsedCommand? Parse(IReadOnlyList<string> arguments, out string? errorCode)
+    public static ParsedCommand? Parse(IReadOnlyList<string> arguments, out string? errorCode) =>
+        Parse(arguments, out errorCode, out _);
+
+    /// <summary>
+    /// Parses the command line. <paramref name="recognized"/> names the command even when
+    /// its options do not parse, so a refusal can still be reported for that command.
+    /// </summary>
+    public static ParsedCommand? Parse(IReadOnlyList<string> arguments, out string? errorCode, out string? recognized)
     {
         ArgumentNullException.ThrowIfNull(arguments);
         errorCode = null;
+        recognized = null;
         if (arguments.Count == 0 || arguments[0] is "--help" or "-h")
         {
             return arguments.Count <= 1 ? new ParsedCommand("help") : Fail("usage-unexpected-argument", out errorCode);
@@ -75,6 +83,7 @@ internal static class CommandParser
             return Fail("usage-unknown-command", out errorCode);
         }
 
+        recognized = name;
         var command = new ParsedCommand(name);
         for (var index = consumed; index < arguments.Count; index++)
         {

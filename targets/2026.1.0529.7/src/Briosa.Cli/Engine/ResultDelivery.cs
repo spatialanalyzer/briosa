@@ -21,21 +21,23 @@ internal sealed class ResultDelivery
     public const int MaximumInlineBytesLimit = 4 * 1024 * 1024;
 
     private readonly IResultFileSystem _files;
-    private readonly string _spillDirectory;
+    private readonly string _spillBase;
+    private readonly IReadOnlyList<string> _spillComponents;
     private readonly TimeProvider _time;
 
-    public ResultDelivery(IResultFileSystem files, string spillDirectory, TimeProvider time)
+    public ResultDelivery(IResultFileSystem files, string spillBase, IReadOnlyList<string> spillComponents, TimeProvider time)
     {
         _files = files;
-        _spillDirectory = spillDirectory;
+        _spillBase = spillBase;
+        _spillComponents = spillComponents;
         _time = time;
     }
 
     /// <summary>
-    /// Creates the requested output file before the call, so that a path that cannot
-    /// be written is refused while nothing has run. The file must not exist yet.
+    /// Creates the requested output file before anything is sent, so that a path that
+    /// cannot be written is refused while nothing has run. The file must not exist yet.
     /// </summary>
-    public ReservedOutput? Reserve(string path, out string? rejectionCode)
+    public ResultFile? Reserve(string path, out string? rejectionCode)
     {
         rejectionCode = null;
         string fullPath;
@@ -51,50 +53,56 @@ internal sealed class ResultDelivery
 
         try
         {
-            return new ReservedOutput(fullPath, _files.CreateNew(fullPath));
+            return _files.CreateNew(fullPath);
         }
-        catch (IOException) when (File.Exists(fullPath) || Directory.Exists(fullPath))
+        catch (IOException exception)
         {
-            rejectionCode = "output-exists";
+            rejectionCode = (exception.HResult & 0xFFFF) switch
+            {
+                NativeMethods.ErrorFileExists or NativeMethods.ErrorAlreadyExists => "output-exists",
+                NativeMethods.ErrorAccessDenied when Directory.Exists(fullPath) => "output-exists",
+                NativeMethods.ErrorPathNotFound or NativeMethods.ErrorFileNotFound => "output-directory-missing",
+                _ => "output-not-writable"
+            };
+            return null;
         }
-        catch (DirectoryNotFoundException)
-        {
-            rejectionCode = "output-directory-missing";
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or
-            NotSupportedException or ArgumentException)
+        catch (Exception exception) when (exception is UnauthorizedAccessException or NotSupportedException or
+            ArgumentException)
         {
             rejectionCode = "output-not-writable";
+            return null;
         }
-
-        return null;
     }
 
-    /// <summary>Removes a reserved output file that never received a result.</summary>
-    public void Release(ReservedOutput? output)
+    /// <summary>
+    /// Removes a reserved output file that never received a result, through its own
+    /// handle. A file written in full has already been closed and stays.
+    /// </summary>
+    public static void Release(ResultFile? output)
     {
-        if (output is null)
+        if (output is null || output.IsClosed)
         {
             return;
         }
 
-        output.Dispose();
         try
         {
-            _files.DeleteIfEmpty(output.Path);
+            output.DiscardIfEmpty();
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        catch (IOException)
         {
-            // An empty file left behind holds no data.
+            // An empty reservation left behind holds no data.
         }
     }
 
     /// <summary>
     /// Writes the result into <paramref name="data"/> or a file. Returns false when the
-    /// operation completed but its result could not be written where it had to go.
+    /// result could not be written where it had to go. <paramref name="completionEstablished"/>
+    /// says whether the call's own evidence shows that the operation completed; no
+    /// message here claims a completion that evidence did not establish.
     /// </summary>
-    public bool Deliver(IMessage result, string operationId, ReservedOutput? output, int maximumInlineBytes,
-        BridgeEnvelope envelope, JsonObject data)
+    public bool Deliver(IMessage result, string operationId, ResultFile? output, int maximumInlineBytes,
+        bool completionEstablished, BridgeEnvelope envelope, JsonObject data)
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(envelope);
@@ -108,13 +116,14 @@ internal sealed class ResultDelivery
         {
             data["result_delivery"] = "inline";
             data["result"] = JsonNode.Parse(json);
-            data["result_file"] = null;
-            data["result_summary"] = null;
             return true;
         }
 
         data["result"] = null;
         data["result_summary"] = Summarize(result);
+        var subject = completionEstablished
+            ? "The operation completed, but its result"
+            : "The call's outcome is not established, and the result that came back";
         if (output is not null)
         {
             if (TryWrite(output, bytes))
@@ -124,12 +133,12 @@ internal sealed class ResultDelivery
                 return true;
             }
 
-            envelope.Warn("output-write-failed",
-                "The operation completed, but its result could not be written to the --output file, which may " +
+            var fallback = Spill(bytes, operationId, "output_write_failed");
+            envelope.Warn("output-write-failed", subject + " could not be written to the --output file, which may " +
                 "now be incomplete. The CLI tried the spill directory instead; see data.result_file.");
             data["result_delivery_error"] = "output-write-failed";
-            data["result_file"] = Spill(bytes, operationId, "output_write_failed") is { } fallback ? fallback : null;
-            data["result_delivery"] = data["result_file"] is null ? "lost" : "file";
+            data["result_file"] = fallback;
+            data["result_delivery"] = fallback is null ? "lost" : "file";
             return false;
         }
 
@@ -143,12 +152,10 @@ internal sealed class ResultDelivery
             return true;
         }
 
-        envelope.Warn("output-write-failed",
-            "The operation completed, but its result was larger than the inline cap and could not be written to " +
-            "the spill directory.");
+        envelope.Warn("output-write-failed", subject + " was larger than the inline cap and could not be written " +
+            "to the spill directory.");
         data["result_delivery_error"] = "spill-write-failed";
         data["result_delivery"] = "lost";
-        data["result_file"] = null;
         return false;
     }
 
@@ -156,12 +163,12 @@ internal sealed class ResultDelivery
     {
         try
         {
-            _files.EnsurePrivateDirectory(_spillDirectory);
+            // The name holds only the time, the validated operation ID, and random
+            // characters, never text that came back from the server.
             var name = string.Create(CultureInfo.InvariantCulture,
                 $"{_time.GetUtcNow():yyyyMMdd'T'HHmmssfff'Z'}-{operationId.Replace('.', '-')}-{Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(4))}.json");
-            var path = Path.Combine(_spillDirectory, name);
-            var output = new ReservedOutput(path, _files.CreateNew(path));
-            return TryWrite(output, bytes) ? FileReference(path, bytes, reason) : null;
+            var file = _files.CreatePrivate(_spillBase, _spillComponents, name);
+            return TryWrite(file, bytes) ? FileReference(file.Path, bytes, reason) : null;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or
             NotSupportedException or ArgumentException or InvalidOperationException)
@@ -170,26 +177,18 @@ internal sealed class ResultDelivery
         }
     }
 
-    private static bool TryWrite(ReservedOutput output, byte[] bytes)
+    private static bool TryWrite(ResultFile file, byte[] bytes)
     {
         try
         {
-            output.Stream.Write(bytes);
-            if (output.Stream is FileStream file)
-            {
-                file.Flush(flushToDisk: true);
-            }
-            else
-            {
-                output.Stream.Flush();
-            }
-
-            output.Dispose();
+            file.Stream.Write(bytes);
+            file.Stream.Flush();
+            file.Dispose();
             return true;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or NotSupportedException)
         {
-            output.Dispose();
+            file.Dispose();
             return false;
         }
     }
@@ -238,14 +237,4 @@ internal sealed class ResultDelivery
 
         return new JsonObject { ["fields"] = fields };
     }
-}
-
-/// <summary>An output file created before the call and written once after it.</summary>
-internal sealed class ReservedOutput(string path, Stream stream) : IDisposable
-{
-    public string Path { get; } = path;
-
-    public Stream Stream { get; } = stream;
-
-    public void Dispose() => Stream.Dispose();
 }

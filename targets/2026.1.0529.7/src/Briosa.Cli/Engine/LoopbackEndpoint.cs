@@ -18,8 +18,10 @@ internal sealed partial class LoopbackEndpoint
     {
         Address = address;
         Port = port;
-        Uri = new Uri(string.Create(CultureInfo.InvariantCulture,
-            $"http://{(address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 ? "[::1]" : address.ToString())}:{port}"));
+        // The text names the port explicitly, even 80, so it parses again as itself.
+        Text = string.Create(CultureInfo.InvariantCulture,
+            $"http://{(address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 ? "[::1]" : address.ToString())}:{port}");
+        Uri = new Uri(Text);
     }
 
     public static LoopbackEndpoint Default { get; } = new(IPAddress.Loopback, 50051);
@@ -31,7 +33,7 @@ internal sealed partial class LoopbackEndpoint
     public Uri Uri { get; }
 
     /// <summary>The normalized text form, for example <c>http://127.0.0.1:50051</c>.</summary>
-    public string Text => Uri.GetLeftPart(UriPartial.Authority);
+    public string Text { get; }
 
     /// <summary>
     /// Accepts exactly <c>http://</c>, an IPv4 address in 127.0.0.0/8 or <c>[::1]</c>,

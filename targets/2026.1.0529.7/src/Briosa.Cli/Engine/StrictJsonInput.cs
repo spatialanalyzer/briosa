@@ -37,16 +37,19 @@ internal static class StrictJsonInput
             return InputParseResult.Reject(InputRejectionCodes.TooLarge, null, null, utf8);
         }
 
-        // A leading byte order mark is not JSON; an editor may still write one.
+        // A leading byte order mark is not JSON; an editor may still write one. A
+        // reported byte offset still counts it, so it points into the input as given.
+        var skipped = 0;
         if (utf8.StartsWith(Encoding.UTF8.Preamble))
         {
-            utf8 = utf8[Encoding.UTF8.Preamble.Length..];
+            skipped = Encoding.UTF8.Preamble.Length;
+            utf8 = utf8[skipped..];
         }
 
         var rejection = Validate(utf8, descriptor);
         if (rejection is not null)
         {
-            return new InputParseResult(null, rejection);
+            return new InputParseResult(null, rejection with { ByteOffset = rejection.ByteOffset + skipped });
         }
 
         IMessage message;

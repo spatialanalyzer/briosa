@@ -70,10 +70,10 @@ internal static class CliApplication
     private static async Task<BridgeEnvelope> ExecuteAsync(IReadOnlyList<string> arguments,
         BridgeEnvironment environment, CancellationToken cancellationToken)
     {
-        var command = CommandParser.Parse(arguments, out var usageCode);
+        var command = CommandParser.Parse(arguments, out var usageCode, out var recognized);
         if (command is null)
         {
-            return UsageError(null, usageCode!);
+            return UsageError(recognized, usageCode!);
         }
 
         switch (command.Name)
@@ -92,7 +92,8 @@ internal static class CliApplication
         {
             var refused = new BridgeEnvelope(command.Name, BridgeOutcome.RejectedLocally)
             {
-                Failure = BridgeEngine.Failure("cli", "endpoint-not-loopback")
+                Failure = BridgeEngine.Failure("cli", "endpoint-not-loopback"),
+                Execution = NotSentFor(command.Name)
             };
             refused.Guidance.Add("The endpoint must be http:// with an IP loopback address (127.0.0.0/8 or [::1]) " +
                 "and an explicit port. Hostnames, including localhost, are rejected.");
@@ -229,10 +230,16 @@ internal static class CliApplication
         var envelope = new BridgeEnvelope(command ?? "unknown", BridgeOutcome.UsageError)
         {
             Failure = BridgeEngine.Failure("cli", code),
+            Execution = NotSentFor(command),
             Data = new JsonObject { ["usage"] = new JsonArray(Usage.Select(line => (JsonNode)line).ToArray()) }
         };
         return envelope;
     }
+
+    // A call refused before any RPC reports, like every local rejection of a call,
+    // that nothing was sent.
+    private static JsonObject? NotSentFor(string? command) =>
+        string.Equals(command, "call", StringComparison.Ordinal) ? MpOutcome.NotSent() : null;
 
     private static BridgeEnvelope Version()
     {

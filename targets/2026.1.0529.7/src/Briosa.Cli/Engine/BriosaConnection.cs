@@ -12,15 +12,20 @@ namespace Briosa.Cli.Engine;
 /// channel never opens another, so a server that restarted on the same port, which
 /// could be older and ignore the caller restriction, never receives a call that was
 /// checked against its predecessor. It never retries: no service config is set, so
-/// the client has no retry or hedging policy. It never calls a lifecycle RPC; the
-/// only RPCs it sends are the two discovery reads and one MP call.
+/// the client has no retry or hedging policy, and a <see cref="SubmissionGuard"/>
+/// stops the HTTP stack from resending a request on the same connection. It never
+/// calls a lifecycle RPC; the only RPCs it sends are the two discovery reads and one
+/// MP call.
 /// </summary>
 internal sealed class BriosaConnection : IDisposable
 {
     private readonly GrpcChannel _channel;
     private readonly DiscoveryService.DiscoveryServiceClient _discovery;
+    private readonly SubmissionGuard _submissions = new();
     private int _connectAttempts;
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope",
+        Justification = "The channel owns the handler chain and disposes it with itself (DisposeHttpClient).")]
     public BriosaConnection(LoopbackEndpoint endpoint)
     {
         ArgumentNullException.ThrowIfNull(endpoint);
@@ -39,7 +44,7 @@ internal sealed class BriosaConnection : IDisposable
         };
         _channel = GrpcChannel.ForAddress(endpoint.Uri, new GrpcChannelOptions
         {
-            HttpHandler = handler,
+            HttpHandler = new SubmissionHandler(_submissions, handler),
             DisposeHttpClient = true,
             MaxReceiveMessageSize = BridgeContract.ClientReceiveLimitBytes,
             MaxSendMessageSize = BridgeContract.ServerReceiveLimitBytes,
@@ -56,6 +61,11 @@ internal sealed class BriosaConnection : IDisposable
     /// <summary>The verified connection was lost and the channel refused to open another.</summary>
     public bool ReconnectRefused => Volatile.Read(ref _connectAttempts) > 1;
 
+    /// <summary>The HTTP stack tried to submit a request a second time and was stopped.</summary>
+    public bool ResendBlocked => _submissions.ResendBlocked;
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope",
+        Justification = "The returned stream owns the socket; on failure the socket is disposed here.")]
     private async ValueTask<Stream> ConnectOnceAsync(SocketsHttpConnectionContext context,
         CancellationToken cancellationToken)
     {
@@ -64,19 +74,17 @@ internal sealed class BriosaConnection : IDisposable
             throw new IOException("The verified connection is gone, and this session does not reconnect.");
         }
 
-        Socket? socket = new(Endpoint.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+        var socket = new Socket(Endpoint.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
         try
         {
-            socket.NoDelay = true;
             await socket.ConnectAsync(new IPEndPoint(Endpoint.Address, Endpoint.Port), cancellationToken)
                 .ConfigureAwait(false);
-            var stream = new NetworkStream(socket, ownsSocket: true);
-            socket = null;
-            return stream;
+            return new SubmissionGuardStream(new NetworkStream(socket, ownsSocket: true), _submissions);
         }
-        finally
+        catch
         {
-            socket?.Dispose();
+            socket.Dispose();
+            throw;
         }
     }
 
