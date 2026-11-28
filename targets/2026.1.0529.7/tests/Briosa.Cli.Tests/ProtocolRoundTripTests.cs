@@ -95,7 +95,7 @@ public sealed class ProtocolRoundTripTests
         foreach (var operation in ServerProjection.Registry)
         {
             var method = ProtocolCatalog.Instance.FindMethod(operation.FullyQualifiedMethod)!;
-            Assert.True(Depth(method.InputType, []) < StrictJsonInput.MaximumDepth, method.InputType.FullName);
+            Assert.True(Depth(method.InputType, []) < Wire.MaximumDepth, method.InputType.FullName);
         }
     }
 
@@ -120,7 +120,7 @@ public sealed class ProtocolRoundTripTests
 
                 var parsed = StrictJsonInput.Parse(Encoding.UTF8.GetBytes(combined.ToJsonString()), message);
                 Assert.NotNull(parsed.Rejection);
-                Assert.Equal(InputRejectionCodes.OneofConflict, parsed.Rejection.Code);
+                Assert.Equal(Codes.OneofConflict, parsed.Rejection.Code);
                 Assert.Equal(oneof.Name, parsed.Rejection.FieldPath);
             }
         }
@@ -154,9 +154,9 @@ public sealed class ProtocolRoundTripTests
         var descriptor = GetIthPointFromGroupRequest.Descriptor;
         Assert.Null(StrictJsonInput.Parse("""{"group_name":{"object_type":"OBJECT_TYPE_POINT_GROUP"}}"""u8,
             descriptor).Rejection);
-        Assert.Equal(InputRejectionCodes.EnumNameRequired,
+        Assert.Equal(Codes.EnumNameRequired,
             StrictJsonInput.Parse("""{"group_name":{"object_type":1}}"""u8, descriptor).Rejection?.Code);
-        Assert.Equal(InputRejectionCodes.UnknownEnumName,
+        Assert.Equal(Codes.UnknownEnumName,
             StrictJsonInput.Parse("""{"group_name":{"object_type":"POINT_GROUP"}}"""u8, descriptor).Rejection?.Code);
 
         // A result carries whatever the server sends; an unknown number survives intact.
@@ -175,12 +175,12 @@ public sealed class ProtocolRoundTripTests
     [Theory]
     [InlineData("""{"finite_milliseconds":"18446744073709551615"}""", null)]
     [InlineData("""{"finite_milliseconds":"0"}""", null)]
-    [InlineData("""{"finite_milliseconds":18446744073709551615}""", InputRejectionCodes.NumberForm)]
-    [InlineData("""{"finite_milliseconds":"18446744073709551616"}""", InputRejectionCodes.OutOfRange)]
-    [InlineData("""{"finite_milliseconds":"-1"}""", InputRejectionCodes.NumberForm)]
-    [InlineData("""{"finite_milliseconds":"01"}""", InputRejectionCodes.NumberForm)]
-    [InlineData("""{"finite_milliseconds":"1e3"}""", InputRejectionCodes.NumberForm)]
-    [InlineData("""{"finite_milliseconds":" 1"}""", InputRejectionCodes.NumberForm)]
+    [InlineData("""{"finite_milliseconds":18446744073709551615}""", Codes.NumberForm)]
+    [InlineData("""{"finite_milliseconds":"18446744073709551616"}""", Codes.OutOfRange)]
+    [InlineData("""{"finite_milliseconds":"-1"}""", Codes.NumberForm)]
+    [InlineData("""{"finite_milliseconds":"01"}""", Codes.NumberForm)]
+    [InlineData("""{"finite_milliseconds":"1e3"}""", Codes.NumberForm)]
+    [InlineData("""{"finite_milliseconds":" 1"}""", Codes.NumberForm)]
     public void SixtyFourBitIntegersAreDecimalStrings(string json, string? rejection)
     {
         var parsed = StrictJsonInput.Parse(Encoding.UTF8.GetBytes(json), GracefulShutdownBound.Descriptor);
@@ -197,9 +197,9 @@ public sealed class ProtocolRoundTripTests
     [InlineData("\"-Infinity\"", null)]
     [InlineData("1.5e-310", null)]
     [InlineData("-0", null)]
-    [InlineData("\"nan\"", InputRejectionCodes.NumberForm)]
-    [InlineData("\"1.5\"", InputRejectionCodes.NumberForm)]
-    [InlineData("1e999", InputRejectionCodes.OutOfRange)]
+    [InlineData("\"nan\"", Codes.NumberForm)]
+    [InlineData("\"1.5\"", Codes.NumberForm)]
+    [InlineData("1e999", Codes.OutOfRange)]
     public void DoublesAreNumbersOrTheThreeNonFiniteNames(string value, string? rejection)
     {
         var request = $$$"""{"transform_in_working_coordinates":{"values":[{{{value}}}]}}""";

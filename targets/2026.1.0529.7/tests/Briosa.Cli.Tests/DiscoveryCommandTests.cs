@@ -180,7 +180,7 @@ public sealed class DiscoveryCommandTests
         Assert.Equal("read_only", run.Data["operation"]!["tier"]!.GetValue<string>());
         Assert.Equal(ServerProjection.Capability(CallOutcomeTests.Operation).MpStep,
             run.Data["operation"]!["mp_step"]!.GetValue<string>());
-        Assert.Equal(RequestSchema.RequirednessStatement, run.Data["requiredness"]!.GetValue<string>());
+        Assert.Equal(Wire.RequirednessStatement, run.Data["requiredness"]!.GetValue<string>());
         var schema = run.Data["request_schema"]!;
         var request = schema["$defs"]!["briosa.GetIthPointFromGroupRequest"]!;
         Assert.False(request["additionalProperties"]!.GetValue<bool>());
@@ -190,7 +190,9 @@ public sealed class DiscoveryCommandTests
             ["object_type"]!["enum"]!.AsArray().Select(value => value!.GetValue<string>()));
         Assert.DoesNotContain("\"required\"", schema.ToJsonString(), StringComparison.Ordinal);
         Assert.True(run.Data["request_options"]!["described"]!.GetValue<bool>());
-        Assert.Equal(StrictJsonInput.MaximumInputBytes, run.Data["input_rules"]!["max_input_bytes"]!.GetValue<int>());
+        Assert.Equal(Wire.MaximumInputBytes, run.Data["input_rules"]!["max_input_bytes"]!.GetValue<int>());
+        Assert.Equal(Wire.MaximumDepth, run.Data["input_rules"]!["max_nesting_depth"]!.GetValue<int>());
+        Assert.Equal(Wire.MaximumEncodedRequestBytes, run.Data["input_rules"]!["max_encoded_request_bytes"]!.GetValue<int>());
         Assert.Empty(server.MpCalls);
     }
 

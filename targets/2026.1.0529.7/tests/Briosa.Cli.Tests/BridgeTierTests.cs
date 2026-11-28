@@ -46,12 +46,26 @@ public sealed class BridgeTierTests(ITestOutputHelper output)
         Assert.Equal(PinnedCounts, counts);
     }
 
+    // The five flags the agent bridge never executes, as the architecture record names them.
+    private static readonly OperationRiskFlag[] ExcludedFlags =
+    [
+        OperationRiskFlag.PhysicalMotion,
+        OperationRiskFlag.DeviceSession,
+        OperationRiskFlag.DeviceConfig,
+        OperationRiskFlag.CodeExecution,
+        OperationRiskFlag.ExternalIo
+    ];
+
+    [Fact]
+    public void TheExcludedFlagsAreExactlyTheFiveTheRecordNames() =>
+        Assert.Equal(ExcludedFlags, BridgeTiers.ExcludedFlags);
+
     [Fact]
     public void EveryOperationWithAnExcludedFlagOrAnExclusiveScopeIsExcluded()
     {
         foreach (var operation in ServerProjection.AllCapabilities.Operations)
         {
-            var mustExclude = operation.RiskFlags.Any(flag => BridgeTiers.ExcludedFlags.Contains(flag)) ||
+            var mustExclude = operation.RiskFlags.Any(flag => ExcludedFlags.Contains(flag)) ||
                 operation.ExecutionScope == OperationExecutionScope.ExclusiveWorkflow;
             Assert.Equal(mustExclude, BridgeTiers.Classify(operation) == BridgeTier.Excluded);
         }
@@ -62,7 +76,7 @@ public sealed class BridgeTierTests(ITestOutputHelper output)
     {
         var operations = ServerProjection.AllCapabilities.Operations
             .Where(operation => operation.Effect == OperationEffect.ReadOnly &&
-                !operation.RiskFlags.Any(flag => BridgeTiers.ExcludedFlags.Contains(flag)) &&
+                !operation.RiskFlags.Any(flag => ExcludedFlags.Contains(flag)) &&
                 operation.ExecutionScope != OperationExecutionScope.ExclusiveWorkflow)
             .ToArray();
         var fileContent = operations.Where(operation => operation.RiskFlags.Contains(OperationRiskFlag.FilesystemRead)).ToArray();

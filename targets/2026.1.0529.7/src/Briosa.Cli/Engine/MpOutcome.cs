@@ -99,7 +99,7 @@ internal static class MpOutcome
         var details = field is null ? null : field.Accessor.GetValue(response) as MpExecutionDetails;
         if (details is null)
         {
-            return EvidenceUnavailable(execution, envelope, "cli", ResultExecutionMissing);
+            return Conflict(execution, envelope, ResultExecutionMissing);
         }
 
         var succeeded = details.State == MpExecutionState.Succeeded && details is { HasMpResultCode: true, MpResultCode: 2 };
@@ -109,7 +109,7 @@ internal static class MpOutcome
             // A missing code, or a state that disagrees with its code, is a
             // protocol-contract failure: the MP result cannot be trusted.
             execution["mp_execution"] = ProtocolJson.ToNode(details);
-            return EvidenceUnavailable(execution, envelope, "cli", ResultExecutionContractViolation);
+            return Conflict(execution, envelope, ResultExecutionContractViolation);
         }
 
         if (EvidenceConsistency.CheckResult(details, call.ResultDescriptor) is { } unrelated)

@@ -36,9 +36,10 @@ public sealed class CallOutcomeTests
         Assert.Equal("EXECUTION_DISPOSITION_COMPLETED", run.Execution["disposition"]!.GetValue<string>());
         Assert.Equal("grpc_ok", run.Execution["disposition_source"]!.GetValue<string>());
         Assert.True(run.Execution["request_sent"]!.GetValue<bool>());
-        Assert.Equal(BridgeContract.ReadOnlyCallerRestriction, run.Execution["caller_restriction"]!.GetValue<string>());
+        Assert.Equal(Wire.ReadOnlyRestriction, run.Execution["caller_restriction"]!.GetValue<string>());
         Assert.Equal("MP_EXECUTION_STATE_SUCCEEDED", run.Execution["mp_execution"]!["state"]!.GetValue<string>());
         Assert.Equal("inline", run.Data["result_delivery"]!.GetValue<string>());
+        Assert.Equal(Wire.DefaultInlineCap, run.Data["inline_cap_bytes"]!.GetValue<int>());
         Assert.Equal(result.ToByteString(), Parse(run.Data["result"]!).ToByteString());
         Assert.Equal("read_only", run.Data["operation"]!["tier"]!.GetValue<string>());
         var call = AssertOneRestrictedMpCall(server);
@@ -77,7 +78,7 @@ public sealed class CallOutcomeTests
 
         Assert.Equal(9, run.ExitCode);
         Assert.Equal("outputs_incomplete", run.Outcome);
-        Assert.Equal(MpOutcome.ResultOutputNotRetrieved, run.DiagnosticCode);
+        Assert.Equal(Codes.ResultOutputNotRetrieved, run.DiagnosticCode);
         Assert.Contains(Warnings(run), code => code == "output-not-retrieved");
         AssertOneRestrictedMpCall(server);
     }
@@ -243,7 +244,7 @@ public sealed class CallOutcomeTests
 
         var run = await CliRun.RunAsync(CallArguments(server), cancellationToken: cancellation.Token);
 
-        AssertEvidenceUnavailable(run, MpOutcome.ClientCancelled, "CANCELLED");
+        AssertEvidenceUnavailable(run, Codes.ClientCancelled, "CANCELLED");
         AssertOneRestrictedMpCall(server);
     }
 
@@ -255,7 +256,7 @@ public sealed class CallOutcomeTests
 
         var run = await CliRun.RunAsync(CallArguments(server, "--deadline-seconds", "1"));
 
-        AssertEvidenceUnavailable(run, MpOutcome.ClientDeadlineExceeded, "DEADLINE_EXCEEDED");
+        AssertEvidenceUnavailable(run, Codes.ClientDeadlineExceeded, "DEADLINE_EXCEEDED");
         AssertOneRestrictedMpCall(server);
     }
 
@@ -303,11 +304,11 @@ public sealed class CallOutcomeTests
         Assert.NotEmpty(label);
         await using var server = await FakeBriosaServer.StartAsync();
         server.Reply = _ => FakeReply.WithTrailers(StatusCode.InvalidArgument,
-            values.Select(value => (BridgeContract.OperationErrorTrailer, value)).ToArray());
+            values.Select(value => (Wire.OperationErrorTrailer, value)).ToArray());
 
         var run = await CliRun.RunAsync(CallArguments(server));
 
-        AssertEvidenceUnavailable(run, MpOutcome.TrailerMalformed, "INVALID_ARGUMENT");
+        AssertEvidenceUnavailable(run, Codes.TrailerMalformed, "INVALID_ARGUMENT");
         AssertOneRestrictedMpCall(server);
     }
 
@@ -323,7 +324,7 @@ public sealed class CallOutcomeTests
         Assert.Equal(10, run.ExitCode);
         Assert.Equal("completion_evidence_unavailable", run.Outcome);
         Assert.Equal("internal-operation-failure", run.DiagnosticCode);
-        Assert.Contains(MpOutcome.DispositionUnrecognized, Warnings(run));
+        Assert.Contains(Codes.DispositionUnrecognized, Warnings(run));
         Assert.Equal("unavailable", run.Execution["completion_evidence"]!.GetValue<string>());
         Assert.Equal("EXECUTION_DISPOSITION_UNSPECIFIED", run.Execution["disposition"]!.GetValue<string>());
         AssertOneRestrictedMpCall(server);
@@ -331,8 +332,8 @@ public sealed class CallOutcomeTests
 
     public static TheoryData<string, bool> BrokenSuccesses() => new()
     {
-        { MpOutcome.ResultExecutionMissing, true },
-        { MpOutcome.ResultExecutionContractViolation, false }
+        { Codes.ResultExecutionMissing, true },
+        { Codes.ResultExecutionContractViolation, false }
     };
 
     [Theory]
@@ -353,6 +354,7 @@ public sealed class CallOutcomeTests
         Assert.Equal(10, run.ExitCode);
         Assert.Equal(code, run.DiagnosticCode);
         Assert.Null(run.Execution["disposition"]);
+        Assert.Contains("operation-evidence-conflict", Warnings(run));
         AssertOneRestrictedMpCall(server);
     }
 
@@ -459,8 +461,15 @@ public sealed class CallOutcomeTests
             { "Not An Operation", "operation-id-invalid" }
         };
 
-        static string First(IEnumerable<OperationCapability> operations, BridgeTier tier) =>
-            operations.First(operation => BridgeTiers.Classify(operation) == tier).OperationId;
+        static string First(IEnumerable<OperationCapability> operations, BridgeTier tier) => operations.First(operation =>
+            tier switch
+            {
+                BridgeTier.Mutating => operation.Effect == OperationEffect.Mutating && operation.RiskFlags.Count == 0 &&
+                    operation.ExecutionScope == OperationExecutionScope.GlobalStateMutation,
+                BridgeTier.ReadOnlyRestricted => operation.Effect == OperationEffect.ReadOnly &&
+                    operation.RiskFlags.SequenceEqual([OperationRiskFlag.InteractiveUi]),
+                _ => operation.RiskFlags.Contains(OperationRiskFlag.PhysicalMotion)
+            }).OperationId;
     }
 
     [Theory]
@@ -517,7 +526,7 @@ public sealed class CallOutcomeTests
         var path = file["path"]!.GetValue<string>();
         Assert.Equal(environment.SpillDirectory, Path.GetDirectoryName(path));
         var bytes = await File.ReadAllBytesAsync(path);
-        Assert.Equal(Encoding.UTF8.GetBytes(ProtocolJson.Format(result)), bytes);
+        AssertResultFile(result, bytes);
         Assert.Equal(Convert.ToHexStringLower(SHA256.HashData(bytes)), file["sha256"]!.GetValue<string>());
         Assert.Equal(bytes.Length, file["bytes"]!.GetValue<int>());
         var fields = run.Data["result_summary"]!["fields"]!.AsArray();
@@ -541,7 +550,7 @@ public sealed class CallOutcomeTests
         Assert.Equal(0, run.ExitCode);
         Assert.Equal("output_requested", run.Data["result_file"]!["reason"]!.GetValue<string>());
         Assert.Equal(output, run.Data["result_file"]!["path"]!.GetValue<string>());
-        Assert.Equal(Encoding.UTF8.GetBytes(ProtocolJson.Format(result)), await File.ReadAllBytesAsync(output));
+        AssertResultFile(result, await File.ReadAllBytesAsync(output));
         Assert.Null(run.Data["result"]);
         Assert.Empty(environment.SpilledFiles());
         AssertOneRestrictedMpCall(server);
@@ -599,8 +608,7 @@ public sealed class CallOutcomeTests
         Assert.Contains(Warnings(run), code => code == "output-write-failed");
         var fallback = run.Data["result_file"]!;
         Assert.Equal("output_write_failed", fallback["reason"]!.GetValue<string>());
-        Assert.Equal(Encoding.UTF8.GetBytes(ProtocolJson.Format(result)),
-            await File.ReadAllBytesAsync(fallback["path"]!.GetValue<string>()));
+        AssertResultFile(result, await File.ReadAllBytesAsync(fallback["path"]!.GetValue<string>()));
         AssertOneRestrictedMpCall(server);
     }
 
@@ -718,7 +726,7 @@ public sealed class CallOutcomeTests
     {
         var call = Assert.Single(server.MpCalls);
         Assert.Equal(Method, call.Path);
-        Assert.Equal([BridgeContract.ReadOnlyCallerRestriction], call.RestrictionValues);
+        Assert.Equal([Wire.ReadOnlyRestriction], call.RestrictionValues);
         Assert.False(call.BinaryRestrictionPresent);
         AssertOnlyKnownRpcs(server);
         return call;
@@ -758,6 +766,17 @@ public sealed class CallOutcomeTests
         Assert.True(run.Execution["request_sent"]!.GetValue<bool>());
         Assert.Contains(Warnings(run), warning => warning == "completion-evidence-unavailable");
         Assert.Contains(Guidance(run), text => text.Contains("never retries", StringComparison.Ordinal));
+    }
+
+    // A result file is UTF-8 JSON without a byte order mark that decodes, as protobuf
+    // JSON, to exactly the result the server sent.
+    internal static void AssertResultFile(IMessage result, byte[] bytes)
+    {
+        Assert.False(bytes.AsSpan().StartsWith(Encoding.UTF8.Preamble));
+        var text = new UTF8Encoding(false, throwOnInvalidBytes: true).GetString(bytes);
+        Assert.Equal(result.ToByteString(),
+            new JsonParser(JsonParser.Settings.Default.WithIgnoreUnknownFields(false))
+                .Parse(text, result.Descriptor).ToByteString());
     }
 
     private static IMessage Parse(JsonNode node) =>

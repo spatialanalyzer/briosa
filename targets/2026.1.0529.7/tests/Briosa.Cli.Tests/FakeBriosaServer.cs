@@ -52,7 +52,7 @@ internal sealed class FakeBriosaServer : IAsyncDisposable
         {
             BriosaVersion = "0.10.2",
             ProtocolPackage = "briosa",
-            SpatialAnalyzerTarget = BridgeContract.SpatialAnalyzerTarget,
+            SpatialAnalyzerTarget = Wire.Target,
             InteropFingerprint = "sha256:fake",
             SourceRevision = new string('a', 40)
         },
@@ -64,13 +64,13 @@ internal sealed class FakeBriosaServer : IAsyncDisposable
         TargetIsolationMode = TargetIsolationMode.SingleTenant,
         ActivatedSdkIdentity = new RuntimeIdentityEvidence
         {
-            Version = BridgeContract.SpatialAnalyzerTarget,
+            Version = Wire.Target,
             Source = RuntimeIdentityEvidenceSource.RuntimeVerification,
             MatchState = RuntimeIdentityMatchState.ExactMatch
         },
         ConnectedSpatialAnalyzerIdentity = new RuntimeIdentityEvidence
         {
-            Version = BridgeContract.SpatialAnalyzerTarget,
+            Version = Wire.Target,
             Source = RuntimeIdentityEvidenceSource.OperatorAttestation,
             MatchState = RuntimeIdentityMatchState.ExactMatch
         },
@@ -107,8 +107,8 @@ internal sealed class FakeBriosaServer : IAsyncDisposable
         var path = context.Request.Path.Value ?? string.Empty;
         var call = new ReceivedCall(
             path,
-            context.Request.Headers[BridgeContract.CallerRestrictionHeader].Select(value => value ?? string.Empty).ToArray(),
-            context.Request.Headers.ContainsKey(BridgeContract.CallerRestrictionHeader + "-bin"),
+            context.Request.Headers[Wire.CallerRestrictionHeader].Select(value => value ?? string.Empty).ToArray(),
+            context.Request.Headers.ContainsKey(Wire.CallerRestrictionHeader + "-bin"),
             payload);
         Calls.Enqueue(call);
         FakeReply reply;
@@ -165,7 +165,7 @@ internal sealed class FakeReply
     });
 
     public static FakeReply Error(StatusCode status, OperationError error) =>
-        WithTrailers(status, (BridgeContract.OperationErrorTrailer, Convert.ToBase64String(error.ToByteArray())));
+        WithTrailers(status, (Wire.OperationErrorTrailer, Convert.ToBase64String(error.ToByteArray())));
 
     public static FakeReply Status(StatusCode status) => WithTrailers(status);
 

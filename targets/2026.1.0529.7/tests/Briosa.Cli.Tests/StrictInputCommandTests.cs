@@ -17,32 +17,32 @@ public sealed class StrictInputCommandTests
     public static TheoryData<string, string, string?, string?> Rejections() => new()
     {
         // json, code, field path, suggested field name
-        { """{"groupName":{}}""", InputRejectionCodes.FieldNameNotExact, null, "group_name" },
-        { """{"group_name":{"objectName":"x"}}""", InputRejectionCodes.FieldNameNotExact, "group_name", "object_name" },
-        { """{"point_index":null}""", InputRejectionCodes.Null, "point_index", null },
-        { """{"group_name":{"object_name":null}}""", InputRejectionCodes.Null, "group_name.object_name", null },
-        { """{"point_index":1,"point_index":2}""", InputRejectionCodes.DuplicateField, "point_index", null },
-        { $$$"""{"group_name":{"object_name":"{{{Marker}}}","object_name":"b"}}""", InputRejectionCodes.DuplicateField, "group_name.object_name", null },
-        { $$"""{"{{Marker}}":1}""", InputRejectionCodes.UnknownField, null, null },
-        { $$$"""{"group_name":{"{{{Marker}}}":true}}""", InputRejectionCodes.UnknownField, "group_name", null },
-        { """{"point_index":"1"}""", InputRejectionCodes.NumberForm, "point_index", null },
-        { """{"point_index":1.0}""", InputRejectionCodes.NumberForm, "point_index", null },
-        { """{"point_index":1e2}""", InputRejectionCodes.NumberForm, "point_index", null },
-        { """{"point_index":2147483648}""", InputRejectionCodes.OutOfRange, "point_index", null },
-        { """{"group_name":{"object_type":18}}""", InputRejectionCodes.EnumNameRequired, "group_name.object_type", null },
-        { $$$"""{"group_name":{"object_type":"{{{Marker}}}"}}""", InputRejectionCodes.UnknownEnumName, "group_name.object_type", null },
-        { $$"""{"group_name":"{{Marker}}"}""", InputRejectionCodes.TypeMismatch, "group_name", null },
-        { """{"group_name":{"object_name":true}}""", InputRejectionCodes.TypeMismatch, "group_name.object_name", null },
-        { """{"point_index":true}""", InputRejectionCodes.TypeMismatch, "point_index", null },
-        { """{"group_name":{"object_name":"\uD800"}}""", InputRejectionCodes.InvalidString, "group_name.object_name", null },
-        { "[]", InputRejectionCodes.RootNotObject, null, null },
-        { "\"text\"", InputRejectionCodes.RootNotObject, null, null },
-        { "", InputRejectionCodes.MalformedJson, null, null },
-        { $$"""{"point_index":{{Marker}}""", InputRejectionCodes.MalformedJson, null, null },
-        { """{"point_index":1} {}""", InputRejectionCodes.MalformedJson, null, null },
-        { """{/* comment */}""", InputRejectionCodes.MalformedJson, null, null },
-        { """{"point_index":1,}""", InputRejectionCodes.MalformedJson, null, null },
-        { """{'point_index':1}""", InputRejectionCodes.MalformedJson, null, null }
+        { """{"groupName":{}}""", Codes.FieldNameNotExact, null, "group_name" },
+        { """{"group_name":{"objectName":"x"}}""", Codes.FieldNameNotExact, "group_name", "object_name" },
+        { """{"point_index":null}""", Codes.Null, "point_index", null },
+        { """{"group_name":{"object_name":null}}""", Codes.Null, "group_name.object_name", null },
+        { """{"point_index":1,"point_index":2}""", Codes.DuplicateField, "point_index", null },
+        { $$$"""{"group_name":{"object_name":"{{{Marker}}}","object_name":"b"}}""", Codes.DuplicateField, "group_name.object_name", null },
+        { $$"""{"{{Marker}}":1}""", Codes.UnknownField, null, null },
+        { $$$"""{"group_name":{"{{{Marker}}}":true}}""", Codes.UnknownField, "group_name", null },
+        { """{"point_index":"1"}""", Codes.NumberForm, "point_index", null },
+        { """{"point_index":1.0}""", Codes.NumberForm, "point_index", null },
+        { """{"point_index":1e2}""", Codes.NumberForm, "point_index", null },
+        { """{"point_index":2147483648}""", Codes.OutOfRange, "point_index", null },
+        { """{"group_name":{"object_type":18}}""", Codes.EnumNameRequired, "group_name.object_type", null },
+        { $$$"""{"group_name":{"object_type":"{{{Marker}}}"}}""", Codes.UnknownEnumName, "group_name.object_type", null },
+        { $$"""{"group_name":"{{Marker}}"}""", Codes.TypeMismatch, "group_name", null },
+        { """{"group_name":{"object_name":true}}""", Codes.TypeMismatch, "group_name.object_name", null },
+        { """{"point_index":true}""", Codes.TypeMismatch, "point_index", null },
+        { """{"group_name":{"object_name":"\uD800"}}""", Codes.InvalidString, "group_name.object_name", null },
+        { "[]", Codes.RootNotObject, null, null },
+        { "\"text\"", Codes.RootNotObject, null, null },
+        { "", Codes.MalformedJson, null, null },
+        { $$"""{"point_index":{{Marker}}""", Codes.MalformedJson, null, null },
+        { """{"point_index":1} {}""", Codes.MalformedJson, null, null },
+        { """{/* comment */}""", Codes.MalformedJson, null, null },
+        { """{"point_index":1,}""", Codes.MalformedJson, null, null },
+        { """{'point_index':1}""", Codes.MalformedJson, null, null }
     };
 
     [Theory]
@@ -58,7 +58,7 @@ public sealed class StrictInputCommandTests
         var input = run.Envelope["failure"]!["input"]!;
         Assert.Equal(path, input["field_path"]?.GetValue<string>());
         Assert.Equal(suggestion, input["suggested_field_name"]?.GetValue<string>());
-        if (code != InputRejectionCodes.MalformedJson || json.Length > 0)
+        if (code != Codes.MalformedJson || json.Length > 0)
         {
             Assert.NotNull(input["line"]);
             Assert.NotNull(input["column"]);
@@ -74,7 +74,7 @@ public sealed class StrictInputCommandTests
         var run = await CliRun.RunAsync(["call", CallOutcomeTests.Operation, "--json", json, "--endpoint", server.Endpoint]);
 
         Assert.Equal(3, run.ExitCode);
-        Assert.Equal(InputRejectionCodes.InvalidString, run.DiagnosticCode);
+        Assert.Equal(Codes.InvalidString, run.DiagnosticCode);
         Assert.Empty(server.Calls);
     }
 
@@ -82,11 +82,11 @@ public sealed class StrictInputCommandTests
     public async Task AnInputOverTheSizeLimitIsRejected()
     {
         await using var server = await FakeBriosaServer.StartAsync();
-        var json = "{\"group_name\":{\"object_name\":\"" + new string('x', StrictJsonInput.MaximumInputBytes) + "\"}}";
+        var json = "{\"group_name\":{\"object_name\":\"" + new string('x', Wire.MaximumInputBytes) + "\"}}";
 
         var run = await CliRun.RunAsync(["call", CallOutcomeTests.Operation, "--json", json, "--endpoint", server.Endpoint]);
 
-        AssertRejected(run, server, InputRejectionCodes.TooLarge);
+        AssertRejected(run, server, Codes.TooLarge);
     }
 
     [Fact]
@@ -95,11 +95,11 @@ public sealed class StrictInputCommandTests
         using var environment = TestEnvironment.Create();
         await using var server = await FakeBriosaServer.StartAsync();
         var path = Path.Combine(environment.Root, "large.json");
-        await File.WriteAllBytesAsync(path, new byte[StrictJsonInput.MaximumInputBytes + 1]);
+        await File.WriteAllBytesAsync(path, new byte[Wire.MaximumInputBytes + 1]);
 
         var run = await CliRun.RunAsync(["call", CallOutcomeTests.Operation, "--input", path, "--endpoint", server.Endpoint]);
 
-        AssertRejected(run, server, InputRejectionCodes.TooLarge);
+        AssertRejected(run, server, Codes.TooLarge);
     }
 
     [Fact]
@@ -109,12 +109,12 @@ public sealed class StrictInputCommandTests
         var names = string.Join(',', Enumerable.Range(0, 2000).Select(index =>
             $$"""{"collection_name":"collection-{{index:D6}}","group_name":"group-{{index:D6}}","target_name":"t"}"""));
         var json = $$$"""{"point_names":[{{{names}}}],"single_point":{"target_name":"t"}}""";
-        Assert.True(Encoding.UTF8.GetByteCount(json) < StrictJsonInput.MaximumInputBytes);
+        Assert.True(Encoding.UTF8.GetByteCount(json) < Wire.MaximumInputBytes);
 
         var run = await CliRun.RunAsync(["call", "analysis_operations.query_points_to_single_point", "--json", json,
             "--endpoint", server.Endpoint]);
 
-        AssertRejected(run, server, InputRejectionCodes.EncodedRequestTooLarge);
+        AssertRejected(run, server, Codes.EncodedRequestTooLarge);
     }
 
     [Fact]
@@ -144,7 +144,7 @@ public sealed class StrictInputCommandTests
         var missing = await CliRun.RunAsync(["call", CallOutcomeTests.Operation, "--input",
             Path.Combine(environment.Root, Marker + ".json"), "--endpoint", server.Endpoint]);
 
-        AssertRejected(invalid, server, InputRejectionCodes.InvalidString);
+        AssertRejected(invalid, server, Codes.InvalidString);
         AssertRejected(missing, server, "input-file-unreadable");
     }
 
@@ -152,14 +152,14 @@ public sealed class StrictInputCommandTests
     public void NestingBeyondTheLimitIsRejectedWithItsPath()
     {
         var node = RecursiveNode();
-        var within = Nest(StrictJsonInput.MaximumDepth);
-        var beyond = Nest(StrictJsonInput.MaximumDepth + 1);
+        var within = Nest(Wire.MaximumDepth);
+        var beyond = Nest(Wire.MaximumDepth + 1);
 
         Assert.Null(StrictJsonInput.Validate(Encoding.UTF8.GetBytes(within), node));
         var rejection = StrictJsonInput.Validate(Encoding.UTF8.GetBytes(beyond), node);
         Assert.NotNull(rejection);
-        Assert.Equal(InputRejectionCodes.TooDeep, rejection.Code);
-        Assert.Equal(string.Join('.', Enumerable.Repeat("child", StrictJsonInput.MaximumDepth)), rejection.FieldPath);
+        Assert.Equal(Codes.TooDeep, rejection.Code);
+        Assert.Equal(string.Join('.', Enumerable.Repeat("child", Wire.MaximumDepth)), rejection.FieldPath);
 
         static string Nest(int levels) =>
             string.Concat(Enumerable.Repeat("{\"child\":", levels - 1)) + "{}" + new string('}', levels - 1);
@@ -173,7 +173,7 @@ public sealed class StrictInputCommandTests
 
         var run = await CliRun.RunAsync(["call", CallOutcomeTests.Operation, "--json", json, "--endpoint", server.Endpoint]);
 
-        AssertRejected(run, server, InputRejectionCodes.TypeMismatch);
+        AssertRejected(run, server, Codes.TypeMismatch);
     }
 
     private static void AssertRejected(CliRun run, FakeBriosaServer server, string code)

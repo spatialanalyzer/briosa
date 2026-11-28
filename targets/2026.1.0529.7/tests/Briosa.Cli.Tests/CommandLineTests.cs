@@ -80,9 +80,9 @@ public sealed class CommandLineTests
         var version = await CliRun.RunAsync(["version"]);
 
         Assert.Equal(0, help.ExitCode);
-        Assert.Equal(CliApplication.Usage.Count, help.Data["usage"]!.AsArray().Count);
+        Assert.Equal(13, help.Data["usage"]!.AsArray().Count);
         Assert.Equal(0, version.ExitCode);
-        Assert.Equal(BridgeContract.SpatialAnalyzerTarget, version.Data["spatial_analyzer_target"]!.GetValue<string>());
+        Assert.Equal(Wire.Target, version.Data["spatial_analyzer_target"]!.GetValue<string>());
         Assert.Equal(2, version.Data["minimum_revision_for_call"]!.GetValue<int>());
         Assert.Empty(version.StandardError);
     }
