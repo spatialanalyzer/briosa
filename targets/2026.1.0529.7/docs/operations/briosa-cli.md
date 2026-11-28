@@ -517,14 +517,22 @@ file with:
 2. It reads them back and compares every byte with the result. This reads what the
    file system holds for the file, which can come from its cache rather than from
    the storage device.
-3. It flushes the file to the storage device (`RandomAccess.FlushToDisk`, which is
-   `FlushFileBuffers` on Windows): the operating system is asked to write the
-   file's data and metadata to the device and must report that it did. Both kinds
-   of result file are also opened write-through. A device that acknowledges writes
-   it has not made durable, such as one whose volatile cache ignores flush requests,
-   is beyond what the CLI can check.
+3. It flushes the file to the storage device: it calls `FlushFileBuffers` itself
+   and checks its result, so the operating system is asked to write the file's data
+   and metadata to the device and must report that it did. (.NET's
+   `RandomAccess.FlushToDisk` reports a flush that Windows refuses with
+   `ERROR_ACCESS_DENIED` as a success, so the CLI does not use it.) Both kinds of
+   result file are also opened write-through. A device that acknowledges writes it
+   has not made durable, such as one whose volatile cache ignores flush requests, is
+   beyond what the CLI can check.
 4. It closes the handle. .NET does not report a failed close of a file handle, so in
    practice the flush is the last step that can report an error.
+
+Before it creates any file, the CLI formats the result, summarizes it, and computes
+its SHA-256, so that nothing that runs once a file exists can fail and lose it. If
+the SHA-256 cannot be computed, every file entry carries a null `sha256`, the
+warning `result-hash-unavailable` says so, and the files are still read back and
+compared byte for byte.
 
 Each file the call wrote, or created and could not remove, is described by an
 object with `path`, `bytes`, `sha256`, `reason`, and `verification`:
@@ -536,16 +544,21 @@ object with `path`, `bytes`, `sha256`, `reason`, and `verification`:
 | `not_read_back` | The file could not be read back, so whether it holds the whole result is not known. It is kept, because it may be the only copy. | The result's size and SHA-256, to compare the file with. |
 | `incomplete` | The file read back shorter or different, or nothing was written to it, and it could not be removed. It does not hold the result; delete it. | Its size on disk and no SHA-256. `reason` is `incomplete_not_removed`, or `reservation_not_removed` for an unused `--output` file. |
 
+Before using a file labeled `not_read_back` or `matched_unconfirmed`, check that its
+size and SHA-256 equal `bytes` and `sha256`: the first was never read back, and the
+second may have changed after it was.
+
 A file that read back shorter or different is removed through its handle, on
 either destination, because the call created it. A file that may hold the whole
 result is never removed. The `reason` of any other file says why it was written:
 `inline_cap_exceeded`, `output_requested`, or `output_write_failed` for a spill
 that backs a failed `--output` file.
 
-`data.result_file` is the best of the files the call left on disk: `matched`
-first, then `matched_unconfirmed`, `not_read_back`, and `incomplete`; on a tie,
-the `--output` file. Its `other_files` lists every other file the call left on
-disk, in the same form, and is empty when there is none. `data.result_delivery` is
+**Which file is named first.** `data.result_file` is the best of the files the call
+left on disk: `matched` first, then `matched_unconfirmed`, `not_read_back`, and
+`incomplete`; on a tie, the `--output` file. Its `other_files` lists every other
+file the call left on disk, in the same order and form, and is empty when there is
+none. `data.result_delivery` is
 the state of `data.result_file`:
 
 | `result_delivery` | What it asserts | `data.result_file` |
@@ -571,16 +584,18 @@ Otherwise it names the first failure, the `--output` file's whenever there is on
 | `output-write-failed` | The `--output` file read back shorter or different. It is removed, or named as `incomplete`, and the result is spilled. |
 | `spill-finalize-failed` | The spill file is `matched_unconfirmed`. |
 | `spill-verify-failed` | The spill file could not be read back. |
-| `spill-write-failed` | No spill file could be created, or it read back shorter or different. |
+| `spill-write-failed` | No spill file could be created, a new one failed its checks before anything was written to it, or it read back shorter or different. |
 | `spill-permissions-unsupported` | The volume keeps no file permissions, so nothing was spilled. |
-| `result-format-failed` | The result could not be formatted as JSON. Nothing was written. |
+| `result-format-failed` | The result could not be formatted as JSON or summarized. This is found before any file exists, so nothing was written. |
+| `result-report-failed` | A defect in the CLI while it reported the delivery. Whatever `data.result_file` names is still on disk; check any other file the call may have written. |
 
 Warnings name each event: `result-spilled` for a `matched` spill of a result over
 the cap; `result-file-unconfirmed` and `result-file-unverified` for a file in those
 states; `output-write-failed` and `spill-write-failed` for a failed write;
 `spill-refused`; `incomplete-file-left` for an incomplete file left on disk;
-`output-reservation-left` for an unused `--output` file that could not be removed;
-and `result-lost` whenever the delivery state is `lost`, and only then.
+`output-reservation-left`, with the file's path, for an unused `--output` file that
+could not be removed; `result-hash-unavailable` when the SHA-256 could not be
+computed; and `result-lost` whenever the delivery state is `lost`, and only then.
 
 Any state other than `inline` and `file`, and any `--output` file that is not
 `matched`, is a failed delivery: exit code 12 when the call's own evidence
@@ -588,19 +603,26 @@ established that the operation completed, and otherwise the call's outcome stand
 
 ### Delivery invariants
 
-These hold for every combination of failures:
+These hold for every combination of failures, for every call that ends with an
+envelope. A process that is killed while it writes a result, or that cannot write
+its envelope to standard output, can leave a partial file that no envelope names:
+nothing then reports it, so a file in the spill directory or at an `--output` path
+that no envelope names must not be trusted.
 
 1. **A possible copy is never lost.** If any file on disk may hold the whole
    result, the envelope names it, with its `verification` and the result's size
-   and SHA-256. It is never removed, and the result is never reported as absent.
+   and SHA-256 (null only when the SHA-256 could not be computed, which
+   `result-hash-unavailable` says). It is never removed, and the result is never
+   reported as absent.
 2. **`file` is earned.** A file is `matched`, and the state is `file`, only when it
    was read back in full as exactly the result and the write, the flush to disk,
    and the close all succeeded.
 3. **Nothing is left silently.** Every file the call created and left on disk,
    complete or not, is named in `data.result_file` or its `other_files`. An unused
    `--output` file that could not be removed is also named by the warning
-   `output-reservation-left`. That warning is the only place it can be named when
-   the call stopped before it found the operation, because `data` is then null.
+   `output-reservation-left`, which gives its path. That warning is the only place
+   it can be named when the call stopped before it found the operation, because
+   `data` is then null.
 4. **Incomplete is labeled.** A file known to be incomplete is `incomplete`, with
    no SHA-256 and an explicit reason, and never `matched` or
    `matched_unconfirmed`.
@@ -610,9 +632,13 @@ These hold for every combination of failures:
 6. **The envelope stays bounded.** Result data is in the envelope only for an
    `inline` delivery within the cap, whatever fails.
 
-`DeliveryFaultMatrixTests` checks all six after each call, against the files on
-disk and a log of the real handle operations, never against the CLI's own account.
-It injects each fault point:
+`DeliveryFaultMatrixTests` checks all six after each call. For every cell it first
+predicts, from the injected faults alone, which files the CLI must write (including
+the spill behind a failed `--output` file), what must be on disk afterwards and how
+large, which file must be named first by the rule above, the delivery state, the
+error, the exit code, and the main warnings. It then compares the files on disk,
+a log of the real handle operations, and the envelope with that prediction, never
+with the CLI's own account. It injects each fault point:
 
 - for a spill: opening a directory, setting the permissions of `results`, a volume
   without permissions, creating the file, and the two hand-over checks;
