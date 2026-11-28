@@ -288,15 +288,35 @@ A typed error is evidence about the call only when all of the following hold:
    | `INTERNAL` | `DATA_LOSS` | completed: `DO_NOT_REPLAY` | | `result-mapping-failed` | completed, every output retrieved |
 
    "Completed" MP details are `SUCCEEDED` with code 2 or `PARTIAL_SUCCESS` with
-   code 4. No disposition is ever unspecified.
-4. `worker_generation` is present and not negative. `policy_denial` is present
-   exactly on `POLICY_DENIED`, with a rule other than unspecified.
-   `request_validation` appears only on `VALIDATION`, with the diagnostic code
-   `request-validation-failed`.
+   code 4. No disposition is ever unspecified. For an operation `call` serves, an
+   `MP_FAILURE` never carries code 4 (see
+   [what the CLI cannot tell apart](#what-the-cli-cannot-tell-apart)).
+4. `worker_generation` is present and not negative. `request_validation` appears
+   only on `VALIDATION`, with the diagnostic code `request-validation-failed`.
+   `policy_denial` is present exactly on `POLICY_DENIED`, and carries exactly the
+   fields its rule names, as the server writes them:
+
+   | Rule | Required | Allowed | Value checked |
+   | --- | --- | --- | --- |
+   | `PROFILE` | `admission_profile` | `request_option_field` | not blank |
+   | `FLAG` | `denied_flag` | `request_option_field` | not blank; a flag this CLI does not know is data |
+   | `OVERRIDE`, `UNREVIEWED` | none | none | |
+   | `EXCLUSIVE` | none | `request_option_field` | |
+   | `CALLER_PROFILE` | `caller_admission_profile` | `request_option_field` | the profile this CLI's restriction names: `read-only` |
+   | `CALLER_FLAG` | `caller_denied_flag` | `request_option_field` | a flag this CLI's restriction denies: `interactive_ui` |
+
+   Any other field, and a blank `request_option_field`, does not fit. The server
+   names a caller denial after the restriction the call carried: its profile, or the
+   first of the request's flags that the restriction itself denies. So a caller rule
+   naming anything else, or a server rule relabelled as a caller's, is not evidence
+   of the CLI's own restriction. The warning `caller-restriction-denied` appears only
+   for a caller denial that fits.
 5. Its output rows name and cover the result, as described next.
 
-Otherwise: `operation-error-inconsistent`. A diagnostic code alone, known or not,
-is never a conflict.
+Otherwise: `operation-error-inconsistent`. A diagnostic code that the table leaves
+open is data: an unknown one alone is never a conflict. Where a row fixes the
+code, as for `INTERNAL` and an operator-recovery watchdog timeout, a different code
+alone makes the error conflicting evidence.
 
 ### Output rows
 
@@ -312,20 +332,26 @@ holds for every operation:
   `execution`, a dotted path that resolves through it, or the bare name of a field
   nested inside it. Otherwise: `result-output-unrelated` on an OK result,
   `operation-error-unrelated` on an error.
-- Each top-level field of the result other than `execution` is named by at least
-  one row, by its own name, a dotted path that starts with it, or a bare name found
-  inside it. Otherwise: `result-output-missing` on an OK result,
-  `operation-error-inconsistent` on an error. Every result field of every operation
-  on this target is written from an output, so genuine replies always pass; a test
-  checks the genuine replies of all 1,018 operations.
+- Each top-level field of the result other than `execution` has a row of its own:
+  the rows can be matched to the fields so that every field gets a different row
+  that names it, by the field's name, a dotted path that starts with it, or a bare
+  name found inside it. One row never answers for two fields, even when its bare
+  name is nested inside both, as `collection_name` is inside each of the three datum
+  fields of `gdt_operations.get_feature_check_datum_references`. Otherwise:
+  `result-output-missing` on an OK result, `operation-error-inconsistent` on an
+  error. Every result field of every operation on this target is written from its
+  own outputs, so genuine replies always pass; a test checks the genuine replies of
+  all 1,018 operations, and the 26 whose results nest one field name under several
+  top-level fields each get a single-row case that must fail.
 
 These rules cannot detect:
 
 - a missing row for a nested field when another row already names the same
   top-level field, for example four of the five status fields of
   `relationship_operations.get_relationship_status`;
-- extra, repeated, or reordered rows that name fields of this result, or the wrong
-  number of rows for an operation that repeats a name;
+- extra, repeated, or reordered rows that name fields of this result, the wrong
+  number of rows for an operation that repeats a name, or which of two fields a
+  bare-named row belongs to (it is matched to one of them, never both);
 - a reply that answers another call, or another operation with the same result
   message;
 - whether a retrieved value is the one SpatialAnalyzer returned. A value left
@@ -350,10 +376,15 @@ Otherwise: `ok-with-operation-error`, `result-execution-missing`,
 
 The server reports MP code 4 as an MP failure for four reviewed operations whose
 target documentation says code 4 leaves the work undone, and as partial success
-for every other operation. Without a table of operations the CLI cannot tell them
-apart: it accepts code 4 in an MP failure of any operation, and a partial success
-of those four. None of the four is in the read-only tier, so `call` never sends
-one; a test pins that.
+for every other operation. None of the four is in the read-only tier, so for an
+operation `call` serves, an MP failure with code 4 is something the server never
+sends, and the CLI treats it as conflicting evidence. A test pins that none of the
+four is in the read-only tier, so this rule fails loudly if that ever changes.
+
+The CLI keeps no table of operations, so it cannot tell the four from the others
+outside the read-only tier. A later tier that serves mutating operations must
+accept code 4 in their MP failures again, and would then accept it for any of
+them, and a partial success of those four.
 
 ### When a rule fails
 
@@ -408,25 +439,34 @@ What it prints is bounded instead:
 The spill directory is `%LOCALAPPDATA%\Briosa\cli\2026.1.0529.7\results`. The
 CLI manages every directory below `%LOCALAPPDATA%`:
 
-- It first checks that the volume keeps file permissions. On a volume that does
-  not, such as FAT32 or exFAT, it creates nothing and writes nothing there (see
-  below).
-- It creates each directory if needed and opens it as itself, without following a
-  reparse point. It refuses one that is a reparse point, such as a junction.
-- It holds each one open, so it cannot be renamed or replaced, until the file
-  exists.
-- Through its open handle, so on the directory it checked and not on whatever the
-  path leads to by then, it makes the current user the owner of `results` and gives
-  it a protected access list for the current user and SYSTEM only, with no
-  inherited entries. Files and directories created in it inherit those two entries.
-- It creates the file with its own protected access list for the same two, owned by
-  the current user, so the file does not depend on what it would inherit. It then
-  checks that the new file resolves to exactly the checked path. A file that does
-  not resolve there is removed through its own handle.
+- It opens `%LOCALAPPDATA%` by path once, following a redirection of that folder,
+  and holds it open. That directory is the root of the spill tree for this call.
+- It checks that the volume keeps file permissions. On a volume that does not, such
+  as FAT32 or exFAT, it creates nothing and writes nothing there (see below).
+- It opens each directory below, or creates it, relative to the held handle of its
+  parent, never by path, and as itself rather than what a reparse point leads to.
+  It refuses one that is a reparse point, such as a junction, or not a directory.
+  It holds each one open without delete sharing, so it cannot be renamed, until the
+  file exists.
+- Only then, through the held handle of `results`, it makes the current user the
+  owner and gives it a protected access list for the current user and SYSTEM only,
+  with no inherited entries.
+- It creates the file relative to that handle, with its own protected access list
+  for the same two, owned by the current user. It reports the path the file
+  actually has, and checks that it is the spill tree's path; a file that is not
+  there is removed through its own handle.
 
-Another process running as the same user can still read or change the file, or its
-permissions, after the CLI has written it. A file named with `--output` is not a
-spill file: it takes the permissions of the directory the caller chose.
+What this guarantees: whatever happens to any path during the call, including a
+redirection of `%LOCALAPPDATA%` itself between two levels, the CLI changes owner or
+permissions only on the `results` directory inside the tree that `%LOCALAPPDATA%`
+led to when the CLI opened it, and writes only there. A test re-points the base
+after each level and checks that nothing outside that tree changed.
+
+What it does not guarantee: that `%LOCALAPPDATA%` leads where the user expects when
+the CLI opens it; whoever can redirect that folder chooses the tree. Another process
+running as the same user can still read or change the file, or its permissions,
+after the CLI has written it. A file named with `--output` is not a spill file: it
+takes the permissions of the directory the caller chose.
 
 On a volume that does not keep file permissions the CLI refuses to spill:
 `data.result_delivery` is `lost`, `data.result_delivery_error` is
@@ -442,7 +482,10 @@ A result is never fetched again by running the MP again. If an `--output` write
 fails after the operation completed, the CLI writes the result to the spill
 directory instead and reports exit code 12 with the spill file in
 `data.result_file`; the `--output` file may then be incomplete. If no file can be
-written, `data.result_delivery` is `lost`.
+written, `data.result_delivery` is `lost`. When the `--output` write fails and the
+spill is also refused because the volume keeps no permissions,
+`data.result_delivery_error` stays `output-write-failed`, the first failure, and the
+warning `spill-refused` reports the refused spill.
 
 ## Bridge tiers
 
